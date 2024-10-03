@@ -1,0 +1,10 @@
+# ---
+# title:  clang format config file
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   2024-05-15
+# notes:
+# - put this file into project root
+# ---
+
+IndentWidth: 8

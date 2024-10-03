@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+#  ---
+#  title:  tmux projectile (session switcher)
+#  author: emil lenz
+#  email:  emillenz@protonmail.com
+#  date:   2024-05-21
+#  ---
+
+require 'open3'
+require 'English'
+
+def main
+        target = if ARGV[0].nil?
+                         sessions = `fd --type=directory --min-depth=1 --max-depth=1 . ~/Code ~/Documents`
+                                    .split("\n")
+                                    .concat(
+                                            `tmux list-sessions`
+                                            .split("\n")
+                                            .map { |line| line.split.first.delete(':') }
+                                    ).join("\n")
+                         read, status = Open3.capture2('fzf', stdin_data: sessions)
+                         exit(1) unless status.success?
+                         read.chomp
+                 else
+                         ARGV[0]
+                 end
+        exit 1 if target.empty?
+        switch(target)
+end
+
+def switch(target)
+        system("tmux has-session -t #{target}", out: File::NULL, err: File::NULL)
+        unless $CHILD_STATUS.success?
+                system("tmux new-session -d -s #{target} -c #{target}",
+                       out: File::NULL,
+                       err: File::NULL)
+        end
+
+        if ENV['TMUX'].nil?
+                `tmux attach-session -t #{target}`
+        else
+                `tmux switch-client -t #{target}`
+        end
+end
+
+main

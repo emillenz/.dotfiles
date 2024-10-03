@@ -1,0 +1,15 @@
+# ---
+# title:  GNU readline configuration file
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   2024-05-15
+# notes:
+# - vi-bindings :: most REPL's (irb, gdb,..) use the readline lib, and we want to get vi-bindings everywhere.
+# - symlink :: `ln -s ~/.config/inputrc ~/.inputrc`, this is the location needed for readline
+# ---
+
+set editing-mode vi # same as `set -o vi` on the cmdline
+set keyseq-timeout 0
+set show-mode-in-prompt on
+set vi-cmd-mode-string "\1\e[2 q\2"
+set vi-ins-mode-string "\1\e[6 q\2"

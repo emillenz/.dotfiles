@@ -1,0 +1,29 @@
+# ---
+# title:  config
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   2024-01-18
+# info:   gtk apps are configured to use readline bindings already.
+#         to quickly remap caps->ctrl use gnome-tweak-tools or: `setxkbmap -option ctrl:nocaps`
+#
+# ---
+
+modmap:
+  - name: global
+    remap:
+      capslock:
+        held: ctrl_l
+        alone: esc
+        one_timeout_milis: 100
+      ctrl_l: # hack :: support physical ctrl -> caps remaps
+        held: ctrl_l
+        alone: esc
+        one_timeout_milis: 100
+
+keymap:
+  - name: browser
+    application:
+      only: firefox
+    remap:
+      c-n: down
+      c-p: up

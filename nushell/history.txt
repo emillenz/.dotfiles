@@ -1,0 +1,1986 @@
+
+ls
+^ls | drop 1
+^ls | drop 1 | echo
+^ps | drop 1 | echo
+^ps | lines | drop 1 | echo
+^ps | lines | drop 1 
+^ps | lines 
+^ls
+^ls | lines | drop 1
+autostart
+nvim .config/i3/config
+nvim .config/bin/autostart
+emacsclient --reuse-frame
+yay --noconfirm --sync i3 i3lock zathura zathura-pdf-mupdf arandr mpv yt-dlp rofi brightnessctl sxiv unclutter firefox pavucontrol pasystray playerctl blueman xorg-xprop xremap-x11-bin light networkmanager mpd dunst notify-send nsxiv maim pulsemixer xorg-xset xorg-xsetroot batsignal autorandr pamixer
+yay curl
+http head chatgpt.com
+http head https://chatgpt.com
+http head https://google.com
+http get https://google.com
+http get https://google.com | from xml 
+fd .odf
+fd .ods
+cd Documents/
+fd -e ods
+fd -e odf
+fd -e org
+ls
+spotify-launcher 
+nushell
+ls /usr/man
+ls /usr/share/man
+man -W grep\
+man -W grep
+man -w grep
+ls /usr/share/man/**
+ls /usr/share/man/**/*
+ls /usr/share/man/man1/**/*.
+ls /usr/share/man/man1/**/*
+zip  --help | bat --plain --language help
+^ls -la | fzf-tmux 
+^ls /usr/share/man/man1 | fzf-tmux 
+^ls /usr/share/man/man1 | fzf-tmux -d 30%
+^ls /usr/share/man/man1 | fzf-tmux -d 10%
+^ls /usr/share/man/man1 | fzf-tmux -d 10
+^ls /usr/share/man/man1 | fzf-tmux -d 15
+^ls /usr/share/man/man1 | fzf
+tmux send-keys "hello world"
+$"(fd | print "hello")"
+print $"(fd | 'hello ass')"
+print $"('hello assl')"
+char --list
+tmux send-keys (fd --type file | fzf --preview "bat {}" | str trim)
+tmux send-keys (fd --type file | fzf --preview "bat {}")
+keybindings list
+man bat
+bat --help | bat --paging always
+man bat | bat --paging always
+ls /usr/bin/env
+ls /usr/bin
+ls /usr/bin | length
+ls /usr/share/bin | get name |fzf
+ls /usr/bin | get name |fzf
+ls /usr/bin | get name | fzf
+ls /usr/bin | get name 
+(^ls /usr/bin | fzf)
+nu -c '(^ls /usr/bin | fzf) --help'
+nu -c '(^ls /usr/bin | fzf)'
+exec 'bat --help'
+man grep
+man grep | lines
+help skip
+help skip while
+man grep | lines | skip until {|i| $i =~ "NAME"}
+man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0
+man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | str split
+man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words
+man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words | drop 1
+man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words | skip 1
+man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words | skip 1 | str join 
+man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words | skip 1 | str join " "
+ls /usr/share/man/man1 | fzf --preview='man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words | skip 1 | str join " "'
+^ls /usr/share/man/man1 | fzf --preview='man grep | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words | skip 1 | str join " "'
+^ls /usr/share/man/man1 | fzf --preview='man {} | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words | skip 1 | str join " "'
+^ls /usr/bin | fzf --preview='man {} | lines | skip until {|i| $i =~ "NAME"} | skip 1 | get 0 | split words | skip 1 | str join " "'
+print "(hello \"marcel\")"
+man man
+man -k . | fzf --preview='man {}'
+man -k | fzf --preview='man {}'
+man -k . | fzf --preview='man {}'
+xargs
+xargs --help | bat --plain --language help
+xargs --help | bat --plain --language helpxargs 
+xargs --help | bat --plain --language help
+xargs gnu --help | bat --plain --language help
+tldr xargs
+(^ls /usr/bin | fzf) | xargs 
+bash -c "(^ls /usr/bin | fzf) --help"
+bash -c "$(ls /usr/bin | fzf) --help"
+sh -c "$(ls /usr/bin | fzf) --help"
+sh -c '$(^ls /usr/bin | fzf) --help' | bat --paging=always --plain --language=help
+sh -c '$(ls /usr/bin | fzf) --help' | bat --paging=always --plain --language=help
+sh -c '$(ls /usr/bin | fzf) --help' | bat --plain --language=help
+sh -c '$(ls /usr/bin | fzf) --help' | bat --plain
+sh -c '$(ls /usr/bin | fzf) -h' | bat --plain
+bash -c '$(ls /usr/bin | fzf) -h' | bat --plain
+man mna
+man -f emacs
+man -k emacs
+man -f emacs
+man -k
+man -k .
+man -k . | lines
+quit
+exit
+man -k . 
+sh -c '$(ls /usr/bin | fzf) -h' | bat --plain
+man -k . 
+man -k . | length
+man -f .
+man -k .
+man -f
+man -f vi
+man -k vi
+man -k .
+man (man -k . | split words | first 1 | fzf )
+man -k . | split words 
+man -k . | each { split words }
+man -k . | lines | each { split words }
+man -k . | lines | each { split words | get 0}
+man -k . | lines | each { split words | get 0} | uniq 
+man -k . | lines | each { split words | get 0} | uniq | length
+ls | split words | get 0
+^ls | split words | get 0
+^ls | split words | first 0
+^ls | split words | first 1
+man (man -k . | fzf | split words | get 0)
+which fzf-tmux
+man (man -k . | fzf-tmux -d 15 | split words | get 0)
+which fzf-tmux
+yay fzf-tmux
+fzf-tmux -h
+man (man -k . | fzf-tmux --preview='man {}' -d 15 | split words | get 0)
+man (man -k . | fzf-tmux --preview='man {}' | split words | get 0)
+ls
+ls --help
+man (man -k . | fzf-tmux | lines | split list ' ' | get 0)
+man (man -k . | fzf-tmux)
+(man -k . | fzf-tmux)
+print $"[(man -k . | fzf-tmux)]"
+print $"[(man -k . | fzf)]"
+print $"[(man -k . | fzf-tmux)]"
+print $"[(man -k . | fzf)]"
+$"(man -k . | fzf)"
+$"(man -k . | fzf)" | split list ' '
+(man -k . | fzf) | split list ' '
+(man -k . | fzf | split list ' ' ) 
+(man -k . | fzf | lines | split list ' ') 
+(man -k . | fzf | lines | get 0 | split list ' ') 
+(man -k . | fzf | lines ) 
+(man -k . | fzf | split words) 
+(man -k . | fzf | split words)
+split column ' ' 
+"i3 asdflkj al;skdjf " | Asplit list ' ' 
+"i3 asdflkj al;skdjf " | split list ' ' 
+"i3 asdflkj al;skdjf \n" | split list ' ' 
+"i3 asdflkj al;skdjf \n" | lines | split list ' ' 
+"i3 asdflkj al;skdjf \n" | lines | split words ' ' 
+"i3 asdflkj al;skdjf \n" | lines | split words 
+"i3 asdflkj al;skdjf \n" | split words
+"i3 asdflkj al;skdjf \n" | split list " "
+(man -k . | fzf | split  list)
+(man -k . | fzf | split  list " ") 
+(man -k . | fzf | lines | split list " ") 
+(man -k . | fzf | each {split list " "}) 
+(man -k . | fzf | liens) 
+(man -k . | fzf | lines) 
+nu
+nu
+nu
+nu
+nu
+(man -k . | fzf | lines) 
+(man -k . | fzf | lines | split words) 
+(man -k . | fzf | lines | split words | get 0) 
+(man -k . | fzf | split words | get 0 )
+man (man -k . | fzf | split words | get 0 )
+tmux send-keys $"cd (fd --type=directory | fzf --preview='^ls --color {}')"
+man alacritty-bindings
+keybindings list
+emacs --help | bat --paging=always --plain --language=help
+emacs  --help | bat --paging=always --plain --language=help
+man emacs 
+batsignal  --help | bat --paging=always --plain --language=help
+batsignal  -h
+emacs -h
+emacs --help
+git -h
+git --help
+alias help = --help | bat
+alias help = "--help | bat"
+ls
+emacs  --help | bat --paging=always --plain --language=help
+emacs  --help | bat --paging=always --language=help
+bat  --help | bat --paging=always --language=help
+bat -h
+bat --help
+vi -h
+nvim -h
+nvim --help
+vi --help
+emacs --help
+batsignal -h
+i3 --help
+i3 -h
+grep -h
+grep --help
+grep --help | bat --style=full
+grep --help | bat --style=heade3r
+grep --help | bat --style=header
+grep --help | bat --style=header-filename
+grep  --help | bat --paging=always --plain --language=help
+grep  --help | bat --paging=always --style=auto --language=help
+ls
+grep  --help | bat --paging=always --style=auto --language=help
+grep  --help | bat --paging=always --language=help
+grep  --help | bat --paging=always --plain --language=help
+man less 
+less  --help | bat --paging=always --plain --language=help
+man emacs
+man emacs | bat --language=man
+bat emacs
+bat man emacs
+man emacs 
+ls
+emacs  --help | bat --language=help
+emacs  --help | bat -l=help
+emacs  --help | bat -lh
+emacs  --help | bat -lhelp
+ls
+emacs  --help | bat -lhelp
+vim --help | bat -lhelp
+nvim --help | bat -lhelp
+man nvim
+bat .bashrc
+^cat .bashr
+^cat .bashrc
+^cat .bashrc | less
+bat .bash_history
+fish
+ls
+ls -la
+eshell
+emacs
+emacs -nw
+emacs --debug-init
+emacss
+emacs -nw
+emacs --debug-init
+ls
+.config
+ls
+cd doom/
+ls
+ls *bookmarks
+ls *.bookmarks
+ls .*bookmarks
+ls *bookmarks^
+ls *bookmarks*
+rm *bookmarks* 
+ls
+rm custom.el
+ls user
+rm user
+emacs --tty
+doom doctor
+doom sycn
+doom sync
+emacs --debug-init
+ls
+cd ..
+ls
+emacs/ls
+cd emacs
+ls
+emacs --tty
+emacs --debug-init
+ls -la
+cd .local/
+ls
+rm cache
+emacs
+doom sycn
+doom sync
+emacs
+which /usr/bin/sh
+ls
+yay ant
+ls ./.ssh/
+ls ./.ssh/id_ed25519
+cd .ssh
+ls
+git --config --edit
+man git
+man ant
+ant  --help | bat -lhelp
+tldr ant
+ls
+man 
+make --help | bat -lhelp
+bat  --help | bat -lhelp
+bat  --help | bat -Plhelp
+bat  --help | bat -P lhelp
+bat  --help | bat -P -lhelp
+bat  --help | bat -Palways -lhelp
+bat  --help | bat -P always -lhelp
+bat  --help | bat --paging always -lhelp
+bat  --help | bat --P=always -lhelp
+bat  --help | bat -P=always -lhelp
+bat  --help | bat -P always -lhelp
+bat  --help | bat --paging always --language help
+ls  --help | bat --paging always --language help
+ls  --help | bat --paging always --style default --language help
+ls  --help | bat --paging always --language help
+man  --help | bat --paging always --language help
+man hello 
+man help 
+he
+e
+ls
+n
+keybindings listen
+keybindi
+keybindings list
+ls
+keybindings listen
+man make 
+info make
+man java  
+java  --help | bat --paging always --language help
+cd ..
+cd Code/cs/pp/assignment3/assignment3/assignment3
+ant run
+nu
+nu
+nu
+nu
+nu
+cd Code/cs/pp/assignment3/assignment3/assignment3
+ls
+ant run
+ls
+cd Code/cs/pp/assignment3/assignment3/assignment3
+ant run
+man python 
+ls
+man python
+bat $nu.history-path
+open $nu.history-path 
+open $nu.history-path | drop 1
+open  --help | bat --paging always --language help
+lines --help | bat --paging always --language help
+lines  --help | bat --paging always --language help
+open $nu.history-path | lines | drop 1
+open $nu.history-path | lines | drop 1 #
+open $nu.history-path | lines | drop 1 # a
+open $nu.history-path | lines | drop 1 # 
+open $nu.history-path | lines 
+man python
+ls
+ls --help | bat --paging always --language help
+grep --help | bat --paging always --language help
+grep --help | bat --paging always --style default --language help
+grep --help | bat --paging always --pager nvim --language help
+grep --help | bat --paging always --language help
+rg --help | bat --paging always --language help
+rg -h
+help rg
+ant run
+ps
+tabbed --help | bat --paging always --language help
+yay tabbed --help | bat --paging always --language help
+yay tabbed 
+ls
+nvim
+cd Documents/compass/ls
+cd Documents/compass
+ls
+ls **/*org
+ls **/*org | length
+fd -e org | length
+fd -e org 
+fd -e org | wc -l
+ls **/*org | length
+ls **/*org | get name
+filter  --help | bat --paging always --language help
+help_menu
+collect  --help | bat --paging always --language help
+ls **/*org | reduce {|i, sum| $i + $sum}<\n>
+reduce  --help | bat --paging always --language help
+ls **/*org | open --raw | lines reduce {|i, sum| $i + $sum}<\n>
+ls **/*org | open <\n>
+ls **/*org | get name| open <\n>
+ls **/*org | get name | open <\n>
+ls **/*org | get name | each {open}<\n>
+fd -t f -e org<\n>
+fd -t f -e org |lines |each {open}
+fd -t f -e org |lines | each {open | reduce {|i, sum| $i + $sum}}
+fd -t f -e org |lines | each {open | lines | reduce {|i, sum| $i + $sum}}
+fd -t f -e org |lines | each {open} 
+fd -t f -e org |lines | each {open | length}
+fd -t f -e org |lines | each {open | length} | reduce {|i, sum| $i + $sum}
+cd  --help | bat --paging always --language help
+cd Documents/compass
+ls
+fd -t f -e org 
+fd -t f -e org | each {open}
+fd -t f -e org | lines | each {open}
+fd -t f -e org | lines | each {open | lines }
+fd -t f -e org | lines | each {open | lines | reduce {|i, sum| $i + $sum}}
+fd -t f -e org | lines | each {open | lines | length}
+re
+reduce  --help | bat --paging always --language help
+math sum 
+fd -t f -e org | lines | each {open | lines | length} | math sum
+fd -t f -e org | lines | each {open | lines | reduce {|i, sum| $i | (split words | length) + $sum}}
+fd -t f -e org | lines | each {open | lines | each {split words | length}}
+fd -t f -e org | lines | each {open | lines | each {split words | length} | math sum}
+fd -t f -e org | lines | each {open | lines | each {split words | length} | math sum} | math sum
+fd -t f -e org | wc -w
+wc  --help | bat --paging always --language help
+fd -t f -e org -x 'wc -w'
+fd -t f -e org -x wc -w {}
+fd  --help | bat --paging always --language help
+fd -t f -e org -x wc -w {}
+fd -t f -e org -x wc -w {} | awk 'print $1'
+wc  --help | bat --paging always --language help
+tldr awk
+cut  --help | bat --paging always --language help
+fd -t f -e org -x wc -w {} | cut -d ' ' -f1
+fd -t f -e org -x wc -w {} | cut -d ' ' -f1 | lines | math sum
+fd -t f -e org -x wc -w {} | cut -d ' ' -f1 | lines | into int
+fd -t f -e org -x wc -w {} | cut -d ' ' -f1 | lines | into int | math sum
+fd -t f -e org -x wc -w {} | cut -d ' ' -f1 
+fd -t f -e org -x wc -w {} | awk {print $1}
+fd -t f -e org -x wc -w {} | awk '{print $1}'
+fd -t f -e org -x wc -w {} | awk 'sum+=$1 END print sum'
+fd -t f -e org -x wc -w {} | awk '{sum+=$1} END {print sum}'
+awk  --help | bat --paging always --language help
+man awk 
+ls
+fd -t f -e org -x wc -w {} | awk '{sum+=$1} END {print sum}'
+fd -t f -e org | lines | each {open | lines | each {split words | length} | math sum} | math sum
+fd -t f -e org -x wc -w {}
+fd -t f -e org -x wc -w {} | split words
+fd -t f -e org -x wc -w {} | split column ' '
+fd -t f -e org -x wc -w {} | split row
+fd -t f -e org -x wc -w {} | split row ' '
+fd -t f -e org -x wc -w {} | parse 
+fd -t f -e org -x wc -w {} | parse '{words} {_}'
+fd -t f -e org -x wc -w {} | ls
+fd -t f -e org -x wc -w {} 
+fd -t f -e org -x wc -w {} | lines | split columns
+fd -t f -e org -x wc -w {} | lines | split column
+fd -t f -e org -x wc -w {} | lines | split column ' '
+fd -t f -e org -x wc -w {} | lines | split words
+fd -t f -e org -x wc -w {} | lines | split row 
+fd -t f -e org -x wc -w {} | lines | split row ' '
+fd -t f -e org -x wc -w {} | parse '1 2'
+fd -t f -e org -x wc -w {} | parse '{1} {2}'
+fd -t f -e org -x wc -w {} | lines | parse '{1} {2}'
+fd -t f -e org -x wc -w {} | lines | parse '{1} {2}' | get 1 | math sum
+fd -t f -e org -x wc -w {} | lines | parse '{1} {2}' | get 1 | into int
+fd -t f -e org -x wc -w {} | lines | parse '{1} {2}' | get 1 | from int
+fd -t f -e org -x wc -w {} | lines | parse '{1} {2}' | get 1 
+fd -t f -e org -x wc -w {} | lines | parse '{1} {2}' 
+fd -t f -e org -x wc -w {} | lines | parse '{a} {b}' | get a
+fd -t f -e org -x wc -w {} | lines | parse '{a} {b}' | get a | into int
+fd -t f -e org -x wc -w {} | lines | parse '{a} {b}' | get a | into int | math sum
+fd -t f -e org -x wc -w {} | lines | parse '{a} {b}' | get a | math sum
+fd -t f -e org -x wc -w {} | lines | parse '{a} {b}' | get a | into int| math sum
+fd -t f -e org -x wc -w {} | awk '{acc+=$1} {print sam}'
+fd -t f -e org -x wc -w {} | awk '{acc+=$1} END {print sam}'
+fd -t f -e org -x wc -w {} | awk '{sum+=$1} END {print sam}'
+fd -t f -e org -x wc -w {} | awk '{acc+=$1} {print acc}'
+fd -t f -e org -x wc -w {} | awk '{acc+=$1} END {print acc}'
+ls
+hello
+ps
+fd -t f -e org -x wc -w {} | awk '{acc+=$1} END {print acc}'
+fd -t f -e org -x wc -w {} | awk '{acc+=$1} {print acc}'
+ls
+fd -t f -e org -x wc -w {} | awk '{acc+=$1} {print acc}'
+ls
+ls -la
+fd -t f -e org -x wc -w {} | awk '{acc+=$1} {print acc}'
+ls
+ls -la
+ps
+ls
+nui
+ls
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+syncthing
+e
+convert --help | bat --paging always --language help
+autorandr --save tp_lib
+autostart
+autorandr --save tp_lib
+autorandr -sf tp_lib
+autorandr -rf-
+autorandr -rf
+autorandr -s tp_lib
+autorandr -f -s tp_lib
+autorandr --force -s tp_lib
+autorandr -c
+jshell
+java --help | bat --paging always --language help
+javac  --help | bat --paging always --language help
+java  --help | bat --paging always --language help
+e
+e Code/cs/aw/password/Main.java
+pgrep autostart
+pgrep chat
+pgrep 'emacs --daeon'
+pgrep 'emacs'
+pgrep daem
+pgrep -f
+pgrep -f 'emacs --daemon'
+pamixer
+pamixer --list-sinks
+emacs
+emacs --debug-init
+cd .config
+ls
+cd emacs
+ls
+ls -la
+cd .local/
+ls
+rm cache
+cd \
+cd ~
+ls
+cd .config/
+fd sync-conflict
+fd sync-conflict -x rm {}
+fd sync-conflict 
+cd ~
+cd Documents/
+ls **/*sync-conflict
+ls **/*sync
+ls **/*org
+each  --help | bat --paging always --language help
+doom doctor
+batsignal
+batsignah --help | bat --paging always --language help
+batsignal --help | bat --paging always --language help
+batsignal -h
+nm-applet
+emacs
+2 ** 6
+pgrep -f "emacs --daemon"
+pgrep -f "unclutter"
+pgrep  --help | bat --paging always --language help
+pgrep -f keepassxc
+if (pgrep -f keepassxc) {"t"}
+pgrep -f keepassxk
+if (pgrep -f keepassxk != "") {"f"}
+if (pgrep -f keepassxk) != "" {"f"}
+if (pgrep -f keepassxk) != "" {"f"} else {"g"}
+if (pgrep -f keepassxk) == "" {"f"} else {"t"}
+complete --help | bat --paging always --language help
+autostart
+pgrep -f syncthing --no-browser
+pgrep -f "syncthing --no-browser"
+pgrep -f "emacs"
+autostart
+pgrep -f "emacs --daemon && emacsclient --reuse-frame"
+ls
+autostart
+autostarut
+syncthing
+jshell
+cdCode/cs/aw/dining_table/
+cd Code/cs/aw/dining_table/
+ls
+javac -d bin Main.java; java -cp bin Main
+javac -d bin Main.java Out.java; java -cp bin Main
+javac -d bin Main.java Out.java
+javac -d bin Main.java Out.java In.java
+javac -d bin Main.java Out.java In.java; java -cp bin Main
+tmux send-keys $"(fd --type directory . ~ | fzf --preview '^ls --color {}')"
+cd aw/dining_table/
+cd Code/cs/aw/dining_table
+ansi purple
+ls
+ls -la
+htop
+sudo killall xremap; autostart
+autostart
+sudo killall xremap
+autostart
+ls
+xev
+sudo killall xremap; 
+autostart
+autostat
+autostart
+sudo killall xremap; autostart
+ls-
+ls
+autostart
+batsignal
+batsignal  --help | bat --paging always --language help
+batsignal  -h | bat --paging always --language help
+batsignal -p
+batsignal -h
+yay batify
+yay -R batify2
+yay batify
+batify --help | bat --paging always --language help
+udevadm control --reload-rules
+sudo udevadm control --reload-rules
+ls
+i3status
+brightnessctl  --help | bat --paging always --language help
+brightnessctl --help | bat --paging always --language help
+brightnessctl --help | bat 
+brightnessctl --help | bat --paging always 
+brightnessctl get
+brightnessctl info
+brightnessctl  --help | bat --paging always --language help
+i3lock --help | bat --paging always --language help
+i3lock -h 
+man i3lock
+htop
+syncthing
+syncthin
+autorandr
+yay i3
+yay -S i3status
+autorandr
+autorandr --change
+ls -la
+syncthing
+yay iveril
+ls
+jshell
+syncthing
+emacs --debug-init
+autorandr
+autorandr --change
+emacs --debug-init
+emacs
+ls
+autorandr --save tp_lib
+autorandr -f --save tp_lib
+autorandr --force --save tp_lib
+autorandr --change
+math  --help | bat --paging always --language help
+0.9 * 0.9
+0.5 * 0.7 = 0.9
+0.5 * 0.7 + 0.9
+0.5 * 0.7 + 0.3 ** 2
+0.5 * 0.7 + 0.3 * 0.3
+5 / 8
+7 / 8
+autorandr  --help | bat --paging always --language help
+autorandr  --list
+autorandr --save tp_int
+autorandr --change
+htop
+syncthing
+autorandr --change
+autorandr  --help | bat --paging always --language help
+autorandr  --list
+autorandr --list
+auto
+autorandr --list
+autorandr --change tp_lib
+doom upgrade
+ls
+emacs
+emacs --debug-init
+emacs
+doom synct
+doom sync
+emacs
+$layouts
+utils rofi [a b] "hehe"
+use utils
+utils rofi
+utils rofi "a" "b"
+utils rofi ["a"] "b"
+let l = autorandr --list | lines
+$l
+utils rofi $l "a"
+layouts
+layout
+dunstify
+layout
+tldr autorandr
+man xrandr
+yay dunstify
+yay dunst
+yay tlp
+man power-profiles-daemon 
+yay tlp
+^yay tlp
+man tlp
+tlp start
+systemctl enable tlp.service
+tlp start
+sudo tlp start
+ls
+systemctl enable tlp.service
+cd Code/cs/pp/assignment5/
+ls
+fd sync-conflict 
+fd sync-conflict -x rm {}
+fd sync-conflict 
+syncthing
+autorandr --change
+autorandr --change tp_lib
+layout
+autorandr --save tp
+autorandr  --help | bat --paging always --language help
+autorandr  --remove tp_lib tp_int
+autorandr  --remove tp_int
+autorandr --list
+autorandr --lis
+autorandr --save tp
+autorandr --forces --save tp
+autorandr -f -s tp
+autorandr --force -s tp
+autorandr --save tp_library
+autorandr --load tp
+autorandr --change top
+autorandr --change tp
+autorandr --change tp_lib
+autorandr --change tp_library
+autorandr --force --save tp_library
+ls
+sudo killall emacs
+autostart
+ls
+yay tlp
+^yay tlp
+autostart
+ltp
+tlp
+sudo tlp start
+sudo systemctl enable tlp.service
+autostart
+hell
+4 / 3
+syncthing
+syncthing 
+ls
+ls -la
+ls
+ls -la
+ls
+ls -la
+man hell
+man man
+ls
+as;df
+adsf
+ls
+ls -la
+ls
+ls -la
+ls
+ls -la
+ls
+1 + 2 + 43
+ls
+lsnu
+ls
+ls -la
+1 + 2 + 3
+ls
+1 + 2 + 3 + 4
+ls
+ls -la
+1 + 2 + 3
+ps 
+jshell
+3 / 4
+man math
+mat --help | bat --paging always --language help
+math --help | bat --paging always --language help
+10000 / 16000000
+16000000 / 10000
+64 / 2
+2 / 64
+syncthing
+htop
+emacs -nw
+emacsclient --tty
+doom sync
+emacsclient --tty
+emacsclient
+emacsclient  --help | bat --paging always --language help
+emacsclient  -n
+emacsclient  -t
+2 ** 4
+emacs -t
+emacs -n
+emacs -nw
+thunar
+syncthing 
+sudo syncthing
+synthing
+ls
+-la
+autostart
+ls
+ls -la
+syncthing
+autostart
+ls
+ps
+ls
+ls -la
+ls
+ansi
+help ansi
+ansi -l
+ls
+ls -la
+ls
+jshell
+syncthing
+nmcli
+nmtui
+man nmtui
+syncthing
+sudo systemctl enable bluetooth
+bluez
+nm-applet
+bluetoothctl 
+ls
+bluetoothctl 
+sudo systemctl disable bluetooth
+ls
+man bluetoothctl 
+tldr bluetoothctl 
+man bluetoothctl 
+bluetoothctl 
+las
+ls
+bluetoothctl 
+bluetoothctl 
+pamixer
+pactl 
+amixer
+pamixer
+bluetoothctl 
+bluetooth-player 
+yay -Syyu 
+yay zathura
+bash
+man zathura
+zathura
+yay -R zathura
+yay -R zathura-pdf-mupdf zathura
+yay zathura-pdf-mupdf zathura
+zathura
+sudo yay -Syyu
+sudo yay xremap
+^yay xremap
+yay brave
+hello world
+blutoothctl
+bluetoothctl
+nvim
+ls
+ps
+sudo killall tmux
+tmux kill-server
+emacs
+emacs --tty
+emacs --debug-init
+emacs
+emacs --tty
+syncthing
+autorandr --list
+autorandr --force --save tp_library
+autorandr --list
+autorandr
+autorandr --change tp
+autorandr --change tp_library
+autorandr --save tp
+autorandr --force --save tp
+autorandr tp
+autorandr tp_lib
+(ls ~/.screenlayout | rofi -dmenu)
+(ls ~/.screenlayout | rofi -show dmenu)
+rofi 
+(ls ~/.screenlayout | rofi  -dmenu)
+(ls ~/.screenlayout | ^rofi -dmenu)
+man rofi 
+man ls 
+man ls
+^ls -l
+bash; 
+yay -R autorandr
+emacs -nw 
+emacs --tty
+emacs -nw
+bat ~/.config/nushell/config.nu
+emacs -nw
+emacs --tty
+man emacs 
+emacs -nw
+ls 
+ls -la
+ls -)a
+ls -la
+cd Code/cs/pp/assignment6/
+ls
+ant compile 
+ant test
+ant compile
+ant test
+ant t
+ant ttest
+ant test
+ant compile
+ant test
+ant tets
+ant test
+syncthing
+yay brave
+yay -Syyu
+cd Code/cs/pp/assignment6/
+ant test
+free -m
+top
+htop
+mpstat
+mpstat 1 1 
+man mpstat 
+tldr mpstat
+mpstat 2
+mpstat
+emacs -nw
+mpstat
+mpstat 2
+xev
+xprop
+man emacs 
+emacs -q
+man feh
+zathura
+man zathura
+man zathurarc
+man zathura
+man zathurarc
+syncthing
+1 / 1947792
+yay gnome-tweak-tool
+yay gnome-tweak
+gnome-tweaks
+yay -R gnome-tweak
+yay -R gnome-tweaks
+gsettings set org.gnome.desktop.interface gtk-key-theme "Emacs"
+i3msg exit
+i3-msg exit
+ls
+rm a.out ex.txt.save
+rm pepe
+10 / 4
+cd .config
+nvim nushell/scripts/commands.nu
+cd ~
+nvim nushell/scripts/commands.nu
+cd .config
+cd nu
+nvim nushell/scripts/commands.nu
+cd ~
+cd
+cd Code/cs/pp/assignment6/src/
+cd 
+nvim .config/nushell/scripts/commands.nu
+yay -R spotify-launcher
+cd Documents/org/
+sed 's/^#\+startup: folded/#+startup: content/g'
+ls
+ls **/*org
+ls **/*org | get name | each {open}<\n>
+fd 'agenda.org'<\n>
+math log 1
+1 | math log
+1 | math log 10
+0 | math log 10
+inf
+inf\
+1 - inf
+help inf
+inf -h
+man fd 
+man gcc 
+gcc  --help | bat --paging always --language help
+tldr gcc
+ls
+man gcc 
+man gcc
+strace
+yay strace
+bat Code/tmp/asm
+bat Code/tmp/asm.c
+*bat Code/tmp/asm.c
+^bat Code/tmp/asm.c
+bat Code/tmp/asm.c
+ls
+vi Code/tmp/asm.c
+vim Code/tmp/asm.c
+nvim Code/tmp/asm.c
+man bat 
+cd .config
+nvim nushell/config.nu
+bat Code/tmp/asm.c
+bat ~/Code/tmp/asm.c
+fd 
+fd --absolute-path
+fd --relative-path
+cd .config
+ls
+man iostream 
+man std::iostream
+jshell
+yay -Q emacs
+synctung
+nvim tmp
+man tar 
+bash
+man emacs 
+emacsclient --eval '(+default/man-or-woman)'
+emacsclient -nw --eval '(+default/man-or-woman)'
+emacs -nw
+emacs -nw --eval '(+default/man-or-woman)'
+emacs -nw --eval '(man)'
+emacs -nw --eval '(woman)'
+$env.M
+$env.MANWIDTH
+let $env.MANWIDTH = 100;
+let $MANWIDTH = 100;
+bash
+man man 
+man man
+nvim .config/nushell/env.nu
+cd .config/nvim/
+nvim .
+cd ..
+cd nushell
+nvim config.nu
+term size --help | bat --plain --paging always --language help
+$env
+ls
+man emacs
+ls
+nu
+nvim .
+man man
+nvim
+man man
+man emacs 
+emacs -q
+emacs -nw
+nvim
+bash
+cargo --search-shells
+cargo search-shells
+cargo search shells
+cargo search shells | parse '{shell} = {v} #{desc}'
+cargo search shells | lines | parse '{shell} = {v} #{desc}'
+cargo search shells | lines | parse '{shell} = {vers} #{desc}'
+2 ** 4
+2 ** 8
+2 ** 3
+2 ** 24
+2 ** 12
+vim
+nvim
+cd Documents/uni/cs/s2/aw/
+fd 'lab'
+fd 'lab' .
+jshell
+nvim
+nvim tmp
+ps
+syncthing
+cd 
+autostart
+emacs -nw
+doom sync
+doom doctor
+doom upgrade
+cd Documents/
+ls
+fd sync-conflict 
+fd sync-conflict -x rm {}
+fd sync-conflict 
+139.0 / 3
+139.0 / 4
+doom build
+doom sync
+emacs -nw
+emacs -~w
+emacs -nw
+ps
+ps | sort-by cpu
+ls
+ps | sort-by cpu
+emacs -nw
+emacs -nwQ
+emacs -Q
+autostart
+sudo killall xremap; autostart
+bash
+exit
+conda install
+yay conda
+sudo pacman --)ist
+sudo pacman --list
+sudo pacman list
+sudo pacman -h
+sudo pacman -Qs
+man emacs
+man ls 
+ls --help | bat --plain --paging always --language help
+autostart
+bash
+autostart
+nvim
+nvim tmp
+rm tmp
+man wmctrl
+emacs -nw
+man clang-format 
+man clang
+clang-format  --help | bat --plain --paging always --language help
+fd  --help | bat --plain --paging always --language help
+clang-format  --help | bat --plain --paging always --language help
+zathurarc
+zathura
+man zathura
+man zathurarc
+emac -Q
+emacs -Q
+xterm
+xterm bash
+syncthing
+nvim
+bash
+autostart
+xev
+autstart
+autostart
+sudo killall xremap
+autostart
+emacs --no-init-file --no--window-system
+emacs --no-init-file --no-window-system
+emacs -Q
+emacs -nw
+sudo killall xremap; autostart
+man ant 
+ant  --help | bat --plain --paging always --language help
+ex
+man ex
+man ed
+ls
+ed .bashrc
+man ed
+yay ed
+vi 
+man nano
+nano .bashrc
+1.3**2
+1.3 ^ 2
+1.3 ** 2
+1.5 ** 2
+1.4 ** 2
+man vim 
+nvim
+vim
+yay vim
+nvim
+yay vim
+vim
+ivm
+^yay vim
+nvim
+sudo pacman -Syyu
+nvoim
+nvim
+vim
+nvim
+yay -S vim
+vim
+vi
+exo-open 
+firefox
+zathura Documents/work/codora/pdf_wochenplan.pdf
+man zathurarc
+sudo killall xremap; "autostart &" | bash
+hellloo --help | bat --plain --paging always --language help
+asdlkfj --help | bat --plain --paging always --language help
+xev
+sudo killall xremap
+autostart
+a;ldskfhjka fdska sdf --help | bat --plain --paging always --language help
+emacs -Q
+emacs -nw
+syncthing
+ls
+ls -las
+ls -la
+ls -)a
+cd
+bash
+man emacs 
+autostart
+man 
+emacs -Q
+nvim
+emacs -nw
+emac -nw
+emacs -nw
+emacs -new
+emacs -nw
+sudo killall xremap; "autostart &" | bash
+cccllcccc --help | bat --plain --paging always --language help
+autostart
+ls
+alksdf --help | bat --plain --paging always --language help
+sudo killall xremap; autostart
+ls
+sudo xremap --watch=device ~/.config/xremap/config.yml && sleep 1 && xset r off
+sudo xremap --watch=device ~/.config/xremap/config.yml && sleep 1 && xset r off --help | bat --plain --paging always --language help
+sudo xremap --watch=device ~/.config/xremap/config.yml
+sudo killall xremap; sudo xremap --watch=device ~/.config/xremap/config.yml 
+sudo xremap --watch=device ~/.config/xremap/config.yml 
+asdlfkhj lk --help | bat --plain --paging always --language help
+man sdf law
+sudo xremap --watch=device ~/.config/xremap/config.yml 
+autostart
+<<<<<<< Updated upstream
+=======
+sudo killall xremap; autostart
+man autsotart
+autostart
+cd .conffig
+cd .config
+ls
+cd .config
+keybindings lsit
+keybindings list
+keybindings default 
+fd sync-conflict 
+fd sync-conflict -x rm {}
+bash
+ls -la
+man git 
+man git 
+man git
+man tmux
+nu
+nu
+nu
+nu
+nu
+autostart
+ls 
+ps
+os
+nvim
+nvim .bashrc
+ls
+autostart
+man git 
+autostart
+man git
+man git-whatchanged
+man git-lgo
+git-lgo
+git-log
+git log
+cd .config
+git log
+man git log 
+man git-log
+git log  --help | bat --plain --paging always --language help
+git log  --help 
+git log -h
+man bat 
+git log  -h | bat -pp -l help
+git logh -h | bat -p -l help
+git log  -h | bat -p -l help
+git log  -h | bat -l help
+git lgo  -h | bat -l help
+git log -h | bat -l help
+git show
+cd .config
+git show
+man git show 
+ls
+>>>>>>> Stashed changes
+<<<<<<< Updated upstream
+=======
+sudo killall xremap
+autostart
+sudo killall xremap
+autstart
+autostart
+bluetoothctl
+bash
+keybindings default 
+keybindings list
+man key 
+man 
+ls
+man man 
+man man
+man man 
+cd ..
+hello world asshoel  --help | bat --plain --paging always --language help
+hello world asshole, what are you doing  --help | bat --plain --paging always --language help
+nu
+nu
+nu
+sudo killall xremap; autostart
+sudo xremap --watch=device ~/.config/xremap/config.yml 
+autostart
+sudo killall xremap; sudo xremap --watch=device ~/.config/xremap/config.yml 
+sudo xremap --watch=device ~/.config/xremap/config.yml
+k
+nvim
+asldkfj  --help | bat --plain --paging always --language help
+nvium
+nvim
+sudo xremap --watch=device ~/.config/xremap/config.yml
+autostart
+nvim
+autstso --help | bat --plain --paging always --language help
+autostart
+emacs -nw
+ls
+nu
+nu
+nu
+bash
+ls 
+>>>>>>> Stashed changes
+keybindings list
+ls
+grep --help | bat --plain --paging always --language help
+grep -h | bat -l=help
+grep --help | bat -l=help
+ls  --help | bat -l=help
+ls 
+man grep 
+man e
+emac s
+ls
+cd 
+ls
+save  --help | bat -l=help
+nu\
+ls
+save --help | bat -pp -l=help
+man bat 
+man save 
+save  --help | bat -p --paging -l=help
+save  --help | bat -p --paging=always -l=help
+save nu
+save  --help | bat -p -l=help
+man bat 
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+save  --help | bat --paging=always --language=help
+keybindings lsit
+keybindings kist
+man 
+keybindings list
+save  --help | bat --paging=always --language=help
+save  --help | bat --paging=always --language=help
+autostart
+ls
+save --help | bat --paging=always --language=help
+man tmux 
+man tmux
+man tmux 
+man tmux
+autostart
+tmux kill-server
+autostart
+nvim
+nvim .bashrc
+ls  --help | bat --plain --paging=always --language=help
+keybindings list
+save  --help | bat --plain --paging=always --language=help
+"print('hello world)'" | save  --help | bat --plain --paging=always --language=help
+"print('hello world)'" | save tmp.py
+ls
+ls tmp.py
+cat tst.py
+cat tmp.py
+python tmp.py
+"print('hello world')" | save tmp.py
+"print('hello world')" | save --force tmp.py
+py tmp.py
+python tmp.py
+cat tmp.py
+man emacsclient 
+emacs --tty
+man emacs
+man emacsclient 
+emacs -nw
+e .bashrc
+e
+e  .bashrc
+ls
+rm tmp.py
+emacs -nw
+emacs --deb --help | bat --plain --paging=always --language=help
+emacs --debug-init
+emacs -nw
+nu
+emacs FNW
+autostart
+emacs -nw
+e
+nvim
+wmctlr --help | bat --plain --paging=always --language=help
+wmctrl
+wmctrl --help | bat --plain --paging=always --language=help
+wmctrl -xl
+man parse 
+parse  --help | bat --plain --paging=always --language=help
+keybindings list
+/
+cd 
+keybindings default
+ls
+man 
+man man 
+bash
+autostart
+parse --help | bat --plain --paging=always --language=help
+bat  --help | bat --plain --paging=always --language=help
+bat  --help | bat --style=plain --paging=always --language=help
+parse --help | bat --style=plain --paging=always --language=help
+parse  --help | bat --plain --paging=always --language=help
+parse  --help | bat --plain --language=help
+man bat 
+batgrep
+yay batgrep
+man man
+yay bat-extra
+yay -Syyu bat-extras
+man bat 
+bat --help | bat --style=auto 
+bat --help | bat --style=plain,header
+bat --help | bat --style=grid
+bat --help | bat --style=numbers
+man bat 
+ls
+batgrep
+bat  --help | bat --language=help
+man bat 
+bat  --help | bat --language=help
+man less
+yay electron
+yay -Qs electrol\
+yay -Qs electron
+yay -Qs electron | lines
+yay -R electron electron22 electron25 electron28
+pacman -Sy
+sudo!!
+yay -Sy
+yay bat- --help | bat --language=help
+yay bat-extra
+batman
+batman
+batman --help | bat --language=help
+batman --config=~/.config/bat
+batman --config-file=~/.config/bat
+batman 
+man bat 
+batman
+batman grep
+batgrep sync
+with-env  --help | bat --language=help
+batgrep 
+rg sync | bat
+batgrep sync 
+man bat
+nui
+batman grep
+man bat
+batgrep sy
+man bat
+batgrep sy
+rg sy
+rg  sync ~/Documents
+rg  sync ~/Documents | bat
+batgrep  sync ~/Documents 
+rg  sync ~/Documents 
+ls
+man emacs 
+man emacs
+emacs  --help | bat --language=help
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+ls --help | bat --language=help
+grep --help | bat --language=help
+rg
+man rg
+autostart
+man 
+man emacs -e rg 
+emacs --eval="rg"
+emacs --eval='(man "rg")'
+emacs -nw --eval='(man "rg")'
+man emac s
+man emacs
+emacs  --help | bat --language=help
+ls
+rg  sync ~/Documents | cat
+rg  sync ~/Documents | lees
+rg  sync ~/Documents | bat
+rg  sync ~/Documents 
+rg  sync ~/Documents | less
+rg  sync ~/Documents 
+ls
+rg  sync ~/Documents 
+with-env [BAT_THEME ansi] {batman }
+with-env {BAT_STYLE: "full"} {batman rg}
+with-env [BAT_STYLE "full"] {batman rg}
+with-env --help | bat --language=help
+with-env [BAT_STYLE "plain"] {batman rg}
+man bat 
+batman --language=man man
+yay -R bat-extras
+bat  --help | bat --language=help
+ls
+ls | bat
+ls
+asdlkfj
+keybindings list
+ls
+keybindings list
+ls 
+grep ass
+rg ass
+cd Documents/
+cd ..
+cd Documents/
+ls
+$env.config
+$env.config.hooks
+ls
+cd ..
+ls
+cd Documents/
+cd ..
+cd Documents/
+ls
+cd ..
+nui
+ls
+cd Documents/
+ls
+cd ..
+ls
+ls  --help | bat --language=help
+rg ass
+ls  --help | bat --language=help
+rg ass
+man bat 
+man nman 
+rg ass
+rg ass | bat
+table --help | bat --language=help
+rg ass
+ps 
+ps
+cd Documents/
+rg ass | bat 
+fd ass | bat 
+fd ass 
+ls
+nu
+emacs  --help | bat --language=help
+keybindings list
+xclip
+xclip --help | bat --language=help
+xclip -h| bat --language=help
+xclip -h | bat --language=help
+xclip
+xclip -h
+xclip -o
+batman 
+ls
+man man
+man  --help | bat --language=help
+yay fish
+ls
+ls -la
+cd Pictures/albums/
+man bat 
+fish
+ls
+ls -las
+man ls 
+ls
+ls -lla
+ls -la
+fish /
+keybindings list
+open
+open .bashrc
+help open 
+help load
+ls
+Code/go/hello_world.go
+ls
+ll
+ls
+ls | get name
+ls
+l
+help ls 
+ls --all --
+ls -l
+ls -la
+cd (fd --type directory | fzf --preview '^ls --color {}')
+cd 
+ls
+man ls -la 
+man man ls -la 
+man man man ls -la 
+man man man 
+man man
+man man 
+keybindings list 
+fish
+ls
+nu
+man 
+ls
+man en 
+man rg 
+man nu 
+man rg 
+man
+:w
+man man 
+(fzf (open ~/.config/nushell/history.txt))
+fzf (open ~/.config/nushell/history.txt)
+open ~/.config/nushell/history.txt
+open ~/.config/nushell/history.txt | fzf
+to text 
+open ~/.config/nushell/history.txt | lines | uniq
+open ~/.config/nushell/history.txt | lines | uniq | to tex 
+open ~/.config/nushell/history.txt | lines | uniq | to text
+man fzf 
+man fzf
+keybindings list 
+rg ass  out> | bat
+rg ass out>| bat
+rg ass o>| bat
+rg ass o>| less
+rg ass >| bat
+fd ass >| bat
+fd ass o>| bat
+fd ass o>| tmp.txt
+fd ass o+e>| tmp.txt
+fd ass o> tmp.txt
+cat tmp.txt
+rm tmp.txt
+ls
+man rm 
+help rm
+help ^rm
+sudo su
+cd /
+cd
+cd .local/
+ls
+ls tmp.txt
+cat tmp.txt
+*bat Code/tmp/asm.c
+print $"(open --raw ~/.config/nushell/history.txt | lines | uniq | to text | fzf)"
+print $"[(open --raw ~/.config/nushell/history.txt | lines | uniq | to text | fzf)]"
+print $"[(open --raw ~/.config/nushell/history.txt | lines | uniq | to text | fzf | str trim)]"
+fd 
+print $"[(open --raw ~/.config/nushell/history.txt | ^uniq | fzf | str trim)]"
+man ^uniq
+man uniq
+"a\na" | ^uniq
+open --raw ~/.config/nushell/history.txt | uniq | fzf | str trim
+open ~/.config/nushell/history.txt | uniq | fzf | str trim
+open ~/.config/nushell/history.txt | uniq | to text | fzf | str trim
+open --raw ~/.config/nushell/history.txt | uniq | to text | fzf | str trim
+open ~/.config/nushell/history.txt 
+open ~/.config/nushell/history.txt | ^uniq
+open ~/.config/nushell/history.txt | ^uniq | rg ls
+open 
+help open
+man read
+open  --help | bat --language help
+ls
+ls Code/go/hello_world.go
+systemctl enable bluetooth
+ls
+cd 
+fih
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+fish 
+fish
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+fish
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+nu
+autostart
+systemctl enable bluetooth
+l
+auostart
+autostart
+ls
+ls -la
+ls -ll
+man pgrep 
+man black 
+black -h
+cd .config
+ls
+_autostart
+fish
+ls -)a
+ls -la
+ls -)a
+ls -la
+-ls -la
+ls -la
+ls -l
+bru
+ls 
+ls -)a
+ls -la
+ls
+ls -)a
+ls -la
+ls -)a
+ls -la
+fish
+ls
+ls -la
+autostat
+autostart
+cls
+ls
+hello world asshoel  
+fish
+ls -la
+exit
+man pactl
+fish
+ish
+fish
+function tmp; echo $argv[1] end
+ls
+man man
+ls
+fish
+exit
+fish
+print "a2ad4\nasdf3"
+"a2ad4\nasdf3"
+"a2ad4\nasdf3" | string replace
+man "a2ad4\nasdf3" | str replace
+man "a2ad4\nasdf3" | str replace --help
+man "a2ad4\nasdf3" | str replace -r '\D' ''
+"a2ad4\nasdf3" | str replace -r '\D' ''
+"a2ad4\nasdf3" | str replace -r '[a-z]' ''
+"a2ad4\nasdf3" | lines | each { |line| str replace -r '[a-z]' ''}
+man | "a2ad4\nasdf3" | str replace -r '[a-z]' ''
+"a2ad4\nasdf3" | str replace -r '[a-z]' '' --hel
+"a2ad4\nasdf3" | str replace -r '[a-z]' '' -h
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' -h
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | reduce { |n, acc| acc += n } 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines | reduce { |n, acc| acc += n } 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines | reduce { |n, acc| $acc += $n } 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines | reduce { |n, acc| acc + $n } 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines | reduce { |n, acc| $acc + $n } 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines | to int
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines | into int 
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines | into int | reduce { |it, acc| $acc + $it }
+"a2ad4\nasdf3" | str replace -ar '[a-z]' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | str replace -ar '[a-z]' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | str replace -ar '\d' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | str replace -ar '[0-9]' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | str replace -ar '[^\d]' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | str replace -ar '[^\w]' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | str replace -ar '[\w]' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | str replace -ar '\w' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+'a1' | str replace -ar '\d' '.'
+'a1' | str replace -ar '\d' '_'
+'a1' | str replace -ar '\d' '-'
+'a1' | str replace -ar '\d' '.'
+'a1' | str replace -ar '\d' '#'
+'a1' | str replace -ar '\d' '.'
+'a1' | str replace -ar '\D' '.'
+tmux new-window -c '#{pane_current_path}'
+tmux source-file ~/.config/tmux/tmux.conf
+help str replace
+"a b" | sed -E 's/(a)/$1'
+"a b" | sed -E 's/(a)/$1/g'
+"a b" | sed -E 's/(a)/\1/g'
+"a2ad4\nasdf33" | str replace -ar '\D' '' | lines | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | str replace -ar '\D' '' | lines | into int 
+"a2ad4\nasdf33" | str replace -ar '\D' '' | lines | into int # | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | lines | str replace -ar '\D' '' | into int # | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | lines | str replace -ar '\D' '' | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+["1" "2"] | into int
+"1 2" | into int
+"1.2" | into int
+man parse 
+help parse
+"a2ad4\nasdf33" | lines | parse -r '.*(\d).*(?:\d)'| into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | parse -r '.*(\d).*(?:\d)' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | parse -r '.*(\d).*(\d)' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | parse -r '.*(\d).*(\d)?' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | parse -r '.*(\d).*[(\d)]' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | parse -r '.*(\d).*(\d)' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf3" | parse -r '.*(\d).*(\d)' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33" | parse -r '(.*(\d).*(\d))|(.*(\d).*)' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf" | parse -r '(.*(\d).*(\d))|(.*(\d).*)' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf\nakdsf3" | parse -r '(.*(\d).*(\d))|(.*(\d).*)' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf\nakdsf3\ndas3klajdsf0" | parse -r '(.*(\d).*(\d))|(.*(\d).*)' # | into int  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+man help reject
+help reject
+"a2ad4\nasdf33\na2dsf\nakdsf3\ndas3klajdsf0" | parse -r '(.*(\d).*(\d))|(.*(\d).*)' | reject capture0 capture4  | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf\nakdsf3\ndas3klajdsf0" | parse -r '(.*(\d).*(\d))|(.*(\d).*)' | reject capture0 capture4  # | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf\nakdsf3\ndas3klajdsf0" | parse -r '(.*(\d).*(\d))|(.*(\d).*)' # | reject capture0 capture4   | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf\nakdsf3\ndas3klajdsf0" | parse -r '(.*(\d).*(\d))|(.*(\d).*)'  | reject capture0 capture3   | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf\nakdsf3\ndas3klajdsf0" | parse -r '(.*(\d).*(\d))|(.*(\d).*)'  | reject capture0 capture3  # | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf\nakdsf3\ndas3klajdsf0" | parse -r '(.*(\d).*(\d))|(.*(\d).*)'  | reject capture0 capture3 #| reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+"a2ad4\nasdf33\na2dsf\nakdsf3\ndas3klajdsf0" | parse -r '(.*(\d).*(\d))|(.*(\d).*)'  | reject capture0 capture3 | into int | reduce { |it, acc| (if $it < 10 {2 * $it} else {$it}) + $acc }
+node
+python
+ils
+ls -la
+man tmiux
+man tmux
+hexit
+exit
+exit
+i3-msg -t get_tree
+exit
+exi
+exit
+table --help
+nuy
+i3-msg -t get_tree
+i3-msg -t get_tree | from json
+i3-msg -t get_tree | from json | table
+i3-msg -t get_tree | from json | table | get nodes
+table
+i3-msg -t get_tree | from json |  get nodes
+man table
+table 
+table --help
+ls
+tmux source-file ~/.config/tmux/tmux.conf
+ls
+i3-msg -t get_tree | from json | table | get nodes
+i3-msg -t get_tree | from json | get nodes
+transpose --help | bat --language help
+man i3-msg -t get_tree | from json | get nodes | fl
+flatten
+man flatten
+man table
+man i3-msg -t get_tree | from json | get nodes | describe
+man describe
+describe --help | bat --language help
+i3-msg -t get_tree | from json | get nodes | describe
+i3-msg -t get_tree | from json | describe
+man commandline
+commandline --help | bat --language help
+commandline -r "a"
+sudo killall xreamp
+sudo killall xremap
+autostart
+exit

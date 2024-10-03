@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: begin_latex
+# key: begin_latex
+# uuid: begin_latex
+# --
+\begin{${1:latex}}
+  $0
+\end{$1}

@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+#  ---
+#  title:  blutoothconnect menu
+#  author: emil lenz
+#  email:  emillenz@protonmail.com
+#  date:   2024-05-26
+#  dependecies: bluetoothctl
+#  ---
+
+require 'open3'
+require 'notify-send'
+require 'English'
+
+ROFI_CMD = %w[rofi -dmenu -no-custom -i -p bluetooth-connect].freeze
+ROFI_ACTION_CMD = %w[rofi -dmenu -no-custom -i -p action].freeze
+
+def main
+        addresses = `bluetoothctl devices`.split("\n").map do |line|
+                words = line.split
+                name = words[2..].join(' ')
+                addr = words[1]
+                [name, addr]
+        end.to_h
+
+        selected = menu_select(addresses.keys.push('!off'))
+        case selected
+        when '!off'
+                disconnect
+        else
+                connect(selected, addresses)
+        end
+end
+
+def menu_select(items)
+        selected, status = Open3.capture2(*ROFI_CMD, stdin_data: items.join("\n"))
+        exit(1) unless status.success?
+        selected.chomp
+end
+
+def connect(device_name, addresses)
+        `bluetoothctl power on`
+        `bluetoothctl connect #{addresses[device_name]}`
+        exit(1) unless $CHILD_STATUS.success?
+        NotifySend.send('bluetooth connected', device_name)
+end
+
+def disconnect
+        `bluetoothctl power off`
+        NotifySend.send('bluetooth off')
+end
+
+main

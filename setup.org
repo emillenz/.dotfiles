@@ -1,0 +1,89 @@
+#+title:     Setup
+#+author:    emil lenz
+#+email:     emillenz@protonmail.com
+#+date:      2023-05-28
+#+property:  header-args:sh :tangle yes :shebang #!/bin/bash
+
+* info
+- these packages are for arch based distributions, using yay to also install packages which are found in the aur.
+- if you use a different packagemanager you must ensure to install these programs on your own in order to get my workflow to work.
+- run this script as root -> get no prompts
+
+* link neccessary config files
+- some programs don't adhere to ~XDG_CONFIG_DIR~ standards, hence we symlink to the right location.
+#+begin_src sh
+ln --symbolic inputrc $HOME/.inputrc
+ln --symbolic clang-format $HOME/.clang-format
+ln --symbolic ./mimeapps/emacsclient.desktop $HOME/.local/share/applicatios/emacsclient.desktop
+#+end_src
+
+#+RESULTS:
+
+
+* setup
+#+begin_src sh
+sudo pacman -Syyu
+#+end_src
+
+* core tools
+** terminal, shell, scripting
+#+begin_src sh
+yay --noconfirm --sync alacritty curl libtool fzf fd ripgrep xclip xdg-utils cmake bat git gcc make xdotool htop-vim ttf-iosevka-comfy tmux tldr
+#+end_src
+
+*** interactive shell: fish
+if on a different machine, use ~set -o vi~ in bash to set readline to vim bindings.
+#+begin_src sh
+yay --noconfirm --sync fish fisher zoxide
+fisher install jorgebucaran/autopair.fish patrickf1/fzf.fish
+
+zoxide init fish | source
+
+sudo chsh --shell /usr/bin/fish root
+chsh --shell /usr/bin/fish
+#+end_src
+
+*** scripting: ruby
+#+begin_src sh
+yay --noconfirm --sync ruby
+gem install solargraph
+bundle install --gemfile $HOME/.config/bin/Gemfile
+#+end_src
+
+
+** never sudo-password-prompt
+- neccessarry for the [[file:bin/autostart][autostart]] script
+#+begin_src sh
+echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
+#+end_src
+
+** make system-scripts executeable
+#+begin_src sh
+fd . $HOME/.config/bin --type file --exec chmod +x {}
+#+end_src
+
+* editor: doom emacs
+#+begin_src sh
+yay --noconfirm --sync emacs-nativecomp
+
+git clone --depth 1 https://github.com/doomemacs/doomemacs $HOME/.config/emacs
+$HOME/.config/emacs/bin/doom install
+#+end_src
+
+* gui apps & packages
+#+begin_src sh
+yay --noconfirm --sync i3 i3lock zathura zathura-pdf-mupdf arandr mpv yt-dlp brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst nsxiv maim xorg-xset xorg-xsetroot batsignal pamixer rofi tlp
+#+end_src
+
+** enable daemons
+#+begin_src sh
+sudo systemctl enable sshd
+sudo systemctl enable mpd
+sudo systemctl enable bluetooth
+#+end_src
+
+** obs & nvidia drivers
+#+begin_src sh :tangle no
+yay --noconfirm --sync obs-studio
+yay --noconfirm --sync nvidia nvidia-utils lib32-nvidia-utils nvidia-settings
+#+end_src

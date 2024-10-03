@@ -1,0 +1,192 @@
+# ---
+# author:   emil lenz
+# email:    emillenz@protonmail.com
+# date:     2023-05-15
+# ---
+
+# ALIASES
+set $ROFI rofi -dmenu -i -no-custom -p
+set $ESC ; mode "default"
+set $EXIT bindsym Escape mode "default"
+set $BIN ~/.config/bin
+set $MV move container to workspace
+set $CMD exec --no-startup-id
+# no statusbar => use notifications for info
+set $VOL_INC pamixer --unmute --increase=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
+set $VOL_DEC pamixer --unmute --decrease=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
+set $VOL_MUTE pamixer --toggle-mute && dunstify --replace=69 "vol: $(pamixer --get-volume-human)" $ESC
+set $VOL_MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace=69 "mic-mute: $(pamixer --default-source --get-mute)" $ESC
+set $SYS_SLEEP i3lock --color=ffffff && systemctl suspend
+set $SYS_SCREENOFF sleep 1 && xset dpms force off
+
+# AUTOSTART
+exec $BIN/autostart &
+
+# OPTS
+workspace_auto_back_and_forth no
+workspace_layout tabbed
+force_focus_wrapping yes
+default_orientation horizontal
+default_border pixel 2
+hide_edge_borders smart
+title_align left
+font pango: Iosevka Comfy 10
+focus_on_window_activation focus
+
+# KEYBINDINGS (mod1 = alt)
+set $MOD Mod1
+floating_modifier $MOD
+bindsym --release button2 kill
+bindsym --whole-window $MOD+button2 floating toggle
+# disable mousewheel functionality on titlebar (no accidental window switching)
+bindsym button4 nop
+bindsym button5 nop
+
+bindsym XF86MonBrightnessDown $CMD brightnessctl set 5%-
+bindsym XF86MonBrightnessUp   $CMD brightnessctl set 5%+
+bindsym XF86Display           $CMD xrandr --auto
+bindsym XF86ScreenSaver       $CMD $SYS_SCREENOFF
+bindsym XF86Sleep             $CMD $SYS_SLEEP
+bindsym XF86AudioPlay         $CMD playerctl play-pause
+bindsym XF86AudioPause        $CMD playerctl play-pause
+bindsym XF86AudioNext         $CMD playerctl next
+bindsym XF86AudioPrev         $CMD playerctl previous
+bindsym XF86AudioLowerVolume  $CMD $VOL_DEC
+bindsym XF86AudioRaiseVolume  $CMD $VOL_INC
+bindsym XF86AudioMute         $CMD $VOL_MUTE
+bindsym XF86AudioMicMute      $CMD $VOL_MIC_MUTE
+
+bindsym $MOD+9            $CMD $VOL_MIC_MUTE
+bindsym $MOD+0            $CMD $VOL_MUTE
+bindsym $MOD+minus        $CMD $VOL_DEC
+bindsym $MOD+equal        $CMD $VOL_INC
+bindsym $MOD+bracketright $CMD playerctl next
+bindsym $MOD+bracketleft  $CMD playerctl previous
+bindsym $MOD+backslash    $CMD playerctl play-pause
+
+bindsym $MOD+l         focus right
+bindsym $MOD+h         focus left
+bindsym $MOD+q         kill
+bindsym $MOD+b         $CMD rofi -show window
+bindsym $MOD+semicolon $CMD rofi -show drun
+bindsym $MOD+s         layout toggle tabbed splith
+bindsym $MOD+Return    move workspace to output next
+bindsym $MOD+Tab       workspace back_and_forth
+
+# WORKSPACES
+for_window [urgent="latest"] focus
+for_window [all] focus , title_window_icon yes
+
+set $WS_CMD "cmd"
+workspace $WS_CMD output primary
+bindsym $MOD+c workspace $WS_CMD
+bindsym $MOD+shift+c $CMD alacritty --title cmd --command tmux new-session -A -s cmd $ESC
+for_window [class="Alacritty"] $MV $WS_CMD, focus
+
+set $WS_DOCS "docs"
+workspace $WS_DOCS output primary
+bindsym $MOD+d workspace $WS_DOCS
+bindsym $MOD+shift+d $CMD xdg-open "$(fd --type file . ~ | $ROFI 'find-file')"
+for_window [class="Zathura"] $MV $WS_DOCS, focus
+
+set $WS_WEB "web"
+workspace $WS_WEB output primary
+bindsym $MOD+w workspace $WS_WEB
+bindsym $MOD+shift+w $CMD firefox --new-window
+for_window [class="firefox"] $MV $WS_WEB, focus
+
+set $WS_EDIT "edit"
+workspace $WS_EDIT output primary
+bindsym $MOD+e workspace $WS_EDIT
+bindsym $MOD+shift+e $CMD emacsclient --reuse-frame || emacs --daemon && emacsclient --reuse-frame
+for_window [class="Emacs"] $MV $WS_EDIT, focus
+
+# copy media link to clipboard (ex: from browser) => open mpv view
+set $WS_VIDEO "video"
+workspace $WS_VIDEO output primary
+bindsym $MOD+v workspace $WS_VIDEO
+bindsym $MOD+shift+v $CMD mpv "$(xclip -out)"
+for_window [class="mpv"] $MV $WS_VIDEO, focus
+
+set $WS_AI "ai"
+workspace $WS_AI output primary
+bindsym $MOD+a workspace $WS_AI
+bindsym $MOD+shift+a $CMD firefox --new-window https://chat.openai.com
+for_window [class="firefox" title="ChatGPT"] $MV $WS_AI, focus
+
+# set $WS_MUSIC "music"
+# workspace $WS_MUSIC output primary
+# bindsym $MOD+m workspace $WS_MUSIC
+# bindsym $MOD+shift+m $CMD firefox --new-window https://spotify.com
+# for_window [class="firefox" title="Spotify"] $MV $WS_MUSIC, focus
+
+bindsym $MOD+f mode "find-file"
+mode "find-file" {
+        bindsym $MOD+c $CMD xdg-open "$(fd --extension pdf . ~/Documents/ethz/cs/s3 | $ROFI 'find [cs]')" $ESC
+        bindsym $MOD+l $CMD xdg-open "$(fd . ~/Documents/literature/source | $ROFI 'find-file [literature]')" $ESC
+        bindsym $MOD+f $CMD xdg-open "$(fd --type file . ~ | $ROFI 'find [all]')" $ESC
+        bindsym $MOD+d $CMD xdg-open "$(fd --extension pdf . ~/Downloads | $ROFI 'find [downloads]')" $ESC
+        $EXIT
+}
+
+bindsym $MOD+space mode "leader"
+mode "leader" {
+        bindsym $MOD+a           $CMD $BIN/audio-output-menu $ESC
+        bindsym $MOD+b           $CMD bluetooth-menu $ESC
+        bindsym $MOD+k           $CMD $BIN/killprocess-menu $ESC
+        bindsym $MOD+d           $CMD fd . ~/.screenlayout | $ROFI 'screen-layout' | sh $ESC
+        # NOTE :: after screenshot is taken, the path is written to clipboard
+        bindsym --release $MOD+s $CMD scrot --select --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard' $ESC
+        bindsym $MOD+shift+s     $CMD scrot --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard' $ESC
+        bindsym $MOD+q           mode "quit"
+        $EXIT
+}
+
+mode "quit" {
+        bindsym $MOD+e                 $CMD i3-msg exit $ESC
+        bindsym $MOD+q                 $CMD $SYS_SLEEP $ESC
+        bindsym --release $MOD+shift+q $CMD systemctl poweroff $ESC
+        bindsym $MOD+r                 $CMD i3-msg restart $ESC
+        bindsym $MOD+shift+r           $CMD systemctl reboot $ESC
+        bindsym $MOD+o                 $CMD $SYS_SCREENOFF $ESC
+        $EXIT
+}
+
+# MODUS-VIVENDI THEME
+set $BG          #ffffff
+set $FG          #000000
+set $MODELINE_BG #c8c8c8
+set $BORDER      #9f9f9f
+set $ACTIVE_BG   #c0deff
+set $URGENT_FG   #ff8f88
+
+# element               $border    $bg          $fg $mark $border (child)
+client.focused          $ACTIVE_BG $ACTIVE_BG   $FG $FG   $ACTIVE_BG
+client.focused_inactive $BORDER    $MODELINE_BG $FG $FG   $BORDER
+client.unfocused        $BORDER    $MODELINE_BG $FG $FG   $BORDER
+client.urgent           $URGENT_FG $URGENT_FG   $FG $FG   $URGENT_FG
+client.background       $BG
+
+# MODELINE
+bar {
+        mode hide
+        hidden_state hide # only show if explicitly activated
+        workspace_buttons yes
+        binding_mode_indicator yes
+        modifier none
+        tray_output primary
+        status_command i3status
+        separator_symbol " | "
+
+        colors {
+                background $MODELINE_BG
+                statusline $FG
+                separator  $FG
+                #class             border     bg        fg
+                binding_mode       $BORDER $ACTIVE_BG   $FG
+                focused_workspace  $BORDER $ACTIVE_BG   $FG
+                active_workspace   $BORDER $MODELINE_BG $FG
+                inactive_workspace $BORDER $MODELINE_BG $FG
+                urgent_workspace   $BORDER $URGENT_FG   $FG
+        }
+}

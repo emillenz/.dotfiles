@@ -1,0 +1,4 @@
+--theme=ansi # note :: uses terminal color's theme
+--italic-text=always
+--color=always
+--style=plain

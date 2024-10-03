@@ -1,0 +1,995 @@
+#+title:  doom emacs config
+#+author: emil lenz
+#+email:  emillenz@protonmail.com
+#+date:   2022-11-01
+#+info:   heavily opinionated config, with a principle-focused approach on: consistency, quality, efficiency & extensibility.
+
+#+macro: src-len (eval (save-excursion (find-file doom-module-config-file) (count-lines (point-min) (point-max))))
+#+property: header-args:elisp tangle config.el :comments link :results silent
+
+* preface
+- a total of {{{src-len}}} LOC.
+- prefixed ~z~ in user defined functions and variables.  to distinguish them clearly from package related ones.
+- lazyload packages using ~after!~.  this keeps emacs efficent, since it now only loads the settings & packages when they are actually needed (no emacs bankruptcy).
+- i believe that customizations are personal and should not be blindly copied.  Everyone should carefully consider each customizable setting they hear about and decide for themselves whether they like it or not.  Non-trivial customizations that include Lisp code should be fully understood before they are accepted, rejected, or amended to personal taste.  (read the manual)
+  - i encourage you to master the tool that you are using.  this means thuroughly reading the complete documentation, keymaps for the tools you are using (eg. vertico, evil-mode, magit, leader-mode).
+  - try to first fundamentally understand & master the functionality your tool offers.  then you can assess and see if a extension really provides value to you, or if that functionality is already included.
+
+* user
+#+begin_src elisp
+(setq user-full-name "emil lenz"
+      user-mail-address "emillenz@protonmail.com")
+#+end_src
+
+* ui
+** modus-theme
+- hack :: needs use-package
+#+begin_src elisp
+(use-package! modus-themes
+  :config
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-common-palette-overrides `((fg-region unspecified) ;; NOTE :: don't override syntax highlighting in region
+                                                (fg-heading-1 fg-heading-0)
+                                                (bg-prose-block-contents bg-dim)))
+
+  (custom-set-faces!
+    `(org-list-dt :inherit modus-themes-heading-1)
+    `(org-block-begin-line :foreground ,(modus-themes-get-color-value 'prose-metadata))
+    `(org-quote :slant italic))
+
+  (setq doom-theme 'modus-operandi))
+#+end_src
+
+** font
+#+begin_src elisp
+(setq doom-font                (font-spec :family "Iosevka Comfy" :size 13)
+      doom-variable-pitch-font (font-spec :family "Iosevka Comfy" :size 13)
+      doom-serif-font          (font-spec :family "Iosevka Comfy" :size 13)
+      doom-big-font            (font-spec :family "Iosevka Comfy" :size 28))
+#+end_src
+
+** modeline
+- no overlapping funcionality (time & date is on my physical wrist watch, don't need it in any program (also not wm)).
+- very minimal, only displaying what's needed (using (:modeline +light))
+#+begin_src elisp
+(setq display-battery-mode nil
+      display-time-mode nil
+      +modeline-height 8
+      +modeline-bar-width nil) ;; visual clutter => off
+#+end_src
+
+** window layout & behavior
+- vsplit always :: constrain buffers to consistently, and always ~vsplit~.  vsplits are superior to hsplits in all scenarios, since they don't restrict the visible area in the buffer.  additionally constraining windows to only vsplit greatly simplifies the navigational overhead (+needing less window management bindings).
+- retionale :: we line-wrap every buffer at 100 for better readability, and only ever edit/view a SINGLE buffer at a time, hence vsplits use screen realestate effectivly.
+
+#+begin_src elisp
+(setq evil-vsplit-window-right t
+      evil-split-window-below t
+      even-window-sizes 'width-only
+      window-combination-resize t
+      split-height-threshold nil
+      split-width-threshold 0)
+
+(after! org
+  (setq org-src-window-setup 'current-window
+        org-agenda-window-setup 'current-window))
+
+(add-to-list 'display-buffer-alist
+             `("^\\.*" display-buffer-reuse-mode-window))
+#+end_src
+
+- centered windows :: better ergonomics & less eye travel (distance + switching from left to middle from eg: terminal to webpage).
+- narrowed fov yields improved readability & focus of textparagraphs, especially if you stare at the computer for 8h+ a day.
+- compact and coherent data
+- allows the user to keep the entire window in the fov
+- vertical navigation is easier than horizontal
+- reading code/data/formulas is easiest sequentially = top to bottom // vs horizontally
+- take math for example, its easier to read equations if they are on newline
+- coding: typically one statement per line
+
+#+begin_src elisp
+;; HACK :: cannot use 'global-visual-fill-column-mode' (doesn't work in many buffers).  do NOT enable for 'prog-mode' (breaks with flycheck display)
+(add-hook! '(text-mode-hook
+             dired-mode-hook
+             conf-mode-hook
+             Info-mode-hook
+             org-agenda-mode-hook
+             magit-mode-hook)
+           #'visual-fill-column-mode)
+(global-display-fill-column-indicator-mode 0)
+
+(setq-default visual-fill-column-enable-sensible-window-split t
+              visual-fill-column-center-text t
+              visual-fill-column-width 100
+              fill-column 100)
+#+end_src
+
+* misc options
+#+begin_src elisp
+(setq initial-scratch-message ""
+      delete-by-moving-to-trash t
+      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (preserve for newinstalls)
+      auto-save-default t
+      confirm-kill-emacs nil
+      hscroll-margin 0
+      scroll-margin 0
+      enable-recursive-minibuffers nil
+      display-line-numbers-type 'visual
+      shell-command-prompt-show-cwd t
+      async-shell-command-width 100
+      shell-file-name "/usr/bin/fish")
+
+(save-place-mode 1)
+(+global-word-wrap-mode 1)
+(global-subword-mode 1)
+(add-hook! '(prog-mode-hook conf-mode-hook) #'rainbow-delimiters-mode)
+#+end_src
+
+* keybindings
+- ~helpful-key~ and are crucial to understanding what your tools can do for you (ex: magit, dired, org-mode)
+- always keep on exploring, learning new, efficient keybindings and break your old routines for newer, more effcient one's after evaluating wether they are faster or not.
+
+** leader ([[kbd:SPC][SPC]], [[kbd:,][,]])
+#+begin_src elisp
+(setq doom-leader-key "SPC"
+      doom-leader-alt-key "C-SPC"
+      doom-localleader-key ","
+      doom-localleader-alt-key "C-,")
+
+(map! :leader
+      "." #'vertico-repeat
+      "'" #'consult-bookmark
+      (:prefix "s"
+               "K" #'devdocs-lookup
+               "t" #'dictionary-search
+               "g" #'occur)
+      (:prefix "f"
+               "F" #'+vertico/consult-fd-or-find) ;; HACK :: fix original binding
+      (:prefix "c"
+               "r" #'lsp-rename
+               (:prefix "'"
+                        "t" #'org-babel-tangle
+                        "T" #'org-babel-detangle))
+      (:prefix "n"
+               "g" #'org-capture-goto-last-stored)
+      (:prefix "t"
+               "c" #'global-visual-fill-column-mode))
+#+end_src
+
+** global navigation scheme
+- follows the os-consistent keymap
+- splits :: we never manually create split-windows for buffers, prefer the full screen, full focus, no distractions - workflow.  (no multitasking, no clutter)
+  - when emacs creates splits we must handle them => minimal bindings for switching and closing splits: [[kbd:c-q, c-w][c-q, c-w]].  all you will ever need to manage buffers and windows, since if you have more than 2 windows side by side, you are screwed anyway and need to fix your setup.  hence it replaces all [[kbd:c-w][c-w]].
+- these mappings are universal to all programs (shell, emacs, browser, i3) and highly frequently accessed (from any mode/file).
+- workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, harpoon, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
+- harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
+- global marks (experimental?) :: This is a vim native option to harpoon (downside: not per project persistent).  When inside a project, mark the files you find yourself alternating between with global-marks, and jump to the exact file you want directly.
+  - (Vim's normal global-mark behaviour is to jump to the originally marked posion in that buffer.  This is the wrong behaviour because when we left the buffer we have changed the cursor position to some other place.  We override ~evil-mark-line~ binding, since it is redundant (for regular marks, use ~evil-goto-mark~ binding instead).)
+
+#+begin_src elisp
+(map! :map 'override
+      :nm "C-w" #'next-window-any-frame
+      :nm "C-q" #'kill-buffer-and-window
+      :nm "C-s" #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
+      :i  "C-v" #'evil-paste-after ;; more convenient that hitting C-r"
+      :nm "C-e" #'find-file
+      :nm "C-f" #'projectile-find-file
+      :nm "C-b" #'consult-buffer
+      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer ;; consistent with browser/WM
+      :nm "<tab>" #'harpoon-quick-menu-hydra) ;; without modifier, in order to allow for fast tab-<num> combos.  additionally consistent with tmux.  NOTE:: org mode makes heavy use of folding, and we should make use of vim's folding bindings using z-prefix to get more fine grained control instead of using <tab>.
+
+(defadvice! z-goto-global-mark (char)
+  "Go to the buffer of the global-mark.
+Usage: 'evil-set-mark' <uppercase> 'goto-global-mark' <lowercase>.  (faster/more ergonomic)"
+  :override #'evil-goto-mark-line
+  (let (marker (evil-get-marker (upcase char)))
+    (unless (numberp marker)
+      (switch-to-buffer (marker-buffer marker)))))
+#+end_src
+
+** vim editing
+goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and improve consistency of implementation.
+- splits ::
+  - at most have 2 splits => toggle between windows with single key (instead of mental overhead for directional navigation ex: [[kbd:c-hjkl][c-hjkl]] )
+  - this is for navigating and controlling some inevitable popup-buffers.
+  - avoid splits at all costs and use tabs instead
+- useless default mappings :: remap underused/useless keys to statistically frequently used commands.
+- fundamentals :: we don't change fundamental bindings of vim, we improve on them, as to retain muscle memory and consistency in other applications (eg. tmux scrollback, vim emulations).
+
+- whichkey :: removed on purpose
+  - the concept of ~whichkey~ is creating the bad habit of searching through a menu to find a keybindings (the exact opposite of what a keybind is for, to be executed instantaneously, engrained in memory)
+  - if you know roughly what you are looking for, then use [[kbd:m-x][m-x]] and fuzzy search for the command and it will show you the binding for next time.  fuzzy finding is more efficient.
+  - we remove annoying unwanted popup's and reduce visual sugar (=> distractionless, focused workflow).
+  - this idea correlates with the insight that you should use a keyboard with blank keycaps.  which will force you to learn to type, without ever taking the focus off the screen.  (reduced context switching, no speed bottleneck, increased continuity).
+  - learn them all (also the one's in insert mode) for seizing vim's full power.
+  - super frequently called command needs top layer mapping (ex: write)
+  - I can only improve vim's behaviour but need to stick to the defaults in order to allow seamless usage with other tools (tmux/less/browser/etc)
+#+begin_src elisp
+(map! :after evil
+      :n    "C-j" #'newline-and-indent  ;; useful inverse of 'J'
+      :nmv  "&"   #'evil-ex-repeat ;; more extensible than normal '&'
+      :nmv  "("   #'backward-sexp  ;; more useful than navigation by sentences
+      :nmv  ")"   #'forward-sexp
+      :nmv  "+"   #'evil-numbers/inc-at-pt ;; more sensible than C-x/C-a
+      :nmv  "-"   #'evil-numbers/dec-at-pt
+      :nmv  "g+"  #'evil-numbers/inc-at-pt-incremental
+      :nmv  "g-"  #'evil-numbers/dec-at-pt-incremental ;; more powerful '/' => preview matches interactively (better than vim's: C-g/C-t in search-mode)
+      :nmv  "g<"  #'evil-lion-left
+      :nmv  "g>"  #'evil-lion-right
+      :nmv  "s"   #'evil-surround-region ;; vim's <s/S> is useless (same as <x> and <C>)
+      :nmv  "S"   #'evil-Surround-region)
+
+;; HACK :: needed to make 'C-h' work as backspace consistently, everywhere (some modes override it to <help>).
+(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
+#+end_src
+
+** org_
+#+begin_src elisp
+(map! :localleader :map org-mode-map :after org
+      "\\" #'org-latex-preview
+      ","  #'org-ctrl-c-ctrl-c
+      "-"  #'org-toggle-item
+      "["  (cmd! (let ((current-prefix-arg '(4)))
+                   (call-interactively #'org-toggle-checkbox)))
+      "z"  #'org-add-note)
+#+end_src
+
+** dired_
+- filemanagers :: avoid using integrated filemanagers (such as dired / ranger / lf) whenever possible replace them with shell commands and fuzzy-finding (in project/root/recentfiles)
+- in most cases it is more extensible and faster using tools such as emacs find-file in combination with fuzzy finding and using global bookmarks for frequently used projects/files.
+#+begin_src elisp
+(map! :map dired-mode-map :after dired
+      :nm "h" #'dired-up-directory
+      :nm "l" #'dired-open-file
+      :nm "." #'dired-omit-mode)
+      ;; create new files using `find-file' (inserts filetemplate properly)
+
+(map! :after dired :map dired-mode-map :localleader
+      :nm "a" #'z-dired-archive)
+#+end_src
+
+* editor
+#+begin_src elisp
+(evil-surround-mode 1)
+(after! evil
+  (setq evil-want-fine-undo nil
+        evil-ex-substitute-global t
+        evil-want-C-i-jump t
+        evil-want-C-h-delete t
+        evil-want-minibuffer t ;; don't loose all your power's in the minibuffer
+        evil-org-use-additional-insert nil))
+
+(defadvice! z-update-evil-search-reg ()
+  "Update evil search register after jumping to a line with
+`+default/search-buffer' to be able to jump to next/prev matches.
+This is sensible default behaviour, and integrates it into evil."
+  :after #'+default/search-buffer
+  (let ((str (string-replace
+              " " ".*"
+              (car consult--line-history))))
+    (push str evil-ex-search-history)
+    (setq evil-ex-search-pattern (list str t t))))
+#+end_src
+
+** jumplist
+- jumplist is for functions that jump out of screen
+- don't populate jumplist with fuctions that are executed repeatedly (ex: forward-paragraph)
+#+begin_src elisp
+(dolist (cmd '(flycheck-next-error
+               flycheck-previous-error
+               +lookup/definition
+               +lookup/references
+               +lookup/implementations
+               +default/search-buffer
+               consult-imenu))
+  (evil-add-command-properties cmd :jump t))
+
+(dolist (cmd '(evil-backward-section-begin
+               evil-forward-section-begin
+               evil-jump-item
+               evil-backward-paragraph
+               evil-forward-paragraph
+               evil-forward-section-end))
+  (evil-remove-command-properties cmd :jump))
+#+end_src
+
+** completion
+- disable completion menu by default ::
+  - i don't want company to show up and distract me when i already know exactly what i want.
+  - make use of it only when you don't know the exact symbol name / function signature, or when typing overly long symbol-names becomes tedious.
+  - this enforces more thoughtful coding, evaluating what the function actually does and let's you see what is really happening underneath.
+  - it actually makes you faster, since it removes the mental overhead and interruption that arises from the distracting completion menu, where you will choose the option from.  greatly improves overall typing speed.
+  - it makes coding more raw, distractionfree, and overall more enjoyeable
+- evil completion :: If you want evil's dabbrev based completion, use <C-p>, which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use <tab>.
+- minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)
+#+begin_src elisp
+(vertico-flat-mode 1)
+
+(after! company
+  (setq company-minimum-prefix-length 0
+        consult-async-min-input 0 ;; immediate
+        company-idle-delay nil ;; manually trigger
+        company-tooltip-idle-delay 0.1 ;; faster
+        company-show-quick-access t
+        company-global-modes '(not
+                               help-mode
+                               eshell-mode
+                               org-mode
+                               vterm-mode)))
+
+(map! :after minibuffer :map minibuffer-local-map ;; consistency with vim bindings
+      :i "C-n" #'next-line-or-history-element
+      :i "C-p" #'previous-line-or-history-element)
+
+(map! :after company :map company-mode-map
+      :i "C-n" #'company-complete)
+
+(map! :map vertico-map
+      :im "C-w" #'vertico-directory-delete-word ;; smarter C-w
+      :im "C-d" #'consult-dir
+      :im "C-f" #'consult-dir-jump-file)
+#+end_src
+
+** snippets
+- nested snippets ared good
+#+begin_src elisp
+(setq yas-triggers-in-field t)
+#+end_src
+
+** file templates
+in each new file systematically insert heading metadata (as comments) with the following template
+- append more neccessary info if needed (ex: ~dependencies:~)
+#+begin_example
+# ---
+# title:  file metadata
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   2024-01-06
+# notes:
+# - outlines file-metadata template, to be inserted at top of every file systematically.
+# ---
+#+end_example
+
+- title :: full title of document.
+- author :: document creator/"owner".
+- email :: author's email
+- for contacting him with question's / reaching out.
+- date :: date of file creation, iso8601 format.
+- track your coding/writing progress over the years and just generally it is important to document the timing of things, to analyze/order/reconstruct them.
+- info :: short document description/summary, think of it as a docstring for the file with this the reader should know what the document is about in one line.
+
+we automate this repetetive task using a snippets.
+#+begin_src elisp
+(set-file-templates!
+ '(org-mode :trigger "header")
+ '(prog-mode :trigger "header"))
+#+end_src
+
+* dired
+- always open media files externally (emacs bad at graphical stuff)
+#+begin_src elisp
+(after! dired
+  (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+  (setq dired-open-extensions (mapcan (lambda (pair)
+                                        (mapcar (lambda (ext)
+                                                  (cons ext (cdr pair)))
+                                                (car pair)))
+                                      '((("mkv" "webm" "mp4" "mp3") . "mpv")
+                                        (("gif" "jpeg" "jpg" "png") . "nsxiv")
+                                        (("docx" "odt" "odf")       . "libreoffice")
+                                        (("epub" "pdf")             . "zathura")))
+        dired-recursive-copies 'always
+        dired-recursive-deletes 'always
+        global-auto-revert-non-file-buffers t
+        dired-no-confirm '(uncompress move copy)
+        dired-omit-files "^\\..*$"))
+#+end_src
+
+** archive file
+- archive all things that were once written or created by you (instead of deleting them) => digital content cost's little to no space.  and you will be grateful later in life to have recorded data (that can be analyzed & crunched) what you were thinking and how you configured your tools etc...
+- this ensures a predictable and consistent archiving scheme (archive to original path under archive)
+#+begin_src elisp
+(defvar z-archive-dir "~/Archive/")
+
+(defun z-dired-archive ()
+  "`mv' marked file/s to: `z-archive-dir'/{relative-filepath-to-HOME}/{filename}"
+  (interactive)
+  (mapc (lambda (file)
+          (let* ((dest (file-name-concat z-archive-dir
+                                         (file-relative-name file "~/")))
+                 (dir (file-name-directory dest)))
+            (unless (file-exists-p dir)
+              (make-directory dir t))
+            (rename-file file dest 1)))
+        (dired-get-marked-files nil nil))
+  (revert-buffer))
+#+end_src
+
+* terminal
+we never use an integrated terminal (introduces additional complex layers, slowness, bad keybindings, etc...).  instead all we do is use [[kbd:M-!/&|][M-!/&|]] if more is needed than that we should switch over to the proper shell anyway.
+
+* programming
+** indentation
+- formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
+- we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
+#+begin_src elisp
+(advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
+
+(defvar z-indent-width 8)
+
+(setq-default standard-indent z-indent-width
+              evil-shift-width z-indent-width
+              tab-width z-indent-width
+              fill-column 100
+              tab-always-indent t
+              tab-width z-indent-width
+              org-indent-indentation-per-level z-indent-width
+              evil-indent-convert-tabs t
+              indent-tabs-mode nil)
+
+(setq-hook! '(c-mode-hook java-mode-hook)
+  c-basic-offset z-indent-width)
+
+(setq-hook! 'ruby-mode-hook
+  evil-shift-width z-indent-width
+  ruby-indent-level z-indent-width)
+
+(setq-hook! 'rustic-mode-hook
+  rustic-indent z-indent-width
+  rustic-indent-offset z-indent-width)
+#+end_src
+
+*** rationale
+A useful time for a quote from the Linux Kernel coding standards [1] - exactly the first item in fact:
+
+#+begin_quote
+Tabs are 8 characters, and thus indentations are also 8 characters.  There are heretic movements that try to make indentations 4 (or even 2!) characters deep, and that is akin to trying to define the value of PI to be 3.  If you need more than 4 levels of indentation within a function, you’re screwed anyway, and should fix your program.
+--- Linus Torvalds
+#+end_quote
+
+The 8 space indent cannot exist in isolation.  It has to be coupled with a right-hand side limit of 100 columns.  Otherwise, you could just indent yourself off to infinity and there would be no consequences.  An 100 column limit forces you to keep your code within reasonable limits.
+
+The whole idea behind indentation is to clearly define where a block of control starts and ends.  This is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  Especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  You can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  It facilitates reading through a codebase in a more tree-like fashion.
+
+Every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “In this line, I know line points to the nth line as long as X is not true, but Y > Z.” 8-character indentations, internal spacing, and the 100-column rule effectively limits you to 4 levels of indentation in a function.  This effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  So the underlying functionality remains minimal and concise.
+
+In short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  Heed that warning.
+
+- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
+- Using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  In any sizeable team, deviations in formatting will creep in.  Enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
+
+* begin org
+#+begin_src elisp
+(after! org
+#+end_src
+
+** notes on ui
+- ensure all headings and faces have the same heigth => better overview & less overhead
+- visually distinctualize headings & keywods from the rest of the text with coloring and bold
+- like in code, everything is code/data => also org mode / latex documents.
+- its not about some fancy looking thing, its about the internals, the quality of the data, not the presentation.
+
+** tags
+- Always use tags to specify what a todo-item belongs to & never write it in the todo-name | not: ~TODO uni math assignment [2]~ => instead: ~TODO assignment [2] :uni:math:assignments:~
+- use tags with path hierarchy & inheritance to signal to which project / topic / subject the task belongs to have a clear overview in the agenda.
+  - use the tags from more general -> specific (eg: ~:fitness:endurance:running:ultrarunning:~, only use more specific tags if the note actually specifically talks about them, otherwise use the more general one)
+- mark top level subject with tag
+- ex: ~:cs:math:statisticts:exercise~ => filter: outstanding ~exercises~ of math.
+- ex: ~:cs:math:statisticts:question:~ => filter: outstanding ~questions~
+- ex: ~:personal:youtube:video~
+- ex: ~:personal:book:fiction~
+- ex: ~- [ ] change keybindings :config:emacs:~
+- never mention the location/project of the task, instead specify it as a task hierarchy (scope resolution, flexible querying) (same as in programming var-names should never include the typee / functions don't have module-name in their name, instead the location is specified via module)
+- ~[ ] fix bugs in emacs config for the org mode module~ => ~[ ] fix bugs :config:emacs:org:~
+- this is a clear and highly structured, data orientated approach.  (all the benefits of data follow: querying, extensibility...)
+- org-agenda :: filter for all headings with that specific tag across all files (eg.  sort class specific todos w tags)
+
+** options
+- archive all done tasks in current file/headings with org-agenda bulk action.
+- each file gets its own entry in ~~/archive/org~
+#+begin_src elisp
+  (add-hook! 'org-mode-hook '(visual-line-mode
+                              org-fragtog-mode
+                              rainbow-mode
+                              laas-mode
+                              +org-pretty-mode
+                              org-appear-mode))
+  (setq-hook! 'org-mode-hook
+    warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
+
+  (setq org-use-property-inheritance t
+        org-reverse-note-order t
+        org-startup-with-latex-preview t
+        org-startup-with-inline-images t
+        org-startup-indented t
+        org-startup-numerated t
+        org-startup-align-all-tables t
+        org-list-allow-alphabetical t
+        org-tags-column 0
+        org-fold-catch-invisible-edits 'smart
+        org-refile-use-outline-path 'full-file-path
+        org-refile-allow-creating-parent-nodes 'confirm
+        org-use-sub-superscripts '{}
+        org-fontify-quote-and-verse-blocks t
+        org-fontify-whole-block-delimiter-line t
+        doom-themes-org-fontify-special-tags t
+        org-ellipsis "…"
+        org-num-max-level 3
+        org-hide-leading-stars t
+        org-appear-autoemphasis t
+        org-appear-autosubmarkers t
+        org-appear-autolinks t
+        org-appear-autoentities t
+        org-appear-autokeywords t
+        org-appear-inside-latex nil
+        org-hide-emphasis-markers t
+        org-pretty-entities t
+        org-pretty-entities-include-sub-superscripts t
+        org-list-demote-modify-bullet '(("-"  . "-")
+                                        ("+"  . "+")
+                                        ("*"  . "-")
+                                        ("a." . "a)")
+                                        ("1." . "1)")
+                                        ("1)" . "a)"))
+        org-blank-before-new-entry '((heading . t)
+                                     (plain-list-item . nil))
+        org-src-ask-before-returning-to-edit-buffer nil)
+#+end_src
+
+** symbols
+- use icons to enhance ui readability (has nothing to do with bloat, this is still editeable plaintext (utf8) but greatly improves readability at a glance)
+- clean up keywords with sybols => more concise, compact, easier to read, faster at a glance
+#+begin_src elisp
+  (add-hook! 'org-mode-hook '(org-superstar-mode
+                              prettify-symbols-mode))
+
+  (setq org-superstar-headline-bullets-list '("◉" "◯" "▣" "□" "◈" "◇"))
+
+  (setq org-superstar-item-bullet-alist '((?- . "─")
+                                          (?* . "─") ;; NOTE :: asteriks are reserved for headings only (don't use in lists) => no unambigiuity
+                                          (?+ . "⇒")))
+
+  (appendq! +ligatures-extra-symbols '(:em_dash       "—"
+                                       :ellipses      "…"
+                                       :arrow_right   "→"
+                                       :arrow_left    "←"
+                                       :arrow_lr      "↔"))
+
+  (add-hook! 'org-mode-hook
+    (appendq! prettify-symbols-alist '(("--"  . "–")
+                                       ("---" . "—")
+                                       ("->" . "→")
+                                       ("=>" . "⇒")
+                                       ("<=>" . "⇔"))))
+#+end_src
+
+** task states
+- these are task states are used for personal daily organization & studying at university (keeping track of lectures, assignments, events)
+- using symbols instead of words to represent states => less clutter, more concise, readeable & structured.
+- order them with priorities to assign order of execution if there are many tasks
+- when changing state add a note to the state-change if needed
+- reflecting
+- log/track
+- progress
+- time
+- performance
+- stats
+- steps taken to complete task
+- reason: why task was moved to that state
+- seamlessly pick up work at a later time
+- ~[ ] watch lecture~ -> ~[-] watch lecture~ | annotate time: where the task was last left off: "01:25:23h"
+
+~[@]~: event
+- useful if you have to take steps after the event
+
+~[ ]~: outstanding item
+
+~[?]~: optional
+- non-compulsory item
+
+~[-]~: in-progress / started
+- item being worked on
+
+~[=]~: on-hold
+- unfinished item waiting for smthing, before can be finished / continued
+
+~[&]~: review
+- review item (ex: correct assignment, revise meeting notes).
+- post completion: review performance, asess effort...
+
+~[>]~: delegated/assigned to someone
+- waiting for it to be finished to resume
+- check up on them
+
+~[\]~: cancelled
+  - no longer neccessary
+
+~[x]~: completed
+
+#+begin_src elisp
+  (setq org-todo-keywords '((sequence
+                             "[ ](t)"
+                             "[@](e)"
+                             "[?](?!)"
+                             "[-](-!)"
+                             "[>](>!)"
+                             "[=](=!)"
+                             "[&](&!)"
+                             "|"
+                             "[x](x!)"
+                             "[\\](\\!)")))
+
+  (setq org-todo-keyword-faces '(("[@]"  . (bold +org-todo-project))
+                                 ("[ ]"  . (bold org-todo))
+                                 ("[-]"  . (bold +org-todo-active))
+                                 ("[>]"  . (bold +org-todo-onhold))
+                                 ("[?]"  . (bold +org-todo-onhold))
+                                 ("[=]"  . (bold +org-todo-onhold))
+                                 ("[&]"  . (bold +org-todo-onhold))
+                                 ("[\\]" . (bold org-done))
+                                 ("[x]"  . (bold org-done))))
+#+end_src
+
+- Log to drawer: ~LOG~
+- Shorter & more sensible than default: ~LOGBOOK~
+- Make org-log messages more data orientated and functional.  (less verbose and literate, easier to parse)
+#+begin_src elisp
+  (setq org-log-done 'time
+        org-log-repeat 'time
+        org-todo-repeat-to-state "[ ]"
+        org-log-redeadline 'time
+        org-log-reschedule 'time
+        org-log-into-drawer "LOG")
+
+  (setq org-priority-highest 1
+        org-priority-lowest 3)
+
+  (setq org-log-note-headings '((done        . "note-done: %t")
+                                (state       . "state: %-3S -> %-3s %t") ;; NOTE :: the custom task-statuses are all 3- wide
+                                (note        . "note: %t")
+                                (reschedule  . "reschedule: %S, %t")
+                                (delschedule . "noschedule: %S, %t")
+                                (redeadline  . "deadline: %S, %t")
+                                (deldeadline . "nodeadline: %S, %t")
+                                (refile      . "refile: %t")
+                                (clock-out   . "")))
+#+end_src
+
+** babel
+#+begin_src elisp
+  (setq org-babel-default-header-args '((:session  . "none")
+                                        (:results  . "replace")
+                                        (:exports  . "code")
+                                        (:cache    . "no")
+                                        (:noweb    . "no")
+                                        (:hlines   . "no")
+                                        (:tangle   . "no")
+                                        (:mkdirp   . "yes")
+                                        (:comments . "link")))
+#+end_src
+
+** clock
+#+begin_src elisp
+  (setq org-clock-out-when-done t
+        org-clock-persist t
+        org-clock-into-drawer t)
+#+end_src
+
+** capture templates
+- create capture-templates for organization on a per project basis, ex: university, personal, work..
+- capture templates are used to collect & capture notes, events, tasks and templates; structured, tagged, sorted into a specific files.
+- this ensures information based data is consistently captured.
+- this is very customizeable allows you to setup complex templates and should be used whenever you want to log data / repeatatively track things, or want to capture structured data with different entries consistently (eg: literature to track reading process).
+- use the heading: ~inbox~ for collecting the captured tasks => can get messy, and can be refactored out of inbox into more structure if neccessary.
+- for each project there is a separate folder (relative to org-dir) with files:
+- agenda :: all tasks (todos, completed etc) and events (physical appointments)
+- notes :: thoughts, exploration -> to study, to remember, to refactor
+- set tags for entire file in the document-header with ~#+filetags: :proj:~
+- motivation :: this scheme of =agenda/notes= is used to have a structured and consistent approach for generic projects-management.
+- prepending :: if recent item's are of higher relevance
+- appending :: for hierarchical order eg. book-quotes ordered from begin -> end
+#+begin_src elisp
+(setq org-directory "~/Documents/org/")
+(defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
+  "captured daily journal files")
+(defvar z-org-literature-dir "~/Documents/literature"
+  "literature sources and captured notes")
+(defvar z-org-literature-notes-dir (file-name-concat z-org-literature-dir "notes/")
+  "note files for each literature source")
+(defvar z-wiki-dir "~/Documents/wiki/"
+  "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
+(blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
+and the later reviewed and merged into the corresponding article of the wiki.")
+
+(defun z-doct-journal-file (&optional time)
+  "TIME :: time in day of note to return. (default: today)"
+  (file-name-concat z-org-journal-dir
+                    (format "%s_journal.org"
+                            (format-time-string "%F" (or time (current-time))))))
+
+(defvar z-doct-projects '(("cs" :keys "c"
+                           :children (("ti"   :keys "t")
+                                      ("an2"  :keys "a")
+                                      ("spca" :keys "s")
+                                      ("ph1"  :keys "p")
+                                      ("nm"   :keys "n")))
+                          ("personal" :keys "p")
+                          ("config"   :keys "f")))
+
+(defun z-doct-projects-file (type path)
+  "TYPE :: 'agenda | 'notes"
+  (file-name-concat org-directory
+                    path
+                    (format "%s.org" (symbol-name type))))
+
+(defun z-doct-task-template (path)
+  (list "task"
+        :keys "t"
+        :file (z-doct-projects-file 'agenda path)
+        :headline "inbox"
+        :prepend t
+        :empty-lines-after 1
+        :template '("* [ ] %^{title}%?")))
+
+(defun z-doct-event-template (path)
+  (list "event"
+        :keys "e"
+        :file (z-doct-projects-file 'agenda path)
+        :headline "events"
+        :prepend t
+        :empty-lines-after 1
+        :template '("* [@] %^{title}%?"
+                    "%^T"
+                    ":PROPERTIES:"
+                    ":REPEAT_TO_STATE: [@]" ; NOTE :: in case is made repeating
+                    ":location: %^{location}"
+                    ":material: %^{material}"
+                    ":END:")))
+
+(defun z-doct-note-template (path)
+  (list "note"
+        :keys "n"
+        :file (z-doct-projects-file 'notes path)
+        :prepend t
+        :empty-lines 1
+        :template '("* %^{title} %^g"
+                    ":PROPERTIES:"
+                    ":created: %U"
+                    ":END:"
+                    "%?")))
+
+(defun z-doct-expand-templates (projects &optional parent-path)
+  "PROJECTS :: `z-doct-projects'
+PARENT-PATH :: nil (used for recursion)"
+  (mapcar (lambda (project)
+            (let* ((tag (car project))
+                   (props (cdr project))
+                   (key (plist-get props :keys))
+                   (self `(,tag :keys ,key))
+                   (children (plist-get props :children))
+                   (path (file-name-concat parent-path tag)))
+              (append self
+                      (if children
+                          (list :children (append (z-doct-expand-templates children path)
+                                                  (z-doct-expand-templates (list self) nil))) ;; NOTE :: don't nest self in it's own subdir
+                        (list :children (list (z-doct-task-template path)
+                                              (z-doct-event-template path)
+                                              (z-doct-note-template path)))))))
+          projects))
+
+(setq org-capture-templates
+      (doct `(,@(z-doct-expand-templates z-doct-projects)
+
+              ("journal"
+               :keys "j"
+               :file (lambda () (z-doct-journal-file))
+               :title (lambda () (downcase (format-time-string "journal: %A, %e. %B %Y")))
+               :children (("journal init"
+                           :keys "j"
+                           :type plain
+                           :template  ("#+title:  %{title}"
+                                       "#+author: %(user-full-name)"
+                                       "#+email:  %(message-user-mail-address)"
+                                       "#+date:   %<%F>"
+                                       "#+filetags: :journal:"
+                                       ""
+                                       "* goals"
+                                       "- [ ] %?"
+                                       ""
+                                       "* agenda"
+                                       "** [ ] "))
+
+                          ("note"
+                           :keys "n"
+                           :headline "notes"
+                           :prepend t
+                           :empty-lines-after 1
+                           :template ("* %^{title}"
+                                      ":PROPERTIES:"
+                                      ":created: %U"
+                                      ":END:"
+                                      "%?"))
+
+                          ("yesterday review"
+                           :keys "y"
+                           :unnarrowed t
+                           :file (lambda ()
+                                   (z-doct-journal-file (time-subtract (current-time) (days-to-time 1))))
+                           :template ("* gratitude"
+                                      "- %?"
+                                      ""
+                                      "* reflection"
+                                      "-"))))
+
+              ("literature"
+               :keys "l"
+               :file (lambda () (read-file-name "file: " z-org-literature-notes-dir))
+               :children (("add to readlist"
+                           :keys "a"
+                           :file ,(file-name-concat z-org-literature-dir "readlist.org")
+                           :headline "inbox"
+                           :prepend t
+                           :template ("* [ ] %^{title}%? %^g"))
+
+                          ("init source"
+                           :keys "i"
+                           :file (lambda ()
+                                   (file-name-concat z-org-literature-notes-dir (concat (replace-regexp-in-string " "
+                                                                                                                  "_"
+                                                                                                                  (read-from-minibuffer "short title: "))
+                                                                                        ".org")))
+                           :type plain
+                           :template ("#+title:  %^{full title}"
+                                      "#+author: %(user-full-name)"
+                                      "#+email:  %(message-user-mail-address)"
+                                      "#+date:   %<%F>"
+                                      "#+filetags: :literature:%^g"
+                                      ""
+                                      "* [-] %\\1%?"
+                                      ":PROPERTIES:"
+                                      ":title:  %\\1"
+                                      ":author: %^{author}"
+                                      ":year:   %^{year}"
+                                      ":type:   %^{ |book|textbook|book|paper|article|audiobook|podcast}"
+                                      ":pages:  %^{pages}"
+                                      ":END:")
+                           :hook (lambda () (message "change task-state in readlist.org!")))
+
+                          ("quote"
+                           :keys "q"
+                           :headline "quotes"
+                           :empty-lines-before 1
+                           :template ("* %^{title} [p.%^{page}]"
+                                      ":PROPERTIES:"
+                                      ":created: %U"
+                                      ":END:"
+                                      "#+begin_quote"
+                                      "%?"
+                                      "#+end_quote"))
+
+                          ("note: literary"
+                           :keys "l"
+                           :headline "literature notes"
+                           :empty-lines-before 1
+                           :template ("* %^{title} [p.%^{page}] %^g"
+                                      ":PROPERTIES:"
+                                      ":created: %U"
+                                      ":END:"
+                                      "%?"))
+
+                          ("note: transient"
+                           :keys "t"
+                           :headline "transient notes"
+                           :empty-lines-before 1
+                           :template ("* %^{title} %^g"
+                                      ":PROPERTIES:"
+                                      ":created: %U"
+                                      ":END:"
+                                      "%?"))
+
+                          ("summarize"
+                           :keys "s"
+                           :headline "summary"
+                           :unnarrowed t
+                           :type plain
+                           :template ("%?")
+                           :hook (lambda ()
+                                   (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
+#+end_src
+** agenda
+- multi-day-todo-events: add multiple timestamps on the same line => same task shows scheduled on different days.  ex:
+- track which university lectures you have watched & reviewed.  => even if they are spread out onto multiple days => log all completions / review-notes under the same task.
+#+begin_src elisp
+(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
+
+(setq org-archive-location "~/Archive/org/%s::" ;; NOTE :: archive based on file path
+      org-agenda-files `(,@(directory-files-recursively org-directory org-agenda-file-regexp t)
+                         ,(z-doct-journal-file)
+                         ,(z-doct-journal-file (time-subtract (current-time) (days-to-time 1)))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-skip-scheduled-if-done t
+      ;; org-agenda-sticky t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-tags-column 0
+      org-agenda-block-separator ?─
+      org-agenda-breadcrumbs-separator "…"
+      org-agenda-compact-blocks nil
+      org-agenda-show-future-repeats nil
+      org-deadline-warning-days 3
+      org-agenda-time-grid nil
+      org-capture-use-agenda-date t)
+
+(defadvice! z-add-newline (fn &rest args)
+  "Separate dates in 'org-agenda' with newline."
+  :around #'org-agenda-format-date-aligned
+  (concat "\n" (apply fn args) ))
+#+end_src
+
+Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align everything into columns & group items.
++ achieve a nce and consistent readeable data-orinetated view
++ all task-states have the same length, otherwise there is no task-keyword alignment.
++ Set more concise & informing ~deadline~ & ~scheduled~ strings
+#+begin_src elisp
+  (setq org-agenda-todo-keyword-format "%-3s"
+        org-agenda-scheduled-leaders '(""
+                                       "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
+        org-agenda-deadline-leaders '("─────"
+                                      ">> %1dd"
+                                      "<< %1dd")
+        org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
+                                   (todo   . "%-20c%-7s%-7t")
+                                   (tags   . "%-20c%-7s%-7t")
+                                   (search . "%-20c%-7s%-7t")))
+#+end_src
+
+** org roam
+#+begin_src elisp
+(setq org-roam-directory z-wiki-dir)
+#+end_src
+
+** end org
+- end of org section started with: ~after! org~
+#+begin_src elisp
+)
+#+end_src
+
+* latex
+#+begin_src elisp
+(setq +latex-viewers '(zathura))
+#+end_src
+
+* verilog
+#+begin_src elisp
+(after! verilog-mode
+  (setq verilog-auto-newline nil))
+
+(setq-hook! 'verilog-mode-hook
+  verilog-case-indent z-indent-width
+  verilog-cexp-indent z-indent-width
+  verilog-indent-level z-indent-width
+  verilog-indent-level-behavioral z-indent-width
+  verilog-indent-level-declaration z-indent-width
+  verilog-indent-level-module z-indent-width)
+(map! :after verilog-mode :map verilog-mode-map :localleader
+      "cf" #'verilog-indent-buffer) ;; code:format
+#+end_src
+
+* dictionary
+#+begin_src elisp
+(after! dictionary
+  (setq dictionary-server "dict.org"
+        dictionary-default-dictionary "*"))
+#+end_src
+
+* devdocs
+#+begin_src elisp
+(setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
+(setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
+#+end_src
+
+* speech notes dictation: whisper
+#+begin_src elisp
+(use-package whisper
+  :load-path "~/.config/doom/whisper.el/")
+#+end_src
