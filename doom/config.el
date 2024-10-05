@@ -96,6 +96,7 @@
 (map! :leader
       "." #'vertico-repeat
       "'" #'consult-bookmark
+      "<tab>" #'harpoon-quick-menu-hydra
       (:prefix "s"
                "K" #'devdocs-lookup
                "t" #'dictionary-search
@@ -123,7 +124,10 @@
       :nm "C-f" #'projectile-find-file
       :nm "C-b" #'consult-buffer
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer ;; consistent with browser/WM
-      :nm "<tab>" #'harpoon-quick-menu-hydra) ;; without modifier, in order to allow for fast tab-<num> combos.  additionally consistent with tmux.  NOTE:: org mode makes heavy use of folding, and we should make use of vim's folding bindings using z-prefix to get more fine grained control instead of using <tab>.
+      :nm "M-1" #'harpoon-go-to-1 ;; consistent with browser/tmux
+      :nm "M-2" #'harpoon-go-to-2
+      :nm "M-3" #'harpoon-go-to-3
+      :nm "M-4" #'harpoon-go-to-4)
 
 (defadvice! z-goto-global-mark (char)
   "Go to the buffer of the global-mark.
@@ -181,7 +185,7 @@ Usage: 'evil-set-mark' <uppercase> 'goto-global-mark' <lowercase>.  (faster/more
         evil-ex-substitute-global t
         evil-want-C-i-jump t
         evil-want-C-h-delete t
-        evil-want-minibuffer t ;; don't loose all your power's in the minibuffer
+        evil-want-minibuffer t ;; don't loose your powers in the minibuffer
         evil-org-use-additional-insert nil))
 
 (defadvice! z-update-evil-search-reg ()
@@ -230,15 +234,11 @@ This is sensible default behaviour, and integrates it into evil."
                                org-mode
                                vterm-mode)))
 
-(map! :after minibuffer :map minibuffer-local-map ;; consistency with vim bindings
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element)
-
 (map! :after company :map company-mode-map
-      :i "C-n" #'company-complete)
+      :i "<tab>" #'company-complete)
 
 (map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word ;; smarter C-w
+      :im "C-w" #'vertico-directory-delete-word ;; better C-w
       :im "C-d" #'consult-dir
       :im "C-f" #'consult-dir-jump-file)
 ;; completion:1 ends here
@@ -740,6 +740,7 @@ PARENT-PATH :: nil (used for recursion)"
 ;; [[file:config.org::*devdocs][devdocs:1]]
 (setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
 (setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
+(setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp"))
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*speech notes dictation: whisper][speech notes dictation: whisper:1]]
