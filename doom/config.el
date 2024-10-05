@@ -141,6 +141,8 @@ Usage: 'evil-set-mark' <uppercase> 'goto-global-mark' <lowercase>.  (faster/more
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
       :n    "C-j" #'newline-and-indent  ;; useful inverse of 'J'
+      :n    "j"   #'evil-next-visual-line
+      :n    "k"   #'evil-previous-visual-line
       :nmv  "&"   #'evil-ex-repeat ;; more extensible than normal '&'
       :nmv  "("   #'backward-sexp  ;; more useful than navigation by sentences
       :nmv  ")"   #'forward-sexp
@@ -235,7 +237,11 @@ This is sensible default behaviour, and integrates it into evil."
                                vterm-mode)))
 
 (map! :after company :map company-mode-map
-      :i "<tab>" #'company-complete)
+      :i "C-n" #'company-complete)
+
+(map! :after minibuffer :map minibuffer-local-map ;; consistency with vim bindings
+      :i "C-n" #'next-line-or-history-element
+      :i "C-p" #'previous-line-or-history-element)
 
 (map! :map vertico-map
       :im "C-w" #'vertico-directory-delete-word ;; better C-w

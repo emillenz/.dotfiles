@@ -221,5 +221,3 @@
        (default
         +bindings
         +smartparens))
-
-;; (setq evil-respect-visual-line-mode t) HACK :: needs to be loaded before evil
