@@ -207,6 +207,9 @@ The saying, "give 'em enough rope, and they'll likely hang themselves," holds tr
 - completely integrated into the editor (think: finding/filtering headlines, notes, tasks..)
 - the best support for literate programming covering every language (looking at you: jupyter..)
 
+*** emacs everywhere
+use emacs everywhere for anytime you are using a a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
+
 ** documentreader: zathura
 - lightweight
 - distraction free, no unneccessary features.

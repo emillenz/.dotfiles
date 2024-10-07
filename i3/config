@@ -14,8 +14,8 @@ set $CMD exec --no-startup-id
 # no statusbar => use notifications for info
 set $VOL_INC pamixer --unmute --increase=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
-set $VOL_MUTE pamixer --toggle-mute && dunstify --replace=69 "vol: $(pamixer --get-volume-human)" $ESC
-set $VOL_MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace=69 "mic-mute: $(pamixer --default-source --get-mute)" $ESC
+set $VOL_MUTE pamixer --toggle-mute && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
+set $VOL_MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace=69 "mic-mute: $(pamixer --default-source --get-mute)"
 set $SYS_SLEEP i3lock --color=ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
 
@@ -80,7 +80,7 @@ for_window [all] focus , title_window_icon yes
 set $WS_CMD "cmd"
 workspace $WS_CMD output primary
 bindsym $MOD+c workspace $WS_CMD
-bindsym $MOD+shift+c $CMD alacritty --title cmd --command tmux new-session -A -s cmd $ESC
+bindsym $MOD+shift+c $CMD alacritty --title cmd --command tmux new-session -A -s cmd
 for_window [class="Alacritty"] $MV $WS_CMD, focus
 
 set $WS_DOCS "docs"
@@ -137,6 +137,7 @@ mode "leader" {
         # NOTE :: after screenshot is taken, the path is written to clipboard
         bindsym --release $MOD+s $CMD scrot --select --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
         bindsym $MOD+shift+s $CMD scrot --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
+        bindsym $MOD+e $CMD emacsclient --eval "(emacs-everywhere)"; $ESC
         bindsym $MOD+q mode "quit"
         bindsym $MOD+l mode "layout"
         bindsym $MOD+f mode "find-file"

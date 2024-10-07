@@ -3,9 +3,8 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2024-01-18
-# info:   gtk apps are configured to use readline bindings already.
-#         to quickly remap caps->ctrl use gnome-tweak-tools or: `setxkbmap -option ctrl:nocaps`
-#
+# info:   gtk apps are configured to use readline bindings already (gtk-emacs-keytheme)
+#         if you are on a different linux machine, use gnome-tweak-tools and: `setxkbmap -option ctrl:nocaps` to get basically the same effect.
 # ---
 
 modmap:

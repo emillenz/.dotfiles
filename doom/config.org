@@ -428,7 +428,6 @@ we never use an integrated terminal (introduces additional complex layers, slown
               evil-shift-width z-indent-width
               tab-width z-indent-width
               fill-column 100
-              tab-always-indent t
               tab-width z-indent-width
               org-indent-indentation-per-level z-indent-width
               evil-indent-convert-tabs t
@@ -446,8 +445,6 @@ we never use an integrated terminal (introduces additional complex layers, slown
 (setq-hook! 'rustic-mode-hook
   rustic-indent z-indent-width
   rustic-indent-offset z-indent-width)
-
-(setq-hook! 'python-mode-hook python-indent-offset z-indent-width)
 #+end_src
 
 *** rationale

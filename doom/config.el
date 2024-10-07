@@ -302,7 +302,6 @@ This is sensible default behaviour, and integrates it into evil."
               evil-shift-width z-indent-width
               tab-width z-indent-width
               fill-column 100
-              tab-always-indent t
               tab-width z-indent-width
               org-indent-indentation-per-level z-indent-width
               evil-indent-convert-tabs t
@@ -320,8 +319,6 @@ This is sensible default behaviour, and integrates it into evil."
 (setq-hook! 'rustic-mode-hook
   rustic-indent z-indent-width
   rustic-indent-offset z-indent-width)
-
-(setq-hook! 'python-mode-hook python-indent-offset z-indent-width)
 ;; indentation:1 ends here
 
 ;; [[file:config.org::*begin org][begin org:1]]
