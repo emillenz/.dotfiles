@@ -69,7 +69,7 @@
       even-window-sizes 'width-only
       window-combination-resize t
       split-height-threshold nil
-      split-width-threshold 0)
+      split-width-threshold 80) ;; force vsplits, not more than 2 windows
 
 (after! org
   (setq org-src-window-setup 'current-window
@@ -178,7 +178,7 @@
       :nm "C-f" #'projectile-find-file
       :nm "C-b" #'consult-buffer
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer ;; consistent with browser/WM
-      :nm "M-1" #'harpoon-go-to-1 ;; consistent with browser/tmux
+      :nm "M-1" #'harpoon-go-to-1 ;; consistent with tmux/browser
       :nm "M-2" #'harpoon-go-to-2
       :nm "M-3" #'harpoon-go-to-3
       :nm "M-4" #'harpoon-go-to-4)
@@ -307,8 +307,8 @@ This is sensible default behaviour, and integrates it into evil."
   - this enforces more thoughtful coding, evaluating what the function actually does and let's you see what is really happening underneath.
   - it actually makes you faster, since it removes the mental overhead and interruption that arises from the distracting completion menu, where you will choose the option from.  greatly improves overall typing speed.
   - it makes coding more raw, distractionfree, and overall more enjoyeable
-- evil completion :: If you want evil's dabbrev based completion, use <C-p>, which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use <tab>.
-- minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)
+- bindings :: use [[kbd:C-n][C-n]] for code completion, If you want evil's dabbrev based completion, use [[kbd:C-p][C-p]], which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use [[kbd:tab][tab]].
+- minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
 #+begin_src elisp
 (vertico-flat-mode 1)
 
@@ -326,8 +326,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 (map! :after company :map company-mode-map
       :i "C-n" #'company-complete)
-
-(map! :after minibuffer :map minibuffer-local-map ;; consistency with vim bindings
+(map! :after minibuffer :map minibuffer-local-map
       :i "C-n" #'next-line-or-history-element
       :i "C-p" #'previous-line-or-history-element)
 
@@ -419,6 +418,7 @@ we never use an integrated terminal (introduces additional complex layers, slown
 ** indentation
 - formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
 - we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
+- [ ] use ~:tools formatter~ or not?
 #+begin_src elisp
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
@@ -434,7 +434,9 @@ we never use an integrated terminal (introduces additional complex layers, slown
               evil-indent-convert-tabs t
               indent-tabs-mode nil)
 
-(setq-hook! '(c-mode-hook java-mode-hook)
+(setq-hook! '(c++-mode-hook
+              c-mode-hook
+              java-mode-hook)
   c-basic-offset z-indent-width)
 
 (setq-hook! 'ruby-mode-hook
@@ -444,6 +446,8 @@ we never use an integrated terminal (introduces additional complex layers, slown
 (setq-hook! 'rustic-mode-hook
   rustic-indent z-indent-width
   rustic-indent-offset z-indent-width)
+
+(setq-hook! 'python-mode-hook python-indent-offset z-indent-width)
 #+end_src
 
 *** rationale

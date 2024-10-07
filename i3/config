@@ -6,7 +6,7 @@
 
 # ALIASES
 set $ROFI rofi -dmenu -i -no-custom -p
-set $ESC ; mode "default"
+set $ESC mode "default"
 set $EXIT bindsym Escape mode "default"
 set $BIN ~/.config/bin
 set $MV move container to workspace
@@ -120,35 +120,42 @@ for_window [class="firefox" title="ChatGPT"] $MV $WS_AI, focus
 # bindsym $MOD+shift+m $CMD firefox --new-window https://spotify.com
 # for_window [class="firefox" title="Spotify"] $MV $WS_MUSIC, focus
 
-bindsym $MOD+f mode "find-file"
 mode "find-file" {
-        bindsym $MOD+c $CMD xdg-open "$(fd --extension pdf . ~/Documents/ethz/cs/s3 | $ROFI 'find [cs]')" $ESC
-        bindsym $MOD+l $CMD xdg-open "$(fd . ~/Documents/literature/source | $ROFI 'find-file [literature]')" $ESC
-        bindsym $MOD+f $CMD xdg-open "$(fd --type file . ~ | $ROFI 'find [all]')" $ESC
-        bindsym $MOD+d $CMD xdg-open "$(fd --extension pdf . ~/Downloads | $ROFI 'find [downloads]')" $ESC
+        bindsym $MOD+c $CMD xdg-open "$(fd --extension pdf . ~/Documents/ethz/cs/s3 | $ROFI 'find [cs]')"; $ESC
+        bindsym $MOD+l $CMD xdg-open "$(fd . ~/Documents/literature/source | $ROFI 'find-file [literature]')"; $ESC
+        bindsym $MOD+f $CMD xdg-open "$(fd --type file . ~ | $ROFI 'find [all]')"; $ESC
+        bindsym $MOD+d $CMD xdg-open "$(fd --extension pdf . ~/Downloads | $ROFI 'find [downloads]')"; $ESC
         $EXIT
 }
 
 bindsym $MOD+space mode "leader"
 mode "leader" {
-        bindsym $MOD+a           $CMD $BIN/audio-output-menu $ESC
-        bindsym $MOD+b           $CMD bluetooth-menu $ESC
-        bindsym $MOD+k           $CMD $BIN/killprocess-menu $ESC
-        bindsym $MOD+d           $CMD fd . ~/.screenlayout | $ROFI 'screen-layout' | sh $ESC
+        bindsym $MOD+a $CMD $BIN/audio-output-menu; $ESC
+        bindsym $MOD+b $CMD bluetooth-menu; $ESC
+        bindsym $MOD+k $CMD $BIN/killprocess-menu; $ESC
+        bindsym $MOD+d $CMD fd . ~/.screenlayout | $ROFI 'screen-layout' | sh; $ESC
         # NOTE :: after screenshot is taken, the path is written to clipboard
-        bindsym --release $MOD+s $CMD scrot --select --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard' $ESC
-        bindsym $MOD+shift+s     $CMD scrot --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard' $ESC
-        bindsym $MOD+q           mode "quit"
+        bindsym --release $MOD+s $CMD scrot --select --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
+        bindsym $MOD+shift+s $CMD scrot --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
+        bindsym $MOD+q mode "quit"
+        bindsym $MOD+l mode "layout"
+        bindsym $MOD+f mode "find-file"
         $EXIT
 }
 
 mode "quit" {
-        bindsym $MOD+e                 $CMD i3-msg exit $ESC
-        bindsym $MOD+q                 $CMD $SYS_SLEEP $ESC
-        bindsym --release $MOD+shift+q $CMD systemctl poweroff $ESC
-        bindsym $MOD+r                 $CMD i3-msg restart $ESC
-        bindsym $MOD+shift+r           $CMD systemctl reboot $ESC
-        bindsym $MOD+o                 $CMD $SYS_SCREENOFF $ESC
+        bindsym $MOD+e $CMD i3-msg exit; $ESC
+        bindsym $MOD+q $CMD $SYS_SLEEP; $ESC
+        bindsym --release $MOD+shift+q $CMD systemctl poweroff; $ESC
+        bindsym $MOD+r $CMD i3-msg restart; $ESC
+        bindsym $MOD+shift+r $CMD systemctl reboot; $ESC
+        bindsym $MOD+o $CMD $SYS_SCREENOFF; $ESC
+        $EXIT
+}
+
+mode "layout" {
+        bindsym $MOD+u $CMD setxkbmap us; $ESC
+        bindsym $MOD+c $CMD setxkbmap ch; $ESC
         $EXIT
 }
 

@@ -40,7 +40,7 @@
       even-window-sizes 'width-only
       window-combination-resize t
       split-height-threshold nil
-      split-width-threshold 0)
+      split-width-threshold 80) ;; force vsplits, not more than 2 windows
 
 (after! org
   (setq org-src-window-setup 'current-window
@@ -124,7 +124,7 @@
       :nm "C-f" #'projectile-find-file
       :nm "C-b" #'consult-buffer
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer ;; consistent with browser/WM
-      :nm "M-1" #'harpoon-go-to-1 ;; consistent with browser/tmux
+      :nm "M-1" #'harpoon-go-to-1 ;; consistent with tmux/browser
       :nm "M-2" #'harpoon-go-to-2
       :nm "M-3" #'harpoon-go-to-3
       :nm "M-4" #'harpoon-go-to-4)
@@ -238,8 +238,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 (map! :after company :map company-mode-map
       :i "C-n" #'company-complete)
-
-(map! :after minibuffer :map minibuffer-local-map ;; consistency with vim bindings
+(map! :after minibuffer :map minibuffer-local-map
       :i "C-n" #'next-line-or-history-element
       :i "C-p" #'previous-line-or-history-element)
 
@@ -309,7 +308,9 @@ This is sensible default behaviour, and integrates it into evil."
               evil-indent-convert-tabs t
               indent-tabs-mode nil)
 
-(setq-hook! '(c-mode-hook java-mode-hook)
+(setq-hook! '(c++-mode-hook
+              c-mode-hook
+              java-mode-hook)
   c-basic-offset z-indent-width)
 
 (setq-hook! 'ruby-mode-hook
@@ -319,6 +320,8 @@ This is sensible default behaviour, and integrates it into evil."
 (setq-hook! 'rustic-mode-hook
   rustic-indent z-indent-width
   rustic-indent-offset z-indent-width)
+
+(setq-hook! 'python-mode-hook python-indent-offset z-indent-width)
 ;; indentation:1 ends here
 
 ;; [[file:config.org::*begin org][begin org:1]]
