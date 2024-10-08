@@ -12,10 +12,9 @@ def main
 end
 
 PROCESSES = [
-        # 'alacritty --title cmd --command tmux new-session -A -s cmd',
-        # 'firefox --new-window https://spotify.com',
+        'alacritty --title cmd --command tmux new-session -A -s cmd',
         'emacs --daemon && emacsclient --reuse-frame',
-        'firefox https://chat.openai.com https://wolframalpha.com',
+        'firefox https://chat.openai.com',
         'firefox --new-window',
         'playerctld',
         'unclutter',

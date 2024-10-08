@@ -258,16 +258,14 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
 - key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down <j/k> instead using <c-u/d>  not spamming delete, instead using <d-{motion}>
 
 ** navigational standard
-| mod+key | action                               | consistency                   |
-|---------+--------------------------------------+-------------------------------|
-| b       | buffer/window, prompt                | vim: :b <name>                |
-| q       | [q]uit (buffer/window)               | vim: :q                       |
-| e       | [e]dit (file/url/editor, path based) | vim: :e                       |
-| f       | [f]ind (fuzzyfind: program/file)     | commmand line: find           |
-| <tab>   | [a]lterate buffer/tab                | convention (apps & other oss) |
-| ;       | exec command                         | vim                           |
-| 1-4     | switch to buffer/tab 1-4             | harpoon                       |
-| <spc>   | leader-key                           | vim                           |
+| mod+key | action                   | consistency                           |
+|---------+--------------------------+---------------------------------------|
+| b       | buffer/window, prompt    | vim: :b <name>                        |
+| q       | [q]uit (buffer/window)   | vim: :q                               |
+| f       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file |
+| <tab>   | [a]lterate buffer/tab    | convention (apps & other oss)         |
+| 1-4     | switch to buffer/tab 1-4 | harpoon                               |
+| <spc>   | leader-key               | vim                                   |
 
 - condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.
   - <ctrl> :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).

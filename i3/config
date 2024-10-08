@@ -56,6 +56,7 @@ bindsym XF86AudioRaiseVolume  $CMD $VOL_INC
 bindsym XF86AudioMute         $CMD $VOL_MUTE
 bindsym XF86AudioMicMute      $CMD $VOL_MIC_MUTE
 
+# for when you ar using a minimal keyboard without XF86 keys
 bindsym $MOD+9            $CMD $VOL_MIC_MUTE
 bindsym $MOD+0            $CMD $VOL_MUTE
 bindsym $MOD+minus        $CMD $VOL_DEC
