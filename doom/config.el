@@ -117,25 +117,16 @@
 ;; [[file:config.org::*global navigation scheme][global navigation scheme:1]]
 (map! :map 'override
       :nm "C-w" #'next-window-any-frame
-      :nm "C-q" #'kill-buffer-and-window
+      :nm "C-q" #'kill-buffer-and-window ;;
       :nm "C-s" #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
-      :i  "C-v" #'evil-paste-after ;; more convenient that hitting C-r"
       :nm "C-e" #'find-file
       :nm "C-f" #'projectile-find-file
       :nm "C-b" #'consult-buffer
-      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer ;; consistent with browser/WM
-      :nm "M-1" #'harpoon-go-to-1 ;; consistent with tmux/browser
+      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer
+      :nm "M-1" #'harpoon-go-to-1
       :nm "M-2" #'harpoon-go-to-2
       :nm "M-3" #'harpoon-go-to-3
       :nm "M-4" #'harpoon-go-to-4)
-
-(defadvice! z-goto-global-mark (char)
-  "Go to the buffer of the global-mark.
-Usage: 'evil-set-mark' <uppercase> 'goto-global-mark' <lowercase>.  (faster/more ergonomic)"
-  :override #'evil-goto-mark-line
-  (let (marker (evil-get-marker (upcase char)))
-    (unless (numberp marker)
-      (switch-to-buffer (marker-buffer marker)))))
 ;; global navigation scheme:1 ends here
 
 ;; [[file:config.org::*vim editing][vim editing:1]]

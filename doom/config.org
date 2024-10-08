@@ -171,25 +171,16 @@
 #+begin_src elisp
 (map! :map 'override
       :nm "C-w" #'next-window-any-frame
-      :nm "C-q" #'kill-buffer-and-window
+      :nm "C-q" #'kill-buffer-and-window ;;
       :nm "C-s" #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
-      :i  "C-v" #'evil-paste-after ;; more convenient that hitting C-r"
       :nm "C-e" #'find-file
       :nm "C-f" #'projectile-find-file
       :nm "C-b" #'consult-buffer
-      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer ;; consistent with browser/WM
-      :nm "M-1" #'harpoon-go-to-1 ;; consistent with tmux/browser
+      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer
+      :nm "M-1" #'harpoon-go-to-1
       :nm "M-2" #'harpoon-go-to-2
       :nm "M-3" #'harpoon-go-to-3
       :nm "M-4" #'harpoon-go-to-4)
-
-(defadvice! z-goto-global-mark (char)
-  "Go to the buffer of the global-mark.
-Usage: 'evil-set-mark' <uppercase> 'goto-global-mark' <lowercase>.  (faster/more ergonomic)"
-  :override #'evil-goto-mark-line
-  (let (marker (evil-get-marker (upcase char)))
-    (unless (numberp marker)
-      (switch-to-buffer (marker-buffer marker)))))
 #+end_src
 
 ** vim editing
@@ -335,6 +326,11 @@ This is sensible default behaviour, and integrates it into evil."
       :im "C-d" #'consult-dir
       :im "C-f" #'consult-dir-jump-file)
 #+end_src
+
+** formatting
+disable autoformatting for a more distractionless coding workflow.  if you need to format the file, you can do so, but only when you explicitly need it.  i find that autoformatters tend to get in the way, since they throw expressions out of place once i save the buffer.  most times i want to format the code syntactically (eg. splitting math expressions on multiple lines at the operators) and a formatter does not allow this and becomes an annoyance.
+autoformatters are for people who never learnt how to properly type.  be disciplined when you code (whitespace), and use vim's ~=~-operator for fixing indentation.
+(especially on older PC's or larger files they cause performance delays and make UX worse)
 
 ** snippets
 - nested snippets ared good
