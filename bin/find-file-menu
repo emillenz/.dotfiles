@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+#  ---
+#  title:  find file menu
+#  author: emil lenz
+#  email:  emillenz@protonmail.com
+#  date:   2024-10-09
+#  dependecies:
+#  - rofi
+#  ---
+
+require 'open3'
+require 'English'
+
+def display_help
+        msg = <<~MSG
+usage: find-file-menu <fd-command>
+- fd-command :: must have the directory as the last argument (as value for fd's flag: --base-directory)
+
+examples:
+        find-file-menu fd --base-directory ~/Documents
+        find_file-menu fd . ~/Documents
+
+info:
+        its a fd, rofi wrapper script that hides the long path prefix in cadidates.
+        MSG
+        puts msg
+end
+
+ROFI_CMD = %w[rofi -dmenu -no-custom -i -p find-file].freeze
+
+def main
+        basedir = ARGV.last
+        if ARGV.include?("-h") || ARGV.include?("--help") || !Dir.exist?(basedir)
+                display_help
+                exit 0
+        end
+
+        files, status = Open3.capture2(*ARGV)
+        exit 1 unless status.success?
+
+        file, status = Open3.capture2(*ROFI_CMD, stdin_data: files)
+        exit 1 unless status.success?
+        file_full_path = File.join(basedir, file).chomp
+        Process.detach(spawn('xdg-open', file_full_path))
+end
+
+main

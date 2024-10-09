@@ -87,7 +87,7 @@ for_window [class="Alacritty"] $MV $WS_CMD, focus
 set $WS_DOCS "docs"
 workspace $WS_DOCS output primary
 bindsym $MOD+d workspace $WS_DOCS
-bindsym $MOD+shift+d $CMD xdg-open "$(fd --type file . ~ | $ROFI 'find-file')"
+bindsym $MOD+shift+d $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~
 for_window [class="Zathura"] $MV $WS_DOCS, focus
 
 set $WS_WEB "web"
@@ -122,10 +122,9 @@ for_window [class="firefox" title="ChatGPT"] $MV $WS_AI, focus
 # for_window [class="firefox" title="Spotify"] $MV $WS_MUSIC, focus
 
 mode "find-file" {
-        bindsym $MOD+c $CMD xdg-open "$(fd --extension pdf . ~/Documents/ethz/cs/s3 | $ROFI 'find [cs]')"; $ESC
-        bindsym $MOD+l $CMD xdg-open "$(fd . ~/Documents/literature/source | $ROFI 'find-file [literature]')"; $ESC
-        bindsym $MOD+f $CMD xdg-open "$(fd --type file . ~ | $ROFI 'find [all]')"; $ESC
-        bindsym $MOD+d $CMD xdg-open "$(fd --extension pdf . ~/Downloads | $ROFI 'find [downloads]')"; $ESC
+        bindsym $MOD+c $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~/Documents/ethz/cs/s3; $ESC
+        bindsym $MOD+l $CMD $BIN/find-file-menu fd --extension pdf --extension epub --base-directory ~/Documents/literature/source; $ESC
+        bindsym $MOD+d $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~/Downloads; $ESC
         $EXIT
 }
 

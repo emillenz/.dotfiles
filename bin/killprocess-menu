@@ -23,13 +23,13 @@ def main
         end.to_h
 
         rofi_stdin = pss.keys.join("\n")
-        read, status = Open3.capture2(*ROFI_CMD, stdin_data: rofi_stdin)
+        select, status = Open3.capture2(*ROFI_CMD, stdin_data: rofi_stdin)
         exit 1 unless status.success?
-        ps_id = pss[read.chomp]
+        ps_id = pss[select.chomp]
 
         `sudo kill #{ps_id}`
         exit 1 unless $CHILD_STATUS.success?
-        NotifySend.send('killprocess', read)
+        NotifySend.send('killprocess', select)
 end
 
 main
