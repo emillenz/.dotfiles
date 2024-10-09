@@ -46,8 +46,12 @@
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
+<<<<<<< Updated upstream
 (add-to-list 'display-buffer-alist
              `("^\\.*" display-buffer-reuse-mode-window))
+=======
+(setq display-buffer-alist '(("^.*" display-buffer-reuse-mode-window))) ;; no more than 1 slave split window
+>>>>>>> Stashed changes
 ;; window layout & behavior:1 ends here
 
 ;; [[file:config.org::*window layout & behavior][window layout & behavior:2]]

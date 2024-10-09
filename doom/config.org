@@ -75,8 +75,12 @@
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
+<<<<<<< Updated upstream
 (add-to-list 'display-buffer-alist
              `("^\\.*" display-buffer-reuse-mode-window))
+=======
+(setq display-buffer-alist '(("^.*" display-buffer-reuse-mode-window))) ;; no more than 1 slave split window
+>>>>>>> Stashed changes
 #+end_src
 
 - centered windows :: better ergonomics & less eye travel (distance + switching from left to middle from eg: terminal to webpage).
