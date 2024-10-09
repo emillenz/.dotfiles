@@ -60,7 +60,8 @@
 #+end_src
 
 ** window layout & behavior
-- vsplit always :: constrain buffers to consistently, and always ~vsplit~.  vsplits are superior to hsplits in all scenarios, since they don't restrict the visible area in the buffer.  additionally constraining windows to only vsplit greatly simplifies the navigational overhead (+needing less window management bindings).
+- vertical split always :: constrain buffers to consistently, and always vertically split (side by side).  vertical splits don't restrict the visible area in the buffer and use the screen realestate efficiently since the right side of the master buffer is plain anyways (linewrap at 100).
+  - we constrain all slave buffers (buffer name starting with *) to a single vertically split window to the right of the master window.  the slave window is for side-by-side viewing of documentation and compilation outputs, etc.  we explicitly don't allow more than 2 windows in the frame, since any more than that are cluttering the screen, distracting, increase the navigational overhead (instead of simple back and forth).
 - retionale :: we line-wrap every buffer at 100 for better readability, and only ever edit/view a SINGLE buffer at a time, hence vsplits use screen realestate effectivly.
 
 #+begin_src elisp
@@ -75,7 +76,11 @@
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
-(setq display-buffer-alist '(("^.*" display-buffer-reuse-mode-window))) ;; no more than 1 slave split window
+(setq display-buffer-alist '(("^\\*.*"
+                              (display-buffer-in-side-window) ;; make slave windows appear as vertical split to right of master window
+                              (side . right)
+                              (window-width . 0.5) ;; equal split
+                              (slot . 0)))) ;; reuse right window
 #+end_src
 
 - centered windows :: better ergonomics & less eye travel (distance + switching from left to middle from eg: terminal to webpage).
