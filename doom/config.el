@@ -46,11 +46,13 @@
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
-(setq display-buffer-alist '(("^\\*.*"
-                              (display-buffer-in-side-window) ;; make slave windows appear as vertical split to right of master window
+(setq display-buffer-alist `((,(rx bol "*" (or "Org Src" "info" "Org Agenda")) ;; edge-case *buffers* that i treat as master buffers
+                              (display-buffer-same-window))
+                             (,(rx bol "*") ;; all slave *buffers*
+                              (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
                               (side . right)
-                              (window-width . 0.5) ;; equal split
-                              (slot . 0)))) ;; reuse right window
+                              (window-width . 0.5) ;; equal 2 window split
+                              (slot . 0))))
 ;; window layout & behavior:1 ends here
 
 ;; [[file:config.org::*window layout & behavior][window layout & behavior:2]]
