@@ -124,13 +124,6 @@ for_window [class="firefox" title="ChatGPT"] $MV $WS_AI, focus
 # bindsym $MOD+shift+m $CMD firefox --new-window https://spotify.com
 # for_window [class="firefox" title="Spotify"] $MV $WS_MUSIC, focus
 
-mode "find-file" {
-        bindsym $MOD+c $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~/Documents/ethz/cs/s3; $ESC
-        bindsym $MOD+l $CMD $BIN/find-file-menu fd --extension pdf -e epub --base-directory ~/Documents/literature/source; $ESC
-        bindsym $MOD+d $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~/Downloads; $ESC
-        $EXIT
-}
-
 bindsym $MOD+space mode "leader"
 mode "leader" {
         bindsym $MOD+a $CMD $BIN/audio-output-menu; $ESC
@@ -147,10 +140,20 @@ mode "leader" {
         $EXIT
 }
 
+mode "find-file" {
+        bindsym $MOD+c $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~/Documents/ethz/cs/s3; $ESC
+        bindsym $MOD+l $CMD $BIN/find-file-menu fd --extension pdf -e epub --base-directory ~/Documents/literature/source; $ESC
+        bindsym $MOD+d $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~/Downloads; $ESC
+        $EXIT
+}
+
 mode "quit" {
+        bindsym $MOD+e $CMD i3-msg exit; $ESC
         bindsym $MOD+q $CMD $SYS_SLEEP; $ESC
+        bindsym $MOD+shift+q $CMD poweroff; $ESC
         bindsym $MOD+e $CMD i3-msg exit; $ESC
         bindsym $MOD+r $CMD i3-msg restart; $ESC
+        bindsym $MOD+shift+r $CMD reboot; $ESC
         bindsym $MOD+o $CMD $SYS_SCREENOFF; $ESC
 
         $EXIT

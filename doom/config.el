@@ -240,12 +240,12 @@ This is sensible default behaviour, and integrates it into evil."
                                org-mode
                                vterm-mode)))
 
-;; (map! :after company :map company-mode-map
-;;       :i "C-n" #'company-complete)
+(map! :after company :map company-mode-map
+      :i "C-n" #'company-complete)
 
-(map! :after minibuffer :map minibuffer-local-map
-      :i "M-n" #'next-line-or-history-element
-      :i "M-p" #'previous-line-or-history-element)
+(map! :after vertico :map vertico-flat-map
+      :i "C-n" #'next-line-or-history-element
+      :i "C-p" #'previous-line-or-history-element) ;; navigate elements like vim completion
 
 (map! :map vertico-map
       :im "C-w" #'vertico-directory-delete-word ;; better C-w
