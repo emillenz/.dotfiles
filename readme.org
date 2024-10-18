@@ -117,6 +117,7 @@ this is why secure and fast languages such as rust and go are preferred over inc
 i'm very opinionated and have high standards regarding design process and the philosophy behind the tools focused on, hence the selection undergoes a rigorous coparison and selection process.
 
 ** windowmanager: i3
+- the usual elitism amongst minimal window managers: don’t be bloated, don’t be fancy (simple borders are the most decoration have).  do not add further complexity when it can be avoided.
 - the windowmanager follows the philosopy of eliminating mental overhead and the neccessety to arrange windows or layouts.
   - eliminate mental overhead and reduce computational steps to get to where you need to be.
   - finetuned to automate the workflow as much as possible.
@@ -125,7 +126,7 @@ i'm very opinionated and have high standards regarding design process and the ph
       + no additional layering
       + all apps of the same class in the same "container", clear structure...
   - minimal keystrokes to get from where you are to the app you want to be.
-  - keyboard driven workflow only.  (vi-mnemonic bindings)
+  - keyboard driven workflow only => vi-mnemonic bindings.  has a leader key system inbuilt that allows a extensible modal keybindingsystem.
   - strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
 
 *** using workspaces

@@ -76,9 +76,11 @@
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
-(setq display-buffer-alist `((,(rx bol "*" (or "Org Src" "info" "Org Agenda")) ;; edge-case *buffers* that i treat as master buffers
+(add-hook 'org-capture-mode-hook #'delete-other-windows)
+
+(setq display-buffer-alist `(("^\\*\\(Org Src\\|Org Agenda\\)";; edge-case *buffers* that i treat as master buffers
                               (display-buffer-same-window))
-                             (,(rx bol "*") ;; all slave *buffers*
+                             ("^\\*" ;; all slave *buffers*
                               (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
                               (side . right)
                               (window-width . 0.5) ;; equal 2 window split
@@ -95,7 +97,7 @@
 - coding: typically one statement per line
 
 #+begin_src elisp
-;; HACK :: cannot use 'global-visual-fill-column-mode' (doesn't work in many buffers).  do NOT enable for 'prog-mode' (breaks with flycheck display)
+;; HACK :: do NOT enable for 'prog-mode', since we always have a slave split-window for compilation open.
 (add-hook! '(text-mode-hook
              dired-mode-hook
              conf-mode-hook
@@ -112,6 +114,7 @@
 #+end_src
 
 * misc options
+- disable ~flycheck-mode~ by default ::  no annying mid code popups and suggestions (distractionfree coding!)  when i want to check the buffer, i can do so explicitly.
 #+begin_src elisp
 (setq initial-scratch-message ""
       delete-by-moving-to-trash t
@@ -126,8 +129,10 @@
       async-shell-command-width 100
       shell-file-name "/usr/bin/fish")
 
+(+global-word-wrap-mode 1) ;; no sidescrolling
+(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
+
 (save-place-mode 1)
-(+global-word-wrap-mode 1)
 (global-subword-mode 1)
 (add-hook! '(prog-mode-hook conf-mode-hook) #'rainbow-delimiters-mode)
 #+end_src
@@ -148,7 +153,7 @@
       "'" #'consult-bookmark
       "<tab>" #'harpoon-quick-menu-hydra
       (:prefix "s"
-               "K" #'devdocs-lookup
+               "k" #'devdocs-lookup
                "t" #'dictionary-search
                "g" #'occur)
       (:prefix "f"
@@ -173,11 +178,12 @@
 - harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
 - global marks (experimental?) :: This is a vim native option to harpoon (downside: not per project persistent).  When inside a project, mark the files you find yourself alternating between with global-marks, and jump to the exact file you want directly.
   - (Vim's normal global-mark behaviour is to jump to the originally marked posion in that buffer.  This is the wrong behaviour because when we left the buffer we have changed the cursor position to some other place.  We override ~evil-mark-line~ binding, since it is redundant (for regular marks, use ~evil-goto-mark~ binding instead).)
+- we generally don't really delete buffers unless they slow down emacs (then kill them all to reset).  since we usually access the same buffer's repeatedly we only have to open them once.  same as we don't close tmux windows or as we don't jump in and out of emacs on the commandline (like vim users do) or same as we don't shutdown the computer (just sleep).  its all about preserving the working state between sessions, in order to minimize the setuptimes.  (also why we use tmux instead of vim global marks).
 
 #+begin_src elisp
 (map! :map 'override
       :nm "C-w" #'next-window-any-frame
-      :nm "C-q" #'kill-buffer-and-window ;;
+      :nm "C-q" #'evil-window-delete
       :nm "C-s" #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f" #'find-file
       :nm "C-b" #'consult-buffer
@@ -235,6 +241,10 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       "["  (cmd! (let ((current-prefix-arg '(4)))
                    (call-interactively #'org-toggle-checkbox)))
       "z"  #'org-add-note)
+
+(map! :map yas-keymap :after org ;; HACK :: make it work
+      :i "<tab>" #'yas-next-field
+      :i "<backtab>" #'yas-prev-field)
 #+end_src
 
 ** dired_
@@ -244,8 +254,8 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (map! :map dired-mode-map :after dired
       :nm "h" #'dired-up-directory
       :nm "l" #'dired-open-file
-      :nm "." #'dired-omit-mode)
-      ;; create new files using `find-file' (inserts filetemplate properly)
+      :nm "." #'dired-omit-mode) ;; HACK :: fixes broken original mapping
+      ;; create new files/dir's using `find-file' (inserts filetemplate properly)
 
 (map! :after dired :map dired-mode-map :localleader
       :nm "a" #'z-dired-archive)
@@ -260,7 +270,8 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
         evil-want-C-i-jump t
         evil-want-C-h-delete t
         evil-want-minibuffer t ;; don't loose your powers in the minibuffer
-        evil-org-use-additional-insert nil))
+        evil-org-use-additional-insert nil)
+  (add-to-list 'evil-normal-state-modes 'shell-mode)) ;; put me in normal mode by default (for navigating buffer). (go to insert mode if input is to be read is required.
 
 (defadvice! z-update-evil-search-reg ()
   "Update evil search register after jumping to a line with
@@ -320,11 +331,12 @@ This is sensible default behaviour, and integrates it into evil."
                                org-mode
                                vterm-mode)))
 
-(map! :after company :map company-mode-map
-      :i "C-n" #'company-complete)
+;; (map! :after company :map company-mode-map
+;;       :i "C-n" #'company-complete)
+
 (map! :after minibuffer :map minibuffer-local-map
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element)
+      :i "M-n" #'next-line-or-history-element
+      :i "M-p" #'previous-line-or-history-element)
 
 (map! :map vertico-map
       :im "C-w" #'vertico-directory-delete-word ;; better C-w
@@ -422,7 +434,7 @@ we never use an integrated terminal (introduces additional complex layers, slown
 ** indentation
 - formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
 - we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
-- [ ] use ~:tools formatter~ or not?
+- org indentation :: keep nesting org-headlines to a minimum (visually enforce it using 8-space indents)
 #+begin_src elisp
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
@@ -432,7 +444,6 @@ we never use an integrated terminal (introduces additional complex layers, slown
               evil-shift-width z-indent-width
               tab-width z-indent-width
               fill-column 100
-              tab-width z-indent-width
               org-indent-indentation-per-level z-indent-width
               evil-indent-convert-tabs t
               indent-tabs-mode nil)
@@ -440,35 +451,33 @@ we never use an integrated terminal (introduces additional complex layers, slown
 (setq-hook! '(c++-mode-hook
               c-mode-hook
               java-mode-hook)
-  c-basic-offset z-indent-width)
+  tab-width z-indent-width
+  c-basic-offset z-indent-width
+  evil-shift-width z-indent-width)
 
 (setq-hook! 'ruby-mode-hook
   evil-shift-width z-indent-width
   ruby-indent-level z-indent-width)
-
-(setq-hook! 'rustic-mode-hook
-  rustic-indent z-indent-width
-  rustic-indent-offset z-indent-width)
 #+end_src
 
 *** rationale
-A useful time for a quote from the Linux Kernel coding standards [1] - exactly the first item in fact:
+a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
 
 #+begin_quote
 Tabs are 8 characters, and thus indentations are also 8 characters.  There are heretic movements that try to make indentations 4 (or even 2!) characters deep, and that is akin to trying to define the value of PI to be 3.  If you need more than 4 levels of indentation within a function, you’re screwed anyway, and should fix your program.
 --- Linus Torvalds
 #+end_quote
 
-The 8 space indent cannot exist in isolation.  It has to be coupled with a right-hand side limit of 100 columns.  Otherwise, you could just indent yourself off to infinity and there would be no consequences.  An 100 column limit forces you to keep your code within reasonable limits.
+the 8 space indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 100 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 100 column limit forces you to keep your code within reasonable limits.
 
-The whole idea behind indentation is to clearly define where a block of control starts and ends.  This is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  Especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  You can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  It facilitates reading through a codebase in a more tree-like fashion.
+the whole idea behind indentation is to clearly define where a block of control starts and ends.  this is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  you can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  it facilitates reading through a codebase in a more tree-like fashion.
 
-Every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “In this line, I know line points to the nth line as long as X is not true, but Y > Z.” 8-character indentations, internal spacing, and the 100-column rule effectively limits you to 4 levels of indentation in a function.  This effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  So the underlying functionality remains minimal and concise.
+every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 100-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
 
-In short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  Heed that warning.
+in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
 
 - consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
-- Using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  In any sizeable team, deviations in formatting will creep in.  Enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
+- using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
 
 * begin org
 #+begin_src elisp
@@ -500,7 +509,7 @@ In short, 8-char indents make things easier to read, and have the added benefit 
 - archive all done tasks in current file/headings with org-agenda bulk action.
 - each file gets its own entry in ~~/archive/org~
 #+begin_src elisp
-  (add-hook! 'org-mode-hook '(visual-line-mode
+(add-hook! 'org-mode-hook '(visual-line-mode
                               org-fragtog-mode
                               rainbow-mode
                               laas-mode
@@ -543,36 +552,46 @@ In short, 8-char indents make things easier to read, and have the added benefit 
                                         ("a." . "a)")
                                         ("1." . "1)")
                                         ("1)" . "a)"))
-        org-blank-before-new-entry '((heading . t)
+        org-blank-before-new-entry '((heading . always)
                                      (plain-list-item . nil))
         org-src-ask-before-returning-to-edit-buffer nil)
+
+(defadvice! z-insert-newline-above (fn &rest args)
+  :after #'+org/insert-item-below
+  (when (org-at-heading-p)
+    (+evil/insert-newline-above 1)))
+
+(defadvice! z-insert-newline-below (fn &rest args)
+  :after #'+org/insert-item-above
+  (when (org-at-heading-p)
+    (+evil/insert-newline-below 1)))
 #+end_src
 
 ** symbols
 - use icons to enhance ui readability (has nothing to do with bloat, this is still editeable plaintext (utf8) but greatly improves readability at a glance)
 - clean up keywords with sybols => more concise, compact, easier to read, faster at a glance
 #+begin_src elisp
-  (add-hook! 'org-mode-hook '(org-superstar-mode
-                              prettify-symbols-mode))
+(add-hook! 'org-mode-hook '(org-superstar-mode
+                            prettify-symbols-mode))
 
-  (setq org-superstar-headline-bullets-list '("◉" "◯" "▣" "□" "◈" "◇"))
+(setq org-superstar-headline-bullets-list '("◉" "◯" "▣" "□" "◈" "◇"))
 
-  (setq org-superstar-item-bullet-alist '((?- . "─")
-                                          (?* . "─") ;; NOTE :: asteriks are reserved for headings only (don't use in lists) => no unambigiuity
-                                          (?+ . "⇒")))
+(setq org-superstar-item-bullet-alist '((?- . "─")
+                                        (?* . "─") ;; NOTE :: asteriks are reserved for headings only (don't use in lists) => no unambigiuity
+                                        (?+ . "⇒")))
 
-  (appendq! +ligatures-extra-symbols '(:em_dash       "—"
-                                       :ellipses      "…"
-                                       :arrow_right   "→"
-                                       :arrow_left    "←"
-                                       :arrow_lr      "↔"))
+(appendq! +ligatures-extra-symbols '(:em_dash       "—"
+                                     :ellipses      "…"
+                                     :arrow_right   "→"
+                                     :arrow_left    "←"
+                                     :arrow_lr      "↔"))
 
-  (add-hook! 'org-mode-hook
-    (appendq! prettify-symbols-alist '(("--"  . "–")
-                                       ("---" . "—")
-                                       ("->" . "→")
-                                       ("=>" . "⇒")
-                                       ("<=>" . "⇔"))))
+(add-hook! 'org-mode-hook
+  (appendq! prettify-symbols-alist '(("--"  . "–")
+                                     ("---" . "—")
+                                     ("->" . "→")
+                                     ("=>" . "⇒")
+                                     ("<=>" . "⇔"))))
 #+end_src
 
 ** task states
@@ -619,72 +638,72 @@ In short, 8-char indents make things easier to read, and have the added benefit 
 ~[x]~: completed
 
 #+begin_src elisp
-  (setq org-todo-keywords '((sequence
-                             "[ ](t)"
-                             "[@](e)"
-                             "[?](?!)"
-                             "[-](-!)"
-                             "[>](>!)"
-                             "[=](=!)"
-                             "[&](&!)"
-                             "|"
-                             "[x](x!)"
-                             "[\\](\\!)")))
+(setq org-todo-keywords '((sequence
+                           "[ ](t)"
+                           "[@](e)"
+                           "[?](?!)"
+                           "[-](-!)"
+                           "[>](>!)"
+                           "[=](=!)"
+                           "[&](&!)"
+                           "|"
+                           "[x](x!)"
+                           "[\\](\\!)")))
 
-  (setq org-todo-keyword-faces '(("[@]"  . (bold +org-todo-project))
-                                 ("[ ]"  . (bold org-todo))
-                                 ("[-]"  . (bold +org-todo-active))
-                                 ("[>]"  . (bold +org-todo-onhold))
-                                 ("[?]"  . (bold +org-todo-onhold))
-                                 ("[=]"  . (bold +org-todo-onhold))
-                                 ("[&]"  . (bold +org-todo-onhold))
-                                 ("[\\]" . (bold org-done))
-                                 ("[x]"  . (bold org-done))))
+(setq org-todo-keyword-faces '(("[@]"  . (bold +org-todo-project))
+                               ("[ ]"  . (bold org-todo))
+                               ("[-]"  . (bold +org-todo-active))
+                               ("[>]"  . (bold +org-todo-onhold))
+                               ("[?]"  . (bold +org-todo-onhold))
+                               ("[=]"  . (bold +org-todo-onhold))
+                               ("[&]"  . (bold +org-todo-onhold))
+                               ("[\\]" . (bold org-done))
+                               ("[x]"  . (bold org-done))))
 #+end_src
 
 - Log to drawer: ~LOG~
 - Shorter & more sensible than default: ~LOGBOOK~
 - Make org-log messages more data orientated and functional.  (less verbose and literate, easier to parse)
 #+begin_src elisp
-  (setq org-log-done 'time
-        org-log-repeat 'time
-        org-todo-repeat-to-state "[ ]"
-        org-log-redeadline 'time
-        org-log-reschedule 'time
-        org-log-into-drawer "LOG")
+(setq org-log-done 'time
+      org-log-repeat 'time
+      org-todo-repeat-to-state "[ ]"
+      org-log-redeadline 'time
+      org-log-reschedule 'time
+      org-log-into-drawer "LOG")
 
-  (setq org-priority-highest 1
-        org-priority-lowest 3)
+(setq org-priority-highest 1
+      org-priority-lowest 3)
 
-  (setq org-log-note-headings '((done        . "note-done: %t")
-                                (state       . "state: %-3S -> %-3s %t") ;; NOTE :: the custom task-statuses are all 3- wide
-                                (note        . "note: %t")
-                                (reschedule  . "reschedule: %S, %t")
-                                (delschedule . "noschedule: %S, %t")
-                                (redeadline  . "deadline: %S, %t")
-                                (deldeadline . "nodeadline: %S, %t")
-                                (refile      . "refile: %t")
-                                (clock-out   . "")))
+(setq org-log-note-headings '((done        . "note-done: %t")
+                              (state       . "state: %-3S -> %-3s %t") ;; NOTE :: the custom task-statuses are all 3- wide
+                              (note        . "note: %t")
+                              (reschedule  . "reschedule: %S, %t")
+                              (delschedule . "noschedule: %S, %t")
+                              (redeadline  . "deadline: %S, %t")
+                              (deldeadline . "nodeadline: %S, %t")
+                              (refile      . "refile: %t")
+                              (clock-out   . "")))
 #+end_src
 
 ** babel
 #+begin_src elisp
-  (setq org-babel-default-header-args '((:session  . "none")
-                                        (:results  . "replace")
-                                        (:exports  . "code")
-                                        (:cache    . "no")
-                                        (:noweb    . "no")
-                                        (:hlines   . "no")
-                                        (:tangle   . "no")
-                                        (:mkdirp   . "yes")
-                                        (:comments . "link")))
+(setq org-babel-default-header-args '((:session  . "none")
+                                      (:results  . "replace")
+                                      (:exports  . "code")
+                                      (:cache    . "no")
+                                      (:noweb    . "yes")
+                                      (:hlines   . "no")
+                                      (:tangle   . "no")
+                                      (:mkdirp   . "yes")
+                                      (:comments . "link")))
 #+end_src
 
 ** clock
 #+begin_src elisp
-  (setq org-clock-out-when-done t
-        org-clock-persist t
-        org-clock-into-drawer t)
+(setq org-clock-out-when-done t
+      org-clock-persist t
+      org-clock-into-drawer t)
 #+end_src
 
 ** capture templates
@@ -701,13 +720,13 @@ In short, 8-char indents make things easier to read, and have the added benefit 
 - prepending :: if recent item's are of higher relevance
 - appending :: for hierarchical order eg. book-quotes ordered from begin -> end
 #+begin_src elisp
-  (setq org-directory "~/Documents/org/")
-  (defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
-    "captured daily journal files")
-  (defvar z-org-literature-dir "~/Documents/literature"
-    "literature sources and captured notes")
-  (defvar z-org-literature-notes-dir (file-name-concat z-org-literature-dir "notes/")
-    "note files for each literature source")
+(setq org-directory "~/Documents/org/")
+(defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
+  "captured daily journal files")
+(defvar z-org-literature-dir "~/Documents/literature"
+  "literature sources and captured notes")
+(defvar z-org-literature-notes-dir (file-name-concat z-org-literature-dir "notes/")
+  "note files for each literature source")
   (defvar z-wiki-dir "~/Documents/wiki/"
     "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
@@ -886,7 +905,7 @@ PARENT-PATH :: nil (used for recursion)"
                              :keys "q"
                              :headline "quotes"
                              :empty-lines-before 1
-                             :template ("* %^{title} [p.%^{page}]"
+                             :template ("* %^{title} [pg: %^{page}]"
                                         ":PROPERTIES:"
                                         ":created: %U"
                                         ":END:"
@@ -898,7 +917,7 @@ PARENT-PATH :: nil (used for recursion)"
                              :keys "l"
                              :headline "literature notes"
                              :empty-lines-before 1
-                             :template ("* %^{title} [p.%^{page}] %^g"
+                             :template ("* %^{title} [pg: %^{page}] %^g"
                                         ":PROPERTIES:"
                                         ":created: %U"
                                         ":END:"
@@ -923,37 +942,39 @@ PARENT-PATH :: nil (used for recursion)"
                              :hook (lambda ()
                                      (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
 #+end_src
+
 ** agenda
 - multi-day-todo-events: add multiple timestamps on the same line => same task shows scheduled on different days.  ex:
 - track which university lectures you have watched & reviewed.  => even if they are spread out onto multiple days => log all completions / review-notes under the same task.
+
 #+begin_src elisp
-  (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
+(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
-  (setq org-archive-location (--> nil
-                                  (string-remove-prefix "~/" org-directory)
-                                  (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
-        org-agenda-files `(,@(directory-files-recursively org-directory org-agenda-file-regexp t)
-                           ,(z-doct-journal-file)
-                           ,(--> nil
-                                 (time-subtract (current-time) (days-to-time 1))
-                                 (z-doct-journal-file it))) ;; include tasks from {today's, yesterday's} journal's agenda
-        org-agenda-skip-scheduled-if-done t
-        ;; org-agenda-sticky t
-        org-agenda-skip-deadline-if-done t
-        org-agenda-include-deadlines t
-        org-agenda-tags-column 0
-        org-agenda-block-separator ?─
-        org-agenda-breadcrumbs-separator "…"
-        org-agenda-compact-blocks nil
-        org-agenda-show-future-repeats nil
-        org-deadline-warning-days 3
-        org-agenda-time-grid nil
-        org-capture-use-agenda-date t)
+(setq org-archive-location (--> nil
+                                (string-remove-prefix "~/" org-directory)
+                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
+      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
+                               (list (z-doct-journal-file)
+                                     (--> nil
+                                          (time-subtract (current-time) (days-to-time 1))
+                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-skip-scheduled-if-done t
+      ;; org-agenda-sticky t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-tags-column 0
+      org-agenda-block-separator ?─
+      org-agenda-breadcrumbs-separator "…"
+      org-agenda-compact-blocks nil
+      org-agenda-show-future-repeats nil
+      org-deadline-warning-days 3
+      org-agenda-time-grid nil
+      org-capture-use-agenda-date t)
 
-  (defadvice! z-add-newline (fn &rest args)
-    "Separate dates in 'org-agenda' with newline."
-    :around #'org-agenda-format-date-aligned
-    (concat "\n" (apply fn args) ))
+(defadvice! z-add-newline (fn &rest args)
+  "Separate dates in 'org-agenda' with newline."
+  :around #'org-agenda-format-date-aligned
+  (concat "\n" (apply fn args) ))
 #+end_src
 
 Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align everything into columns & group items.
@@ -961,27 +982,27 @@ Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align ev
 + all task-states have the same length, otherwise there is no task-keyword alignment.
 + Set more concise & informing ~deadline~ & ~scheduled~ strings
 #+begin_src elisp
-  (setq org-agenda-todo-keyword-format "%-3s"
-        org-agenda-scheduled-leaders '(""
-                                       "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
-        org-agenda-deadline-leaders '("─────"
-                                      ">> %1dd"
-                                      "<< %1dd")
-        org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
-                                   (todo   . "%-20c%-7s%-7t")
-                                   (tags   . "%-20c%-7s%-7t")
-                                   (search . "%-20c%-7s%-7t")))
+(setq org-agenda-todo-keyword-format "%-3s"
+      org-agenda-scheduled-leaders '(""
+                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
+      org-agenda-deadline-leaders '("─────"
+                                    ">> %1dd"
+                                    "<< %1dd")
+      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
+                                 (todo   . "%-20c%-7s%-7t")
+                                 (tags   . "%-20c%-7s%-7t")
+                                 (search . "%-20c%-7s%-7t")))
 #+end_src
 
 ** org roam
 #+begin_src elisp
-  (setq org-roam-directory z-wiki-dir)
+(setq org-roam-directory z-wiki-dir)
 #+end_src
 
 ** end org
 - end of org section started with: ~after! org~
 #+begin_src elisp
-  )
+)
 #+end_src
 
 * latex
@@ -1013,11 +1034,12 @@ Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align ev
 #+end_src
 
 * devdocs
-install the docs you want first with ~devdocs-install~
+i always look up documentation/manuals within emacs.  (only if it's not sufficient do i resort to the browser/chatgpt)
 #+begin_src elisp
+;; no way to make this more programmatically unfortunately
 (setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
 (setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
-(setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp"))
+(setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 #+end_src
 
@@ -1026,3 +1048,4 @@ install the docs you want first with ~devdocs-install~
 (use-package whisper
   :load-path "~/.config/doom/whisper.el/")
 #+end_src
+

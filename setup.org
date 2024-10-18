@@ -72,7 +72,7 @@ $HOME/.config/emacs/bin/doom install
 
 * gui apps & packages
 #+begin_src sh
-yay --noconfirm --sync i3 i3lock zathura zathura-pdf-mupdf arandr mpv yt-dlp brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst nsxiv maim xorg-xset xorg-xsetroot batsignal pamixer rofi tlp
+yay --noconfirm --sync i3-wm zathura zathura-pdf-mupdf arandr mpv yt-dlp brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst nsxiv maim xorg-xset xorg-xsetroot batsignal pamixer rofi tlp
 #+end_src
 
 ** enable daemons

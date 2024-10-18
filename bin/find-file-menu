@@ -13,15 +13,17 @@ require 'English'
 
 def display_help
         msg = <<~MSG
-usage: find-file-menu <fd-command>
-- fd-command :: must have the directory as the last argument (as value for fd's flag: --base-directory)
+                description:
+                        it's a fd and rofi wrapper script that hides the long path prefix in the
+                        rofi cadidates when a directory is supplied.
 
-examples:
-        find-file-menu fd --base-directory ~/Documents
-        find_file-menu fd . ~/Documents
+                usage: find-file-menu FD-COMMAND
+                        - FD-COMMAND :: must have the directory as the last argument (as value for
+                          fd's flag: --base-directory)
 
-info:
-        its a fd, rofi wrapper script that hides the long path prefix in cadidates.
+                examples:
+                        find-file-menu fd --base-directory ~/Documents
+                        find_file-menu fd ".*" ~/Documents
         MSG
         puts msg
 end
@@ -30,9 +32,9 @@ ROFI_CMD = %w[rofi -dmenu -no-custom -i -p find-file].freeze
 
 def main
         basedir = ARGV.last
-        if ARGV.include?("-h") || ARGV.include?("--help") || !Dir.exist?(basedir)
+        if ARGV.include?('-h') || ARGV.include?('--help')
                 display_help
-                exit 0
+                exit(0)
         end
 
         files, status = Open3.capture2(*ARGV)

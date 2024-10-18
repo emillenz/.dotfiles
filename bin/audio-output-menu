@@ -5,7 +5,7 @@
 # email:  emillenz@protonmail.com
 # date:   2023-05-07
 # dependencies:
-# - sh: rofi, pactl
+# - rofi, pactl
 # ---
 
 require 'json'
@@ -18,7 +18,7 @@ ROFI_CMD = %w[rofi -dmenu -no-custom -i -p audio-output].freeze
 def main
         sinks = JSON.parse(`pactl --format json list sinks`)
 
-        rofi_stdin = sinks.map { |sink| sink['description'] }.join("\n")
+        rofi_stdin = sinks.map { |s| s['description'] }.join("\n")
         read, status = Open3.capture2(*ROFI_CMD, stdin_data: rofi_stdin)
         exit(1) unless status.success?
 
@@ -26,8 +26,8 @@ def main
         `pactl set-default-sink #{sink_id}`
         exit 1 unless $CHILD_STATUS.success?
 
-        JSON.parse(`pactl --format json list sink-inputs`).map do |sink|
-                `pactl move-sink-input #{sink['index']} #{sink_id}`
+        JSON.parse(`pactl --format json list sink-inputs`).map do |s|
+                `pactl move-sink-input #{s['index']} #{sink_id}`
         end
 
         NotifySend.send('audio-output changed', read)

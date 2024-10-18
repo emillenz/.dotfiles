@@ -46,9 +46,11 @@
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
-(setq display-buffer-alist `((,(rx bol "*" (or "Org Src" "info" "Org Agenda")) ;; edge-case *buffers* that i treat as master buffers
+(add-hook 'org-capture-mode-hook #'delete-other-windows)
+
+(setq display-buffer-alist `(("^\\*\\(Org Src\\|Org Agenda\\)";; edge-case *buffers* that i treat as master buffers
                               (display-buffer-same-window))
-                             (,(rx bol "*") ;; all slave *buffers*
+                             ("^\\*" ;; all slave *buffers*
                               (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
                               (side . right)
                               (window-width . 0.5) ;; equal 2 window split
@@ -56,7 +58,7 @@
 ;; window layout & behavior:1 ends here
 
 ;; [[file:config.org::*window layout & behavior][window layout & behavior:2]]
-;; HACK :: cannot use 'global-visual-fill-column-mode' (doesn't work in many buffers).  do NOT enable for 'prog-mode' (breaks with flycheck display)
+;; HACK :: do NOT enable for 'prog-mode', since we always have a slave split-window for compilation open.
 (add-hook! '(text-mode-hook
              dired-mode-hook
              conf-mode-hook
@@ -86,8 +88,10 @@
       async-shell-command-width 100
       shell-file-name "/usr/bin/fish")
 
+(+global-word-wrap-mode 1) ;; no sidescrolling
+(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
+
 (save-place-mode 1)
-(+global-word-wrap-mode 1)
 (global-subword-mode 1)
 (add-hook! '(prog-mode-hook conf-mode-hook) #'rainbow-delimiters-mode)
 ;; misc options:1 ends here
@@ -103,7 +107,7 @@
       "'" #'consult-bookmark
       "<tab>" #'harpoon-quick-menu-hydra
       (:prefix "s"
-               "K" #'devdocs-lookup
+               "k" #'devdocs-lookup
                "t" #'dictionary-search
                "g" #'occur)
       (:prefix "f"
@@ -122,7 +126,7 @@
 ;; [[file:config.org::*global navigation scheme][global navigation scheme:1]]
 (map! :map 'override
       :nm "C-w" #'next-window-any-frame
-      :nm "C-q" #'kill-buffer-and-window ;;
+      :nm "C-q" #'evil-window-delete
       :nm "C-s" #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f" #'find-file
       :nm "C-b" #'consult-buffer
@@ -162,14 +166,18 @@
       "["  (cmd! (let ((current-prefix-arg '(4)))
                    (call-interactively #'org-toggle-checkbox)))
       "z"  #'org-add-note)
+
+(map! :map yas-keymap :after org ;; HACK :: make it work
+      :i "<tab>" #'yas-next-field
+      :i "<backtab>" #'yas-prev-field)
 ;; org_:1 ends here
 
 ;; [[file:config.org::*dired_][dired_:1]]
 (map! :map dired-mode-map :after dired
       :nm "h" #'dired-up-directory
       :nm "l" #'dired-open-file
-      :nm "." #'dired-omit-mode)
-      ;; create new files using `find-file' (inserts filetemplate properly)
+      :nm "." #'dired-omit-mode) ;; HACK :: fixes broken original mapping
+      ;; create new files/dir's using `find-file' (inserts filetemplate properly)
 
 (map! :after dired :map dired-mode-map :localleader
       :nm "a" #'z-dired-archive)
@@ -183,7 +191,8 @@
         evil-want-C-i-jump t
         evil-want-C-h-delete t
         evil-want-minibuffer t ;; don't loose your powers in the minibuffer
-        evil-org-use-additional-insert nil))
+        evil-org-use-additional-insert nil)
+  (add-to-list 'evil-normal-state-modes 'shell-mode)) ;; put me in normal mode by default (for navigating buffer). (go to insert mode if input is to be read is required.
 
 (defadvice! z-update-evil-search-reg ()
   "Update evil search register after jumping to a line with
@@ -231,11 +240,12 @@ This is sensible default behaviour, and integrates it into evil."
                                org-mode
                                vterm-mode)))
 
-(map! :after company :map company-mode-map
-      :i "C-n" #'company-complete)
+;; (map! :after company :map company-mode-map
+;;       :i "C-n" #'company-complete)
+
 (map! :after minibuffer :map minibuffer-local-map
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element)
+      :i "M-n" #'next-line-or-history-element
+      :i "M-p" #'previous-line-or-history-element)
 
 (map! :map vertico-map
       :im "C-w" #'vertico-directory-delete-word ;; better C-w
@@ -300,7 +310,6 @@ This is sensible default behaviour, and integrates it into evil."
               evil-shift-width z-indent-width
               tab-width z-indent-width
               fill-column 100
-              tab-width z-indent-width
               org-indent-indentation-per-level z-indent-width
               evil-indent-convert-tabs t
               indent-tabs-mode nil)
@@ -308,15 +317,13 @@ This is sensible default behaviour, and integrates it into evil."
 (setq-hook! '(c++-mode-hook
               c-mode-hook
               java-mode-hook)
-  c-basic-offset z-indent-width)
+  tab-width z-indent-width
+  c-basic-offset z-indent-width
+  evil-shift-width z-indent-width)
 
 (setq-hook! 'ruby-mode-hook
   evil-shift-width z-indent-width
   ruby-indent-level z-indent-width)
-
-(setq-hook! 'rustic-mode-hook
-  rustic-indent z-indent-width
-  rustic-indent-offset z-indent-width)
 ;; indentation:1 ends here
 
 ;; [[file:config.org::*begin org][begin org:1]]
@@ -325,51 +332,61 @@ This is sensible default behaviour, and integrates it into evil."
 
 ;; [[file:config.org::*options][options:1]]
 (add-hook! 'org-mode-hook '(visual-line-mode
-                            org-fragtog-mode
-                            rainbow-mode
-                            laas-mode
-                            +org-pretty-mode
-                            org-appear-mode))
-(setq-hook! 'org-mode-hook
-  warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
+                              org-fragtog-mode
+                              rainbow-mode
+                              laas-mode
+                              +org-pretty-mode
+                              org-appear-mode))
+  (setq-hook! 'org-mode-hook
+    warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
-(setq org-use-property-inheritance t
-      org-reverse-note-order t
-      org-startup-with-latex-preview t
-      org-startup-with-inline-images t
-      org-startup-indented t
-      org-startup-numerated t
-      org-startup-align-all-tables t
-      org-list-allow-alphabetical t
-      org-tags-column 0
-      org-fold-catch-invisible-edits 'smart
-      org-refile-use-outline-path 'full-file-path
-      org-refile-allow-creating-parent-nodes 'confirm
-      org-use-sub-superscripts '{}
-      org-fontify-quote-and-verse-blocks t
-      org-fontify-whole-block-delimiter-line t
-      doom-themes-org-fontify-special-tags t
-      org-ellipsis "…"
-      org-num-max-level 3
-      org-hide-leading-stars t
-      org-appear-autoemphasis t
-      org-appear-autosubmarkers t
-      org-appear-autolinks t
-      org-appear-autoentities t
-      org-appear-autokeywords t
-      org-appear-inside-latex nil
-      org-hide-emphasis-markers t
-      org-pretty-entities t
-      org-pretty-entities-include-sub-superscripts t
-      org-list-demote-modify-bullet '(("-"  . "-")
-                                      ("+"  . "+")
-                                      ("*"  . "-")
-                                      ("a." . "a)")
-                                      ("1." . "1)")
-                                      ("1)" . "a)"))
-      org-blank-before-new-entry '((heading . t)
-                                   (plain-list-item . nil))
-      org-src-ask-before-returning-to-edit-buffer nil)
+  (setq org-use-property-inheritance t
+        org-reverse-note-order t
+        org-startup-with-latex-preview t
+        org-startup-with-inline-images t
+        org-startup-indented t
+        org-startup-numerated t
+        org-startup-align-all-tables t
+        org-list-allow-alphabetical t
+        org-tags-column 0
+        org-fold-catch-invisible-edits 'smart
+        org-refile-use-outline-path 'full-file-path
+        org-refile-allow-creating-parent-nodes 'confirm
+        org-use-sub-superscripts '{}
+        org-fontify-quote-and-verse-blocks t
+        org-fontify-whole-block-delimiter-line t
+        doom-themes-org-fontify-special-tags t
+        org-ellipsis "…"
+        org-num-max-level 3
+        org-hide-leading-stars t
+        org-appear-autoemphasis t
+        org-appear-autosubmarkers t
+        org-appear-autolinks t
+        org-appear-autoentities t
+        org-appear-autokeywords t
+        org-appear-inside-latex nil
+        org-hide-emphasis-markers t
+        org-pretty-entities t
+        org-pretty-entities-include-sub-superscripts t
+        org-list-demote-modify-bullet '(("-"  . "-")
+                                        ("+"  . "+")
+                                        ("*"  . "-")
+                                        ("a." . "a)")
+                                        ("1." . "1)")
+                                        ("1)" . "a)"))
+        org-blank-before-new-entry '((heading . always)
+                                     (plain-list-item . nil))
+        org-src-ask-before-returning-to-edit-buffer nil)
+
+(defadvice! z-insert-newline-above (fn &rest args)
+  :after #'+org/insert-item-below
+  (when (org-at-heading-p)
+    (+evil/insert-newline-above 1)))
+
+(defadvice! z-insert-newline-below (fn &rest args)
+  :after #'+org/insert-item-above
+  (when (org-at-heading-p)
+    (+evil/insert-newline-below 1)))
 ;; options:1 ends here
 
 ;; [[file:config.org::*symbols][symbols:1]]
@@ -447,7 +464,7 @@ This is sensible default behaviour, and integrates it into evil."
                                       (:results  . "replace")
                                       (:exports  . "code")
                                       (:cache    . "no")
-                                      (:noweb    . "no")
+                                      (:noweb    . "yes")
                                       (:hlines   . "no")
                                       (:tangle   . "no")
                                       (:mkdirp   . "yes")
@@ -462,12 +479,12 @@ This is sensible default behaviour, and integrates it into evil."
 
 ;; [[file:config.org::*capture templates][capture templates:1]]
 (setq org-directory "~/Documents/org/")
-  (defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
-    "captured daily journal files")
-  (defvar z-org-literature-dir "~/Documents/literature"
-    "literature sources and captured notes")
-  (defvar z-org-literature-notes-dir (file-name-concat z-org-literature-dir "notes/")
-    "note files for each literature source")
+(defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
+  "captured daily journal files")
+(defvar z-org-literature-dir "~/Documents/literature"
+  "literature sources and captured notes")
+(defvar z-org-literature-notes-dir (file-name-concat z-org-literature-dir "notes/")
+  "note files for each literature source")
   (defvar z-wiki-dir "~/Documents/wiki/"
     "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
@@ -646,7 +663,7 @@ PARENT-PATH :: nil (used for recursion)"
                              :keys "q"
                              :headline "quotes"
                              :empty-lines-before 1
-                             :template ("* %^{title} [p.%^{page}]"
+                             :template ("* %^{title} [pg: %^{page}]"
                                         ":PROPERTIES:"
                                         ":created: %U"
                                         ":END:"
@@ -658,7 +675,7 @@ PARENT-PATH :: nil (used for recursion)"
                              :keys "l"
                              :headline "literature notes"
                              :empty-lines-before 1
-                             :template ("* %^{title} [p.%^{page}] %^g"
+                             :template ("* %^{title} [pg: %^{page}] %^g"
                                         ":PROPERTIES:"
                                         ":created: %U"
                                         ":END:"
@@ -690,11 +707,11 @@ PARENT-PATH :: nil (used for recursion)"
 (setq org-archive-location (--> nil
                                 (string-remove-prefix "~/" org-directory)
                                 (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
-      org-agenda-files `(,@(directory-files-recursively org-directory org-agenda-file-regexp t)
-                         ,(z-doct-journal-file)
-                         ,(--> nil
-                               (time-subtract (current-time) (days-to-time 1))
-                               (z-doct-journal-file it))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
+                               (list (z-doct-journal-file)
+                                     (--> nil
+                                          (time-subtract (current-time) (days-to-time 1))
+                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
       org-agenda-skip-scheduled-if-done t
       ;; org-agenda-sticky t
       org-agenda-skip-deadline-if-done t
@@ -761,9 +778,10 @@ PARENT-PATH :: nil (used for recursion)"
 ;; dictionary:1 ends here
 
 ;; [[file:config.org::*devdocs][devdocs:1]]
+;; no way to make this more programmatically unfortunately
 (setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
 (setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
-(setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp"))
+(setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 ;; devdocs:1 ends here
 

@@ -15,17 +15,17 @@ require 'English'
 ROFI_CMD = %w[rofi -dmenu -no-custom -i -p killprocess].freeze
 
 def main
-        pss = `ps -e`.lines.drop(1).map do |line|
+        processes = `ps -e`.lines.drop(1).map do |line|
                 columns = line.split(/\s+/)
                 name = columns[4..].join(' ').strip
                 pid = columns[1]
                 [name, pid]
         end.to_h
 
-        rofi_stdin = pss.keys.join("\n")
+        rofi_stdin = processes.keys.join("\n")
         select, status = Open3.capture2(*ROFI_CMD, stdin_data: rofi_stdin)
         exit 1 unless status.success?
-        ps_id = pss[select.chomp]
+        ps_id = processes[select.chomp]
 
         `sudo kill #{ps_id}`
         exit 1 unless $CHILD_STATUS.success?
