@@ -10,12 +10,7 @@ general {
   colors = true
   interval = 5
 
-  # # modus-vivendi
-  # color_good = "#44bc44"
-  # color_degraded = "#d0bc00"
-  # color_bad = "#ff5f59"
-
-  # modus-operandi
+  # modus-operandi theme
   color_good = "#006800"
   color_degraded = "#6f5500"
   color_bad = "#a60000"

@@ -36,7 +36,7 @@ font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 
 # KEYBINDINGS
-set $MOD Mod1 # alt
+set $MOD Mod1
 floating_modifier $MOD
 bindsym --release button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
@@ -135,7 +135,7 @@ mode "leader" {
         $EXIT_BINDING
 }
 
-# MODUS-VIVENDI THEME
+# MODUS-OPERANDI THEME
 set $BG          #ffffff
 set $FG          #000000
 set $MODELINE_BG #c8c8c8

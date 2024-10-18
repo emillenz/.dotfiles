@@ -3,7 +3,9 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2022-02-25
-# info:   minimal, coinsistent and fast config
+# info:
+# - minimal, coinsistent and fast config
+# - most features disabled/not configured since we use tmux for all copy/pasting and scrollback
 # ---
 
 import = ["~/.config/alacritty/modus_operandi.toml"]
@@ -13,7 +15,6 @@ working_directory = "None"
 
 [cursor]
 unfocused_hollow = false
-vi_mode_style = "Block"
 
 [env]
 WINIT_X11_SCALE_FACTOR = "1" # NOTE :: same fontsize across different dpi displays
@@ -25,12 +26,6 @@ size = 10.5
 [mouse]
 hide_when_typing = true
 
-[scrolling]
-multiplier = 10
-
-[selection]
-save_to_clipboard = true
-
 [shell]
 program = "/usr/bin/fish"
 args = ["--login"]
@@ -41,3 +36,43 @@ dynamic_padding = true
 dynamic_title = true
 startup_mode = "Maximized"
 opacity = 1.0
+
+# MODUS OPERANDI THEME
+[colors]
+transparent_background_colors = false
+
+[colors.primary]
+background = "#ffffff"
+foreground = "#000000"
+
+[colors.normal]
+black =   "#000000"
+red =     "#a60000"
+green =   "#006800"
+yellow =  "#6f5500"
+blue =    "#0031a9"
+magenta = "#721045"
+cyan =    "#005e8b"
+white =   "#a6a6a6"
+
+[colors.bright]
+black =   "#595959"
+red =     "#972500"
+green =   "#00663f"
+yellow =  "#884900"
+blue =    "#3548cf"
+magenta = "#531ab6"
+cyan =    "#005f5f"
+white =   "#ffffff"
+
+[colors.cursor]
+cursor     = "#000000"
+text       = "#ffffff"
+
+[colors.vi_mode_cursor]
+cursor     = "#000000"
+text       = "#ffffff"
+
+[colors.selection]
+background = "CellForeground"
+text       = "CellBackground"
