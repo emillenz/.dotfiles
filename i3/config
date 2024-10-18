@@ -8,7 +8,7 @@
 
 # MACROS
 set $ESC mode "default"
-set $EXIT bindsym Escape mode "default"
+set $EXIT_BINDING bindsym Escape mode "default"
 set $BIN ~/.config/bin
 set $MV move container to workspace
 set $CMD exec --no-startup-id
@@ -35,8 +35,8 @@ title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 
-# KEYBINDINGS (mod1 = alt)
-set $MOD Mod1
+# KEYBINDINGS
+set $MOD Mod1 # alt
 floating_modifier $MOD
 bindsym --release button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
@@ -59,7 +59,7 @@ bindsym XF86AudioRaiseVolume  $CMD $VOL_INC
 bindsym XF86AudioMute         $CMD $VOL_MUTE
 bindsym XF86AudioMicMute      $CMD $VOL_MIC_MUTE
 
-# don't look at the keyboard to find the right XF86 key
+# keep hands on the keyborad
 bindsym $MOD+9            $CMD $VOL_MIC_MUTE
 bindsym $MOD+0            $CMD $VOL_MUTE
 bindsym $MOD+minus        $CMD $VOL_DEC
@@ -90,7 +90,7 @@ for_window [class="Alacritty"] $MV $WS_CMD, focus
 set $WS_DOCS "docs"
 workspace $WS_DOCS output primary
 bindsym $MOD+d workspace $WS_DOCS
-bindsym $MOD+shift+d $CMD $BIN/find-file-menu fd --extension pdf -e epub --base-directory ~
+bindsym $MOD+shift+d $CMD $BIN/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/Documents literature ethz/cs/s3
 for_window [class="Zathura"] $MV $WS_DOCS, focus
 
 set $WS_WEB "web"
@@ -105,24 +105,17 @@ bindsym $MOD+e workspace $WS_EDIT
 bindsym $MOD+shift+e $CMD emacsclient --reuse-frame || emacs --daemon && emacsclient --reuse-frame
 for_window [class="Emacs"] $MV $WS_EDIT, focus
 
-# copy media link to clipboard (ex: from browser) => open mpv to view it there
-set $WS_VIDEO "video"
-workspace $WS_VIDEO output primary
-bindsym $MOD+v workspace $WS_VIDEO
-bindsym $MOD+shift+v $CMD mpv "$(xclip -out)"
-for_window [class="mpv"] $MV $WS_VIDEO, focus
+set $WS_MEDIA "media"
+workspace $WS_MEDIA output primary
+bindsym $MOD+m workspace $WS_MEDIA
+for_window [class="mpv"] $MV $WS_MEDIA, focus
+for_window [class="firefox" title="Spotify"] $MV $WS_MEDIA, focus
 
 set $WS_AI "ai"
 workspace $WS_AI output primary
 bindsym $MOD+a workspace $WS_AI
 bindsym $MOD+shift+a $CMD firefox --new-window https://chat.openai.com
 for_window [class="firefox" title="ChatGPT"] $MV $WS_AI, focus
-
-# set $WS_MUSIC "music"
-# workspace $WS_MUSIC output primary
-# bindsym $MOD+m workspace $WS_MUSIC
-# bindsym $MOD+shift+m $CMD firefox --new-window https://spotify.com
-# for_window [class="firefox" title="Spotify"] $MV $WS_MUSIC, focus
 
 bindsym $MOD+space mode "leader"
 mode "leader" {
@@ -134,35 +127,12 @@ mode "leader" {
         bindsym --release $MOD+s $CMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
         bindsym $MOD+shift+s $CMD scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
         bindsym $MOD+e $CMD emacsclient --eval "(emacs-everywhere)"; $ESC
-        bindsym $MOD+q mode "quit"
-        bindsym $MOD+l mode "keyboard-layout"
-        bindsym $MOD+f mode "find-file"
-        $EXIT
-}
-
-mode "find-file" {
-        bindsym $MOD+c $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~/Documents/ethz/cs/s3; $ESC
-        bindsym $MOD+l $CMD $BIN/find-file-menu fd --extension pdf -e epub --base-directory ~/Documents/literature/source; $ESC
-        bindsym $MOD+d $CMD $BIN/find-file-menu fd --extension pdf --base-directory ~/Downloads; $ESC
-        $EXIT
-}
-
-mode "quit" {
-        bindsym $MOD+e $CMD i3-msg exit; $ESC
+        bindsym $MOD+m $CMD mpv "$(xclip -out)"; $ESC # copy browser link to clipboard and then invoke mpv with it using this binding
         bindsym $MOD+q $CMD $SYS_SLEEP; $ESC
-        bindsym $MOD+shift+q $CMD poweroff; $ESC
-        bindsym $MOD+e $CMD i3-msg exit; $ESC
-        bindsym $MOD+r $CMD i3-msg restart; $ESC
-        bindsym $MOD+shift+r $CMD reboot; $ESC
         bindsym $MOD+o $CMD $SYS_SCREENOFF; $ESC
+        bindsym $MOD+f $CMD $BIN/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/Documents literature ethz/cs/s3; $ESC
 
-        $EXIT
-}
-
-mode "keyboard-layout" {
-        bindsym $MOD+u $CMD setxkbmap us; $ESC
-        bindsym $MOD+c $CMD setxkbmap ch; $ESC
-        $EXIT
+        $EXIT_BINDING
 }
 
 # MODUS-VIVENDI THEME

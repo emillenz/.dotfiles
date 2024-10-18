@@ -27,7 +27,7 @@ CMDS = [
         'xsetroot -solid "#ffffff"', # bg
         'xset dpms 0 0 0', # no screensaving
         'xset s off',
-        'xset r off' # disable key repeat
+        'xset r off', # disable key repeat
 ].freeze
 
 def spawn_processes
