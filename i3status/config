@@ -1,9 +1,11 @@
 # ---
-#+title:  I3-status Configuration File
-#+author: Emil Lenz
+#+title:  i3-status configuration file
+#+author: emil lenz
 #+email:  emillenz@protonmail.com
 #+date:   2024-01-19
-#+info:   Minimalist setup. As the bar is visible except when explicitly toggled to view system info.
+#+info:
+# - minimalist setup.
+# - the bar is visible except when explicitly toggled to view system info.
 # ---
 
 general {
@@ -23,39 +25,38 @@ order += "battery all"
 order += "volume master"
 order += "tztime local"
 
-
 wireless _first_ {
   format_up = "wifi: %essid %quality"
   format_down = ""
 }
 
 ethernet _first_ {
-  format_up = "eth"
+  format_up = "eth: %ip"
   format_down = ""
 }
 
 battery all {
   format = "bat: %status%percentage %emptytime"
   integer_battery_capacity = true
-  last_full_capacity = false
+  last_full_capacity = true
   hide_seconds = true
   threshold_type = percentage
   low_threshold = 20
   format_down = ""
-  status_full = "="
+  status_full = "*"
   status_chr = "+"
   status_bat = "-"
-  status_unk = "?"
+  status_unk = "??"
 }
 
 volume master {
-  format = "%devicename: %volume "
-  format_muted = "%devicename: mute "
+  format = "%devicename: %volume"
+  format_muted = "%devicename: mute"
   device = "default"
   mixer = "Master"
   mixer_idx = 0
 }
 
 tztime local {
-  format = "%Y-%m-%d %H:%M"
+  format = "%F %a %R" # ISO formatted
 }
