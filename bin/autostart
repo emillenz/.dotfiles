@@ -20,7 +20,7 @@ PROCESSES = [
         'unclutter',
         'batsignal -bpe -w 50 -c 20 -d 5',
         'keepassxc',
-        "sudo xremap --watch=device #{ENV['HOME']}/.config/xremap/config.yml & disown" # independent process
+        "sudo xremap --watch=device #{ENV['HOME']}/.config/xremap/config.yml & disown",
 ].freeze
 
 CMDS = [
