@@ -141,11 +141,12 @@
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
+      :nmv ":"   #'execute-extended-command ;; burn vim's bridges and harness power of emacs
+      :nmv "&"   #'query-replace-regexp
       :n   "C-j" #'newline-and-indent  ;; useful inverse of 'J'
       :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick/dirty macros, press: `qq` then `Q` to execute that.
       :nm  "j"   #'evil-next-visual-line
       :nm  "k"   #'evil-previous-visual-line
-      :nmv "&"   #'evil-ex-repeat ;; more extensible than normal '&'
       :nmv "("   #'backward-sexp  ;; more useful than navigation by sentences
       :nmv ")"   #'forward-sexp
       :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than C-x/C-a
@@ -154,6 +155,7 @@
       :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
       :nmv "g<"  #'evil-lion-left
       :nmv "g>"  #'evil-lion-right
+      :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer
       :nmv "s"   #'evil-surround-region ;; vim's <s/S> is useless (same as <x> and <C>)
       :nmv "S"   #'evil-Surround-region)
 

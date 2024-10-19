@@ -214,13 +214,18 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - learn them all (also the one's in insert mode) for seizing vim's full power.
   - super frequently called command needs top layer mapping (ex: write)
   - I can only improve vim's behaviour but need to stick to the defaults in order to allow seamless usage with other tools (tmux/less/browser/etc)
+- don't use evil-ex, instead make it less complex and use emacs ~M-x~. use the vim-bindings only for text navigation/editing.
+  - :%s/ :: use emacs ~query-replace-regexp~ since it is more interactive and powerful than vim.
+  - :g/ :: use emacs ~reverse-region~, ~delete-lines~ etc.
+  - other commands such as ~:w~, ~:q~, etc. should be called more efficiently by keybinding anyways.
 #+begin_src elisp
 (map! :after evil
+      :nmv ":"   #'execute-extended-command ;; burn vim's bridges and harness power of emacs
+      :nmv "&"   #'query-replace-regexp
       :n   "C-j" #'newline-and-indent  ;; useful inverse of 'J'
       :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick/dirty macros, press: `qq` then `Q` to execute that.
       :nm  "j"   #'evil-next-visual-line
       :nm  "k"   #'evil-previous-visual-line
-      :nmv "&"   #'evil-ex-repeat ;; more extensible than normal '&'
       :nmv "("   #'backward-sexp  ;; more useful than navigation by sentences
       :nmv ")"   #'forward-sexp
       :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than C-x/C-a
@@ -229,6 +234,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
       :nmv "g<"  #'evil-lion-left
       :nmv "g>"  #'evil-lion-right
+      :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer
       :nmv "s"   #'evil-surround-region ;; vim's <s/S> is useless (same as <x> and <C>)
       :nmv "S"   #'evil-Surround-region)
 
