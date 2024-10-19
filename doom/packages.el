@@ -7,6 +7,7 @@
                    evil-exchange) ;; do this using vanilla vim's visual pasting
 
 (package! dired-open)
+(package! tldr)
 (package! rainbow-mode)
 (package! doct)
 (package! org-super-agenda)

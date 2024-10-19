@@ -4,24 +4,21 @@
 # email:  emillenz@protonmail.com
 # date:   2022-02-25
 # info:
-# - minimal, coinsistent and fast config
-# - most features disabled/not configured since we use tmux for all copy/pasting and scrollback
+# - i disable all: {tabs, scrollback, clipboard integration} keybindings, since this is already handled by the terminal multiplexer (tmux).  we don't want duplicate functionality.
+# - all i need from a terminal is to be blazingly fast
 # ---
 
-import = ["~/.config/alacritty/modus_operandi.toml"]
-ipc_socket = true
 live_config_reload = true
-working_directory = "None"
 
 [cursor]
 unfocused_hollow = false
 
 [env]
-WINIT_X11_SCALE_FACTOR = "1" # NOTE :: same fontsize across different dpi displays
+WINIT_X11_SCALE_FACTOR = "1" # same fontsize across different dpi displays
 
 [font]
 normal = {family = "Iosevka Comfy"}
-size = 10.5
+size = 10
 
 [mouse]
 hide_when_typing = true

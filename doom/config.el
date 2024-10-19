@@ -106,6 +106,8 @@
       "." #'vertico-repeat
       "'" #'consult-bookmark
       "<tab>" #'harpoon-quick-menu-hydra
+      (:prefix "h"
+               "w" #'tldr)
       (:prefix "s"
                "k" #'devdocs-lookup
                "t" #'dictionary-search
@@ -140,6 +142,7 @@
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
       :n   "C-j" #'newline-and-indent  ;; useful inverse of 'J'
+      :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick/dirty macros, press: `qq` then `Q` to execute that.
       :nm  "j"   #'evil-next-visual-line
       :nm  "k"   #'evil-previous-visual-line
       :nmv "&"   #'evil-ex-repeat ;; more extensible than normal '&'
@@ -148,7 +151,7 @@
       :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than C-x/C-a
       :nmv "-"   #'evil-numbers/dec-at-pt
       :nmv "g+"  #'evil-numbers/inc-at-pt-incremental
-      :nmv "g-"  #'evil-numbers/dec-at-pt-incremental ;; more powerful '/' => preview matches interactively (better than vim's: C-g/C-t in search-mode)
+      :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
       :nmv "g<"  #'evil-lion-left
       :nmv "g>"  #'evil-lion-right
       :nmv "s"   #'evil-surround-region ;; vim's <s/S> is useless (same as <x> and <C>)
@@ -194,7 +197,7 @@
         evil-org-use-additional-insert nil)
   (add-to-list 'evil-normal-state-modes 'shell-mode)) ;; put me in normal mode by default (for navigating buffer). (go to insert mode if input is to be read is required.
 
-(defadvice! z-update-evil-search-reg ()
+(defadvice! z-update-evil-search-reg (fn &rest args)
   "Update evil search register after jumping to a line with
 `+default/search-buffer' to be able to jump to next/prev matches.
 This is sensible default behaviour, and integrates it into evil."

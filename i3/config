@@ -4,6 +4,7 @@
 # date:   2023-05-15
 # info:
 #   - the config is full of overhead reducing implementations, like: unmuting when increasing the volume, instead of introducing another shortcut to unmute the volume.  doing changes in system (eg. volume change / internet connection change) via notifications, so  we can disable the statusbar for a more focused workflow.
+#   - get window title & class information using: `xprop`
 # ---
 
 # MACROS
@@ -12,12 +13,12 @@ set $EXIT_BINDING bindsym Escape mode "default"
 set $BIN ~/.config/bin
 set $MV move container to workspace
 set $CMD exec --no-startup-id
-# no statusbar => use notifications for info
+# no statusbar => using notifications to display volume change
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
-set $SYS_SLEEP playerctl pause && i3lock --color ffffff && systemctl suspend
+set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
 set $SCREENLAYOUT fd . ~/.screenlayout | rofi -dmenu -i -no-custom -p 'screen-layout' | sh
 
@@ -36,11 +37,14 @@ font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 
 # KEYBINDINGS
+# Mod1 == alt
 set $MOD Mod1
 floating_modifier $MOD
-bindsym --release button2 kill
+# Mod+button1: drag floating window
+# Mod+button2: resize floating window
+bindsym button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
-# disable mousewheel functionality on titlebar (no accidental window switching)
+# disable mousewheel functionality :: no accidental window switching
 bindsym button4 nop
 bindsym button5 nop
 
@@ -59,7 +63,7 @@ bindsym XF86AudioRaiseVolume  $CMD $VOL_INC
 bindsym XF86AudioMute         $CMD $VOL_MUTE
 bindsym XF86AudioMicMute      $CMD $VOL_MIC_MUTE
 
-# keep hands on the keyborad
+# keep hands on the keyborad => don't use XF86 keys
 bindsym $MOD+9            $CMD $VOL_MIC_MUTE
 bindsym $MOD+0            $CMD $VOL_MUTE
 bindsym $MOD+minus        $CMD $VOL_DEC
@@ -127,7 +131,8 @@ mode "leader" {
         bindsym --release $MOD+s $CMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
         bindsym $MOD+shift+s $CMD scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
         bindsym $MOD+e $CMD emacsclient --eval "(emacs-everywhere)"; $ESC
-        bindsym $MOD+m $CMD mpv "$(xclip -out)"; $ESC # copy browser link to clipboard and then invoke mpv with it using this binding
+        # copy browser link to clipboard and then invoke mpv with it using this binding
+        bindsym $MOD+m $CMD mpv "$(xclip -out)"; $ESC
         bindsym $MOD+q $CMD $SYS_SLEEP; $ESC
         bindsym $MOD+o $CMD $SYS_SCREENOFF; $ESC
         bindsym $MOD+f $CMD $BIN/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/Documents literature ethz/cs/s3; $ESC
@@ -141,19 +146,20 @@ set $FG          #000000
 set $MODELINE_BG #c8c8c8
 set $BORDER      #9f9f9f
 set $ACTIVE_BG   #c0deff
-set $URGENT_FG   #ff8f88
+set $URGENT_BG   #ff8f88
 
 # element               $border    $bg          $fg $mark $border (child)
 client.focused          $ACTIVE_BG $ACTIVE_BG   $FG $FG   $ACTIVE_BG
 client.focused_inactive $BORDER    $MODELINE_BG $FG $FG   $BORDER
 client.unfocused        $BORDER    $MODELINE_BG $FG $FG   $BORDER
-client.urgent           $URGENT_FG $URGENT_FG   $FG $FG   $URGENT_FG
+client.urgent           $URGENT_BG $URGENT_BG   $FG $FG   $URGENT_BG
 client.background       $BG
 
 # MODELINE
 bar {
         mode hide
-        hidden_state hide # only show if explicitly activated using leader mode
+        # only show if explicitly activated using leader mode
+        hidden_state hide
         workspace_buttons yes
         binding_mode_indicator yes
         modifier none
@@ -165,11 +171,11 @@ bar {
                 background $MODELINE_BG
                 statusline $FG
                 separator  $FG
-                #class             border     bg        fg
+                #class             $border $bg          $fg
                 binding_mode       $BORDER $ACTIVE_BG   $FG
                 focused_workspace  $BORDER $ACTIVE_BG   $FG
                 active_workspace   $BORDER $MODELINE_BG $FG
                 inactive_workspace $BORDER $MODELINE_BG $FG
-                urgent_workspace   $BORDER $URGENT_FG   $FG
+                urgent_workspace   $BORDER $URGENT_BG   $FG
         }
 }

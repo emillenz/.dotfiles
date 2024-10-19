@@ -95,7 +95,7 @@ the display brightness must be adjusted align with the ambient brightness.   thu
  designed for writing code, using in terminals, and preparing technical documents.
   - the intent is to make everything feel part of the same aesthetic, hence setting the font system-wide.
  it was specifically designed for long terminal / editor sessions (8- hours).  it aims to reduce eye strain and help readability in the long term.  (try a light theme with a bitmap font like terminus for 8 hours.  it will be a tormenting experience! to maximamise the difficulty, do it in a dark room with the monitor’s brightness set to its maximum value.)
- keep the fontsize as small as you can manage (and the font is sharp).
+ keep the fontsize as small as you can manage while the font is not blurry (for 1920x1080 that corresponds to size: 10).
   - working with big fontsizes, encourages bad eyesight and neckposture.
   - makes you faster
   - less disorientatation in the buffers
