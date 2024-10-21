@@ -141,12 +141,9 @@
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
-      :nmv ":"   #'execute-extended-command ;; burn vim's bridges and harness power of emacs
       :nmv "&"   #'query-replace-regexp
       :n   "C-j" #'newline-and-indent  ;; useful inverse of 'J'
       :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick/dirty macros, press: `qq` then `Q` to execute that.
-      :nm  "j"   #'evil-next-visual-line
-      :nm  "k"   #'evil-previous-visual-line
       :nmv "("   #'backward-sexp  ;; more useful than navigation by sentences
       :nmv ")"   #'forward-sexp
       :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than C-x/C-a
@@ -158,6 +155,10 @@
       :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer
       :nmv "s"   #'evil-surround-region ;; vim's <s/S> is useless (same as <x> and <C>)
       :nmv "S"   #'evil-Surround-region)
+
+(global-set-key [remap evil-next-line] #'evil-next-visual-line)
+(global-set-key [remap evil-previous-line] #'evil-previous-visual-line)
+(global-set-key [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
 
 ;; HACK :: needed to make 'C-h' work as backspace consistently, everywhere (some modes override it to <help>).
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -187,6 +188,13 @@
 (map! :after dired :map dired-mode-map :localleader
       :nm "a" #'z-dired-archive)
 ;; dired_:1 ends here
+
+;; [[file:config.org::*lisp][lisp:1]]
+(map! :after (lispy lispyville)
+      :map lispy-mode-map-lispy
+      "[" nil
+      "]" nil)
+;; lisp:1 ends here
 
 ;; [[file:config.org::*editor][editor:1]]
 (evil-surround-mode 1)
@@ -789,8 +797,3 @@ PARENT-PATH :: nil (used for recursion)"
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 ;; devdocs:1 ends here
-
-;; [[file:config.org::*speech notes dictation: whisper][speech notes dictation: whisper:1]]
-(use-package whisper
-  :load-path "~/.config/doom/whisper.el/")
-;; speech notes dictation: whisper:1 ends here

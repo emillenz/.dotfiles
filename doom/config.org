@@ -220,12 +220,9 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - other commands such as ~:w~, ~:q~, etc. should be called more efficiently by keybinding anyways.
 #+begin_src elisp
 (map! :after evil
-      :nmv ":"   #'execute-extended-command ;; burn vim's bridges and harness power of emacs
       :nmv "&"   #'query-replace-regexp
       :n   "C-j" #'newline-and-indent  ;; useful inverse of 'J'
       :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick/dirty macros, press: `qq` then `Q` to execute that.
-      :nm  "j"   #'evil-next-visual-line
-      :nm  "k"   #'evil-previous-visual-line
       :nmv "("   #'backward-sexp  ;; more useful than navigation by sentences
       :nmv ")"   #'forward-sexp
       :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than C-x/C-a
@@ -237,6 +234,10 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer
       :nmv "s"   #'evil-surround-region ;; vim's <s/S> is useless (same as <x> and <C>)
       :nmv "S"   #'evil-Surround-region)
+
+(global-set-key [remap evil-next-line] #'evil-next-visual-line)
+(global-set-key [remap evil-previous-line] #'evil-previous-visual-line)
+(global-set-key [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
 
 ;; HACK :: needed to make 'C-h' work as backspace consistently, everywhere (some modes override it to <help>).
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -269,6 +270,15 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 
 (map! :after dired :map dired-mode-map :localleader
       :nm "a" #'z-dired-archive)
+#+end_src
+
+** lisp
+disable annoying lispy insert bindings.
+#+begin_src elisp
+(map! :after (lispy lispyville)
+      :map lispy-mode-map-lispy
+      "[" nil
+      "]" nil)
 #+end_src
 
 * editor
@@ -1052,10 +1062,3 @@ i always look up documentation/manuals within emacs.  (only if it's not sufficie
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 #+end_src
-
-* speech notes dictation: whisper
-#+begin_src elisp
-(use-package whisper
-  :load-path "~/.config/doom/whisper.el/")
-#+end_src
-

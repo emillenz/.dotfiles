@@ -34,8 +34,9 @@ yay --noconfirm --sync alacritty curl libtool fzf fd ripgrep xclip xdg-utils cma
 *** interactive shell: fish
 if on a different machine, use ~set -o vi~ in bash to set readline to vim bindings.
 #+begin_src sh
-yay --noconfirm --sync fish fisher zoxide
+yay --noconfirm --sync fish fisher
 fisher install jorgebucaran/autopair.fish patrickf1/fzf.fish
+fisher install franciscolourenco/done
 
 zoxide init fish | source
 
