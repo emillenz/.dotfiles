@@ -14,8 +14,8 @@ end
 PROCESSES = [
         'alacritty --title cmd --command tmux new-session -A -s cmd',
         'emacs --daemon && emacsclient --reuse-frame',
-        'firefox https://chat.openai.com',
         'firefox --new-window',
+        'firefox https://chat.openai.com',
         'playerctld',
         'unclutter',
         'batsignal -bpe -w 50 -c 20 -d 5',
