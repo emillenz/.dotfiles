@@ -152,8 +152,8 @@
       :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
       :nmv "g<"  #'evil-lion-left
       :nmv "g>"  #'evil-lion-right
-      :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer
-      :nmv "s"   #'evil-surround-region ;; vim's <s/S> is useless (same as <x> and <C>)
+      :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer.
+      :nmv "s"   #'evil-surround-region
       :nmv "S"   #'evil-Surround-region)
 
 (global-set-key [remap evil-next-line] #'evil-next-visual-line)
@@ -173,7 +173,7 @@
                    (call-interactively #'org-toggle-checkbox)))
       "z"  #'org-add-note)
 
-(map! :map yas-keymap :after org ;; HACK :: make it work
+(map! :map yas-keymap :after org ;; HACK :: make tab work like in prog-mode: expanding snippets and jumping fields (org overrides it to folding, even in insert-mode)
       :i "<tab>" #'yas-next-field
       :i "<backtab>" #'yas-prev-field)
 ;; org_:1 ends here
@@ -240,6 +240,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 ;; [[file:config.org::*completion][completion:1]]
 (vertico-flat-mode 1)
+(company-tng-mode 1)
 
 (after! company
   (setq company-minimum-prefix-length 0

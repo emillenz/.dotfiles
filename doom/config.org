@@ -218,6 +218,8 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - :%s/ :: use emacs ~query-replace-regexp~ since it is more interactive and powerful than vim.
   - :g/ :: use emacs ~reverse-region~, ~delete-lines~ etc.
   - other commands such as ~:w~, ~:q~, etc. should be called more efficiently by keybinding anyways.
+  - ! :: use emacs: async shell cmd: ~M-&~, (filter) region for shell-cmd: ~(C-u) M-|~
+- s/S :: vim's s/S is useless, since it is a duplicate of (x/C).  we introduce instead a powerful operator: surround.  anytime you need to add/remove/change surrounding delimiters, this will make you more efficient & precise.
 #+begin_src elisp
 (map! :after evil
       :nmv "&"   #'query-replace-regexp
@@ -231,8 +233,8 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
       :nmv "g<"  #'evil-lion-left
       :nmv "g>"  #'evil-lion-right
-      :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer
-      :nmv "s"   #'evil-surround-region ;; vim's <s/S> is useless (same as <x> and <C>)
+      :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer.
+      :nmv "s"   #'evil-surround-region
       :nmv "S"   #'evil-Surround-region)
 
 (global-set-key [remap evil-next-line] #'evil-next-visual-line)
@@ -253,7 +255,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
                    (call-interactively #'org-toggle-checkbox)))
       "z"  #'org-add-note)
 
-(map! :map yas-keymap :after org ;; HACK :: make it work
+(map! :map yas-keymap :after org ;; HACK :: make tab work like in prog-mode: expanding snippets and jumping fields (org overrides it to folding, even in insert-mode)
       :i "<tab>" #'yas-next-field
       :i "<backtab>" #'yas-prev-field)
 #+end_src
@@ -338,6 +340,7 @@ This is sensible default behaviour, and integrates it into evil."
 - minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
 #+begin_src elisp
 (vertico-flat-mode 1)
+(company-tng-mode 1)
 
 (after! company
   (setq company-minimum-prefix-length 0
