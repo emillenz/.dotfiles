@@ -28,7 +28,8 @@ exec $BIN/autostart &
 # OPTS
 workspace_auto_back_and_forth no
 workspace_layout tabbed
-force_focus_wrapping yes
+# NO => to navigate cross-containers
+force_focus_wrapping no
 default_orientation horizontal
 default_border pixel 2
 hide_edge_borders smart
@@ -72,12 +73,15 @@ bindsym $MOD+bracketright $CMD playerctl next
 bindsym $MOD+bracketleft  $CMD playerctl previous
 bindsym $MOD+backslash    $CMD playerctl play-pause
 
-bindsym $MOD+l         focus right
-bindsym $MOD+h         focus left
+# use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side
+# n/p consistent with cycling {rofi, shell, emacs} completion menus
+bindsym $MOD+p         focus left
+bindsym $MOD+shift+p   move left
+bindsym $MOD+n         focus right
+bindsym $MOD+shift+n   move right
 bindsym $MOD+q         kill
 bindsym $MOD+b         $CMD rofi -show window
 bindsym $MOD+semicolon $CMD rofi -show drun
-bindsym $MOD+s         layout toggle tabbed splith
 bindsym $MOD+Tab       workspace back_and_forth
 bindsym $MOD+Return    move workspace to output next
 
