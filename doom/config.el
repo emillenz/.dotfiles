@@ -25,6 +25,10 @@
       doom-variable-pitch-font (font-spec :family "Iosevka Comfy" :size 13)
       doom-serif-font          (font-spec :family "Iosevka Comfy" :size 13)
       doom-big-font            (font-spec :family "Iosevka Comfy" :size 28))
+
+(map! :n "C-=" #'doom/increase-font-size
+      :n "C--" #'doom/decrease-font-size
+      :n "C-0" #'doom/reset-font-size)
 ;; font:1 ends here
 
 ;; [[file:config.org::*modeline][modeline:1]]
@@ -94,6 +98,9 @@
 (save-place-mode 1)
 (global-subword-mode 1)
 (add-hook! '(prog-mode-hook conf-mode-hook) #'rainbow-delimiters-mode)
+
+(global-auto-revert-mode 1)
+(setq global-auto-revert-non-file-buffers t)
 ;; misc options:1 ends here
 
 ;; [[file:config.org::*leader (\[\[kbd:SPC\]\[SPC\]\], \[\[kbd:,\]\[,\]\])][leader ([[kbd:SPC][SPC]], [[kbd:,][,]]):1]]
@@ -141,12 +148,12 @@
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
-      :nmv "&"   #'query-replace-regexp
-      :n   "C-j" #'newline-and-indent  ;; useful inverse of 'J'
-      :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick/dirty macros, press: `qq` then `Q` to execute that.
+      :nmv "&"   #'query-replace-regexp ;; needs mapping, since `:' is `M-x'
+      :n   "C-j" #'newline-and-indent  ;; useful inverse of `J'
+      :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
       :nmv "("   #'backward-sexp  ;; more useful than navigation by sentences
       :nmv ")"   #'forward-sexp
-      :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than C-x/C-a
+      :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a'
       :nmv "-"   #'evil-numbers/dec-at-pt
       :nmv "g+"  #'evil-numbers/inc-at-pt-incremental
       :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
@@ -156,11 +163,13 @@
       :nmv "s"   #'evil-surround-region
       :nmv "S"   #'evil-Surround-region)
 
-(global-set-key [remap evil-next-line] #'evil-next-visual-line)
-(global-set-key [remap evil-previous-line] #'evil-previous-visual-line)
-(global-set-key [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
+;; use [remap] to replace functions with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+(define-key! [remap evil-next-line] #'evil-next-visual-line)
+(define-key! [remap evil-previous-line] #'evil-previous-visual-line)
+(define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
+(define-key! [remap evil-shell-command] #'shell-command-on-region)
 
-;; HACK :: needed to make 'C-h' work as backspace consistently, everywhere (some modes override it to <help>).
+;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
 ;; vim editing:1 ends here
 
@@ -205,7 +214,7 @@
         evil-want-C-h-delete t
         evil-want-minibuffer t ;; don't loose your powers in the minibuffer
         evil-org-use-additional-insert nil)
-  (add-to-list 'evil-normal-state-modes 'shell-mode)) ;; put me in normal mode by default (for navigating buffer). (go to insert mode if input is to be read is required.
+  (add-to-list 'evil-normal-state-modes 'shell-mode)) ;; put me in normal mode by default (99% i want to navigate the buffer, not read stdin)
 
 (defadvice! z-update-evil-search-reg (fn &rest args)
   "Update evil search register after jumping to a line with
@@ -240,7 +249,6 @@ This is sensible default behaviour, and integrates it into evil."
 
 ;; [[file:config.org::*completion][completion:1]]
 (vertico-flat-mode 1)
-(company-tng-mode 1)
 
 (after! company
   (setq company-minimum-prefix-length 0
@@ -292,7 +300,6 @@ This is sensible default behaviour, and integrates it into evil."
                                         (("epub" "pdf")             . "zathura")))
         dired-recursive-copies 'always
         dired-recursive-deletes 'always
-        global-auto-revert-non-file-buffers t
         dired-no-confirm '(uncompress move copy)
         dired-omit-files "^\\..*$"))
 ;; dired:1 ends here

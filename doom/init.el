@@ -9,8 +9,9 @@
        ;;layout                     ; auie,ctsrnm is the superior home row
 
        :completion
-       (company                     ; (+childframe) the ultimate code completion backend
-        +childframe)
+       (company                         ; (+childframe +box +tng) the ultimate code completion backend
+        +childframe
+        +box)
        ;;helm                       ; the *other* search engine for love and life
        ;;ido                        ; the other *other* search engine...
        ;;ivy                        ;  (+fuzzy +icons) vertico but worse
