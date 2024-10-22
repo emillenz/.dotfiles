@@ -80,15 +80,16 @@ There is a special ring in Dante's inferno for the inventor of the mouse and for
 #+end_quote
 
 * modus-theme
-[[https://protesilaos.com/emacs/modus-themes][modus-themes rationale]]
+[[https://protesilaos.com/emacs/modus-themes][modus-themes info]]
 [[https://protesilaos.com/codelog/2023-01-06-re-modus-questions-disability/][modus-themes legibility theory]]
 the purpose of a theme is to optimise the presentation of any given interface.
-after extensive testing i found to use the light theme always & everywhere.   studies & research have found the following advantages of using a light-theme over a dark-theme ::
+i find that light themes are superior to dark themes.   studies & research have found the following advantages of using a light-theme over a dark-theme ::
 - significantly better proofreading (catch more errors in code, misread less)
 - high legibility at low brightness / in direct sunlight => less eyestrain, more efficient battery usage
 - no astigmatism (bloom of the letter's which causes them to appear blurry & strains the eyes)
-- #ffffff and #000000 as the base are minimalist colors and are the least limiting on the range of different colors that can be use while maintaining stark contrast.
-the display brightness must be adjusted align with the ambient brightness.   thus in dim light (night), an additional source of light other than that of the monitor is required to reduce eye strain.   the eyes are more relaxed (strain less) when they do not have to focus on one point to gather light.
+for modus themes, #ffffff and #000000 as the base are minimalist colors are the least limiting on the range of different colors that can be use while maintaining stark contrast.
+you should never use the computer with no ambient light sources in the room anyways (for concentration) but the display brightness must be adjusted align with the ambient brightness.   thus in dim light (night), an additional source of light other than that of the monitor are required to reduce eye strain.   the eyes are more relaxed (strain less) when they do not have to focus on one point to gather light.  light theme legibility during day is vastly better than dark theme.
+one may object that dark themes "look cooler", which we can ignore, since we use our computer's as a productive tool and not to impress anyone over the internet.
 
 * font: iosevka comfy
  it is incredibly compact in width to allow a lot of code on screen, especially when viewing content side by side.
@@ -118,6 +119,7 @@ i'm very opinionated and have high standards regarding design process and the ph
 
 ** windowmanager: i3
 - the usual elitism amongst minimal window managers: don’t be bloated, don’t be fancy (simple borders are the most decoration have).  do not add further complexity when it can be avoided.
+- manual tiling wm ::  which is better than a autotiling wm (or god forbid a desktop-environment), since we control placement of windows and it works consistenly in the same way as emacs
 - the windowmanager follows the philosopy of eliminating mental overhead and the neccessety to arrange windows or layouts.
   - eliminate mental overhead and reduce computational steps to get to where you need to be.
   - finetuned to automate the workflow as much as possible.
