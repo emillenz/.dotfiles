@@ -8,3 +8,6 @@
 # ---
 
 IndentWidth: 8
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackArguments: false
+BinPackParameters: false
