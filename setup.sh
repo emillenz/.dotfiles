@@ -14,10 +14,8 @@ yay --noconfirm --sync alacritty curl libtool fzf fd ripgrep xclip xdg-utils cma
 # terminal, shell, scripting:1 ends here
 
 # [[file:setup.org::*interactive shell: fish][interactive shell: fish:1]]
-yay --noconfirm --sync fish fisher zoxide
+yay --noconfirm --sync fish fisher
 fisher install jorgebucaran/autopair.fish patrickf1/fzf.fish
-
-zoxide init fish | source
 
 sudo chsh --shell /usr/bin/fish root
 chsh --shell /usr/bin/fish
@@ -45,7 +43,7 @@ $HOME/.config/emacs/bin/doom install
 # editor: doom emacs:1 ends here
 
 # [[file:setup.org::*gui apps & packages][gui apps & packages:1]]
-yay --noconfirm --sync i3 i3lock zathura zathura-pdf-mupdf arandr mpv yt-dlp brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst nsxiv maim xorg-xset xorg-xsetroot batsignal pamixer rofi tlp
+yay --noconfirm --sync i3-wm zathura zathura-pdf-mupdf arandr mpv yt-dlp brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst nsxiv maim xorg-xset xorg-xsetroot batsignal pamixer rofi tlp
 # gui apps & packages:1 ends here
 
 # [[file:setup.org::*enable daemons][enable daemons:1]]

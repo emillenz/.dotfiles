@@ -36,9 +36,6 @@ if on a different machine, use ~set -o vi~ in bash to set readline to vim bindin
 #+begin_src sh
 yay --noconfirm --sync fish fisher
 fisher install jorgebucaran/autopair.fish patrickf1/fzf.fish
-fisher install franciscolourenco/done
-
-zoxide init fish | source
 
 sudo chsh --shell /usr/bin/fish root
 chsh --shell /usr/bin/fish
@@ -81,10 +78,4 @@ yay --noconfirm --sync i3-wm zathura zathura-pdf-mupdf arandr mpv yt-dlp brightn
 sudo systemctl enable sshd
 sudo systemctl enable mpd
 sudo systemctl enable bluetooth
-#+end_src
-
-** obs & nvidia drivers
-#+begin_src sh :tangle no
-yay --noconfirm --sync obs-studio
-yay --noconfirm --sync nvidia nvidia-utils lib32-nvidia-utils nvidia-settings
 #+end_src
