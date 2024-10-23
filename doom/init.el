@@ -48,7 +48,7 @@
        (evil +everywhere)           ; (+everywhere) come to the dark side, we have cookies
        file-templates               ; auto-snippets for empty files
        fold                         ; (nigh) universal code folding
-       format                       ; (+onsave) don't format unless i explicitly want you to do so (sometimes a file needs manual alignment that a formatter destroys + this is inefficient to be run each save (usually only run 1x on a file not written by self)) ; automated prettiness
+       format                       ; (+onsave) don't format automatically onsave unless i explicitly want you to do so (sometimes a file needs manual alignment that a formatter destroys + this is inefficient to be run each save (usually only run 1x on a file not written by self)).  it's better to do this manually useing evil-operator: `+format:region' mapped to `gQ'
        ;;god                        ; run Emacs commands without modifier keys
        lispy                        ; vim for lisp, for people who don't like vim
        ;;multiple-cursors           ; editing in many places at once

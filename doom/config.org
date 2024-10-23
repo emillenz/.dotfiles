@@ -9,7 +9,7 @@
 
 * preface
 - a total of {{{src-len}}} LOC.
-- prefixed ~z~ in user defined functions and variables.  to distinguish them clearly from package related ones.
+- prefixed ~z~ (lenZ) in user defined functions and variables.  to distinguish them clearly from package related ones.
 - lazyload packages using ~after!~.  this keeps emacs efficent, since it now only loads the settings & packages when they are actually needed (no emacs bankruptcy).
 - i believe that customizations are personal and should not be blindly copied.  Everyone should carefully consider each customizable setting they hear about and decide for themselves whether they like it or not.  Non-trivial customizations that include Lisp code should be fully understood before they are accepted, rejected, or amended to personal taste.  (read the manual)
   - i encourage you to master the tool that you are using.  this means thuroughly reading the complete documentation, keymaps for the tools you are using (eg. vertico, evil-mode, magit, leader-mode).
@@ -222,11 +222,11 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - super frequently called command needs top layer mapping (ex: write)
   - I can only improve vim's behaviour but need to stick to the defaults in order to allow seamless usage with other tools (tmux/less/browser/etc)
 - don't use evil-ex, instead make it less complex and use emacs ~M-x~. use the vim-bindings only for text navigation/editing.
-  - :%s/ :: use enhanced ~query-replace-regex~ which is more interactivy powerful/flexible than vim's replacement.
+  - :%s/ :: use emacs-native ~query-replace-regex~ instead, which is more interactivly powerful/flexible than vim's replacement.  it has undo, navigating matches, etc.  you can perform arbitrary lisp code on the match => read the docs of ~query-replace-regexp~
+    - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
   - :g/ :: use emacs ~reverse-region~, ~delete-lines~ etc.
   - other commands such as ~:w~, ~:q~, etc. should be called more efficiently by keybinding anyways.
-  - ! :: use emacs: async shell cmd: ~M-&~, and ~shell-command-on-region~ (already remapped)
-- s/S :: vim's s/S is useless, since it is a duplicate of (x/C).  we introduce instead a powerful operator: surround.  anytime you need to add/remove/change surrounding delimiters, this will make you more efficient & precise.
+- s/S :: vim's ~s/S~ is useless, since it is a duplicate of the bindings: ~x~ and ~C~.  we introduce instead a powerful operator: surround.   use it to add/remove/change surrounding delimiters.
 #+begin_src elisp
 (map! :after evil
       :nmv "&"   #'query-replace-regexp ;; needs mapping, since `:' is `M-x'
@@ -241,6 +241,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :nmv "g<"  #'evil-lion-left
       :nmv "g>"  #'evil-lion-right
       :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer.
+      :nm  "g/"  #'occur ;; powerful search (and replace/edit) tool
       :nmv "s"   #'evil-surround-region
       :nmv "S"   #'evil-Surround-region)
 
@@ -248,10 +249,15 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
-(define-key! [remap evil-shell-command] #'shell-command-on-region)
 
 ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
+
+(defadvice! z-keep-point (fn &rest args)
+  "don't move the point to where fn exits at.  just do the edit and keep point."
+  :around '(query-replace-regexp query-replace +format:region)
+  (save-excursion
+    (apply fn args)))
 #+end_src
 
 ** org_
@@ -289,7 +295,9 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (map! :after (lispy lispyville)
       :map lispy-mode-map-lispy
       "[" nil
-      "]" nil)
+      "]" nil
+      "{" nil
+      "}" nil)
 #+end_src
 
 * editor
@@ -302,18 +310,19 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
         evil-want-C-h-delete t
         evil-want-minibuffer t ;; don't loose your powers in the minibuffer
         evil-org-use-additional-insert nil)
-  (add-to-list 'evil-normal-state-modes 'shell-mode)) ;; put me in normal mode by default (99% i want to navigate the buffer, not read stdin)
+  (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin))
+  (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
 
-(defadvice! z-update-evil-search-reg (fn &rest args)
-  "Update evil search register after jumping to a line with
+  (defadvice! z-update-evil-search-reg (fn &rest args)
+    "Update evil search register after jumping to a line with
 `+default/search-buffer' to be able to jump to next/prev matches.
 This is sensible default behaviour, and integrates it into evil."
-  :after #'+default/search-buffer
-  (let ((str (--> nil
-                  (car consult--line-history)
-                  (string-replace " " ".*" it))))
-    (push str evil-ex-search-history)
-    (setq evil-ex-search-pattern (list str t t))))
+    :after #'+default/search-buffer
+    (let ((str (--> nil
+                    (car consult--line-history)
+                    (string-replace " " ".*" it))))
+      (push str evil-ex-search-history)
+      (setq evil-ex-search-pattern (list str t t)))))
 #+end_src
 
 ** jumplist
@@ -347,6 +356,7 @@ This is sensible default behaviour, and integrates it into evil."
   - it makes coding more raw, distractionfree, and overall more enjoyeable
 - bindings :: use [[kbd:C-n][C-n]] for code completion, If you want evil's dabbrev based completion, use [[kbd:C-p][C-p]], which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use [[kbd:tab][tab]].
 - minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
+
 #+begin_src elisp
 (vertico-flat-mode 1)
 
@@ -370,7 +380,7 @@ This is sensible default behaviour, and integrates it into evil."
       :i "C-p" #'previous-line-or-history-element) ;; navigate elements like vim completion
 
 (map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word ;; better C-w
+      :im "C-w" #'vertico-directory-delete-word
       :im "C-d" #'consult-dir
       :im "C-f" #'consult-dir-jump-file)
 #+end_src
@@ -412,7 +422,8 @@ we automate this repetetive task using a snippets.
 #+begin_src elisp
 (set-file-templates!
  '(org-mode :trigger "header")
- '(prog-mode :trigger "header"))
+ '(prog-mode :trigger "header")
+ '(makefile-gmake-mode :ignore t))
 #+end_src
 
 * dired
@@ -458,7 +469,7 @@ we automate this repetetive task using a snippets.
 #+end_src
 
 * terminal
-we never use an integrated terminal (introduces additional complex layers, slowness, bad keybindings, etc...).  instead all we do is use [[kbd:M-!/&|][M-!/&|]] if more is needed than that we should switch over to the proper shell anyway.
+we never spawn a terminal inside emacs (introduces additional complex layers, slowness, bad keybindings, etc...).  instead all we do is use ~async-shell-command~ and ~shell-command-on-region~.  if more is needed than that we should switch over to the proper shell anyway.
 
 * programming
 ** indentation
@@ -740,7 +751,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 - create capture-templates for organization on a per project basis, ex: university, personal, work..
 - capture templates are used to collect & capture notes, events, tasks and templates; structured, tagged, sorted into a specific files.
 - this ensures information based data is consistently captured.
-- this is very customizeable allows you to setup complex templates and should be used whenever you want to log data / repeatatively track things, or want to capture structured data with different entries consistently (eg: literature to track reading process).
+- this is very customizeable and allows you to setup complex templates and should be used whenever you want to log data / repeatatively track things, or want to capture structured data with different entries consistently (eg: literature to track reading process).
 - use the heading: ~inbox~ for collecting the captured tasks => can get messy, and can be refactored out of inbox into more structure if neccessary.
 - for each project there is a separate folder (relative to org-dir) with files:
 - agenda :: all tasks (todos, completed etc) and events (physical appointments)
@@ -749,6 +760,8 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 - motivation :: this scheme of =agenda/notes= is used to have a structured and consistent approach for generic projects-management.
 - prepending :: if recent item's are of higher relevance
 - appending :: for hierarchical order eg. book-quotes ordered from begin -> end
+
+- implemented is a structured approach for generic projects, all using the same (but relative to project) paths and capture-templates.
 #+begin_src elisp
 (setq org-directory "~/Documents/org/")
 (defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
@@ -757,220 +770,244 @@ in short, 8-char indents make things easier to read, and have the added benefit 
   "literature sources and captured notes")
 (defvar z-org-literature-notes-dir (file-name-concat z-org-literature-dir "notes/")
   "note files for each literature source")
-  (defvar z-wiki-dir "~/Documents/wiki/"
-    "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
+(defvar z-wiki-dir "~/Documents/wiki/"
+  "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
 and the later reviewed and merged into the corresponding article of the wiki.")
 
-  (defun z-doct-journal-file (&optional time)
-    "TIME :: time in day of note to return. (default: today)"
-    (--> nil
-         (or time (current-time))
-         (format-time-string "%F" it)
-         (format "%s_journal.org" it)
-         (file-name-concat z-org-journal-dir it)))
+(defun z-doct-journal-file (&optional time)
+  "TIME :: time in day of note to return. (default: today)"
+  (--> nil
+       (or time (current-time))
+       (format-time-string "%F" it)
+       (format "%s_journal.org" it)
+       (file-name-concat z-org-journal-dir it)))
 
-  (defvar z-doct-projects '(("cs" :keys "c"
-                             :children (("ti"   :keys "t")
-                                        ("an2"  :keys "a")
-                                        ("spca" :keys "s")
-                                        ("ph1"  :keys "p")
-                                        ("nm"   :keys "n")))
-                            ("personal" :keys "p")
-                            ("config"   :keys "f")))
+(defvar z-doct-projects '(("cs" :keys "c"
+                           :children (("ti"   :keys "t")
+                                      ("an2"  :keys "a")
+                                      ("spca" :keys "s")
+                                      ("ph1"  :keys "p")
+                                      ("nm"   :keys "n")))
+                          ("personal" :keys "p")
+                          ("config"   :keys "f")))
 
-  (defun z-doct-projects-file (type path)
-    "TYPE :: 'agenda | 'notes"
-    (--> nil
-         (symbol-name type)
-         (format "%s.org" it)
-         (file-name-concat org-directory path it)))
+(defun z-doct-projects-file (type path)
+  "TYPE :: 'agenda | 'notes"
+  (--> nil
+       (symbol-name type)
+       (format "%s.org" it)
+       (file-name-concat org-directory path it)))
 
-  (defun z-doct-task-template (path)
-    (list "task"
-          :keys "t"
-          :file (z-doct-projects-file 'agenda path)
-          :headline "inbox"
-          :prepend t
-          :empty-lines-after 1
-          :template '("* [ ] %^{title}%?")))
+(defun z-doct-task-template (path)
+  (list "task"
+        :keys "t"
+        :file (z-doct-projects-file 'agenda path)
+        :headline "inbox"
+        :prepend t
+        :empty-lines-after 1
+        :template '("* [ ] %^{title}%?")))
 
-  (defun z-doct-event-template (path)
-    (list "event"
-          :keys "e"
-          :file (z-doct-projects-file 'agenda path)
-          :headline "events"
-          :prepend t
-          :empty-lines-after 1
-          :template '("* [@] %^{title}%?"
-                      "%^T"
-                      ":PROPERTIES:"
-                      ":REPEAT_TO_STATE: [@]" ; NOTE :: in case is made repeating
-                      ":location: %^{location}"
-                      ":material: %^{material}"
-                      ":END:")))
+(defun z-doct-event-template (path)
+  (list "event"
+        :keys "e"
+        :file (z-doct-projects-file 'agenda path)
+        :headline "events"
+        :prepend t
+        :empty-lines-after 1
+        :template '("* [@] %^{title}%?"
+                    "%^T"
+                    ":PROPERTIES:"
+                    ":REPEAT_TO_STATE: [@]" ; NOTE :: in case is made repeating
+                    ":location: %^{location}"
+                    ":material: %^{material}"
+                    ":END:")))
 
-  (defun z-doct-note-template (path)
-    (list "note"
-          :keys "n"
-          :file (z-doct-projects-file 'notes path)
-          :prepend t
-          :empty-lines 1
-          :template '("* %^{title} %^g"
-                      ":PROPERTIES:"
-                      ":created: %U"
-                      ":END:"
-                      "%?")))
+(defun z-doct-note-template (path)
+  (list "note"
+        :keys "n"
+        :file (z-doct-projects-file 'notes path)
+        :prepend t
+        :empty-lines 1
+        :template '("* %^{title} %^g"
+                    ":PROPERTIES:"
+                    ":created: %U"
+                    ":END:"
+                    "%?")))
 
-  (defun z-doct-expand-templates (projects &optional parent-path)
-    "PROJECTS :: `z-doct-projects'
-PARENT-PATH :: nil (used for recursion)"
-    (mapcar (lambda (project)
-              (let* ((tag (car project))
-                     (props (cdr project))
-                     (key (plist-get props :keys))
-                     (self `(,tag :keys ,key))
-                     (children (plist-get props :children))
-                     (path (file-name-concat parent-path tag)))
-                (append self
-                        (if children
-                            (--> nil
-                                 (list self)
-                                 (z-doct-expand-templates it nil)
-                                 (append (z-doct-expand-templates children path) it)
-                                 (list :children it)) ;; NOTE :: don't nest self in it's own subdir
-                          (--> nil
-                               (list (z-doct-task-template path)
-                                     (z-doct-event-template path)
-                                     (z-doct-note-template path))
-                               (list :children it))))))
-            projects))
+(defun z-doct-cpp-src-template (path)
+  "for quickly implementing/testing ideas (like a scratchpad)."
+  (list "note: src cpp"
+        :keys "s"
+        :file (z-doct-projects-file 'notes path)
+        :prepend t
+        :empty-lines 1
+        :template '("* %^{title} :cpp:"
+                    ":PROPERTIES:"
+                    ":created: %U"
+                    ":END:"
+                    "#+begin_src cpp"
+                    "#include <iostream>"
+                    "#include <Eigen/Dense>"
+                    "using namespace std;"
+                    ""
+                    "int main() {"
+                    "        %?"
+                    "}"
+                    "#+end_src")))
 
-  (setq org-capture-templates
-        (doct `(,@(z-doct-expand-templates z-doct-projects)
+(defun z-doct-expand-templates (projects &optional parent-path)
+  "PROJECTS :: `z-doct-projects'
+PARENT-PATH :: nil (used for recursion) "
+  (mapcar (lambda (project)
+            (let* ((tag (car project))
+                   (props (cdr project))
+                   (key (plist-get props :keys))
+                   (self `(,tag :keys ,key))
+                   (children (plist-get props :children))
+                   (path (file-name-concat parent-path tag)))
+              (append self
+                      (if children
+                          (--> nil ;; CHILDREN => recursivly expand children
+                               (list self)
+                               (z-doct-expand-templates it nil) ;; template out of self
+                               (append it (z-doct-expand-templates children path))
+                               (list :children it))
+                        (--> nil ;; NO CHILDREN => is leaf-node => instantiate templates
+                             (list (z-doct-task-template path)
+                                   (z-doct-event-template path)
+                                   (z-doct-note-template path))
+                             (append it
+                                     (cl-case (intern tag) ;; project specific templates
+                                       (nm (list (z-doct-cpp-src-template path)))))
+                             (list :children it))))))
+          projects))
 
-                ("journal"
-                 :keys "j"
-                 :file (lambda () (z-doct-journal-file))
-                 :title (lambda ()
-                          (--> nil
-                               (format-time-string "journal: %A, %e. %B %Y")
-                               (downcase it)))
+(setq org-capture-templates
+      (doct `(,@(z-doct-expand-templates z-doct-projects)
 
-                 :children (("journal init"
-                             :keys "j"
-                             :type plain
-                             :template  ("#+title:  %{title}"
-                                         "#+author: %(user-full-name)"
-                                         "#+email:  %(message-user-mail-address)"
-                                         "#+date:   %<%F>"
-                                         "#+filetags: :journal:"
-                                         ""
-                                         "* goals"
-                                         "- [ ] %?"
-                                         ""
-                                         "* agenda"
-                                         "** [ ] "))
+              ("journal"
+               :keys "j"
+               :file (lambda () (z-doct-journal-file))
+               :title (lambda ()
+                        (--> nil
+                             (format-time-string "journal: %A, %e. %B %Y")
+                             (downcase it)))
 
-                            ("note"
-                             :keys "n"
-                             :headline "notes"
-                             :prepend t
-                             :empty-lines-after 1
-                             :template ("* %^{title}"
-                                        ":PROPERTIES:"
-                                        ":created: %U"
-                                        ":END:"
-                                        "%?"))
+               :children (("journal init"
+                           :keys "j"
+                           :type plain
+                           :template  ("#+title:  %{title}"
+                                       "#+author: %(user-full-name)"
+                                       "#+email:  %(message-user-mail-address)"
+                                       "#+date:   %<%F>"
+                                       "#+filetags: :journal:"
+                                       ""
+                                       "* goals"
+                                       "- [ ] %?"
+                                       ""
+                                       "* agenda"
+                                       "** [ ] "))
 
-                            ("yesterday review"
-                             :keys "y"
-                             :unnarrowed t
-                             :file (lambda ()
-                                     (--> nil
-                                          (time-subtract (current-time) (days-to-time 1))
-                                          (z-doct-journal-file it)))
-                             :template ("* gratitude"
-                                        "- %?"
-                                        ""
-                                        "* reflection"
-                                        "-"))))
+                          ("note"
+                           :keys "n"
+                           :headline "notes"
+                           :prepend t
+                           :empty-lines-after 1
+                           :template ("* %^{title}"
+                                      ":PROPERTIES:"
+                                      ":created: %U"
+                                      ":END:"
+                                      "%?"))
 
-                ("literature"
-                 :keys "l"
-                 :file (lambda () (read-file-name "file: " z-org-literature-notes-dir))
-                 :children (("add to readlist"
-                             :keys "a"
-                             :file ,(file-name-concat z-org-literature-dir "readlist.org")
-                             :headline "inbox"
-                             :prepend t
-                             :template ("* [ ] %^{title}%? %^g"))
+                          ("yesterday review"
+                           :keys "y"
+                           :unnarrowed t
+                           :file (lambda ()
+                                   (--> nil
+                                        (time-subtract (current-time) (days-to-time 1))
+                                        (z-doct-journal-file it)))
+                           :template ("* gratitude"
+                                      "- %?"
+                                      ""
+                                      "* reflection"
+                                      "-"))))
 
-                            ("init source"
-                             :keys "i"
-                             :file (lambda ()
-                                     (--> nil
-                                          (read-from-minibuffer "short title: ")
-                                          (replace-regexp-in-string " " "_" it)
-                                          (concat it ".org")
-                                          (file-name-concat z-org-literature-notes-dir it)))
-                             :type plain
-                             :template ("#+title:  %^{full title}"
-                                        "#+author: %(user-full-name)"
-                                        "#+email:  %(message-user-mail-address)"
-                                        "#+date:   %<%F>"
-                                        "#+filetags: :literature:%^g"
-                                        ""
-                                        "* [-] %\\1%?"
-                                        ":PROPERTIES:"
-                                        ":title:  %\\1"
-                                        ":author: %^{author}"
-                                        ":year:   %^{year}"
-                                        ":type:   %^{ |book|textbook|book|paper|article|audiobook|podcast}"
-                                        ":pages:  %^{pages}"
-                                        ":END:")
-                             :hook (lambda () (message "change task-state in readlist.org!")))
+              ("literature"
+               :keys "l"
+               :file (lambda () (read-file-name "file: " z-org-literature-notes-dir))
+               :children (("add to readlist"
+                           :keys "a"
+                           :file ,(file-name-concat z-org-literature-dir "readlist.org")
+                           :headline "inbox"
+                           :prepend t
+                           :template ("* [ ] %^{title}%? %^g"))
 
-                            ("quote"
-                             :keys "q"
-                             :headline "quotes"
-                             :empty-lines-before 1
-                             :template ("* %^{title} [pg: %^{page}]"
-                                        ":PROPERTIES:"
-                                        ":created: %U"
-                                        ":END:"
-                                        "#+begin_quote"
-                                        "%?"
-                                        "#+end_quote"))
+                          ("init source"
+                           :keys "i"
+                           :file (lambda ()
+                                   (--> nil
+                                        (read-from-minibuffer "short title: ")
+                                        (replace-regexp-in-string " " "_" it)
+                                        (concat it ".org")
+                                        (file-name-concat z-org-literature-notes-dir it)))
+                           :type plain
+                           :template ("#+title:  %^{full title}"
+                                      "#+author: %(user-full-name)"
+                                      "#+email:  %(message-user-mail-address)"
+                                      "#+date:   %<%F>"
+                                      "#+filetags: :literature:%^g"
+                                      ""
+                                      "* [-] %\\1%?"
+                                      ":PROPERTIES:"
+                                      ":title:  %\\1"
+                                      ":author: %^{author}"
+                                      ":year:   %^{year}"
+                                      ":type:   %^{ |book|textbook|book|paper|article|audiobook|podcast}"
+                                      ":pages:  %^{pages}"
+                                      ":END:")
+                           :hook (lambda () (message "change task-state in readlist.org!")))
 
-                            ("note: literary"
-                             :keys "l"
-                             :headline "literature notes"
-                             :empty-lines-before 1
-                             :template ("* %^{title} [pg: %^{page}] %^g"
-                                        ":PROPERTIES:"
-                                        ":created: %U"
-                                        ":END:"
-                                        "%?"))
+                          ("quote"
+                           :keys "q"
+                           :headline "quotes"
+                           :empty-lines-before 1
+                           :template ("* %^{title} [pg: %^{page}]"
+                                      ":PROPERTIES:"
+                                      ":created: %U"
+                                      ":END:"
+                                      "#+begin_quote"
+                                      "%?"
+                                      "#+end_quote"))
 
-                            ("note: transient"
-                             :keys "t"
-                             :headline "transient notes"
-                             :empty-lines-before 1
-                             :template ("* %^{title} %^g"
-                                        ":PROPERTIES:"
-                                        ":created: %U"
-                                        ":END:"
-                                        "%?"))
+                          ("note: literary"
+                           :keys "l"
+                           :headline "literature notes"
+                           :empty-lines-before 1
+                           :template ("* %^{title} [pg: %^{page}] %^g"
+                                      ":PROPERTIES:"
+                                      ":created: %U"
+                                      ":END:"
+                                      "%?"))
 
-                            ("summarize"
-                             :keys "s"
-                             :headline "summary"
-                             :unnarrowed t
-                             :type plain
-                             :template ("%?")
-                             :hook (lambda ()
-                                     (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
+                          ("note: transient"
+                           :keys "t"
+                           :headline "transient notes"
+                           :empty-lines-before 1
+                           :template ("* %^{title} %^g"
+                                      ":PROPERTIES:"
+                                      ":created: %U"
+                                      ":END:"
+                                      "%?"))
+
+                          ("summarize"
+                           :keys "s"
+                           :headline "summary"
+                           :unnarrowed t
+                           :type plain
+                           :template ("%?")
+                           :hook (lambda ()
+                                   (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
 #+end_src
 
 ** agenda
@@ -1038,22 +1075,6 @@ Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align ev
 * latex
 #+begin_src elisp
 (setq +latex-viewers '(zathura))
-#+end_src
-
-* verilog
-#+begin_src elisp
-(after! verilog-mode
-  (setq verilog-auto-newline nil))
-
-(setq-hook! 'verilog-mode-hook
-  verilog-case-indent z-indent-width
-  verilog-cexp-indent z-indent-width
-  verilog-indent-level z-indent-width
-  verilog-indent-level-behavioral z-indent-width
-  verilog-indent-level-declaration z-indent-width
-  verilog-indent-level-module z-indent-width)
-(map! :after verilog-mode :map verilog-mode-map :localleader
-      "cf" #'verilog-indent-buffer) ;; code:format
 #+end_src
 
 * dictionary
