@@ -112,13 +112,11 @@
 (map! :leader
       "." #'vertico-repeat
       "'" #'consult-bookmark
-      "<tab>" #'harpoon-quick-menu-hydra
       (:prefix "h"
                "w" #'tldr)
       (:prefix "s"
                "k" #'devdocs-lookup
-               "t" #'dictionary-search
-               "g" #'occur)
+               "t" #'dictionary-search)
       (:prefix "f"
                "F" #'+vertico/consult-fd-or-find) ;; HACK :: fix original binding
       (:prefix "c"
@@ -143,7 +141,11 @@
       :nm "M-1" #'harpoon-go-to-1
       :nm "M-2" #'harpoon-go-to-2
       :nm "M-3" #'harpoon-go-to-3
-      :nm "M-4" #'harpoon-go-to-4)
+      :nm "M-4" #'harpoon-go-to-4
+      :nm "C-m" #'harpoon-add-file) ;; superset of vim's mark command: `m'
+
+(map! :leader
+      "m" #'harpoon-toggle-file) ;; manage, delete, reorder harpoon candidates
 ;; global navigation scheme:1 ends here
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
@@ -159,15 +161,16 @@
       :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
       :nmv "g<"  #'evil-lion-left
       :nmv "g>"  #'evil-lion-right
-      :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))) ;; yank entire buffer.
-      :nm  "g/"  #'occur ;; powerful search (and replace/edit) tool
+      :nm  "g/"  #'occur ;; powerful search (and replace/edit) tool; useful to get a overview (like grep)
       :nmv "s"   #'evil-surround-region
-      :nmv "S"   #'evil-Surround-region)
+      :nmv "S"   #'evil-Surround-region
+      :desc "yank-buffer" :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))))
 
 ;; use [remap] to replace functions with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
+(define-key! [remap +fold/previous] nil) ;; HACK :: disabled, since it crashes emacs (we may press it accidentally)
 
 ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -184,11 +187,12 @@
       "\\" #'org-latex-preview
       ","  #'org-ctrl-c-ctrl-c
       "-"  #'org-toggle-item
-      "["  (cmd! (let ((current-prefix-arg '(4)))
-                   (call-interactively #'org-toggle-checkbox)))
-      "z"  #'org-add-note)
+      "z"  #'org-add-note
+      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg '(4)))
+                                           (call-interactively #'org-toggle-checkbox))))
 
-(map! :map yas-keymap :after org ;; HACK :: make tab work like in prog-mode: expanding snippets and jumping fields (org overrides it to folding, even in insert-mode)
+;; HACK :: make tab work like in prog-mode: expanding snippets and jumping fields (org overrides it to folding, even in insert-mode)
+(map! :map yas-keymap :after org
       :i "<tab>" #'yas-next-field
       :i "<backtab>" #'yas-prev-field)
 ;; org_:1 ends here
@@ -196,9 +200,7 @@
 ;; [[file:config.org::*dired_][dired_:1]]
 (map! :map dired-mode-map :after dired
       :nm "h" #'dired-up-directory
-      :nm "l" #'dired-open-file
-      :nm "." #'dired-omit-mode) ;; HACK :: fixes broken original mapping
-      ;; create new files/dir's using `find-file' (inserts filetemplate properly)
+      :nm "l" #'dired-open-file)
 
 (map! :after dired :map dired-mode-map :localleader
       :nm "a" #'z-dired-archive)
@@ -582,7 +584,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
                     "%?")))
 
 (defun z-doct-cpp-src-template (path)
-  "for quickly implementing/testing ideas (like a scratchpad)."
+  "for quickly implementing/testing ideas (like a scratchpad, but you have all your experimentations in a single literate document)."
   (list "note: src cpp"
         :keys "s"
         :file (z-doct-projects-file 'notes path)
@@ -593,9 +595,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
                     ":created: %U"
                     ":END:"
                     "#+begin_src cpp"
-                    "#include <iostream>"
-                    "#include <Eigen/Dense>"
-                    "using namespace std;"
+                    "<<include>>" ;; org:noweb :: expands to `#+name: header' block which must be defined in the targetfile and contains stuff like `#include <iostream>' that we use for each snippet.
                     ""
                     "int main() {"
                     "        %?"
@@ -687,7 +687,8 @@ PARENT-PATH :: nil (used for recursion) "
                            :file ,(file-name-concat z-org-literature-dir "readlist.org")
                            :headline "inbox"
                            :prepend t
-                           :template ("* [ ] %^{title}%? %^g"))
+                           :template ("* [ ] %^{title}"
+                                      "%?"))
 
                           ("init source"
                            :keys "i"
