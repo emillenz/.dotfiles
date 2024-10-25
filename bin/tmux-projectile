@@ -13,8 +13,7 @@ def main
         target = if ARGV[0].nil?
                          sessions = `fd --type=directory --min-depth=1 --max-depth=1 . ~/Code ~/Documents`
                                     .split("\n")
-                                    .concat(
-                                            `tmux list-sessions`
+                                    .concat(`tmux list-sessions`
                                             .split("\n")
                                             .map { |line| line.split.first.delete(':') }
                                     ).join("\n")
