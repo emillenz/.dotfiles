@@ -139,7 +139,7 @@ mode "leader" {
         bindsym $MOD+m $CMD mpv "$(xclip -out)"; $ESC
         bindsym $MOD+q $CMD $SYS_SLEEP; $ESC
         bindsym $MOD+o $CMD $SYS_SCREENOFF; $ESC
-        bindsym $MOD+f $CMD $BIN/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/Documents literature ethz/cs/s3; $ESC
+        bindsym $MOD+f $CMD $BIN/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/ Documents/literature Documents/ethz/cs/s3 Downloads; $ESC
 
         $EXIT_BINDING
 }

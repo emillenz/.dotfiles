@@ -238,33 +238,39 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (map! :after evil
       :nv "\\" #'newline-and-indent  ;; useful inverse of `J'
       :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
+      :nm "g/"  #'occur ;; powerful search (and replace / edit matches) tool
+      :nm "gV" #'mark-whole-buffer ;; for yanking, deleting etc.
+
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
       :nv ")"   #'sp-down-sexp
+
       :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
       :nv "-"   #'evil-numbers/dec-at-pt
       :nv "g+"  #'evil-numbers/inc-at-pt-incremental
       :nv "g-"  #'evil-numbers/dec-at-pt-incremental
+
       :nv "g<"  #'evil-lion-left
       :nv "g>"  #'evil-lion-right
+
       :nv "gs"  #'evil-surround-region
       :nv "gS"  #'evil-Surround-region
+
       :nv "s"   #'query-replace-regexp
       :nv "S"   (cmd! (let ((current-prefix-arg '-))
-                        (call-interactively #'query-replace-regexp))) ;; backward
-      :nm "g/"  #'occur ;; powerful search (and replace / edit matches) tool
-      :nm "gV" #'mark-whole-buffer)
+                        (call-interactively #'query-replace-regexp)))) ;; backward
 
 ;; use `remap' to replace functions with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
+
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
 (define-key! [remap +fold/previous] nil) ;; HACK :: disabled, since it crashes emacs (we may press it accidentally)
 
 ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
 
-(defadvice! z-keep-point (fn &rest args)
-  "don't move the point to where fn exits at.  just do the edit and keep point."
+(defadvice! z-save-excursion (fn &rest args)
+  "when modifying the buffer with one of these functions, do the edit and then  restore point to where it was originally."
   :around '(query-replace-regexp query-replace +format:region)
   (save-excursion
     (apply fn args)))
@@ -383,7 +389,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 (map! :after vertico :map vertico-flat-map
       :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element) ;; navigate elements like vim completion
+      :i "C-p" #'previous-line-or-history-element) ;; navigate elements like vim completion (and consistent with the os)
 
 (map! :map vertico-map
       :im "C-w" #'vertico-directory-delete-word
