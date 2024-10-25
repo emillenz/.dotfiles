@@ -147,6 +147,7 @@
 
 * keybindings
 - ~helpful-key~ and are crucial to understanding what your tools can do for you (ex: magit, dired, org-mode)
+- i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
 - always keep on exploring, learning new, efficient keybindings and break your old routines for newer, more effcient one's after evaluating wether they are faster or not.
 
 ** leader ([[kbd:SPC][SPC]], [[kbd:,][,]])
@@ -187,24 +188,24 @@
 - global marks (experimental?) :: This is a vim native option to harpoon (downside: not per project persistent).  When inside a project, mark the files you find yourself alternating between with global-marks, and jump to the exact file you want directly.
   - (Vim's normal global-mark behaviour is to jump to the originally marked posion in that buffer.  This is the wrong behaviour because when we left the buffer we have changed the cursor position to some other place.  We override ~evil-mark-line~ binding, since it is redundant (for regular marks, use ~evil-goto-mark~ binding instead).)
 - we generally don't really delete buffers unless they slow down emacs (then kill them all to reset).  since we usually access the same buffer's repeatedly we only have to open them once.  same as we don't close tmux windows or as we don't jump in and out of emacs on the commandline (like vim users do) or same as we don't shutdown the computer (just sleep).  its all about preserving the working state between sessions, in order to minimize the setuptimes.  (also why we use harpoon instead of vim global marks, since it is persistent inbetween sessions).
-- m :: for harpoon marks
+- m :: for harpoon marks, superset of vim's mark command: `m'.
 
 #+begin_src elisp
 (map! :map 'override
-      :nm "C-w" #'next-window-any-frame
-      :nm "C-q" #'evil-window-delete
-      :nm "C-s" #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
-      :nm "C-f" #'find-file
-      :nm "C-b" #'consult-buffer
+      :nm "C-w"     #'next-window-any-frame
+      :nm "C-q"     #'evil-window-delete
+      :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
+      :nm "C-f"     #'find-file
+      :nm "C-b"     #'consult-buffer
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer
-      :nm "M-1" #'harpoon-go-to-1
-      :nm "M-2" #'harpoon-go-to-2
-      :nm "M-3" #'harpoon-go-to-3
-      :nm "M-4" #'harpoon-go-to-4
-      :nm "C-m" #'harpoon-add-file) ;; superset of vim's mark command: `m'
+      :nm "M-1"     #'harpoon-go-to-1
+      :nm "M-2"     #'harpoon-go-to-2
+      :nm "M-3"     #'harpoon-go-to-3
+      :nm "M-4"     #'harpoon-go-to-4
+      :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
 
 (map! :leader
-      "m" #'harpoon-toggle-file) ;; manage, delete, reorder harpoon candidates
+      "m" #'harpoon-toggle-file) ;; delete and reorder harpoon candidates
 #+end_src
 
 ** vim editing
@@ -229,26 +230,31 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
     - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
   - :g/ :: use emacs ~reverse-region~, ~delete-lines~ etc.
   - other commands such as ~:w~, ~:q~, etc. should be called more efficiently by keybinding anyways.
-- s/S :: vim's ~s/S~ is useless, since it is a duplicate of the bindings: ~x~ and ~C~.  we introduce instead a powerful operator: surround.   use it to add/remove/change surrounding delimiters.
+- s/S :: vim's ~s/S~ is useless, since it is a duplicate of the bindings: ~x~ and ~C~.  query-replace needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.
+- gs :: we introduce a powerful operator: ~evil-surround~.
+  - readme: https://github.com/emacs-evil/evil-surround
+
 #+begin_src elisp
 (map! :after evil
-      :nmv "&"   #'query-replace-regexp ;; needs mapping, since `:' is `M-x'
-      :n   "C-j" #'newline-and-indent  ;; useful inverse of `J'
-      :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
-      :nmv "("   #'backward-sexp  ;; more useful than navigation by sentences
-      :nmv ")"   #'forward-sexp
-      :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a'
-      :nmv "-"   #'evil-numbers/dec-at-pt
-      :nmv "g+"  #'evil-numbers/inc-at-pt-incremental
-      :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
-      :nmv "g<"  #'evil-lion-left
-      :nmv "g>"  #'evil-lion-right
-      :nm  "g/"  #'occur ;; powerful search (and replace/edit) tool; useful to get a overview (like grep)
-      :nmv "s"   #'evil-surround-region
-      :nmv "S"   #'evil-Surround-region
-      :desc "yank-buffer" :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))))
+      :nv "\\" #'newline-and-indent  ;; useful inverse of `J'
+      :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
+      :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
+      :nv ")"   #'sp-down-sexp
+      :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
+      :nv "-"   #'evil-numbers/dec-at-pt
+      :nv "g+"  #'evil-numbers/inc-at-pt-incremental
+      :nv "g-"  #'evil-numbers/dec-at-pt-incremental
+      :nv "g<"  #'evil-lion-left
+      :nv "g>"  #'evil-lion-right
+      :nv "gs"  #'evil-surround-region
+      :nv "gS"  #'evil-Surround-region
+      :nv "s"   #'query-replace-regexp
+      :nv "S"   (cmd! (let ((current-prefix-arg '-))
+                        (call-interactively #'query-replace-regexp))) ;; backward
+      :nm "g/"  #'occur ;; powerful search (and replace / edit matches) tool
+      :nm "gV" #'mark-whole-buffer)
 
-;; use [remap] to replace functions with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+;; use `remap' to replace functions with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
@@ -271,7 +277,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       ","  #'org-ctrl-c-ctrl-c
       "-"  #'org-toggle-item
       "z"  #'org-add-note
-      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg '(4)))
+      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
 
 ;; HACK :: make tab work like in prog-mode: expanding snippets and jumping fields (org overrides it to folding, even in insert-mode)
@@ -293,15 +299,11 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :nm "a" #'z-dired-archive)
 #+end_src
 
-** lisp
-- disable confusing lispy insert bindings: ~[]~ (goes against vim philosophy, we navigate using normal-mode, we type using insert-mode)
+** lispy(ville)
+- use only lispyville normal mode enhancements for lisp-modes
 #+begin_src elisp
-(map! :after (lispy lispyville)
-      :map lispy-mode-map-lispy
-      "[" nil
-      "]" nil
-      "{" nil
-      "}" nil)
+(after! lispy
+  (setq lispy-key-theme '(lispy c-digits)))
 #+end_src
 
 * editor
@@ -736,12 +738,13 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 (setq org-babel-default-header-args '((:session  . "none")
                                       (:results  . "replace")
                                       (:exports  . "code")
-                                      (:cache    . "no")
+                                      (:cache    . "yes")
                                       (:noweb    . "yes")
                                       (:hlines   . "no")
                                       (:tangle   . "no")
                                       (:mkdirp   . "yes")
-                                      (:comments . "link")))
+                                      (:comments . "link") ;; important for when wanting to retangle
+                                      ))
 #+end_src
 
 ** clock
@@ -851,7 +854,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
                     ":created: %U"
                     ":END:"
                     "#+begin_src cpp"
-                    "<<include>>" ;; org:noweb :: expands to `#+name: header' block which must be defined in the targetfile and contains stuff like `#include <iostream>' that we use for each snippet.
+                    "<<header>>" ;; org:noweb :: expands to `#+name: header' block which must be defined in the targetfile and contains stuff like `#include <iostream>' that we use for each snippet.
                     ""
                     "int main() {"
                     "        %?"

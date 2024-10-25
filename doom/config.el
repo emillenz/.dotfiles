@@ -132,41 +132,43 @@
 
 ;; [[file:config.org::*global navigation scheme][global navigation scheme:1]]
 (map! :map 'override
-      :nm "C-w" #'next-window-any-frame
-      :nm "C-q" #'evil-window-delete
-      :nm "C-s" #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
-      :nm "C-f" #'find-file
-      :nm "C-b" #'consult-buffer
+      :nm "C-w"     #'next-window-any-frame
+      :nm "C-q"     #'evil-window-delete
+      :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
+      :nm "C-f"     #'find-file
+      :nm "C-b"     #'consult-buffer
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer
-      :nm "M-1" #'harpoon-go-to-1
-      :nm "M-2" #'harpoon-go-to-2
-      :nm "M-3" #'harpoon-go-to-3
-      :nm "M-4" #'harpoon-go-to-4
-      :nm "C-m" #'harpoon-add-file) ;; superset of vim's mark command: `m'
+      :nm "M-1"     #'harpoon-go-to-1
+      :nm "M-2"     #'harpoon-go-to-2
+      :nm "M-3"     #'harpoon-go-to-3
+      :nm "M-4"     #'harpoon-go-to-4
+      :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
 
 (map! :leader
-      "m" #'harpoon-toggle-file) ;; manage, delete, reorder harpoon candidates
+      "m" #'harpoon-toggle-file) ;; delete and reorder harpoon candidates
 ;; global navigation scheme:1 ends here
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
-      :nmv "&"   #'query-replace-regexp ;; needs mapping, since `:' is `M-x'
-      :n   "C-j" #'newline-and-indent  ;; useful inverse of `J'
-      :n   "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
-      :nmv "("   #'backward-sexp  ;; more useful than navigation by sentences
-      :nmv ")"   #'forward-sexp
-      :nmv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a'
-      :nmv "-"   #'evil-numbers/dec-at-pt
-      :nmv "g+"  #'evil-numbers/inc-at-pt-incremental
-      :nmv "g-"  #'evil-numbers/dec-at-pt-incremental
-      :nmv "g<"  #'evil-lion-left
-      :nmv "g>"  #'evil-lion-right
-      :nm  "g/"  #'occur ;; powerful search (and replace/edit) tool; useful to get a overview (like grep)
-      :nmv "s"   #'evil-surround-region
-      :nmv "S"   #'evil-Surround-region
-      :desc "yank-buffer" :nm  "gY"  (cmd! (save-excursion (evil-yank (point-min) (point-max)))))
+      :nv "\\" #'newline-and-indent  ;; useful inverse of `J'
+      :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
+      :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
+      :nv ")"   #'sp-down-sexp
+      :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
+      :nv "-"   #'evil-numbers/dec-at-pt
+      :nv "g+"  #'evil-numbers/inc-at-pt-incremental
+      :nv "g-"  #'evil-numbers/dec-at-pt-incremental
+      :nv "g<"  #'evil-lion-left
+      :nv "g>"  #'evil-lion-right
+      :nv "gs"  #'evil-surround-region
+      :nv "gS"  #'evil-Surround-region
+      :nv "s"   #'query-replace-regexp
+      :nv "S"   (cmd! (let ((current-prefix-arg '-))
+                        (call-interactively #'query-replace-regexp))) ;; backward
+      :nm "g/"  #'occur ;; powerful search (and replace / edit matches) tool
+      :nm "gV" #'mark-whole-buffer)
 
-;; use [remap] to replace functions with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+;; use `remap' to replace functions with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
@@ -188,7 +190,7 @@
       ","  #'org-ctrl-c-ctrl-c
       "-"  #'org-toggle-item
       "z"  #'org-add-note
-      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg '(4)))
+      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
 
 ;; HACK :: make tab work like in prog-mode: expanding snippets and jumping fields (org overrides it to folding, even in insert-mode)
@@ -206,14 +208,10 @@
       :nm "a" #'z-dired-archive)
 ;; dired_:1 ends here
 
-;; [[file:config.org::*lisp][lisp:1]]
-(map! :after (lispy lispyville)
-      :map lispy-mode-map-lispy
-      "[" nil
-      "]" nil
-      "{" nil
-      "}" nil)
-;; lisp:1 ends here
+;; [[file:config.org::*lispy(ville)][lispy(ville):1]]
+(after! lispy
+  (setq lispy-key-theme '(lispy c-digits)))
+;; lispy(ville):1 ends here
 
 ;; [[file:config.org::*editor][editor:1]]
 (evil-surround-mode 1)
@@ -496,12 +494,13 @@ This is sensible default behaviour, and integrates it into evil."
 (setq org-babel-default-header-args '((:session  . "none")
                                       (:results  . "replace")
                                       (:exports  . "code")
-                                      (:cache    . "no")
+                                      (:cache    . "yes")
                                       (:noweb    . "yes")
                                       (:hlines   . "no")
                                       (:tangle   . "no")
                                       (:mkdirp   . "yes")
-                                      (:comments . "link")))
+                                      (:comments . "link") ;; important for when wanting to retangle
+                                      ))
 ;; babel:1 ends here
 
 ;; [[file:config.org::*clock][clock:1]]
@@ -595,7 +594,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
                     ":created: %U"
                     ":END:"
                     "#+begin_src cpp"
-                    "<<include>>" ;; org:noweb :: expands to `#+name: header' block which must be defined in the targetfile and contains stuff like `#include <iostream>' that we use for each snippet.
+                    "<<header>>" ;; org:noweb :: expands to `#+name: header' block which must be defined in the targetfile and contains stuff like `#include <iostream>' that we use for each snippet.
                     ""
                     "int main() {"
                     "        %?"
