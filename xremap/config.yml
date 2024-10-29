@@ -27,24 +27,3 @@ keymap:
     remap:
       C-n: down
       C-p: up
-
-      C-q: c-w # close tab
-      C-semicolon: c-l # focus address bar
-
-      C-j: down
-      C-k: up
-      C-l: right
-      C-shift-h: left # conflict with backspace
-
-      C-w: c-backspace
-      C-h: backspace
-      C-u: [shift-home, delete] # kill backward to start of line
-
-      C-e: c-right
-      C-b: c-left
-
-      C-a: end # vim: A
-      C-i: home # vim: I
-
-      C-x: delete
-      C-d: c-delete
