@@ -16,9 +16,9 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
 - this system is 100% centered at keyboard usage and aims to unify all navigational commands across the terminal, editor, webbrowser, window manager and other possible applications using vim-bindings in combination with a custom global navigation keybinding-scheme which is used & consistent cross-application.  (bindings should be minimalistic and lightweight, because light goes fast and far)
 - using the mouse for non creative, non graphical usages is inefficient and creates mental overhead.  having to take the focus off the project just in order to click some ui takes way more mental capacity and computational steps than neccessary and can be negated by using the keyboard and having the same actions always on the same keys.
 - this system is designed to be a workstation.  it is the opposite of a beautiful gui experience that aims to be visually pleasing.
-  - no effects, no fancy animations.
+  - no effects (transparency etc), no fancy animations, no window decorations / logos.
   - uses colorcoding whenever possible since this enhances readability.
-  - use icons to enhance intuitive recognition (faster than analytical, precise thinking on text).  [[https://www.nerdfonts.com/cheat-sheet][icons ressource]].
+  - no icons :: fancy visual sugar.  keep it simple, minimalist and extensible (they are only a distraction), instead use colorcoding and font faces for visually separating displayed options.  we care about the functionality of a program, and not what cool logo it has.
   - this system puts emphasis on a text & data driven evironment wherever possible this will reduce complexity and increase extensibility and interchangeablilty.  you will also benefit from a more unified and consistent interface across applications.
 - consistency :: this config aims to be globally consistent in its design, behaviour and control.
   - which means things like (colorscheme, font, workflow, keybindings, ui..) were once carefully analyzed, choosen and designed and then implemented as consistent as possible across tools (terminal, editor, webbrowser, wm, docreader..)
@@ -267,7 +267,7 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
 | q       | [q]uit (buffer/window)   | vim: :q                               |
 | f       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file |
 | <tab>   | [a]lterate buffer/tab    | convention (apps & other oss)         |
-| 1-4     | switch to buffer/tab 1-4 | harpoon                               |
+| 1-4 | switch to buffer/tab 1-4 | harpoon                               |
 | <spc>   | leader-key               | vim                                   |
 
 - condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.

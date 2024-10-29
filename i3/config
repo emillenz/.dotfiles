@@ -87,7 +87,7 @@ bindsym $MOD+Return    move workspace to output next
 
 # WORKSPACES
 for_window [urgent="latest"] focus
-for_window [all] focus , title_window_icon yes
+for_window [all] focus , title_window_icon no
 
 set $WS_CMD "cmd"
 workspace $WS_CMD output primary

@@ -20,10 +20,9 @@ modmap:
         one_timeout_milis: 100
 
 keymap:
-  # implementing a rudimentary vim layer for input prompt navigation.
   - name: browser
     application:
       only: firefox
     remap:
-      C-n: down
+      C-n: down # vim :: navigate completion candidates
       C-p: up

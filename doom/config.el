@@ -12,10 +12,12 @@
                                                 (fg-heading-1 fg-heading-0)
                                                 (bg-prose-block-contents bg-dim)))
 
+  ;; list of customizeable faces: `(helpful-variable 'modus-themes-faces)`
   (custom-set-faces!
-    `(org-list-dt :inherit modus-themes-heading-1)
+    '(org-list-dt :inherit modus-themes-heading-1)
     `(org-block-begin-line :foreground ,(modus-themes-get-color-value 'prose-metadata))
-    `(org-quote :slant italic))
+    '(org-quote :slant italic)
+    '(dired-directory :weight bold)) ;; visually distinguish directories from files more
 
   (setq doom-theme 'modus-operandi))
 ;; modus-theme:1 ends here
@@ -267,9 +269,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 (after! company
   (setq company-minimum-prefix-length 0
-        consult-async-min-input 0 ;; immediate
-        company-idle-delay nil ;; manually trigger
-        company-tooltip-idle-delay 0.1 ;; faster
+        company-idle-delay nil ;; only show menu when explicitly activated
         company-show-quick-access t
         company-global-modes '(not
                                help-mode

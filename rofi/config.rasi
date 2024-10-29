@@ -11,11 +11,11 @@ configuration {
         terminal : "alacritty";
         font     : "Iosevka Comfy 10";
 	    modi: "drun,run,window";
-        show-icons: true;
-        display-drun: "  drun";
-        display-run: "  run";
-        display-filebrowser: "  file";
-        display-window: "  window";
+        show-icons: false;
+        display-drun: "drun";
+        display-run: "run";
+        display-filebrowser: "file";
+        display-window: "window";
         drun-display-format: "{name}";
         window-format: "{t}"; // available: {w}workspace {t}itle {c}lass
         run-command: "{cmd}";
@@ -139,10 +139,10 @@ listview {
         reverse:                     false;
         fixed-height:                true;
         fixed-columns:               true;
-        spacing:                     0px 0px 0px 0px;
+        spacing:                     0px;
         margin:                      0px;
         padding:                     0px;
-        border:                      0px solid;
+        border:                      0px;
         border-radius:               0px;
         border-color:                @selected;
         background-color:            transparent;
@@ -160,8 +160,8 @@ element {
         enabled:                     true;
         spacing:                     0px 8px;
         margin:                      0px 0px;
-        padding:                     0px 8px;
-        border:                      0px solid;
+        padding:                     0px 16px;
+        border:                      0px;
         border-radius:               0px;
         border-color:                @selected;
         background-color:            transparent;

@@ -33,10 +33,12 @@
                                                 (fg-heading-1 fg-heading-0)
                                                 (bg-prose-block-contents bg-dim)))
 
+  ;; list of customizeable faces: `(helpful-variable 'modus-themes-faces)`
   (custom-set-faces!
-    `(org-list-dt :inherit modus-themes-heading-1)
+    '(org-list-dt :inherit modus-themes-heading-1)
     `(org-block-begin-line :foreground ,(modus-themes-get-color-value 'prose-metadata))
-    `(org-quote :slant italic))
+    '(org-quote :slant italic)
+    '(dired-directory :weight bold)) ;; visually distinguish directories from files more
 
   (setq doom-theme 'modus-operandi))
 #+end_src
@@ -231,7 +233,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - :g/ :: use emacs ~reverse-region~, ~delete-lines~ etc.
   - other commands such as ~:w~, ~:q~, etc. should be called more efficiently by keybinding anyways.
 - s/S :: vim's ~s/S~ is useless, since it is a duplicate of the bindings: ~x~ and ~C~.  query-replace needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.
-- gs :: we introduce a powerful operator: ~evil-surround~.
+- gs/<operator>s<motion> :: we introduce a powerful operator: ~evil-surround~.
   - readme: https://github.com/emacs-evil/evil-surround
 
 #+begin_src elisp
@@ -374,9 +376,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 (after! company
   (setq company-minimum-prefix-length 0
-        consult-async-min-input 0 ;; immediate
-        company-idle-delay nil ;; manually trigger
-        company-tooltip-idle-delay 0.1 ;; faster
+        company-idle-delay nil ;; only show menu when explicitly activated
         company-show-quick-access t
         company-global-modes '(not
                                help-mode

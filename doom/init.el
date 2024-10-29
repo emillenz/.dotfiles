@@ -9,13 +9,13 @@
        ;;layout                     ; auie,ctsrnm is the superior home row
 
        :completion
-       (company                         ; (+childframe +box +tng) the ultimate code completion backend
+       (company                       ; (+childframe +box +tng) the ultimate code completion backend
         +childframe
         +box)
        ;;helm                       ; the *other* search engine for love and life
        ;;ido                        ; the other *other* search engine...
        ;;ivy                        ;  (+fuzzy +icons) vertico but worse
-       (vertico +icons)             ; (+icons) the best => fastest & most minimal
+       vertico             ; (+icons) the best => fastest & most minimal
 
        :ui
        ;;deft                       ; notational velocity for Emacs
@@ -59,7 +59,7 @@
        word-wrap                    ; soft wrapping with language-aware indent
 
        :emacs
-       (dired +icons)               ; (+icons) making dired pretty [functional]
+       dired                      ; (+icons) making dired pretty [functional]
        electric                     ; smarter, keyword-based electric-indent
        ;;ibuffer                    ; (+icons) interactive buffer management
        (undo +tree)                 ; (+tree) persistent, smarter undo for your inevitable mistakes
