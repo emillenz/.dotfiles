@@ -147,7 +147,6 @@
        (latex                       ; (+lsp +latexmk +cdlatex +fold) writing papers in Emacs has never been so fun
         +lsp
         +latexmk
-        +cdlatex
         +fold)
        ;;lean                       ; for folks with too much to prove
        ;;ledger                     ; be audit you can be

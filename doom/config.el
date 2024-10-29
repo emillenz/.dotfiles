@@ -17,7 +17,7 @@
     '(org-list-dt :inherit modus-themes-heading-1)
     `(org-block-begin-line :foreground ,(modus-themes-get-color-value 'prose-metadata))
     '(org-quote :slant italic)
-    '(dired-directory :weight bold)) ;; visually distinguish directories from files more
+    '(dired-directory :weight bold)) ;; visually distinguish directories from files, consistent with shell's: `ls`
 
   (setq doom-theme 'modus-operandi))
 ;; modus-theme:1 ends here
