@@ -267,7 +267,7 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
 | q       | [q]uit (buffer/window)   | vim: :q                               |
 | f       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file |
 | <tab>   | [a]lterate buffer/tab    | convention (apps & other oss)         |
-| 1-4 | switch to buffer/tab 1-4 | harpoon                               |
+| 1-4     | switch to buffer/tab 1-4 | harpoon                               |
 | <spc>   | leader-key               | vim                                   |
 
 - condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.

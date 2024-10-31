@@ -16,8 +16,7 @@
   (custom-set-faces!
     '(org-list-dt :inherit modus-themes-heading-1)
     `(org-block-begin-line :foreground ,(modus-themes-get-color-value 'prose-metadata))
-    '(org-quote :slant italic)
-    '(dired-directory :weight bold)) ;; visually distinguish directories from files, consistent with shell's: `ls`
+    '(org-quote :slant italic))
 
   (setq doom-theme 'modus-operandi))
 ;; modus-theme:1 ends here
@@ -147,12 +146,12 @@
       :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
 
 (map! :leader
-      "m" #'harpoon-toggle-file) ;; delete and reorder harpoon candidates
+      "m" #'harpoon-toggle-file) ;; for deleting and reordering harpoon candidates
 ;; global navigation scheme:1 ends here
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
-      :nv "\\" #'newline-and-indent  ;; useful inverse of `J'
+      :nv "\\" #'newline-and-indent  ;; better than `C-r <return>`
       :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
       :nm "g/"  #'occur ;; powerful search (and replace / edit matches) tool
       :nm "gV" #'mark-whole-buffer ;; for yanking, deleting etc.
@@ -168,19 +167,21 @@
       :nv "g<"  #'evil-lion-left
       :nv "g>"  #'evil-lion-right
 
-      :nv "gs"  #'evil-surround-region
-      :nv "gS"  #'evil-Surround-region
+      :n  "s"   #'query-replace-regexp
+      :n  "S"   (cmd! (let ((current-prefix-arg '-))
+                        (call-interactively #'query-replace-regexp))) ;; backward
 
-      :nv "s"   #'query-replace-regexp
-      :nv "S"   (cmd! (let ((current-prefix-arg '-))
-                        (call-interactively #'query-replace-regexp)))) ;; backward
+      :v  "gs"  #'evil-surround-region
+      :n  "gs"  #'evil-surround-region
+      :v  "gS"  #'evil-Surround-region
+      :n  "gS"  #'evil-Surround-region
+      :vm "zk"  nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs.
 
-;; use `remap' to replace functions with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+;; use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
 
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
-(define-key! [remap +fold/previous] nil) ;; HACK :: disabled, since it crashes emacs (we may press it accidentally)
 
 ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 (define-key key-translation-map (kbd "C-h") (kbd "DEL"))
@@ -514,253 +515,6 @@ This is sensible default behaviour, and integrates it into evil."
       org-clock-persist t
       org-clock-into-drawer t)
 ;; clock:1 ends here
-
-;; [[file:config.org::*capture templates][capture templates:1]]
-(setq org-directory "~/Documents/org/")
-(defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
-  "captured daily journal files")
-(defvar z-org-literature-dir "~/Documents/literature"
-  "literature sources and captured notes")
-(defvar z-org-literature-notes-dir (file-name-concat z-org-literature-dir "notes/")
-  "note files for each literature source")
-(defvar z-wiki-dir "~/Documents/wiki/"
-  "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
-(blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
-and the later reviewed and merged into the corresponding article of the wiki.")
-
-(defun z-doct-journal-file (&optional time)
-  "TIME :: time in day of note to return. (default: today)"
-  (--> nil
-       (or time (current-time))
-       (format-time-string "%F" it)
-       (format "%s_journal.org" it)
-       (file-name-concat z-org-journal-dir it)))
-
-(defvar z-doct-projects '(("cs" :keys "c"
-                           :children (("ti"   :keys "t")
-                                      ("an2"  :keys "a")
-                                      ("spca" :keys "s")
-                                      ("ph1"  :keys "p")
-                                      ("nm"   :keys "n")))
-                          ("personal" :keys "p")
-                          ("config"   :keys "f")))
-
-(defun z-doct-projects-file (type path)
-  "TYPE :: 'agenda | 'notes"
-  (--> nil
-       (symbol-name type)
-       (format "%s.org" it)
-       (file-name-concat org-directory path it)))
-
-(defun z-doct-task-template (path)
-  (list "task"
-        :keys "t"
-        :file (z-doct-projects-file 'agenda path)
-        :headline "inbox"
-        :prepend t
-        :empty-lines-after 1
-        :template '("* [ ] %^{title}%?")))
-
-(defun z-doct-event-template (path)
-  (list "event"
-        :keys "e"
-        :file (z-doct-projects-file 'agenda path)
-        :headline "events"
-        :prepend t
-        :empty-lines-after 1
-        :template '("* [@] %^{title}%?"
-                    "%^T"
-                    ":PROPERTIES:"
-                    ":REPEAT_TO_STATE: [@]" ; NOTE :: in case is made repeating
-                    ":location: %^{location}"
-                    ":material: %^{material}"
-                    ":END:")))
-
-(defun z-doct-note-template (path)
-  (list "note"
-        :keys "n"
-        :file (z-doct-projects-file 'notes path)
-        :prepend t
-        :empty-lines 1
-        :template '("* %^{title} %^g"
-                    ":PROPERTIES:"
-                    ":created: %U"
-                    ":END:"
-                    "%?")))
-
-(defun z-doct-cpp-src-template (path)
-  "for quickly implementing/testing ideas (like a scratchpad, but you have all your experimentations in a single literate document)."
-  (list "note: src cpp"
-        :keys "s"
-        :file (z-doct-projects-file 'notes path)
-        :prepend t
-        :empty-lines 1
-        :template '("* %^{title} :cpp:"
-                    ":PROPERTIES:"
-                    ":created: %U"
-                    ":END:"
-                    "#+begin_src cpp"
-                    "<<header>>" ;; org:noweb :: expands to `#+name: header' block which must be defined in the targetfile and contains stuff like `#include <iostream>' that we use for each snippet.
-                    ""
-                    "int main() {"
-                    "        %?"
-                    "}"
-                    "#+end_src")))
-
-(defun z-doct-expand-templates (projects &optional parent-path)
-  "PROJECTS :: `z-doct-projects'
-PARENT-PATH :: nil (used for recursion) "
-  (mapcar (lambda (project)
-            (let* ((tag (car project))
-                   (props (cdr project))
-                   (key (plist-get props :keys))
-                   (self `(,tag :keys ,key))
-                   (children (plist-get props :children))
-                   (path (file-name-concat parent-path tag)))
-              (append self
-                      (if children
-                          (--> nil ;; CHILDREN => recursivly expand children
-                               (list self)
-                               (z-doct-expand-templates it nil) ;; template out of self
-                               (append it (z-doct-expand-templates children path))
-                               (list :children it))
-                        (--> nil ;; NO CHILDREN => is leaf-node => instantiate templates
-                             (list (z-doct-task-template path)
-                                   (z-doct-event-template path)
-                                   (z-doct-note-template path))
-                             (append it
-                                     (cl-case (intern tag) ;; project specific templates
-                                       (nm (list (z-doct-cpp-src-template path)))))
-                             (list :children it))))))
-          projects))
-
-(setq org-capture-templates
-      (doct `(,@(z-doct-expand-templates z-doct-projects)
-
-              ("journal"
-               :keys "j"
-               :file (lambda () (z-doct-journal-file))
-               :title (lambda ()
-                        (--> nil
-                             (format-time-string "journal: %A, %e. %B %Y")
-                             (downcase it)))
-
-               :children (("journal init"
-                           :keys "j"
-                           :type plain
-                           :template  ("#+title:  %{title}"
-                                       "#+author: %(user-full-name)"
-                                       "#+email:  %(message-user-mail-address)"
-                                       "#+date:   %<%F>"
-                                       "#+filetags: :journal:"
-                                       ""
-                                       "* goals"
-                                       "- [ ] %?"
-                                       ""
-                                       "* agenda"
-                                       "** [ ] "))
-
-                          ("note"
-                           :keys "n"
-                           :headline "notes"
-                           :prepend t
-                           :empty-lines-after 1
-                           :template ("* %^{title}"
-                                      ":PROPERTIES:"
-                                      ":created: %U"
-                                      ":END:"
-                                      "%?"))
-
-                          ("yesterday review"
-                           :keys "y"
-                           :unnarrowed t
-                           :file (lambda ()
-                                   (--> nil
-                                        (time-subtract (current-time) (days-to-time 1))
-                                        (z-doct-journal-file it)))
-                           :template ("* gratitude"
-                                      "- %?"
-                                      ""
-                                      "* reflection"
-                                      "-"))))
-
-              ("literature"
-               :keys "l"
-               :file (lambda () (read-file-name "file: " z-org-literature-notes-dir))
-               :children (("add to readlist"
-                           :keys "a"
-                           :file ,(file-name-concat z-org-literature-dir "readlist.org")
-                           :headline "inbox"
-                           :prepend t
-                           :template ("* [ ] %^{title}"
-                                      "%?"))
-
-                          ("init source"
-                           :keys "i"
-                           :file (lambda ()
-                                   (--> nil
-                                        (read-from-minibuffer "short title: ")
-                                        (replace-regexp-in-string " " "_" it)
-                                        (concat it ".org")
-                                        (file-name-concat z-org-literature-notes-dir it)))
-                           :type plain
-                           :template ("#+title:  %^{full title}"
-                                      "#+author: %(user-full-name)"
-                                      "#+email:  %(message-user-mail-address)"
-                                      "#+date:   %<%F>"
-                                      "#+filetags: :literature:%^g"
-                                      ""
-                                      "* [-] %\\1%?"
-                                      ":PROPERTIES:"
-                                      ":title:  %\\1"
-                                      ":author: %^{author}"
-                                      ":year:   %^{year}"
-                                      ":type:   %^{ |book|textbook|book|paper|article|audiobook|podcast}"
-                                      ":pages:  %^{pages}"
-                                      ":END:")
-                           :hook (lambda () (message "change task-state in readlist.org!")))
-
-                          ("quote"
-                           :keys "q"
-                           :headline "quotes"
-                           :empty-lines-before 1
-                           :template ("* %^{title} [pg: %^{page}]"
-                                      ":PROPERTIES:"
-                                      ":created: %U"
-                                      ":END:"
-                                      "#+begin_quote"
-                                      "%?"
-                                      "#+end_quote"))
-
-                          ("note: literary"
-                           :keys "l"
-                           :headline "literature notes"
-                           :empty-lines-before 1
-                           :template ("* %^{title} [pg: %^{page}] %^g"
-                                      ":PROPERTIES:"
-                                      ":created: %U"
-                                      ":END:"
-                                      "%?"))
-
-                          ("note: transient"
-                           :keys "t"
-                           :headline "transient notes"
-                           :empty-lines-before 1
-                           :template ("* %^{title} %^g"
-                                      ":PROPERTIES:"
-                                      ":created: %U"
-                                      ":END:"
-                                      "%?"))
-
-                          ("summarize"
-                           :keys "s"
-                           :headline "summary"
-                           :unnarrowed t
-                           :type plain
-                           :template ("%?")
-                           :hook (lambda ()
-                                   (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
-;; capture templates:1 ends here
 
 ;; [[file:config.org::*agenda][agenda:1]]
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
