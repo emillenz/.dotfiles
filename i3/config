@@ -10,18 +10,18 @@
 
 # MACROS
 set $ESC mode "default"
-set $BIN ~/.config/bin
+set $BINDIR ~/.config/bin
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $SCREENLAYOUT_MENU fd . ~/.screenlayout | rofi -dmenu -i -no-custom -p 'screen-layout' | sh
 
 # no statusbar => using notifications to display volume change
-set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
-set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
-set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
-set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
+set $VOL_INC pamixer --unmute --increase=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
+set $VOL_DEC pamixer --unmute --decrease=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
+set $VOL_MUTE pamixer --toggle-mute && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
+set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace=69 "mic-mute: $(pamixer --default-source --get-mute)"
 
-set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
+set $SYS_SLEEP i3lock --color=ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
 
 # AUTOSTART :: script
@@ -103,7 +103,7 @@ for_window [class="(?i)alacritty"] $MV $WS_TERMINAL, focus
 set $WS_READER "reader"
 workspace $WS_READER output primary
 bindsym $MOD+r workspace $WS_READER
-bindsym $MOD+shift+r $SHCMD $BINDIR/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/Documents literature ethz/cs/s3
+bindsym $MOD+shift+r $SHCMD $BINDIR/find-file-menu fd '.' --extension=pdf --extension=epub --base-directory ~/Documents literature ethz/cs/s3
 for_window [class="(?i)zathura"] $MV $WS_READER, focus
 
 # WEBBROWSER
@@ -124,9 +124,8 @@ for_window [class="(?i)emacs"] $MV $WS_EDITOR, focus
 set $WS_MEDIA "media"
 workspace $WS_MEDIA output primary
 bindsym $MOD+m workspace $WS_MEDIA
-bindsym $MOD+shift+m $SHCMD firefox --new-window https://open.spotify.com
+bindsym $MOD+shift+m $SHCMD $BINDIR/find-file-menu --print fd '.' --type=directory --base-directory ~/Pictures | nsxiv --stdin --recursive
 for_window [class="(?i)mpv|nsxiv"] $MV $WS_MEDIA, focus
-for_window [class="(?i)firefox" title="(?i)spotify"] $MV $WS_MEDIA, focus
 
 # AI :: CHATBOT, AI-TOOLS
 set $WS_AI "ai"
@@ -155,7 +154,7 @@ mode "leader" {
         bindsym $MOD+q $SHCMD $SYS_SLEEP; $ESC
         bindsym $MOD+o $SHCMD $SYS_SCREENOFF; $ESC
 
-        bindsym $MOD+f $SHCMD $BINDIR/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/ Documents/literature Documents/ethz/cs/s3 Downloads; $ESC
+        bindsym $MOD+f $SHCMD $BINDIR/find-file-menu fd '.' --extension=pdf --extension=epub --base-directory=$HOME Documents/literature Documents/ethz/cs/s3 Downloads; $ESC
 
         bindsym Escape mode "default"
 }

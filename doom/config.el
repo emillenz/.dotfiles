@@ -60,6 +60,8 @@
                               (side . right)
                               (window-width . 0.5) ;; equal 2 window split
                               (slot . 0))))
+
+(define-key! [remap doom/open-scratch-buffer] #'doom/switch-to-scratch-buffer) ;; open scratch in fullscreen, not popup
 ;; window layout & behavior:1 ends here
 
 ;; [[file:config.org::*window layout & behavior][window layout & behavior:2]]
