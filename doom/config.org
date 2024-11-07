@@ -231,16 +231,16 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
     - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
   - :g/ :: use emacs ~reverse-region~, ~delete-lines~ etc.
   - other commands such as ~:w~, ~:q~, etc. should be called more efficiently by keybinding anyways.
-- s/S :: vim's ~s/S~ is useless, since it basically duplicates: ~x~ and ~C~.  ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.
-- gs / s :: we introduce a powerful operator: ~evil-surround~.
+- & ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.
+- s/S :: vim's ~s/S~ is useless, since it basically duplicates: ~x~ and ~C~.  we introduce a powerful operator: ~evil-surround~.
   - readme: https://github.com/emacs-evil/evil-surround
+- occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
 
-#+begin_src elisp
+#+begin_src elisp :tangle no
 (map! :after evil
-      :nv "\\" #'newline-and-indent  ;; better than `C-r <return>`
+      :nv "S-<return>" #'newline-and-indent  ;; more accessible than `<C-R> <return>`
       :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
-      :nm "g/"  #'occur ;; powerful search (and replace / edit matches) tool
-      :nm "gV" #'mark-whole-buffer ;; for yanking, deleting etc.
+      :nm "g/"  #'occur
 
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
       :nv ")"   #'sp-down-sexp
@@ -253,14 +253,9 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :nv "g<"  #'evil-lion-left
       :nv "g>"  #'evil-lion-right
 
-      :n  "s"   #'query-replace-regexp
-      :n  "S"   (cmd! (let ((current-prefix-arg '-))
-                        (call-interactively #'query-replace-regexp))) ;; backward
-
-      :v  "gs"  #'evil-surround-region
-      :n  "gs"  #'evil-surround-region
-      :v  "gS"  #'evil-Surround-region
-      :n  "gS"  #'evil-Surround-region
+      :nv "&"   #'query-replace-regexp
+      :nv "s"   #'evil-surround-region
+      :nv "S"   #'evil-Surround-region
       :vm "zk"  nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs.
 
 ;; use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
@@ -564,51 +559,51 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 - each file gets its own entry in ~~/archive/org~
 #+begin_src elisp
 (add-hook! 'org-mode-hook '(visual-line-mode
-                              org-fragtog-mode
-                              rainbow-mode
-                              laas-mode
-                              +org-pretty-mode
-                              org-appear-mode))
-  (setq-hook! 'org-mode-hook
-    warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
+                            org-fragtog-mode
+                            rainbow-mode
+                            laas-mode
+                            +org-pretty-mode
+                            org-appear-mode))
+(setq-hook! 'org-mode-hook
+  warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
-  (setq org-use-property-inheritance t
-        org-reverse-note-order t
-        org-startup-with-latex-preview t
-        org-startup-with-inline-images t
-        org-startup-indented t
-        org-startup-numerated t
-        org-startup-align-all-tables t
-        org-list-allow-alphabetical t
-        org-tags-column 0
-        org-fold-catch-invisible-edits 'smart
-        org-refile-use-outline-path 'full-file-path
-        org-refile-allow-creating-parent-nodes 'confirm
-        org-use-sub-superscripts '{}
-        org-fontify-quote-and-verse-blocks t
-        org-fontify-whole-block-delimiter-line t
-        doom-themes-org-fontify-special-tags t
-        org-ellipsis "…"
-        org-num-max-level 3
-        org-hide-leading-stars t
-        org-appear-autoemphasis t
-        org-appear-autosubmarkers t
-        org-appear-autolinks t
-        org-appear-autoentities t
-        org-appear-autokeywords t
-        org-appear-inside-latex nil
-        org-hide-emphasis-markers t
-        org-pretty-entities t
-        org-pretty-entities-include-sub-superscripts t
-        org-list-demote-modify-bullet '(("-"  . "-")
-                                        ("+"  . "+")
-                                        ("*"  . "-")
-                                        ("a." . "a)")
-                                        ("1." . "1)")
-                                        ("1)" . "a)"))
-        org-blank-before-new-entry '((heading . always)
-                                     (plain-list-item . nil))
-        org-src-ask-before-returning-to-edit-buffer nil)
+(setq org-use-property-inheritance t
+      org-reverse-note-order t
+      org-startup-with-latex-preview t
+      org-startup-with-inline-images t
+      org-startup-indented t
+      org-startup-numerated t
+      org-startup-align-all-tables t
+      org-list-allow-alphabetical t
+      org-tags-column 0
+      org-fold-catch-invisible-edits 'smart
+      org-refile-use-outline-path 'full-file-path
+      org-refile-allow-creating-parent-nodes 'confirm
+      org-use-sub-superscripts '{}
+      org-fontify-quote-and-verse-blocks t
+      org-fontify-whole-block-delimiter-line t
+      doom-themes-org-fontify-special-tags t
+      org-ellipsis "…"
+      org-num-max-level 3
+      org-hide-leading-stars t
+      org-appear-autoemphasis t
+      org-appear-autosubmarkers t
+      org-appear-autolinks t
+      org-appear-autoentities t
+      org-appear-autokeywords t
+      org-appear-inside-latex nil
+      org-hide-emphasis-markers t
+      org-pretty-entities t
+      org-pretty-entities-include-sub-superscripts t
+      org-list-demote-modify-bullet '(("-"  . "-")
+                                      ("+"  . "+")
+                                      ("*"  . "-")
+                                      ("a." . "a)")
+                                      ("1." . "1)")
+                                      ("1)" . "a)"))
+      org-blank-before-new-entry '((heading . always)
+                                   (plain-list-item . nil))
+      org-src-ask-before-returning-to-edit-buffer nil)
 
 (defadvice! z-insert-newline-above (fn &rest args)
   :after #'+org/insert-item-below
@@ -653,6 +648,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 - using symbols instead of words to represent states => less clutter, more concise, readeable & structured.
 - order them with priorities to assign order of execution if there are many tasks
 - when changing state add a note to the state-change if needed
+- use ~org-add-note~ for leaving comments on the article.  (eg: thougths when revisiting the article at a later time.)
 - reflecting
 - log/track
 - progress
@@ -691,14 +687,17 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
 ~[x]~: completed
 
+- we prompt for a note on the task when chaning state to either: on-hold, in-prog or delegated, since we want to leave a comment on how work should be resumed next time the task is being revisited (eg. page number of a book, who to check in with after delegating the task.)
 #+begin_src elisp
+;; ! => save timestamp on statchange
+;; @ => save timestamp on statchange & add a note to the entry.
 (setq org-todo-keywords '((sequence
                            "[ ](t)"
                            "[@](e)"
                            "[?](?!)"
-                           "[-](-!)"
-                           "[>](>!)"
-                           "[=](=!)"
+                           "[-](-@)"
+                           "[>](>@)"
+                           "[=](=@)"
                            "[&](&!)"
                            "|"
                            "[x](x!)"
@@ -777,7 +776,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
 - implemented is a structured approach for generic projects, all using the same (but relative to project) paths and capture-templates.
 
-#+begin_src elisp :tangle no
+#+begin_src elisp
 (setq org-directory "~/Documents/org/")
 
 (defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
@@ -931,7 +930,9 @@ PARENT-PATH :: nil (used for recursion) "
                                        "- [ ] %?"
                                        ""
                                        "* agenda"
-                                       "** [ ] "))
+                                       "** [ ] "
+                                       ""
+                                       "* notes"))
 
                           ("note"
                            :keys "n"

@@ -5,25 +5,27 @@
 # info:
 #   - the config is full of overhead reducing implementations, like: unmuting when increasing the volume, instead of introducing another shortcut to unmute the volume.  doing changes in system (eg. volume change / internet connection change) via notifications, so  we can disable the statusbar for a more focused workflow.
 #   - get window title & class information using: `xprop`
+#   - manual: https://i3wm.org/docs/userguide.html
 # ---
 
 # MACROS
 set $ESC mode "default"
-set $EXIT_BINDING bindsym Escape mode "default"
 set $BIN ~/.config/bin
 set $MV move container to workspace
-set $CMD exec --no-startup-id
+set $SHCMD exec --no-startup-id
+set $SCREENLAYOUT_MENU fd . ~/.screenlayout | rofi -dmenu -i -no-custom -p 'screen-layout' | sh
+
 # no statusbar => using notifications to display volume change
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
-set $VOL_MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
+set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
+
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
-set $SCREENLAYOUT fd . ~/.screenlayout | rofi -dmenu -i -no-custom -p 'screen-layout' | sh
 
-# AUTOSTART
-exec $BIN/autostart &
+# AUTOSTART :: script
+exec $BINDIR/autostart &
 
 # OPTS
 workspace_auto_back_and_forth no
@@ -37,8 +39,7 @@ title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 
-# KEYBINDINGS
-# Mod1 == alt
+# KEYBINDINGS :: Mod1 <=> alt
 set $MOD Mod1
 floating_modifier $MOD
 # Mod+button1: drag floating window
@@ -50,29 +51,31 @@ bindsym button4 nop
 bindsym button5 nop
 
 # for compatibility
-bindsym XF86MonBrightnessDown $CMD brightnessctl set 5%-
-bindsym XF86MonBrightnessUp   $CMD brightnessctl set 5%+
-bindsym XF86Display           $CMD xrandr --auto
-bindsym XF86ScreenSaver       $CMD $SYS_SCREENOFF
-bindsym XF86Sleep             $CMD $SYS_SLEEP
-bindsym XF86AudioPlay         $CMD playerctl play-pause
-bindsym XF86AudioPause        $CMD playerctl play-pause
-bindsym XF86AudioNext         $CMD playerctl next
-bindsym XF86AudioPrev         $CMD playerctl previous
-bindsym XF86AudioLowerVolume  $CMD $VOL_DEC
-bindsym XF86AudioRaiseVolume  $CMD $VOL_INC
-bindsym XF86AudioMute         $CMD $VOL_MUTE
-bindsym XF86AudioMicMute      $CMD $VOL_MIC_MUTE
+bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
+bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
+bindsym XF86Display           $SHCMD xrandr --auto
+bindsym XF86ScreenSaver       $SHCMD $SYS_SCREENOFF
+bindsym XF86Sleep             $SHCMD $SYS_SLEEP
+bindsym XF86AudioPlay         $SHCMD playerctl play-pause
+bindsym XF86AudioPause        $SHCMD playerctl play-pause
+bindsym XF86AudioNext         $SHCMD playerctl next
+bindsym XF86AudioPrev         $SHCMD playerctl previous
+bindsym XF86AudioLowerVolume  $SHCMD $VOL_DEC
+bindsym XF86AudioRaiseVolume  $SHCMD $VOL_INC
+bindsym XF86AudioMute         $SHCMD $VOL_MUTE
+bindsym XF86AudioMicMute      $SHCMD $MIC_MUTE
 
-# keep hands on the keyborad => don't use XF86 keys
-bindsym $MOD+9            $CMD $VOL_MIC_MUTE
-bindsym $MOD+0            $CMD $VOL_MUTE
-bindsym $MOD+minus        $CMD $VOL_DEC
-bindsym $MOD+equal        $CMD $VOL_INC
-bindsym $MOD+bracketright $CMD playerctl next
-bindsym $MOD+bracketleft  $CMD playerctl previous
-bindsym $MOD+backslash    $CMD playerctl play-pause
+# MEDIA BINDINGS
+# keep hands on the keyborad => don't use (or have) XF86 keys
+bindsym $MOD+9            $SHCMD $MIC_MUTE
+bindsym $MOD+0            $SHCMD $VOL_MUTE
+bindsym $MOD+minus        $SHCMD $VOL_DEC
+bindsym $MOD+equal        $SHCMD $VOL_INC
+bindsym $MOD+bracketright $SHCMD playerctl next
+bindsym $MOD+bracketleft  $SHCMD playerctl previous
+bindsym $MOD+backslash    $SHCMD playerctl play-pause
 
+# NAVIGATIONAL BINDINGS
 # use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side
 # n/p consistent with cycling {rofi, shell, emacs} completion menus
 bindsym $MOD+p         focus left
@@ -80,8 +83,8 @@ bindsym $MOD+shift+p   move left
 bindsym $MOD+n         focus right
 bindsym $MOD+shift+n   move right
 bindsym $MOD+q         kill
-bindsym $MOD+b         $CMD rofi -show window
-bindsym $MOD+semicolon $CMD rofi -show drun
+bindsym $MOD+b         $SHCMD rofi -show window
+bindsym $MOD+semicolon $SHCMD rofi -show drun
 bindsym $MOD+Tab       workspace back_and_forth
 bindsym $MOD+Return    move workspace to output next
 
@@ -89,59 +92,72 @@ bindsym $MOD+Return    move workspace to output next
 for_window [urgent="latest"] focus
 for_window [all] focus , title_window_icon no
 
-set $WS_CMD "cmd"
-workspace $WS_CMD output primary
-bindsym $MOD+c workspace $WS_CMD
-bindsym $MOD+shift+c $CMD alacritty --title cmd --command tmux new-session -A -s cmd
-for_window [class="Alacritty"] $MV $WS_CMD, focus
+# TERMINAL
+set $WS_TERMINAL "terminal"
+workspace $WS_TERMINAL output primary
+bindsym $MOD+t workspace $WS_TERMINAL
+bindsym $MOD+shift+t $TERMINAL alacritty --command tmux new-session -A -s main
+for_window [class="(?i)alacritty"] $MV $WS_TERMINAL, focus
 
-set $WS_DOCS "docs"
-workspace $WS_DOCS output primary
-bindsym $MOD+d workspace $WS_DOCS
-bindsym $MOD+shift+d $CMD $BIN/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/Documents literature ethz/cs/s3
-for_window [class="Zathura"] $MV $WS_DOCS, focus
+# READER :: EBOOKS, DOCUMENTS
+set $WS_READER "reader"
+workspace $WS_READER output primary
+bindsym $MOD+r workspace $WS_READER
+bindsym $MOD+shift+r $SHCMD $BINDIR/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/Documents literature ethz/cs/s3
+for_window [class="(?i)zathura"] $MV $WS_READER, focus
 
+# WEBBROWSER
 set $WS_WEB "web"
 workspace $WS_WEB output primary
 bindsym $MOD+w workspace $WS_WEB
-bindsym $MOD+shift+w $CMD firefox --new-window
-for_window [class="firefox"] $MV $WS_WEB, focus
+bindsym $MOD+shift+w $SHCMD firefox --new-window
+for_window [class="(?i)firefox"] $MV $WS_WEB, focus
 
-set $WS_EDIT "edit"
-workspace $WS_EDIT output primary
-bindsym $MOD+e workspace $WS_EDIT
-bindsym $MOD+shift+e $CMD emacsclient --reuse-frame || emacs --daemon && emacsclient --reuse-frame
-for_window [class="Emacs"] $MV $WS_EDIT, focus
+# EDITOR
+set $WS_EDITOR "editor"
+workspace $WS_EDITOR output primary
+bindsym $MOD+e workspace $WS_EDITOR
+bindsym $MOD+shift+e $SHCMD emacsclient --reuse-frame || emacs --daemon && emacsclient --reuse-frame
+for_window [class="(?i)emacs"] $MV $WS_EDITOR, focus
 
+# MEDIA :: IMAGES, VIDEOS, AUDIO
 set $WS_MEDIA "media"
 workspace $WS_MEDIA output primary
 bindsym $MOD+m workspace $WS_MEDIA
-for_window [class="mpv"] $MV $WS_MEDIA, focus
-for_window [class="firefox" title="Spotify"] $MV $WS_MEDIA, focus
+bindsym $MOD+shift+m $SHCMD firefox --new-window https://open.spotify.com
+for_window [class="(?i)mpv|nsxiv"] $MV $WS_MEDIA, focus
+for_window [class="(?i)firefox" title="(?i)spotify"] $MV $WS_MEDIA, focus
 
+# AI :: CHATBOT, AI-TOOLS
 set $WS_AI "ai"
 workspace $WS_AI output primary
 bindsym $MOD+a workspace $WS_AI
-bindsym $MOD+shift+a $CMD firefox --new-window https://chat.openai.com
-for_window [class="firefox" title="ChatGPT"] $MV $WS_AI, focus
+bindsym $MOD+shift+a $SHCMD firefox --new-window https://chat.openai.com
+for_window [class="(?i)firefox" title="(?i)chatgpt"] $MV $WS_AI, focus
 
+# LEADERMODE
 bindsym $MOD+space mode "leader"
 mode "leader" {
-        bindsym $MOD+a $CMD $BIN/audio-output-menu; $ESC
-        bindsym $MOD+b $CMD $BIN/bluetooth-menu; $ESC
-        bindsym $MOD+k $CMD $BIN/killprocess-menu; $ESC
-        bindsym $MOD+d $CMD $SCREENLAYOUT; $ESC
-        # NOTE :: after screenshot is taken, the path is written to clipboard (overheadfree)
-        bindsym --release $MOD+s $CMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
-        bindsym $MOD+shift+s $CMD scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
-        bindsym $MOD+e $CMD emacsclient --eval "(emacs-everywhere)"; $ESC
-        # copy browser link to clipboard and then invoke mpv with it using this binding
-        bindsym $MOD+m $CMD mpv "$(xclip -out)"; $ESC
-        bindsym $MOD+q $CMD $SYS_SLEEP; $ESC
-        bindsym $MOD+o $CMD $SYS_SCREENOFF; $ESC
-        bindsym $MOD+f $CMD $BIN/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/ Documents/literature Documents/ethz/cs/s3 Downloads; $ESC
+        bindsym $MOD+a $SHCMD $BINDIR/audio-output-menu; $ESC
+        bindsym $MOD+b $SHCMD $BINDIR/bluetooth-menu; $ESC
+        bindsym $MOD+k $SHCMD $BINDIR/killprocess-menu; $ESC
+        bindsym $MOD+d $SHCMD $SCREENLAYOUT_MENU; $ESC
 
-        $EXIT_BINDING
+        # NOTE :: after screenshot is taken, the path is written to clipboard (overheadfree)
+        bindsym --release $MOD+s $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
+        bindsym $MOD+shift+s $SHCMD scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
+
+        bindsym $MOD+e $SHCMD emacsclient --eval "(emacs-everywhere)"; $ESC
+
+        # copy browser link to clipboard and open it in mpv:
+        bindsym $MOD+m $SHCMD mpv "$(xclip -out)"; $ESC
+
+        bindsym $MOD+q $SHCMD $SYS_SLEEP; $ESC
+        bindsym $MOD+o $SHCMD $SYS_SCREENOFF; $ESC
+
+        bindsym $MOD+f $SHCMD $BINDIR/find-file-menu fd '.' --extension pdf -e epub --base-directory ~/ Documents/literature Documents/ethz/cs/s3 Downloads; $ESC
+
+        bindsym Escape mode "default"
 }
 
 # MODUS-OPERANDI THEME

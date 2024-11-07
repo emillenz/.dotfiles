@@ -21,7 +21,7 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
   - no icons :: fancy visual sugar.  keep it simple, minimalist and extensible (they are only a distraction), instead use colorcoding and font faces for visually separating displayed options.  we care about the functionality of a program, and not what cool logo it has.
   - this system puts emphasis on a text & data driven evironment wherever possible this will reduce complexity and increase extensibility and interchangeablilty.  you will also benefit from a more unified and consistent interface across applications.
 - consistency :: this config aims to be globally consistent in its design, behaviour and control.
-  - which means things like (colorscheme, font, workflow, keybindings, ui..) were once carefully analyzed, choosen and designed and then implemented as consistent as possible across tools (terminal, editor, webbrowser, wm, docreader..)
+  - which means things like (colorscheme, font, workflow, keybindings, ui..) were once carefully analyzed, choosen and designed and then implemented as consistent as possible across tools (terminal, editor, webbrowser, wm, reader..)
 - maximized focus ui :: avoid using splits in your programs and prefer the maximized buffer tabs-only workflow.  (hence we don't include split management bindings in the wm)  i have found it less intrusive and faster to just switch to the tab instead.
   - humans are not designed and not good at multitasking, they excel at linear singular focus processing.
   - splits are mostly useless and take up screenspace, cluttering it with information you are not processing, and that will distract your focus.
@@ -47,6 +47,7 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
   - ex: use vims search replace with patterns instead of manually going through and changing each instance
   - ex: relative line jumping over spamming =j=
   - ex: tab switching => thinking fast & instinctive, develop muscle memory (when there are too many => use analytical brain by searching through the list)
+- single monitor :: don't use multimonitors, you are actually faster using a tiling windowmanager and hotkeys to access the individual windows (bound to specific workspaces).  managing windows over multiple monitors becomes increasingly complex and produces overhead.  it's faster to switch to the window you need instantaneously with a keyboard shortcut, instead of physically tilting the head (which is also unergonomic).  additionally we want consistency in the workflow inbetween using the laptop and desktop setup (if you even have that).
 
 ** constrain text width & center text
  - center text windows for better ergonomics & less eye travel (distance - switching from left to middle from eg: terminal to webpage).
@@ -254,7 +255,7 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
   - when bill-joy orignially developed VI, the terminal's keyboard, had <esc> on todays <tab> and <ctrl> on <caps>.  this is where <ctrl> should have always stayed at.
 - deleting characters :: make using <c-h/w/u> instead of <backspace> a habit.  it is more ergonomic and faster than using the incredibly unergonomic and hard to reach <backspace>.  hence we implement these bindings in all apps.
 - no vim layer :: we purposefully do not implement a vim-navigation layer globally, since if you are doing more than just typing something into a prompt, you should just use ~emacs-everywhere~ instead.  the implemented keybinds are consistent with vim's insert state and provide the most useful deletion commands when typing into a prompt.
-- no homerowmods :: they greatly increase the complexity of the keybinding layer's and introduce unneccessary mental overhead.  additionally and most importantly they cause a delay in typing the actual character which is absolutely inacceptable.  (slow's you down, bottlenecking your typing speed)
+- no homerowmods / layers :: they greatly increase the complexity of the keybinding layer's and introduce unneccessary mental overhead.  additionally and most importantly they cause a delay in typing the actual character which is absolutely inacceptable.  (slow's you down, bottlenecking your typing speed)
   - this config is kept simple, fast and overheadfree (no double functionality: hold down and single-press)
 - typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
 - ctrl-map :: bindings found on this layer are related to navigation (~switch-to-buffer~, ~find-file~, ~jump-backwards~, etc..)
@@ -266,7 +267,7 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
 | b       | buffer/window, prompt    | vim: :b <name>                        |
 | q       | [q]uit (buffer/window)   | vim: :q                               |
 | f       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file |
-| <tab>   | [a]lterate buffer/tab    | convention (apps & other oss)         |
+| <tab>   | alterate buffer/tab      | standard convention (apps & other oss) |
 | 1-4     | switch to buffer/tab 1-4 | harpoon                               |
 | <spc>   | leader-key               | vim                                   |
 
