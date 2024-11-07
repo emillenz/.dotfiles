@@ -10,10 +10,10 @@
 
 # MACROS
 set $ESC mode "default"
-set $BINDIR ~/.config/bin
+set $BIN ~/.config/bin
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
-set $SCREENLAYOUT_MENU fd . ~/.screenlayout | rofi -dmenu -i -no-custom -p 'screen-layout' | sh
+set $ROFI rofi -dmenu -no-custom -i -p find-file
 
 # no statusbar => using notifications to display volume change
 set $VOL_INC pamixer --unmute --increase=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
@@ -23,9 +23,10 @@ set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace=69 "m
 
 set $SYS_SLEEP i3lock --color=ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
+set $SCROT scrot --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection=clipboard'
 
 # AUTOSTART :: script
-exec $BINDIR/autostart &
+exec $BIN/autostart &
 
 # OPTS
 workspace_auto_back_and_forth no
@@ -103,7 +104,7 @@ for_window [class="(?i)alacritty"] $MV $WS_TERMINAL, focus
 set $WS_READER "reader"
 workspace $WS_READER output primary
 bindsym $MOD+r workspace $WS_READER
-bindsym $MOD+shift+r $SHCMD $BINDIR/find-file-menu fd '.' --extension=pdf --extension=epub --base-directory ~/Documents literature ethz/cs/s3
+bindsym $MOD+shift+r $SHCMD zathura $HOME/Documents/$(fd '.' --extension=pdf --extension=epub --base-directory=$HOME/Documents literature ethz/cs/s3 | $ROFI)
 for_window [class="(?i)zathura"] $MV $WS_READER, focus
 
 # WEBBROWSER
@@ -124,7 +125,8 @@ for_window [class="(?i)emacs"] $MV $WS_EDITOR, focus
 set $WS_MEDIA "media"
 workspace $WS_MEDIA output primary
 bindsym $MOD+m workspace $WS_MEDIA
-bindsym $MOD+shift+m $SHCMD $BINDIR/find-file-menu --print fd '.' --type=directory --base-directory ~/Pictures | nsxiv --stdin --recursive
+set $BASEDIR $HOME/Pictures
+bindsym $MOD+shift+m $SHCMD nsxiv --recursive $HOME/Pictures/$(fd '.' --type=directory --base-directory=$HOME/Pictures | $ROFI)
 for_window [class="(?i)mpv|nsxiv"] $MV $WS_MEDIA, focus
 
 # AI :: CHATBOT, AI-TOOLS
@@ -137,14 +139,14 @@ for_window [class="(?i)firefox" title="(?i)chatgpt"] $MV $WS_AI, focus
 # LEADERMODE
 bindsym $MOD+space mode "leader"
 mode "leader" {
-        bindsym $MOD+a $SHCMD $BINDIR/audio-output-menu; $ESC
-        bindsym $MOD+b $SHCMD $BINDIR/bluetooth-menu; $ESC
-        bindsym $MOD+k $SHCMD $BINDIR/killprocess-menu; $ESC
-        bindsym $MOD+d $SHCMD $SCREENLAYOUT_MENU; $ESC
+        bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
+        bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
+        bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
+        bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory=$HOME/.screenlayout | $ROFI); $ESC
 
         # NOTE :: after screenshot is taken, the path is written to clipboard (overheadfree)
-        bindsym --release $MOD+s $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
-        bindsym $MOD+shift+s $SHCMD scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection clipboard'; $ESC
+        bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC
+        bindsym $MOD+shift+s $SHCMD $SCROT; $ESC
 
         bindsym $MOD+e $SHCMD emacsclient --eval "(emacs-everywhere)"; $ESC
 
@@ -154,7 +156,7 @@ mode "leader" {
         bindsym $MOD+q $SHCMD $SYS_SLEEP; $ESC
         bindsym $MOD+o $SHCMD $SYS_SCREENOFF; $ESC
 
-        bindsym $MOD+f $SHCMD $BINDIR/find-file-menu fd '.' --extension=pdf --extension=epub --base-directory=$HOME Documents/literature Documents/ethz/cs/s3 Downloads; $ESC
+        bindsym $MOD+f $SHCMD zathura $HOME/$(fd '.' --extension=pdf --extension=epub --base-directory=$HOME Documents/literature Documents/ethz/cs/s3 Downloads | $ROFI); $ESC
 
         bindsym Escape mode "default"
 }
