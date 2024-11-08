@@ -97,7 +97,7 @@ for_window [all] focus , title_window_icon no
 set $WS_TERMINAL "terminal"
 workspace $WS_TERMINAL output primary
 bindsym $MOD+t workspace $WS_TERMINAL
-bindsym $MOD+shift+t $TERMINAL alacritty --command tmux new-session -A -s main
+bindsym $MOD+shift+t $SHCMD alacritty --command tmux new-session -A -s main
 for_window [class="(?i)alacritty"] $MV $WS_TERMINAL, focus
 
 # READER :: EBOOKS, DOCUMENTS
@@ -148,7 +148,7 @@ mode "leader" {
         bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC
         bindsym $MOD+shift+s $SHCMD $SCROT; $ESC
 
-        bindsym $MOD+e $SHCMD emacsclient --eval "(emacs-everywhere)"; $ESC
+        bindsym $MOD+e $SHCMD emacsclient --eval="(emacs-everywhere)"; $ESC
 
         # copy browser link to clipboard and open it in mpv:
         bindsym $MOD+m $SHCMD mpv "$(xclip -out)"; $ESC

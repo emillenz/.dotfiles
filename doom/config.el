@@ -121,7 +121,9 @@
                "k" #'devdocs-lookup
                "t" #'dictionary-search)
       (:prefix "f"
-               "F" #'+vertico/consult-fd-or-find) ;; HACK :: fix original binding
+               "f" #'+vertico/consult-fd-or-find
+               "F" (cmd! (call-interactively #'find-file)
+                         (+vertico/consult-fd-or-find)))
       (:prefix "c"
                "r" #'lsp-rename
                (:prefix "'"
