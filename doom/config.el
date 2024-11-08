@@ -151,6 +151,44 @@
       "m" #'harpoon-toggle-file) ;; for deleting and reordering harpoon candidates
 ;; global navigation scheme:1 ends here
 
+;; [[file:config.org::*vim editing][vim editing:1]]
+(map! :after evil
+      :nv "S-<return>" #'newline-and-indent  ;; more accessible than `<C-R> <return>`
+      :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
+      :nm "g/"  #'occur
+
+      :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
+      :nv ")"   #'sp-down-sexp
+
+      :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
+      :nv "-"   #'evil-numbers/dec-at-pt
+      :nv "g+"  #'evil-numbers/inc-at-pt-incremental
+      :nv "g-"  #'evil-numbers/dec-at-pt-incremental
+
+      :nv "g<"  #'evil-lion-left
+      :nv "g>"  #'evil-lion-right
+
+      :nv "&"   #'query-replace-regexp
+      :nv "s"   #'evil-surround-region
+      :nv "S"   #'evil-Surround-region
+      :vm "zk"  nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs.
+
+;; use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+(define-key! [remap evil-next-line] #'evil-next-visual-line)
+(define-key! [remap evil-previous-line] #'evil-previous-visual-line)
+
+(define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
+
+;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
+
+(defadvice! z-save-excursion (fn &rest args)
+  "when modifying the buffer with one of these functions, do the edit and then  restore point to where it was originally."
+  :around '(query-replace-regexp query-replace +format:region)
+  (save-excursion
+    (apply fn args)))
+;; vim editing:1 ends here
+
 ;; [[file:config.org::*org_][org_:1]]
 (map! :localleader :map org-mode-map :after org
       "\\" #'org-latex-preview

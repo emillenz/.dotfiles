@@ -238,7 +238,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - readme: https://github.com/emacs-evil/evil-surround
 - occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
 
-#+begin_src elisp :tangle no
+#+begin_src elisp
 (map! :after evil
       :nv "S-<return>" #'newline-and-indent  ;; more accessible than `<C-R> <return>`
       :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
