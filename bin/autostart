@@ -13,13 +13,13 @@ end
 
 PROCESSES = [
         'emacs --daemon && emacsclient --reuse-frame',
-        "sudo xremap --watch=device #{ENV['HOME']}/.config/xremap/config.yml & disown",
         'firefox --new-window https://google.com --new-window https://chat.openai.com',
         'alacritty --command tmux new-session -A -s main',
+        "sudo xremap --watch=device #{ENV['HOME']}/.config/xremap/config.yml & disown",
+        'keepassxc',
         'playerctld',
         'unclutter',
         'batsignal -bpe -w 50 -c 20 -d 5',
-        'keepassxc',
 ].freeze
 
 CMDS = [
@@ -35,8 +35,7 @@ def spawn_processes
         end
 
         PROCESSES.each do |ps|
-                name = ps.split[0]
-                unless processes.include?(name)
+                unless processes.include?(ps)
                         Process.detach(spawn(ps, out: File::NULL, err: File::NULL))
                         puts("started: #{name}")
                 end
