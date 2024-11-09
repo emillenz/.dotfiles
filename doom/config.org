@@ -234,6 +234,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - :%s/ :: use emacs-native ~query-replace-regex~ instead, which is more interactivly powerful/flexible than vim's replacement.  it has undo, navigating matches, etc.  you can perform arbitrary lisp code on the match => read the docs of ~query-replace-regexp~
     - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
   - :g/ :: use emacs ~reverse-region~, ~delete-lines~ etc.
+  - normal :: shouldn't be using that anyways, instead use a macro and apply it to wanted lines.
   - other commands such as ~:w~, ~:q~, etc. should be called more efficiently by keybinding anyways.
 - & ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.
 - s/S :: vim's ~s/S~ is useless, since it basically duplicates: ~x~ and ~C~.  we introduce a powerful operator: ~evil-surround~.
@@ -242,8 +243,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 
 #+begin_src elisp
 (map! :after evil
-      :nv "S-<return>" #'newline-and-indent  ;; more accessible than `<C-R> <return>`
-      :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
+      :nv "S-<return>" (cmd! (save-excursion (newline-and-indent))) ;; inverse of: `J'
       :nm "g/"  #'occur
 
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
@@ -259,8 +259,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 
       :nv "&"   #'query-replace-regexp
       :nv "s"   #'evil-surround-region
-      :nv "S"   #'evil-Surround-region
-      :vm "zk"  nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs.
+      :nv "S"   #'evil-Surround-region)
 
 ;; use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
@@ -276,6 +275,8 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   :around '(query-replace-regexp query-replace +format:region)
   (save-excursion
     (apply fn args)))
+
+(advice-add '+fold/previous :override nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 #+end_src
 
 ** org_

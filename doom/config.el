@@ -155,8 +155,7 @@
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
-      :nv "S-<return>" #'newline-and-indent  ;; more accessible than `<C-R> <return>`
-      :n  "Q"   #'evil-execute-last-recorded-macro ;; for quick & dirty macros, press: `qq' then `Q' to execute that.
+      :nv "S-<return>" (cmd! (save-excursion (newline-and-indent))) ;; inverse of: `J'
       :nm "g/"  #'occur
 
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
@@ -172,8 +171,7 @@
 
       :nv "&"   #'query-replace-regexp
       :nv "s"   #'evil-surround-region
-      :nv "S"   #'evil-Surround-region
-      :vm "zk"  nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs.
+      :nv "S"   #'evil-Surround-region)
 
 ;; use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
@@ -189,6 +187,8 @@
   :around '(query-replace-regexp query-replace +format:region)
   (save-excursion
     (apply fn args)))
+
+(advice-add '+fold/previous :override nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 ;; vim editing:1 ends here
 
 ;; [[file:config.org::*org_][org_:1]]

@@ -2,7 +2,7 @@
 
 (disable-packages! evil-escape    ; faster to remap <esc> to caps
                    solaire-mode   ; distracting visual sugar
-                   evil-snipe     ; usless bloat :: just use incsearch if f/t -motions are not enough.
+                   evil-snipe     ; usless bloat :: just use incremental-search in combo with f/t motions
                    evil-easymotion
                    evil-exchange) ; do this using vanilla vim's visual pasting
 
@@ -18,6 +18,3 @@
 (package! modus-themes)
 (package! devdocs)
 (package! harpoon)
-
- ;; HACK :: vertico upstream gives errors with doom, since it uses `static-if' which is only available in emacs 30.X which is currently unsupported by doom.  TODO check if this can be removed without vertico erroring
-(package! vertico :pin "4498a2589c60cc788d6cb3909964c12c8fbad79a")
