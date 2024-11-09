@@ -6,7 +6,6 @@
                    evil-easymotion
                    evil-exchange) ; do this using vanilla vim's visual pasting
 
-;; ESSENTIAL PACKAGES
 (package! dired-open)
 (package! tldr)
 (package! rainbow-mode)
@@ -18,3 +17,4 @@
 (package! modus-themes)
 (package! devdocs)
 (package! harpoon)
+(package! whisper :recipe (:host github :repo "natrys/whisper.el"))

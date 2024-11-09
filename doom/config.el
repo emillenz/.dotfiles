@@ -115,6 +115,7 @@
 (map! :leader
       "." #'vertico-repeat
       "'" #'consult-bookmark
+      "X" #'whisper-run
       (:prefix "h"
                "w" #'tldr)
       (:prefix "s"
@@ -155,7 +156,7 @@
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
-      :nv "S-<return>" (cmd! (save-excursion (newline-and-indent))) ;; inverse of: `J'
+      :nv "S-<return>" #'newline-and-indent ;; inverse of: `J'
       :nm "g/"  #'occur
 
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
@@ -533,7 +534,9 @@ This is sensible default behaviour, and integrates it into evil."
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
 and the later reviewed and merged into the corresponding article of the wiki.")
 
-(defvar z-doct-default-templates '(z-doct-task-template z-doct-event-template z-doct-note-template))
+(defvar z-doct-default-templates '(z-doct-task-template
+                                   z-doct-event-template
+                                   z-doct-note-template))
 
 (defvar z-doct-projects `(("cs" :keys "c"
                            :templates ,z-doct-default-templates
@@ -551,7 +554,9 @@ and the later reviewed and merged into the corresponding article of the wiki.")
  - `:templates` is inherited by the parent-group and if present in a childgroup it appends the additionally defined templates.")
 
 (defun z-doct-journal-file (&optional time)
-  "TIME :: time in day of note to return. (default: today)"
+  "returns a structured filename based on the current date.
+eg: 2024-11-03_journal.org
+TIME :: time in day of note to return. (default: today)"
   (--> nil
        (or time (current-time))
        (format-time-string "%F" it)
@@ -634,7 +639,7 @@ PARENT-PATH :: nil (used for recursion) "
                    (path (file-name-concat parent-path tag)))
               (append self
                       (if children
-                          (--> nil ;; CHILDREN => recursivly expand children
+                          (--> nil ;; HAS CHILDREN => is project-node => recursivly expand children
                                (list self)
                                (z-doct-expand-templates it templates) ;; template out of self
                                (append it (z-doct-expand-templates children templates path))
@@ -647,8 +652,10 @@ PARENT-PATH :: nil (used for recursion) "
           projects))
 
 (setq org-capture-templates
-      (doct `(,@(z-doct-expand-templates z-doct-projects)
+      (doct `(;; PROJECT TEMPLATES
+              ,@(z-doct-expand-templates z-doct-projects)
 
+              ;; NON-PROJECT TEMPLATES
               ("journal"
                :keys "j"
                :file (lambda () (z-doct-journal-file))
@@ -844,3 +851,19 @@ PARENT-PATH :: nil (used for recursion) "
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 ;; devdocs:1 ends here
+
+;; [[file:config.org::*transcription - whisper][transcription - whisper:1]]
+(add-hook! 'whisper-after-transcription-hook (z-reformat-to-prose (point-min) (point-max)))
+
+(evil-define-operator z-reformat-to-prose (beg end)
+  "we write all lowercase, all the time (to make the text more monotone, such that it's value will
+speak more for it's self).  using the technical document convention of double space full stops for
+legibility."
+  (save-excursion
+    (if (region-active-p)
+        (setq beg (region-beginning)
+              end (region-end)))
+    (when (and beg end)
+      (downcase-region beg end)
+      (repunctuate-sentences t beg end))))
+;; transcription - whisper:1 ends here
