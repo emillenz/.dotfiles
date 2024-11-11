@@ -45,7 +45,7 @@
       even-window-sizes 'width-only
       window-combination-resize t
       split-height-threshold nil
-      split-width-threshold 80) ;; force vsplits, not more than 2 windows
+      split-width-threshold 100) ;; force vsplits, not more than 2 windows
 
 (after! org
   (setq org-src-window-setup 'current-window
@@ -72,7 +72,7 @@
              Info-mode-hook
              org-agenda-mode-hook
              magit-mode-hook)
-           #'visual-fill-column-mode)
+           #'global-visual-fill-column-mode)
 (global-display-fill-column-indicator-mode 0)
 
 (setq-default visual-fill-column-enable-sensible-window-split t
@@ -93,17 +93,17 @@
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       async-shell-command-width 100
-      shell-file-name "/usr/bin/fish")
+      shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
-(+global-word-wrap-mode 1) ;; no sidescrolling
+(+global-word-wrap-mode 1)
 (add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
 
 (save-place-mode 1)
 (global-subword-mode 1)
-(add-hook! '(prog-mode-hook conf-mode-hook) #'rainbow-delimiters-mode)
+(add-hook! prog-mode-hook #'rainbow-delimiters-mode)
 
-(global-auto-revert-mode 1)
 (setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode 1)
 ;; misc options:1 ends here
 
 ;; [[file:config.org::*leader (\[\[kbd:SPC\]\[SPC\]\], \[\[kbd:,\]\[,\]\])][leader ([[kbd:SPC][SPC]], [[kbd:,][,]]):1]]
@@ -133,7 +133,7 @@
       (:prefix "n"
                "g" #'org-capture-goto-last-stored)
       (:prefix "t"
-               "c" #'global-visual-fill-column-mode))
+               "c" #'visual-fill-column-mode))
 ;; leader ([[kbd:SPC][SPC]], [[kbd:,][,]]):1 ends here
 
 ;; [[file:config.org::*global navigation scheme][global navigation scheme:1]]
@@ -174,29 +174,18 @@
       :nv "s"   #'evil-surround-region
       :nv "S"   #'evil-Surround-region)
 
-;; use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
 
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
 
-;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
-(define-key key-translation-map (kbd "C-h") (kbd "DEL"))
-
-(defadvice! z-save-excursion (fn &rest args)
-  "when modifying the buffer with one of these functions, do the edit and then  restore point to where it was originally."
-  :around '(query-replace-regexp query-replace +format:region)
-  (save-excursion
-    (apply fn args)))
-
-(advice-add '+fold/previous :override nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
+(define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; vim editing:1 ends here
 
 ;; [[file:config.org::*org_][org_:1]]
 (map! :localleader :map org-mode-map :after org
       "\\" #'org-latex-preview
       ","  #'org-ctrl-c-ctrl-c
-      "-"  #'org-toggle-item
       "z"  #'org-add-note
       "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
@@ -243,6 +232,21 @@ This is sensible default behaviour, and integrates it into evil."
                     (string-replace " " ".*" it))))
       (push str evil-ex-search-history)
       (setq evil-ex-search-pattern (list str t t)))))
+
+(defadvice! z-save-excursion (fn &rest args)
+  "when modifying the buffer with one of these functions, do the edit and then  restore point to where it was originally."
+  :around '(query-replace-regexp query-replace +format:region)
+  (save-excursion
+    (apply fn args)))
+
+(advice-add '+fold/previous :override nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
+
+(defadvice! z-default-last-register (fn &rest args)
+  "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
+  which is the sane default behaviour allowing you to: record a macro with `qq' and immediately call it with `@@', instead of getting an error and having to retype `@q' again."
+  :after #'evil-record-macro
+  (when (not evil-last-register)
+    (setq evil-last-register evil-last-recorded-register)))
 ;; editor:1 ends here
 
 ;; [[file:config.org::*jumplist][jumplist:1]]
@@ -280,9 +284,20 @@ This is sensible default behaviour, and integrates it into evil."
 (map! :after company :map company-mode-map
       :i "C-n" #'company-complete)
 
+(map! :map minibuffer-mode-map
+      :i "C-n" #'completion-at-point
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "/"   #'previous-matching-history-element
+      :n "RET" #'exit-minibuffer)
+
 (map! :after vertico :map vertico-flat-map
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element) ;; navigate elements like vim completion (and consistent with the os)
+      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
+      :i "C-p" #'previous-line-or-history-element
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "RET" #'vertico-exit
+      :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
       :im "C-w" #'vertico-directory-delete-word
@@ -430,7 +445,7 @@ This is sensible default behaviour, and integrates it into evil."
 (add-hook! 'org-mode-hook '(org-superstar-mode
                             prettify-symbols-mode))
 
-(setq org-superstar-headline-bullets-list '("◉" "◯" "▣" "□" "◈" "◇"))
+(setq org-superstar-headline-bullets-list '("●" "■" "◆" "▼")) ;; "◯" "□" "◇" "△"
 
 (setq org-superstar-item-bullet-alist '((?- . "─")
                                         (?* . "─") ;; NOTE :: asteriks are reserved for headings only (don't use in lists) => no unambigiuity
@@ -482,7 +497,7 @@ This is sensible default behaviour, and integrates it into evil."
       org-todo-repeat-to-state "[ ]"
       org-log-redeadline 'time
       org-log-reschedule 'time
-      org-log-into-drawer "LOG")
+      org-log-into-drawer "LOG") ;; more concise
 
 (setq org-priority-highest 1
       org-priority-lowest 3)
@@ -507,8 +522,7 @@ This is sensible default behaviour, and integrates it into evil."
                                       (:hlines   . "no")
                                       (:tangle   . "no")
                                       (:mkdirp   . "yes")
-                                      (:comments . "link") ;; important for when wanting to retangle
-                                      ))
+                                      (:comments . "link"))) ;; important for when wanting to retangle
 ;; babel:1 ends here
 
 ;; [[file:config.org::*clock][clock:1]]
@@ -521,7 +535,7 @@ This is sensible default behaviour, and integrates it into evil."
 (setq org-directory "~/Documents/org/")
 
 (defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
-  "captured daily journal files")
+  "dir for daily captured journal files")
 
 (defvar z-org-literature-dir "~/Documents/literature"
   "literature sources and captured notes")
@@ -834,10 +848,6 @@ PARENT-PATH :: nil (used for recursion) "
 )
 ;; end org:1 ends here
 
-;; [[file:config.org::*latex][latex:1]]
-(setq +latex-viewers '(zathura))
-;; latex:1 ends here
-
 ;; [[file:config.org::*dictionary][dictionary:1]]
 (after! dictionary
   (setq dictionary-server "dict.org"
@@ -845,17 +855,17 @@ PARENT-PATH :: nil (used for recursion) "
 ;; dictionary:1 ends here
 
 ;; [[file:config.org::*devdocs][devdocs:1]]
-;; no way to make this more programmatically unfortunately
-(setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
-(setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
+;; unfortunately using cl-loop/mapcar/dolist don't work...
+(setq-hook! 'java-mode-hook devdocs-current-docs "openjdk~17")
+(setq-hook! 'ruby-mode-hook devdocs-current-docs "ruby~3.3")
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
-(setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
+(setq-hook! 'c-mode-hook devdocs-current-docs "c")
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*transcription - whisper][transcription - whisper:1]]
 (add-hook! 'whisper-after-transcription-hook (z-reformat-to-prose (point-min) (point-max)))
 
-(evil-define-operator z-reformat-to-prose (beg end)
+(evil-define-operator z-reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
 speak more for it's self).  using the technical document convention of double space full stops for
 legibility."
@@ -867,3 +877,8 @@ legibility."
       (downcase-region beg end)
       (repunctuate-sentences t beg end))))
 ;; transcription - whisper:1 ends here
+
+;; [[file:config.org::*harpoon][harpoon:1]]
+(after! harpoon
+  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")) ;; HACK :: move it out of .config, since .config has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of .config (if it exists) instead of currently-opened harpoonfile).
+;; harpoon:1 ends here

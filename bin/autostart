@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
-# -----
+# ---
 # title:  autostart
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2023-05-07
-# -----
+# ---
 
 def main
         spawn_processes
