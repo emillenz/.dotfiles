@@ -104,16 +104,17 @@
 - take math for example, its easier to read equations if they are on newline
 - coding: typically one statement per line
 
+explicitly do NOT enable for ::
+- prog-mode ::  since it is incompatible with flycheck and we usually have the slave window with compilation or docs open.
+- pdf-view-mode :: already done by ~pdf-view-mode~
 #+begin_src elisp
-;; HACK :: do NOT enable for 'prog-mode', since we always have a slave split-window for compilation open.
-(add-hook! '(text-mode-hook
-             dired-mode-hook
+(add-hook! '(dired-mode-hook
+             text-mode-hook
              conf-mode-hook
              Info-mode-hook
              org-agenda-mode-hook
              magit-mode-hook)
-           #'global-visual-fill-column-mode)
-(global-display-fill-column-indicator-mode 0)
+           #'visual-fill-column-mode)
 
 (setq-default visual-fill-column-enable-sensible-window-split t
               visual-fill-column-center-text t
@@ -1145,7 +1146,7 @@ i always look up documentation/manuals within emacs.  (only if it's not sufficie
 * transcription - whisper
 we often formulate notes using transcription for speed and ergonomics.
 #+begin_src elisp
-(add-hook! 'whisper-after-transcription-hook (z-reformat-to-prose (point-min) (point-max)))
+(add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
 
 (evil-define-operator z-reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will

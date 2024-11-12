@@ -65,15 +65,13 @@
 ;; window layout & behavior:1 ends here
 
 ;; [[file:config.org::*window layout & behavior][window layout & behavior:2]]
-;; HACK :: do NOT enable for 'prog-mode', since we always have a slave split-window for compilation open.
-(add-hook! '(text-mode-hook
-             dired-mode-hook
+(add-hook! '(dired-mode-hook
+             text-mode-hook
              conf-mode-hook
              Info-mode-hook
              org-agenda-mode-hook
              magit-mode-hook)
-           #'global-visual-fill-column-mode)
-(global-display-fill-column-indicator-mode 0)
+           #'visual-fill-column-mode)
 
 (setq-default visual-fill-column-enable-sensible-window-split t
               visual-fill-column-center-text t
@@ -863,7 +861,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*transcription - whisper][transcription - whisper:1]]
-(add-hook! 'whisper-after-transcription-hook (z-reformat-to-prose (point-min) (point-max)))
+(add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
 
 (evil-define-operator z-reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
