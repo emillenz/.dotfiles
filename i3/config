@@ -148,7 +148,7 @@ mode "leader" {
         bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC
         bindsym $MOD+shift+s $SHCMD $SCROT; $ESC
 
-        bindsym $MOD+e $SHCMD emacsclient --eval="(emacs-everywhere)"; $ESC
+        bindsym $MOD+e $SHCMD emacsclient --eval "(emacs-everywhere)"; $ESC
 
         # copy browser link to clipboard and open it in mpv:
         bindsym $MOD+m $SHCMD mpv "$(xclip -out)"; $ESC
