@@ -79,7 +79,7 @@
               fill-column 100)
 ;; window layout & behavior:2 ends here
 
-;; [[file:config.org::*misc options][misc options:1]]
+;; [[file:config.org::*general options][general options:1]]
 (setq initial-scratch-message ""
       delete-by-moving-to-trash t
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (preserve for newinstalls)
@@ -102,7 +102,7 @@
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode 1)
-;; misc options:1 ends here
+;; general options:1 ends here
 
 ;; [[file:config.org::*leader (\[\[kbd:SPC\]\[SPC\]\], \[\[kbd:,\]\[,\]\])][leader ([[kbd:SPC][SPC]], [[kbd:,][,]]):1]]
 (setq doom-leader-key "SPC"
@@ -154,7 +154,7 @@
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
-      :nv "S-<return>" #'newline-and-indent ;; inverse of: `J'
+      :nv "S-<return>" #'newline-and-indent ;; inverse of: `J' and for some reason doesn't exist in vim by default.
       :nm "g/"  #'occur
 
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
@@ -196,17 +196,29 @@
 
 ;; [[file:config.org::*dired_][dired_:1]]
 (map! :map dired-mode-map :after dired
-      :nm "h" #'dired-up-directory
-      :nm "l" #'dired-open-file)
+      :m "h" #'dired-up-directory
+      :m "l" #'dired-open-file)
 
 (map! :after dired :map dired-mode-map :localleader
-      :nm "a" #'z-dired-archive)
+      :m "a" #'z-dired-archive)
 ;; dired_:1 ends here
 
 ;; [[file:config.org::*lispy(ville)][lispy(ville):1]]
 (after! lispy
   (setq lispy-key-theme '(lispy c-digits)))
 ;; lispy(ville):1 ends here
+
+;; [[file:config.org::*pdf view][pdf view:1]]
+(map! :after pdf-view :map pdf-view-mode-map
+      :n "u" #'pdf-view-scroll-down-or-previous-page ;; NOTE :: emacs has inverse notion of scrolling (scroll's the text, not the viewwindow)
+      :n "d" #'pdf-view-scroll-up-or-next-page
+      :n "p" #'pdf-view-fit-page-to-window
+      :n "w" #'pdf-view-fit-width-to-window
+      :n "<C-i>" #'evil-collection-pdf-jump-forward ;; also like in vim
+      :n "<tab>" #'pdf-outline) ;; org mode style :: using tab for "overview"
+
+(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
+;; pdf view:1 ends here
 
 ;; [[file:config.org::*editor][editor:1]]
 (evil-surround-mode 1)
@@ -237,7 +249,7 @@ This is sensible default behaviour, and integrates it into evil."
   (save-excursion
     (apply fn args)))
 
-(advice-add '+fold/previous :override nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
+(advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 
 (defadvice! z-default-last-register (fn &rest args)
   "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
@@ -267,18 +279,6 @@ This is sensible default behaviour, and integrates it into evil."
 ;; jumplist:1 ends here
 
 ;; [[file:config.org::*completion][completion:1]]
-(vertico-flat-mode 1)
-
-(after! company
-  (setq company-minimum-prefix-length 0
-        company-idle-delay nil ;; only show menu when explicitly activated
-        company-show-quick-access t
-        company-global-modes '(not
-                               help-mode
-                               eshell-mode
-                               org-mode
-                               vterm-mode)))
-
 (map! :after company :map company-mode-map
       :i "C-n" #'company-complete)
 
@@ -287,14 +287,14 @@ This is sensible default behaviour, and integrates it into evil."
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
       :n "j"   #'next-line-or-history-element
       :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer)
+      :n "<ret>" #'exit-minibuffer)
 
 (map! :after vertico :map vertico-flat-map
       :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
       :i "C-p" #'previous-line-or-history-element
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
       :n "j"   #'next-line-or-history-element
-      :n "RET" #'vertico-exit
+      :n "<ret>" #'vertico-exit
       :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
@@ -861,22 +861,39 @@ PARENT-PATH :: nil (used for recursion) "
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*transcription - whisper][transcription - whisper:1]]
-(add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
-
 (evil-define-operator z-reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
 speak more for it's self).  using the technical document convention of double space full stops for
 legibility."
   (save-excursion
-    (if (region-active-p)
-        (setq beg (region-beginning)
-              end (region-end)))
-    (when (and beg end)
       (downcase-region beg end)
-      (repunctuate-sentences t beg end))))
+      (repunctuate-sentences t beg end)))
+
+(add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
 ;; transcription - whisper:1 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (after! harpoon
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")) ;; HACK :: move it out of .config, since .config has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of .config (if it exists) instead of currently-opened harpoonfile).
+  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")) ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
 ;; harpoon:1 ends here
+
+;; [[file:config.org::*pdf view][pdf view:1]]
+(after! pdf-view
+  (setq pdf-view-continuous nil))
+;; pdf view:1 ends here
+
+;; [[file:config.org::*minibuffer completion :: vertico][minibuffer completion :: vertico:1]]
+(vertico-flat-mode 1)
+;; minibuffer completion :: vertico:1 ends here
+
+;; [[file:config.org::*autocomplete :: company][autocomplete :: company:1]]
+(after! company
+  (setq company-minimum-prefix-length 0
+        company-idle-delay nil ;; only show menu when explicitly activated
+        company-show-quick-access t
+        company-global-modes '(not
+                               help-mode
+                               eshell-mode
+                               org-mode
+                               vterm-mode)))
+;; autocomplete :: company:1 ends here

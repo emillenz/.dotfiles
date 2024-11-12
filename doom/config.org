@@ -122,7 +122,7 @@ explicitly do NOT enable for ::
               fill-column 100)
 #+end_src
 
-* misc options
+* general options
 - disable ~flycheck-mode~ by default ::  no annying mid code popups and suggestions (distractionfree coding!)  when i want to check the buffer, i can do so explicitly.
 #+begin_src elisp
 (setq initial-scratch-message ""
@@ -246,7 +246,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 
 #+begin_src elisp
 (map! :after evil
-      :nv "S-<return>" #'newline-and-indent ;; inverse of: `J'
+      :nv "S-<return>" #'newline-and-indent ;; inverse of: `J' and for some reason doesn't exist in vim by default.
       :nm "g/"  #'occur
 
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
@@ -293,11 +293,11 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 - create new files/dir's using `find-file' (inserts filetemplate properly)
 #+begin_src elisp
 (map! :map dired-mode-map :after dired
-      :nm "h" #'dired-up-directory
-      :nm "l" #'dired-open-file)
+      :m "h" #'dired-up-directory
+      :m "l" #'dired-open-file)
 
 (map! :after dired :map dired-mode-map :localleader
-      :nm "a" #'z-dired-archive)
+      :m "a" #'z-dired-archive)
 #+end_src
 
 ** lispy(ville)
@@ -307,7 +307,23 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   (setq lispy-key-theme '(lispy c-digits)))
 #+end_src
 
+** pdf view
+- more ergonomic mappings :: scroll pages without ctrl.  consistent with tmux, less, etc.
+#+begin_src elisp
+(map! :after pdf-view :map pdf-view-mode-map
+      :n "u" #'pdf-view-scroll-down-or-previous-page ;; NOTE :: emacs has inverse notion of scrolling (scroll's the text, not the viewwindow)
+      :n "d" #'pdf-view-scroll-up-or-next-page
+      :n "p" #'pdf-view-fit-page-to-window
+      :n "w" #'pdf-view-fit-width-to-window
+      :n "<C-i>" #'evil-collection-pdf-jump-forward ;; also like in vim
+      :n "<tab>" #'pdf-outline) ;; org mode style :: using tab for "overview"
+
+(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
+#+end_src
+
 * editor
+evil comes with powerful additions: [[~/.config/emacs/modules/editor/evil/README.org][evil readme]].  familiarize yourself with them and harness their power.
+one example is ~o~ <=> symbol motion, which incredibly convenient in code
 #+begin_src elisp
 (evil-surround-mode 1)
 (after! evil
@@ -337,7 +353,7 @@ This is sensible default behaviour, and integrates it into evil."
   (save-excursion
     (apply fn args)))
 
-(advice-add '+fold/previous :override nil) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
+(advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 
 (defadvice! z-default-last-register (fn &rest args)
   "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
@@ -370,28 +386,10 @@ This is sensible default behaviour, and integrates it into evil."
 #+end_src
 
 ** completion
-- disable completion menu by default ::
-  - i don't want company to show up and distract me when i already know exactly what i want.
-  - make use of it only when you don't know the exact symbol name / function signature, or when typing overly long symbol-names becomes tedious.
-  - this enforces more thoughtful coding, evaluating what the function actually does and let's you see what is really happening underneath.
-  - it actually makes you faster, since it removes the mental overhead and interruption that arises from the distracting completion menu, where you will choose the option from.  greatly improves overall typing speed.
-  - it makes coding more raw, distractionfree, and overall more enjoyeable
 - bindings :: use [[kbd:C-n][C-n]] for code completion, If you want evil's dabbrev based completion, use [[kbd:C-p][C-p]], which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use [[kbd:tab][tab]].
 - minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
 
 #+begin_src elisp
-(vertico-flat-mode 1)
-
-(after! company
-  (setq company-minimum-prefix-length 0
-        company-idle-delay nil ;; only show menu when explicitly activated
-        company-show-quick-access t
-        company-global-modes '(not
-                               help-mode
-                               eshell-mode
-                               org-mode
-                               vterm-mode)))
-
 (map! :after company :map company-mode-map
       :i "C-n" #'company-complete)
 
@@ -400,14 +398,14 @@ This is sensible default behaviour, and integrates it into evil."
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
       :n "j"   #'next-line-or-history-element
       :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer)
+      :n "<ret>" #'exit-minibuffer)
 
 (map! :after vertico :map vertico-flat-map
       :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
       :i "C-p" #'previous-line-or-history-element
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
       :n "j"   #'next-line-or-history-element
-      :n "RET" #'vertico-exit
+      :n "<ret>" #'vertico-exit
       :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
@@ -498,9 +496,6 @@ we automate this repetetive task using a snippets.
         (dired-get-marked-files nil nil))
   (revert-buffer))
 #+end_src
-
-* terminal
-we never spawn a terminal inside emacs (introduces additional complex layers, slowness, bad keybindings, etc...).  instead all we do is use ~async-shell-command~ and ~shell-command-on-region~.  if more is needed than that we should switch over to the proper shell anyway.
 
 * programming
 ** indentation
@@ -1145,24 +1140,53 @@ i always look up documentation/manuals within emacs.  (only if it's not sufficie
 
 * transcription - whisper
 we often formulate notes using transcription for speed and ergonomics.
+always use ~evil-define-operator~ for ~evil-mode~ integration when defining routines to act on text.
 #+begin_src elisp
-(add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
-
 (evil-define-operator z-reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
 speak more for it's self).  using the technical document convention of double space full stops for
 legibility."
   (save-excursion
-    (if (region-active-p)
-        (setq beg (region-beginning)
-              end (region-end)))
-    (when (and beg end)
       (downcase-region beg end)
-      (repunctuate-sentences t beg end))))
+      (repunctuate-sentences t beg end)))
+
+(add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
 #+end_src
 
 * harpoon
 #+begin_src elisp
 (after! harpoon
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")) ;; HACK :: move it out of .config, since .config has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of .config (if it exists) instead of currently-opened harpoonfile).
+  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")) ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
+#+end_src
+
+* pdf view
+#+begin_src elisp
+(after! pdf-view
+  (setq pdf-view-continuous nil))
+#+end_src
+
+* minibuffer completion :: vertico
+- i want a minimalist unobtrusive menu on the bottom of the frame, not a huge window popup disturbing my focus and workflow.
+- this is consistent with rofi theme (or dmenu if using that).
+#+begin_src elisp
+(vertico-flat-mode 1)
+#+end_src
+
+* autocomplete :: company
+- disable completion menu by default ::
+  - i don't want company to show up and distract me when i already know exactly what i want.
+  - make use of it only when you don't know the exact symbol name / function signature, or when typing overly long symbol-names becomes tedious.
+  - this enforces more thoughtful coding, evaluating what the function actually does and let's you see what is really happening underneath.
+  - it actually makes you faster, since it removes the mental overhead and interruption that arises from the distracting completion menu, where you will choose the option from.  greatly improves overall typing speed.
+  - it makes coding more raw, distractionfree, and overall more enjoyeable
+#+begin_src elisp
+(after! company
+  (setq company-minimum-prefix-length 0
+        company-idle-delay nil ;; only show menu when explicitly activated
+        company-show-quick-access t
+        company-global-modes '(not
+                               help-mode
+                               eshell-mode
+                               org-mode
+                               vterm-mode)))
 #+end_src
