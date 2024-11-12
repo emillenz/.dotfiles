@@ -137,7 +137,7 @@
 ;; [[file:config.org::*global navigation scheme][global navigation scheme:1]]
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
-      :nm "C-q"     #'evil-window-delete
+      :nm "C-q"     #'kill-buffer-and-window
       :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer

@@ -187,8 +187,9 @@ explicitly do NOT enable for ::
 
 ** global navigation scheme
 - follows the os-consistent keymap
-- splits :: we never manually create split-windows for buffers, prefer the full screen, full focus, no distractions - workflow.  (no multitasking, no clutter)
-  - when emacs creates splits we must handle them => minimal bindings for switching and closing splits: [[kbd:c-q, c-w][c-q, c-w]].  all you will ever need to manage buffers and windows, since if you have more than 2 windows side by side, you are screwed anyway and need to fix your setup.  hence it replaces all [[kbd:c-w][c-w]].
+- splits :: we never manually create split-windows for buffers.  we prefer the full screen, full focus, no distractions - workflow.  (no multitasking, no clutter)
+
+  however when emacs creates popup buffers (docs, compilation, etc.) in windows we must handle them.  using [[kbd:][c-w c-w, c-w c-q, :bd]] are just too many keypresses,  especially if we call it repeatedly.  since our window arrangement is only ever a single window or a vsplit, we can condendse all the bindings into just [[kbd:][c-w, c-q]].  they do all window-management.  (if we close a split, we kill the associated buffer, since we are done with it, in order to keep emacs fast and cleand up.)
 - these mappings are universal to all programs (shell, emacs, browser, i3) and highly frequently accessed (from any mode/file).
 - workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, harpoon, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
 - harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
@@ -200,7 +201,7 @@ explicitly do NOT enable for ::
 #+begin_src elisp
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
-      :nm "C-q"     #'evil-window-delete
+      :nm "C-q"     #'kill-buffer-and-window
       :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
