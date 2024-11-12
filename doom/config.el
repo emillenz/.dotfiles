@@ -209,13 +209,14 @@
 ;; lispy(ville):1 ends here
 
 ;; [[file:config.org::*pdf view][pdf view:1]]
-(map! :after pdf-view :map pdf-view-mode-map
+(map! :after (pdf-view pdf-history pdf-outline) :map pdf-view-mode-map
       :n "u" #'pdf-view-scroll-down-or-previous-page ;; NOTE :: emacs has inverse notion of scrolling (scroll's the text, not the viewwindow)
       :n "d" #'pdf-view-scroll-up-or-next-page
       :n "p" #'pdf-view-fit-page-to-window
       :n "w" #'pdf-view-fit-width-to-window
-      :n "<C-i>" #'evil-collection-pdf-jump-forward ;; also like in vim
-      :n "<tab>" #'pdf-outline) ;; org mode style :: using tab for "overview"
+      :n "i" #'evil-collection-pdf-jump-forward
+      :n "o" #'evil-collection-pdf-jump-backward
+      :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using tab
 
 (define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
 ;; pdf view:1 ends here
@@ -245,7 +246,9 @@ This is sensible default behaviour, and integrates it into evil."
 
 (defadvice! z-save-excursion (fn &rest args)
   "when modifying the buffer with one of these functions, do the edit and then  restore point to where it was originally."
-  :around '(query-replace-regexp query-replace +format:region)
+  :around '(query-replace-regexp
+            query-replace
+            +format:region)
   (save-excursion
     (apply fn args)))
 
@@ -287,14 +290,14 @@ This is sensible default behaviour, and integrates it into evil."
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
       :n "j"   #'next-line-or-history-element
       :n "/"   #'previous-matching-history-element
-      :n "<ret>" #'exit-minibuffer)
+      :n "<return>" #'exit-minibuffer) ;; sane default
 
 (map! :after vertico :map vertico-flat-map
       :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
       :i "C-p" #'previous-line-or-history-element
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
       :n "j"   #'next-line-or-history-element
-      :n "<ret>" #'vertico-exit
+      :n "<return>" #'vertico-exit ;; sane default
       :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
@@ -876,11 +879,6 @@ legibility."
 (after! harpoon
   (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")) ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
 ;; harpoon:1 ends here
-
-;; [[file:config.org::*pdf view][pdf view:1]]
-(after! pdf-view
-  (setq pdf-view-continuous nil))
-;; pdf view:1 ends here
 
 ;; [[file:config.org::*minibuffer completion :: vertico][minibuffer completion :: vertico:1]]
 (vertico-flat-mode 1)
