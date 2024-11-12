@@ -137,7 +137,7 @@
 ;; [[file:config.org::*global navigation scheme][global navigation scheme:1]]
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
-      :nm "C-q"     #'kill-buffer-and-window
+      :nm "C-q"     #'kill-buffer-and-window ;; dwim
       :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
@@ -210,12 +210,8 @@
 
 ;; [[file:config.org::*pdf view][pdf view:1]]
 (map! :after (pdf-view pdf-history pdf-outline) :map pdf-view-mode-map
-      :n "u" #'pdf-view-scroll-down-or-previous-page ;; NOTE :: emacs has inverse notion of scrolling (scroll's the text, not the viewwindow)
-      :n "d" #'pdf-view-scroll-up-or-next-page
       :n "p" #'pdf-view-fit-page-to-window
       :n "w" #'pdf-view-fit-width-to-window
-      :n "i" #'evil-collection-pdf-jump-forward
-      :n "o" #'evil-collection-pdf-jump-backward
       :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using tab
 
 (define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
@@ -328,8 +324,7 @@ This is sensible default behaviour, and integrates it into evil."
                                                   extensions)))
                                       '((("mkv" "webm" "mp4" "mp3") . "mpv")
                                         (("gif" "jpeg" "jpg" "png") . "nsxiv")
-                                        (("docx" "odt" "odf")       . "libreoffice")
-                                        (("epub" "pdf")             . "zathura")))
+                                        (("docx" "odt" "odf")       . "libreoffice")))
         dired-recursive-copies 'always
         dired-recursive-deletes 'always
         dired-no-confirm '(uncompress move copy)
@@ -390,8 +385,8 @@ This is sensible default behaviour, and integrates it into evil."
                             laas-mode
                             +org-pretty-mode
                             org-appear-mode))
-(setq-hook! 'org-mode-hook
-  warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
+
+(setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
 (setq org-use-property-inheritance t
       org-reverse-note-order t
