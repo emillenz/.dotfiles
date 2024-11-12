@@ -181,7 +181,7 @@
 ;; vim editing:1 ends here
 
 ;; [[file:config.org::*org_][org_:1]]
-(map! :localleader :map org-mode-map :after org
+(map! :map org-mode-map :localleader :after org
       "\\" #'org-latex-preview
       ","  #'org-ctrl-c-ctrl-c
       "z"  #'org-add-note
@@ -199,7 +199,7 @@
       :m "h" #'dired-up-directory
       :m "l" #'dired-open-file)
 
-(map! :after dired :map dired-mode-map :localleader
+(map! :map dired-mode-map :localleader :after dired
       :m "a" #'z-dired-archive)
 ;; dired_:1 ends here
 
@@ -209,10 +209,10 @@
 ;; lispy(ville):1 ends here
 
 ;; [[file:config.org::*pdf view][pdf view:1]]
-(map! :after (pdf-view pdf-history pdf-outline) :map pdf-view-mode-map
+(map! :map pdf-view-mode-map :after (pdf-view pdf-history pdf-outline)
       :n "p" #'pdf-view-fit-page-to-window
       :n "w" #'pdf-view-fit-width-to-window
-      :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using tab
+      :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using <tab> for "OVERVIEW"
 
 (define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
 ;; pdf view:1 ends here
@@ -278,7 +278,7 @@ This is sensible default behaviour, and integrates it into evil."
 ;; jumplist:1 ends here
 
 ;; [[file:config.org::*completion][completion:1]]
-(map! :after company :map company-mode-map
+(map! :map company-mode-map :after company
       :i "C-n" #'company-complete)
 
 (map! :map minibuffer-mode-map
@@ -288,7 +288,7 @@ This is sensible default behaviour, and integrates it into evil."
       :n "/"   #'previous-matching-history-element
       :n "<return>" #'exit-minibuffer) ;; sane default
 
-(map! :after vertico :map vertico-flat-map
+(map! :map vertico-flat-map :after vertico
       :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
       :i "C-p" #'previous-line-or-history-element
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
