@@ -137,7 +137,7 @@
 ;; [[file:config.org::*global navigation scheme][global navigation scheme:1]]
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
-      :nm "C-q"     #'kill-buffer-and-window ;; dwim
+      :nm "C-q"     #'evil-window-delete ;; dwim
       :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
@@ -154,7 +154,7 @@
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
-      :nv "S-<return>" #'newline-and-indent ;; inverse of: `J' and for some reason doesn't exist in vim by default.
+      :nv "S-<return>" #'newline-and-indent
       :nm "g/"  #'occur
 
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
@@ -463,7 +463,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 ;; [[file:config.org::*task states][task states:1]]
 ;; ! => save timestamp on statchange
-;; @ => save timestamp on statchange & add a note to the entry.
+;; @ => save timestamp on statchange & add note associated with change to LOG.
 (setq org-todo-keywords '((sequence
                            "[ ](t)"
                            "[@](e)"
@@ -493,7 +493,7 @@ This is sensible default behaviour, and integrates it into evil."
       org-todo-repeat-to-state "[ ]"
       org-log-redeadline 'time
       org-log-reschedule 'time
-      org-log-into-drawer "LOG") ;; more concise
+      org-log-into-drawer "LOG") ;; more concise & modern than: LOGBOOK
 
 (setq org-priority-highest 1
       org-priority-lowest 3)

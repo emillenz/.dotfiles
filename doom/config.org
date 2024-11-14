@@ -189,7 +189,7 @@ explicitly do NOT enable for ::
 - follows the os-consistent keymap
 - splits :: we never manually create split-windows for buffers.  we prefer the full screen, full focus, no distractions - workflow.  (no multitasking, no clutter)
 
-  however when emacs creates popup buffers (docs, compilation, etc.) in windows we must handle them.  using [[kbd:][c-w c-w, c-w c-q, :bd]] are just too many keypresses,  especially if we call it repeatedly.  since our window arrangement is only ever a single window or a vsplit, we can condendse all the bindings into just [[kbd:][c-w, c-q]].  they do all window-management.  (if we close a split, we kill the associated buffer, since we are done with it, in order to keep emacs fast and cleand up.)
+  however when emacs creates popup buffers (docs, compilation, etc.) in windows we must handle them.  using [[kbd:][c-w c-w, c-w c-q]] just too many keypresses,  especially if we call it repeatedly.  since our window arrangement is only ever a single window or a vsplit, we can condendse all the bindings into just [[kbd:][c-w, c-q]].  they do all window-management.
 - these mappings are universal to all programs (shell, emacs, browser, i3) and highly frequently accessed (from any mode/file).
 - workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, harpoon, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
 - harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
@@ -201,7 +201,7 @@ explicitly do NOT enable for ::
 #+begin_src elisp
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
-      :nm "C-q"     #'kill-buffer-and-window ;; dwim
+      :nm "C-q"     #'evil-window-delete ;; dwim
       :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
@@ -244,10 +244,11 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - readme: https://github.com/emacs-evil/evil-surround
 - occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
 - [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+- newline-and-indent:S-<return> :: inverse of: ~J~ and for some reason doesn't exist in vim by default.  this is really convenient to eg. function arguments onto newlines (hit ~W S-<return>~ successively).
 
 #+begin_src elisp
 (map! :after evil
-      :nv "S-<return>" #'newline-and-indent ;; inverse of: `J' and for some reason doesn't exist in vim by default.
+      :nv "S-<return>" #'newline-and-indent
       :nm "g/"  #'occur
 
       :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
@@ -320,8 +321,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 #+end_src
 
 * editor
-evil comes with powerful additions: [[~/.config/emacs/modules/editor/evil/README.org][evil readme]].  familiarize yourself with them and harness their power.
-one example is ~o~ <=> symbol motion, which incredibly convenient in code
+evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize yourself with them and harness their power.
 #+begin_src elisp
 (evil-surround-mode 1)
 (after! evil
@@ -704,10 +704,11 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
 ~[x]~: completed
 
-- we prompt for a note on the task when chaning state to either: on-hold, in-prog or delegated, since we want to leave a comment on how work should be resumed next time the task is being revisited (eg. page number of a book, who to check in with after delegating the task.)
+
+we prompt for a note on the task when chaning state to either: on-hold, in-prog or delegated, since we want to leave a comment on how work should be resumed next time the task is being revisited (eg. page number of a book, who to check in with after delegating the task, exercise that is to be worked on)
 #+begin_src elisp
 ;; ! => save timestamp on statchange
-;; @ => save timestamp on statchange & add a note to the entry.
+;; @ => save timestamp on statchange & add note associated with change to LOG.
 (setq org-todo-keywords '((sequence
                            "[ ](t)"
                            "[@](e)"
@@ -732,7 +733,6 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 #+end_src
 
 - Log to drawer: ~LOG~
-- Shorter & more sensible than default: ~LOGBOOK~
 - Make org-log messages more data orientated and functional.  (less verbose and literate, easier to parse)
 #+begin_src elisp
 (setq org-log-done 'time
@@ -740,7 +740,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
       org-todo-repeat-to-state "[ ]"
       org-log-redeadline 'time
       org-log-reschedule 'time
-      org-log-into-drawer "LOG") ;; more concise
+      org-log-into-drawer "LOG") ;; more concise & modern than: LOGBOOK
 
 (setq org-priority-highest 1
       org-priority-lowest 3)

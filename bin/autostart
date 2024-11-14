@@ -16,7 +16,7 @@ PROCESSES = [
         'emacs --daemon && emacsclient --reuse-frame',
         'firefox --new-window https://google.com --new-window https://chat.openai.com',
         'alacritty --command tmux new-session -A -s main',
-        "sudo xremap --watch=device #{ENV['HOME']}/.config/xremap/config.yml & disown",
+        "sudo xremap --watch device #{ENV['HOME']}/.config/xremap/config.yml & disown",
         'keepassxc',
         'playerctld',
         'unclutter',
