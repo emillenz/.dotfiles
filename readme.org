@@ -135,7 +135,7 @@ i'm very opinionated and have high standards regarding design process and the ph
 *** using workspaces
 - workstation apps :: assigned their own workspaces and keys
   - these are apps that you use frequently (statistically) and need hotkey access to (application switching)
-  - each assigned workspace is specific.   ex: having ~assistant~ in its own workspace even though it is accessed throught the browser.  )
+  - each assigned workspace is specific.
 - The idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remains the same.  (eg: vim instead of emacs)
 - these main apps have a dedicated open shortcut, all other apps are better to be opened via ~S-x~
 
@@ -186,21 +186,22 @@ The saying, "give 'em enough rope, and they'll likely hang themselves," holds tr
 - emacs can be thought of as a platform within which various elements of your workflow may settle, while being able to interlink them interactively.
 - reduced context-switching, many tools in one connected, coherent, interwoven keyboard-driven interface.  this integration is very efficient and consistent, since now any function can be reused in all tools (eg.  fuzzy finding, and doesn't have to be implemented in each separate program itself).  it greatly reduces the mental overhead needed to customize and extend the tools, since the context and language is always the same.  since these tools are text-centric, they align withthe single focus, no multitasking buffer wokflow philosophy.
   - editor
-    - technical documents
+    - technical documents :: latex & org
     - academic papers
     - code
     - notes
     - journaling
   - coding tools
-    - git interface
+    - git interface :: magit
     - manpages
     - diff
     - debugger
   - agenda
-  - emailclient
-  - todolist
-  - filemanager
+  - emailclient 
+  - todo-management :: org mode
+  - filemanager :: dired fast interactive text-based file manger
   - manpager
+  - pdfviewer :: vim navigation (marks, jumping etc), annotations, occur.
   - file/dir navigation & management: find-file, fuzzy-find, (book)marks, dired
     - the most efficient workflow for finding, opening and editing files on the os that i have ever developed.
 
@@ -226,9 +227,11 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
 ** webbrowser: firefox
 *** install & configure extensions manually
 - password manager
-- theming (lightn)
-- font (set to system wide font and don't allow custom fonts)
+- theming (light)
+- font set all font choices to the system wide font: iosevka comfy 10 and set: don't allow webpages to custom fonts.  that way it will always look uniform.
+
 *** useage
+- pin tabs that you visit frequently, such as [[https://chatgpt.com]] or [[https://spotify.com]].  this ensures that they are always opened/accessed using same hotkey Alt+<num>.  this is the analogon to tmux/harpoon.
 - bookmarks: name them hierarchically w keywords (syntax <=> org-mode-tags), ex: =cs:math:exercises=
   - quickly open website using bookmark searching
   - structured, easy to patternmatch (not having to put them into folders)
