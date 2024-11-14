@@ -15,7 +15,7 @@ set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $ROFI rofi -dmenu -no-custom -i -p find-file
 
-# no statusbar => using notifications to display volume change
+## no statusbar => using notifications to display volume change
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
@@ -24,6 +24,7 @@ set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "m
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
 set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection=clipboard'
+set $FONT Iosevka Comfy 10
 
 # AUTOSTART :: script
 exec $BIN/autostart &
@@ -31,27 +32,32 @@ exec $BIN/autostart &
 # OPTS
 workspace_auto_back_and_forth no
 workspace_layout tabbed
-# NO => to navigate cross-containers
+
+## NO => allow focus change across splits (containers)
 force_focus_wrapping no
+
 default_orientation horizontal
 default_border pixel 2
 hide_edge_borders smart
 title_align left
-font pango: Iosevka Comfy 10
+font pango: $FONT
 focus_on_window_activation focus
+## no icons :: useless bloat, focus all windows upon opening
+for_window [all] focus, title_window_icon no
 
-# KEYBINDINGS :: Mod1 <=> alt
+# KEYBINDINGS
+## mod1 = alt (ergonomic)
 set $MOD Mod1
 floating_modifier $MOD
-# Mod+button1: drag floating window
-# Mod+button2: resize floating window
 bindsym button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
-# disable mousewheel functionality :: no accidental window switching
+bindsym --whole-window $MOD+button1: drag floating window
+bindsym --whole-window $MOD+button2: resize floating window
+## disable mousewheel functionality :: no accidental window switching
 bindsym button4 nop
 bindsym button5 nop
 
-# for compatibility
+## for compatibility
 bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
 bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
 bindsym XF86Display           $SHCMD xrandr --auto
@@ -67,7 +73,7 @@ bindsym XF86AudioMute         $SHCMD $VOL_MUTE
 bindsym XF86AudioMicMute      $SHCMD $MIC_MUTE
 
 # MEDIA BINDINGS
-# keep hands on the keyborad => don't use (or have) XF86 keys
+## keep hands on the keyborad => don't use (or have) XF86 keys
 bindsym $MOD+9            $SHCMD $MIC_MUTE
 bindsym $MOD+0            $SHCMD $VOL_MUTE
 bindsym $MOD+minus        $SHCMD $VOL_DEC
@@ -77,67 +83,64 @@ bindsym $MOD+bracketleft  $SHCMD playerctl previous
 bindsym $MOD+backslash    $SHCMD playerctl play-pause
 
 # NAVIGATIONAL BINDINGS
-# use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side
-# n/p consistent with cycling {rofi, shell, emacs} completion menus
-bindsym $MOD+p         focus left
-bindsym $MOD+shift+p   move left
-bindsym $MOD+n         focus right
-bindsym $MOD+shift+n   move right
-bindsym $MOD+q         kill
-bindsym $MOD+b         $SHCMD rofi -show window
-bindsym $MOD+semicolon $SHCMD rofi -show drun
-bindsym $MOD+Tab       workspace back_and_forth
-bindsym $MOD+Return    move workspace to output next
+## n/p consistent with cycling {rofi, shell, emacs} completion menus
+## use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side.
+bindsym $MOD+p          focus left
+bindsym $MOD+shift+p    move left
+bindsym $MOD+n          focus right
+bindsym $MOD+shift+n    move right
+bindsym $MOD+q          kill
+bindsym $MOD+b          $SHCMD rofi -show window
+bindsym $MOD+semicolon  $SHCMD rofi -show drun
+bindsym $MOD+Return     move workspace to output next
+# using https://github. com/Cretezy/i3-back as daemon (in autostart)
+bindsym $MOD+Tab        [con_mark=_back] focus
 
-# WORKSPACES
-for_window [all] focus, title_window_icon no
+# MARKS
+## use mnemonic UPPER-CASE marks for our most used programs.  you can assign lowercase marks to any window.  (only if you switch to it frequently, otherwise just use $MOD+b)
+bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
+bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 
-# TERMINAL
-set $WS_TERMINAL "terminal"
-workspace $WS_TERMINAL output primary
-bindsym $MOD+t workspace $WS_TERMINAL
-bindsym $MOD+shift+t $SHCMD alacritty --command tmux new-session -A -s main
-for_window [class="Alacritty"] $MV $WS_TERMINAL, focus
+## TERMINAL
+set $TERMINAL "T"
+bindsym $MOD+t [con_mark=$TERMINAL] focus
+bindsym $MOD+shift+t mark $TERMINAL
+for_window [class="Alacritty"] mark $TERMINAL
 
-# READER :: EBOOKS, DOCUMENTS
-set $WS_READER "reader"
-workspace $WS_READER output primary
-bindsym $MOD+r workspace $WS_READER
-bindsym $MOD+shift+r $SHCMD zathura $HOME/Documents/$(fd '.' --extension pdf --extension epub --base-directory $HOME/Documents literature ethz/cs/s3 | $ROFI)
-for_window [class="Zathura"] $MV $WS_READER, focus
+## READER :: EBOOKS, DOCUMENTS
+set $READER "R"
+bindsym $MOD+r [con_mark=$READER] focus
+bindsym $MOD+shift+r mark $READER
+for_window [class="Zathura"] mark $READER
 
-# WEBBROWSER
-set $WS_WEB "web"
-workspace $WS_WEB output primary
-bindsym $MOD+w workspace $WS_WEB
-bindsym $MOD+shift+w $SHCMD firefox --new-window
-for_window [class="firefox"] $MV $WS_WEB, focus
+## WEBBROWSER
+set $WEB "W"
+bindsym $MOD+w [con_mark=$WEB] focus
+bindsym $MOD+shift+w mark $WEB
+for_window [class="firefox"] mark $WEB
 
-# EDITOR
-set $WS_EDITOR "editor"
-workspace $WS_EDITOR output primary
-bindsym $MOD+e workspace $WS_EDITOR
-bindsym $MOD+shift+e $SHCMD emacsclient --reuse-frame || emacs --daemon && emacsclient --reuse-frame
-for_window [class="Emacs"] $MV $WS_EDITOR, focus
+## EDITOR
+set $EDITOR "E"
+bindsym $MOD+e [con_mark=$EDITOR] focus
+bindsym $MOD+shift+e mark $EDITOR
+for_window [class="Emacs"] mark $EDITOR
 
-# MEDIA :: IMAGES, VIDEOS, AUDIO
-set $WS_MEDIA "media"
-workspace $WS_MEDIA output primary
-bindsym $MOD+m workspace $WS_MEDIA
-set $BASEDIR $HOME/Pictures
-bindsym $MOD+shift+m $SHCMD nsxiv --recursive $HOME/Pictures/$(fd '.' --type directory --base-directory $HOME/Pictures | $ROFI)
-for_window [class="mpv|Nsxiv"] $MV $WS_MEDIA, focus
+## VIDEO
+set $VIDEO "M"
+bindsym $MOD+v [con_mark=$MEDIA] focus
+bindsym $MOD+shift+v mark $MEDIA
+for_window [class="mpv"] mark $MEDIA
 
-# AI :: CHATBOT, AI-TOOLS
-set $WS_AI "ai"
-workspace $WS_AI output primary
-bindsym $MOD+a workspace $WS_AI
-bindsym $MOD+shift+a $SHCMD firefox --new-window https://chat.openai.com
-for_window [class="firefox" title="ChatGPT"] $MV $WS_AI, focus
+## IMAGES
+set $IMG "I"
+bindsym $MOD+i [con_mark=$IMG] focus
+bindsym $MOD+shift+i $IMG
+for_window [class="Nsxiv"] mark $IMG
 
-# LEADERMODE
-bindsym $MOD+space mode "leader"
-mode "leader" {
+# LEADER
+set $LEADER "<leader>"
+bindsym $MOD+space mode $LEADER
+mode $LEADER {
         bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
         bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
         bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
@@ -168,7 +171,7 @@ set $BORDER      #9f9f9f
 set $ACTIVE_BG   #c0deff
 set $URGENT_BG   #ff8f88
 
-# element               $border    $bg          $fg $mark $border (child)
+## element              $border    $bg          $fg $mark $border (child)
 client.focused          $ACTIVE_BG $ACTIVE_BG   $FG $FG   $ACTIVE_BG
 client.focused_inactive $BORDER    $MODELINE_BG $FG $FG   $BORDER
 client.unfocused        $BORDER    $MODELINE_BG $FG $FG   $BORDER
@@ -180,7 +183,7 @@ bar {
         mode hide
         # only show if explicitly activated using leader mode
         hidden_state hide
-        workspace_buttons yes
+        workspace_buttons no
         binding_mode_indicator yes
         modifier none
         tray_output primary
@@ -191,11 +194,11 @@ bar {
                 background $MODELINE_BG
                 statusline $FG
                 separator  $FG
-                #class             $border $bg          $fg
-                binding_mode       $BORDER $ACTIVE_BG   $FG
-                focused_workspace  $BORDER $ACTIVE_BG   $FG
-                active_workspace   $BORDER $MODELINE_BG $FG
-                inactive_workspace $BORDER $MODELINE_BG $FG
-                urgent_workspace   $BORDER $URGENT_BG   $FG
+                #class             $border      $bg          $fg
+                binding_mode       $MODELINE_BG $MODELINE_BG $MODELINE_BG
+                focused_workspace  $BORDER      $ACTIVE_BG   $FG
+                active_workspace   $BORDER      $MODELINE_BG $FG
+                inactive_workspace $BORDER      $MODELINE_BG $FG
+                urgent_workspace   $BORDER      $URGENT_BG   $FG
         }
 }
