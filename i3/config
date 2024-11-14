@@ -90,8 +90,7 @@ bindsym $MOD+Tab       workspace back_and_forth
 bindsym $MOD+Return    move workspace to output next
 
 # WORKSPACES
-for_window [urgent="latest"] focus
-for_window [all] focus , title_window_icon no
+for_window [all] focus, title_window_icon no
 
 # TERMINAL
 set $WS_TERMINAL "terminal"
@@ -112,7 +111,7 @@ set $WS_WEB "web"
 workspace $WS_WEB output primary
 bindsym $MOD+w workspace $WS_WEB
 bindsym $MOD+shift+w $SHCMD firefox --new-window
-for_window [class="Firefox"] $MV $WS_WEB, focus
+for_window [class="firefox"] $MV $WS_WEB, focus
 
 # EDITOR
 set $WS_EDITOR "editor"
@@ -127,14 +126,14 @@ workspace $WS_MEDIA output primary
 bindsym $MOD+m workspace $WS_MEDIA
 set $BASEDIR $HOME/Pictures
 bindsym $MOD+shift+m $SHCMD nsxiv --recursive $HOME/Pictures/$(fd '.' --type directory --base-directory $HOME/Pictures | $ROFI)
-for_window [class="mpv|nsxiv"] $MV $WS_MEDIA, focus
+for_window [class="mpv|Nsxiv"] $MV $WS_MEDIA, focus
 
 # AI :: CHATBOT, AI-TOOLS
 set $WS_AI "ai"
 workspace $WS_AI output primary
 bindsym $MOD+a workspace $WS_AI
 bindsym $MOD+shift+a $SHCMD firefox --new-window https://chat.openai.com
-for_window [class="Firefox" title="ChatGpt"] $MV $WS_AI, focus
+for_window [class="firefox" title="ChatGPT"] $MV $WS_AI, focus
 
 # LEADERMODE
 bindsym $MOD+space mode "leader"
