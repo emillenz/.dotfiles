@@ -852,10 +852,10 @@ PARENT-PATH :: nil (used for recursion) "
 
 ;; [[file:config.org::*devdocs][devdocs:1]]
 ;; unfortunately using cl-loop/mapcar/dolist don't work...
-(setq-hook! 'java-mode-hook devdocs-current-docs "openjdk~17")
-(setq-hook! 'ruby-mode-hook devdocs-current-docs "ruby~3.3")
+(setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
+(setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
-(setq-hook! 'c-mode-hook devdocs-current-docs "c")
+(setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*transcription - whisper][transcription - whisper:1]]

@@ -1131,10 +1131,10 @@ Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align ev
 i always look up documentation/manuals within emacs.  (only if it's not sufficient do i resort to the browser/chatgpt)
 #+begin_src elisp
 ;; unfortunately using cl-loop/mapcar/dolist don't work...
-(setq-hook! 'java-mode-hook devdocs-current-docs "openjdk~17")
-(setq-hook! 'ruby-mode-hook devdocs-current-docs "ruby~3.3")
+(setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
+(setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
-(setq-hook! 'c-mode-hook devdocs-current-docs "c")
+(setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 #+end_src
 
 * transcription - whisper
