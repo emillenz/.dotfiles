@@ -511,53 +511,6 @@ This is sensible default behaviour, and integrates it into evil."
       org-clock-into-drawer t)
 ;; clock:1 ends here
 
-;; [[file:config.org::*agenda][agenda:1]]
-(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
-
-(setq org-archive-location (--> nil
-                                (string-remove-prefix "~/" org-directory)
-                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
-      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
-                               (list (z-doct-journal-file)
-                                     (--> nil
-                                          (time-subtract (current-time) (days-to-time 1))
-                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
-      org-agenda-skip-scheduled-if-done t
-      ;; org-agenda-sticky t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-tags-column 0
-      org-agenda-block-separator ?─
-      org-agenda-breadcrumbs-separator "…"
-      org-agenda-compact-blocks nil
-      org-agenda-show-future-repeats nil
-      org-deadline-warning-days 3
-      org-agenda-time-grid nil
-      org-capture-use-agenda-date t)
-
-(defadvice! z-add-newline (fn &rest args)
-  "Separate dates in 'org-agenda' with newline."
-  :around #'org-agenda-format-date-aligned
-  (concat "\n" (apply fn args) ))
-;; agenda:1 ends here
-
-;; [[file:config.org::*agenda][agenda:2]]
-(setq org-agenda-todo-keyword-format "%-3s"
-      org-agenda-scheduled-leaders '(""
-                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
-      org-agenda-deadline-leaders '("─────"
-                                    ">> %1dd"
-                                    "<< %1dd")
-      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
-                                 (todo   . "%-20c%-7s%-7t")
-                                 (tags   . "%-20c%-7s%-7t")
-                                 (search . "%-20c%-7s%-7t")))
-;; agenda:2 ends here
-
-;; [[file:config.org::*org roam][org roam:1]]
-(setq org-roam-directory z-wiki-dir)
-;; org roam:1 ends here
-
 ;; [[file:config.org::*task states][task states:1]]
 ;; ! => save timestamp on statchange
 ;; @ => save timestamp on statchange & add note associated with change to LOG.
@@ -870,6 +823,53 @@ PARENT-PATH :: nil (used for recursion) "
                            :hook (lambda ()
                                    (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
 ;; capture templates:1 ends here
+
+;; [[file:config.org::*agenda][agenda:1]]
+(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
+
+(setq org-archive-location (--> nil
+                                (string-remove-prefix "~/" org-directory)
+                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
+      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
+                               (list (z-doct-journal-file)
+                                     (--> nil
+                                          (time-subtract (current-time) (days-to-time 1))
+                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-skip-scheduled-if-done t
+      ;; org-agenda-sticky t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-tags-column 0
+      org-agenda-block-separator ?─
+      org-agenda-breadcrumbs-separator "…"
+      org-agenda-compact-blocks nil
+      org-agenda-show-future-repeats nil
+      org-deadline-warning-days 3
+      org-agenda-time-grid nil
+      org-capture-use-agenda-date t)
+
+(defadvice! z-add-newline (fn &rest args)
+  "Separate dates in 'org-agenda' with newline."
+  :around #'org-agenda-format-date-aligned
+  (concat "\n" (apply fn args) ))
+;; agenda:1 ends here
+
+;; [[file:config.org::*agenda][agenda:2]]
+(setq org-agenda-todo-keyword-format "%-3s"
+      org-agenda-scheduled-leaders '(""
+                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
+      org-agenda-deadline-leaders '("─────"
+                                    ">> %1dd"
+                                    "<< %1dd")
+      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
+                                 (todo   . "%-20c%-7s%-7t")
+                                 (tags   . "%-20c%-7s%-7t")
+                                 (search . "%-20c%-7s%-7t")))
+;; agenda:2 ends here
+
+;; [[file:config.org::*org roam][org roam:1]]
+(setq org-roam-directory z-wiki-dir)
+;; org roam:1 ends here
 
 ;; [[file:config.org::*end org][end org:1]]
 )

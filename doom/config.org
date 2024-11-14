@@ -679,62 +679,6 @@ in short, 8-char indents make things easier to read, and have the added benefit 
       org-clock-into-drawer t)
 #+end_src
 
-** agenda
-- multi-day-todo-events: add multiple timestamps on the same line => same task shows scheduled on different days.  ex:
-- track which university lectures you have watched & reviewed.  => even if they are spread out onto multiple days => log all completions / review-notes under the same task.
-
-#+begin_src elisp
-(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
-
-(setq org-archive-location (--> nil
-                                (string-remove-prefix "~/" org-directory)
-                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
-      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
-                               (list (z-doct-journal-file)
-                                     (--> nil
-                                          (time-subtract (current-time) (days-to-time 1))
-                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
-      org-agenda-skip-scheduled-if-done t
-      ;; org-agenda-sticky t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-tags-column 0
-      org-agenda-block-separator ?─
-      org-agenda-breadcrumbs-separator "…"
-      org-agenda-compact-blocks nil
-      org-agenda-show-future-repeats nil
-      org-deadline-warning-days 3
-      org-agenda-time-grid nil
-      org-capture-use-agenda-date t)
-
-(defadvice! z-add-newline (fn &rest args)
-  "Separate dates in 'org-agenda' with newline."
-  :around #'org-agenda-format-date-aligned
-  (concat "\n" (apply fn args) ))
-#+end_src
-
-Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align everything into columns & group items.
-+ achieve a nce and consistent readeable data-orinetated view
-+ all task-states have the same length, otherwise there is no task-keyword alignment.
-+ Set more concise & informing ~deadline~ & ~scheduled~ strings
-#+begin_src elisp
-(setq org-agenda-todo-keyword-format "%-3s"
-      org-agenda-scheduled-leaders '(""
-                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
-      org-agenda-deadline-leaders '("─────"
-                                    ">> %1dd"
-                                    "<< %1dd")
-      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
-                                 (todo   . "%-20c%-7s%-7t")
-                                 (tags   . "%-20c%-7s%-7t")
-                                 (search . "%-20c%-7s%-7t")))
-#+end_src
-
-** org roam
-#+begin_src elisp
-(setq org-roam-directory z-wiki-dir)
-#+end_src
-
 ** task states
 - these are task states are used for personal daily organization & studying at university (keeping track of lectures, assignments, events)
 - using symbols instead of words to represent states => less clutter, more concise, readeable & structured.
@@ -1110,6 +1054,62 @@ PARENT-PATH :: nil (used for recursion) "
                            :template ("%?")
                            :hook (lambda ()
                                    (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
+#+end_src
+
+** agenda
+- multi-day-todo-events: add multiple timestamps on the same line => same task shows scheduled on different days.  ex:
+- track which university lectures you have watched & reviewed.  => even if they are spread out onto multiple days => log all completions / review-notes under the same task.
+
+#+begin_src elisp
+(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
+
+(setq org-archive-location (--> nil
+                                (string-remove-prefix "~/" org-directory)
+                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
+      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
+                               (list (z-doct-journal-file)
+                                     (--> nil
+                                          (time-subtract (current-time) (days-to-time 1))
+                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-skip-scheduled-if-done t
+      ;; org-agenda-sticky t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-tags-column 0
+      org-agenda-block-separator ?─
+      org-agenda-breadcrumbs-separator "…"
+      org-agenda-compact-blocks nil
+      org-agenda-show-future-repeats nil
+      org-deadline-warning-days 3
+      org-agenda-time-grid nil
+      org-capture-use-agenda-date t)
+
+(defadvice! z-add-newline (fn &rest args)
+  "Separate dates in 'org-agenda' with newline."
+  :around #'org-agenda-format-date-aligned
+  (concat "\n" (apply fn args) ))
+#+end_src
+
+Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align everything into columns & group items.
++ achieve a nce and consistent readeable data-orinetated view
++ all task-states have the same length, otherwise there is no task-keyword alignment.
++ Set more concise & informing ~deadline~ & ~scheduled~ strings
+#+begin_src elisp
+(setq org-agenda-todo-keyword-format "%-3s"
+      org-agenda-scheduled-leaders '(""
+                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
+      org-agenda-deadline-leaders '("─────"
+                                    ">> %1dd"
+                                    "<< %1dd")
+      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
+                                 (todo   . "%-20c%-7s%-7t")
+                                 (tags   . "%-20c%-7s%-7t")
+                                 (search . "%-20c%-7s%-7t")))
+#+end_src
+
+** org roam
+#+begin_src elisp
+(setq org-roam-directory z-wiki-dir)
 #+end_src
 
 ** end org
