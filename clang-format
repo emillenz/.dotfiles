@@ -5,9 +5,19 @@
 # date:   2024-05-15
 # notes:
 # - put this file into project root
+# - this is optimized for 8 space indentation and readability.
 # ---
 
+BasedOnStyle: LLVM
 IndentWidth: 8
+ContinuationIndentWidth: 8
+ColumnLimit: 100
 AllowAllParametersOfDeclarationOnNextLine: false
-BinPackArguments: false
 BinPackParameters: false
+BinPackArguments: false
+BreakBeforeBraces: Attach
+BreakConstructorInitializers: AfterColon
+AlwaysBreakAfterDefinitionReturnType: None
+SpaceBeforeParens: ControlStatements
+DerivePointerAlignment: false
+PointerAlignment: Left
