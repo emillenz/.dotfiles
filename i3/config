@@ -4,7 +4,7 @@
 # date:   2023-05-15
 # info:
 #   - the config is full of overhead reducing implementations, like: unmuting when increasing the volume, instead of introducing another shortcut to unmute the volume.  doing changes in system (eg. volume change / internet connection change) via notifications, so  we can disable the statusbar for a more focused workflow.
-#   - get window title & class information using: `xprop`
+#   - get window title & class information using: `xprop` to assign it to workspaces.
 #   - manual: https://i3wm.org/docs/userguide.html
 # ---
 
@@ -16,14 +16,14 @@ set $SHCMD exec --no-startup-id
 set $ROFI rofi -dmenu -no-custom -i -p find-file
 
 # no statusbar => using notifications to display volume change
-set $VOL_INC pamixer --unmute --increase=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
-set $VOL_DEC pamixer --unmute --decrease=5 && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
-set $VOL_MUTE pamixer --toggle-mute && dunstify --replace=69 "vol: $(pamixer --get-volume-human)"
-set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace=69 "mic-mute: $(pamixer --default-source --get-mute)"
+set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
+set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
+set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
+set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
 
-set $SYS_SLEEP i3lock --color=ffffff && systemctl suspend
+set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
-set $SCROT scrot --file="$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec='dunstify "screenshot" "$f" && echo $f | xclip -selection=clipboard'
+set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection=clipboard'
 
 # AUTOSTART :: script
 exec $BIN/autostart &
@@ -98,43 +98,43 @@ set $WS_TERMINAL "terminal"
 workspace $WS_TERMINAL output primary
 bindsym $MOD+t workspace $WS_TERMINAL
 bindsym $MOD+shift+t $SHCMD alacritty --command tmux new-session -A -s main
-for_window [class="(?i)alacritty"] $MV $WS_TERMINAL, focus
+for_window [class="Alacritty"] $MV $WS_TERMINAL, focus
 
 # READER :: EBOOKS, DOCUMENTS
 set $WS_READER "reader"
 workspace $WS_READER output primary
 bindsym $MOD+r workspace $WS_READER
-bindsym $MOD+shift+r $SHCMD zathura $HOME/Documents/$(fd '.' --extension=pdf --extension=epub --base-directory=$HOME/Documents literature ethz/cs/s3 | $ROFI)
-for_window [class="(?i)zathura"] $MV $WS_READER, focus
+bindsym $MOD+shift+r $SHCMD zathura $HOME/Documents/$(fd '.' --extension pdf --extension epub --base-directory $HOME/Documents literature ethz/cs/s3 | $ROFI)
+for_window [class="Zathura"] $MV $WS_READER, focus
 
 # WEBBROWSER
 set $WS_WEB "web"
 workspace $WS_WEB output primary
 bindsym $MOD+w workspace $WS_WEB
 bindsym $MOD+shift+w $SHCMD firefox --new-window
-for_window [class="(?i)firefox"] $MV $WS_WEB, focus
+for_window [class="Firefox"] $MV $WS_WEB, focus
 
 # EDITOR
 set $WS_EDITOR "editor"
 workspace $WS_EDITOR output primary
 bindsym $MOD+e workspace $WS_EDITOR
 bindsym $MOD+shift+e $SHCMD emacsclient --reuse-frame || emacs --daemon && emacsclient --reuse-frame
-for_window [class="(?i)emacs"] $MV $WS_EDITOR, focus
+for_window [class="Emacs"] $MV $WS_EDITOR, focus
 
 # MEDIA :: IMAGES, VIDEOS, AUDIO
 set $WS_MEDIA "media"
 workspace $WS_MEDIA output primary
 bindsym $MOD+m workspace $WS_MEDIA
 set $BASEDIR $HOME/Pictures
-bindsym $MOD+shift+m $SHCMD nsxiv --recursive $HOME/Pictures/$(fd '.' --type=directory --base-directory=$HOME/Pictures | $ROFI)
-for_window [class="(?i)mpv|nsxiv"] $MV $WS_MEDIA, focus
+bindsym $MOD+shift+m $SHCMD nsxiv --recursive $HOME/Pictures/$(fd '.' --type directory --base-directory $HOME/Pictures | $ROFI)
+for_window [class="mpv|nsxiv"] $MV $WS_MEDIA, focus
 
 # AI :: CHATBOT, AI-TOOLS
 set $WS_AI "ai"
 workspace $WS_AI output primary
 bindsym $MOD+a workspace $WS_AI
 bindsym $MOD+shift+a $SHCMD firefox --new-window https://chat.openai.com
-for_window [class="(?i)firefox" title="(?i)chatgpt"] $MV $WS_AI, focus
+for_window [class="Firefox" title="ChatGpt"] $MV $WS_AI, focus
 
 # LEADERMODE
 bindsym $MOD+space mode "leader"
@@ -142,7 +142,7 @@ mode "leader" {
         bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
         bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
         bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
-        bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory=$HOME/.screenlayout | $ROFI); $ESC
+        bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | $ROFI); $ESC
 
         # NOTE :: after screenshot is taken, the path is written to clipboard (overheadfree)
         bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC
@@ -156,7 +156,7 @@ mode "leader" {
         bindsym $MOD+q $SHCMD $SYS_SLEEP; $ESC
         bindsym $MOD+o $SHCMD $SYS_SCREENOFF; $ESC
 
-        bindsym $MOD+f $SHCMD zathura $HOME/$(fd '.' --extension=pdf --extension=epub --base-directory=$HOME Documents/literature Documents/ethz/cs/s3 Downloads | $ROFI); $ESC
+        bindsym $MOD+f $SHCMD zathura $HOME/$(fd '.' --extension pdf --extension epub --base-directory $HOME Documents/literature Documents/ethz/cs/s3 Downloads | $ROFI); $ESC
 
         bindsym Escape mode "default"
 }
