@@ -21,8 +21,7 @@
       user-mail-address "emillenz@protonmail.com")
 #+end_src
 
-* ui
-** modus-theme
+* modus-theme
 - hack :: needs use-package
 #+begin_src elisp
 (use-package! modus-themes
@@ -42,7 +41,7 @@
   (setq doom-theme 'modus-operandi))
 #+end_src
 
-** font
+* font
 - emacs gui fontsizing is weirdly different to global (wm/terminal, gtk, etc.) fontsize.  emacs 13 <=> global 10.
 #+begin_src elisp
 (setq doom-font                (font-spec :family "Iosevka Comfy" :size 13)
@@ -55,7 +54,7 @@
       :n "C-0" #'doom/reset-font-size)
 #+end_src
 
-** modeline
+* modeline
 - no overlapping funcionality (time & date is on my physical wrist watch, don't need it in any program (also not wm)).
 - very minimal, only displaying what's needed (using (:modeline +light))
 #+begin_src elisp
@@ -65,7 +64,7 @@
       +modeline-bar-width nil) ;; visual clutter => off
 #+end_src
 
-** window layout & behavior
+* window layout & behavior
 - vertical split always :: constrain buffers to consistently, and always vertically split (side by side).  vertical splits don't restrict the visible area in the buffer and use the screen realestate efficiently since the right side of the master buffer is plain anyways (linewrap at 100).
   - slave/master window :: we constrain all slave buffers (buffer name starting with *) to a single vertically split window to the right of the master window.  the slave window is for side-by-side viewing of documentation and compilation outputs, etc.  we explicitly don't allow more than 2 windows in the frame, since any more than that are cluttering the screen, distracting, increase the navigational overhead (instead of simple back and forth).  the slave window never gets focus once being created (or a new buffer placed inside of it), since it is mostly just to read from.  the master window is never split.
 - retionale :: we line-wrap every buffer at 100 for better readability, and only ever edit/view a SINGLE buffer at a time, hence vertical splits use screen realestate effectivly.
@@ -113,6 +112,7 @@ explicitly do NOT enable for ::
              conf-mode-hook
              Info-mode-hook
              org-agenda-mode-hook
+             nov-mode-hook
              magit-mode-hook)
            #'visual-fill-column-mode)
 
@@ -188,32 +188,64 @@ explicitly do NOT enable for ::
 ** global navigation scheme
 - follows the os-consistent keymap
 - splits :: we never manually create split-windows for buffers.  we prefer the full screen, full focus, no distractions - workflow.  (no multitasking, no clutter)
-
   however when emacs creates popup buffers (docs, compilation, etc.) in windows we must handle them.  using [[kbd:][c-w c-w, c-w c-q]] just too many keypresses,  especially if we call it repeatedly.  since our window arrangement is only ever a single window or a vsplit, we can condendse all the bindings into just [[kbd:][c-w, c-q]].  they do all window-management.
 - these mappings are universal to all programs (shell, emacs, browser, i3) and highly frequently accessed (from any mode/file).
 - workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, harpoon, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
-- harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
-- global marks (experimental?) :: This is a vim native option to harpoon (downside: not per project persistent).  When inside a project, mark the files you find yourself alternating between with global-marks, and jump to the exact file you want directly.
-  - (Vim's normal global-mark behaviour is to jump to the originally marked posion in that buffer.  This is the wrong behaviour because when we left the buffer we have changed the cursor position to some other place.  We override ~evil-mark-line~ binding, since it is redundant (for regular marks, use ~evil-goto-mark~ binding instead).)
 - we generally don't really delete buffers unless they slow down emacs (then kill them all to reset).  since we usually access the same buffer's repeatedly we only have to open them once.  same as we don't close tmux windows or as we don't jump in and out of emacs on the commandline (like vim users do) or same as we don't shutdown the computer (just sleep).  its all about preserving the working state between sessions, in order to minimize the setuptimes.  (also why we use harpoon instead of vim global marks, since it is persistent inbetween sessions).
-- m :: for harpoon marks, superset of vim's mark command: `m'.
 
 #+begin_src elisp
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
       :nm "C-q"     #'evil-window-delete ;; dwim
-      :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
+      :nm "C-s"     #'basic-save-buffer ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
-      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer
-      :nm "M-1"     #'harpoon-go-to-1
-      :nm "M-2"     #'harpoon-go-to-2
-      :nm "M-3"     #'harpoon-go-to-3
-      :nm "M-4"     #'harpoon-go-to-4
-      :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
+      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer)
+#+end_src
 
-(map! :leader
-      "m" #'harpoon-toggle-file) ;; for deleting and reordering harpoon candidates
+** global marks
+mark the files you find yourself alternating between with global-marks (if across projects), and jump to the exact file you want directly via the mark.
+we remap ~evil-goto-mark~ since you should use ~evil-goto-mark-line~ instead anyways.
+
+Vim's normal global-mark behaviour is to jump to the originally marked posion in that buffer.  This is the wrong behaviour because when we left the buffer we have changed the cursor position to some other place.  We override ~evil-mark-line~ binding, since it is redundant (for regular marks, use ~evil-goto-mark~ binding instead).
+#+begin_src elisp
+(define-key! [remap evil-goto-mark] #'evil-goto-mark-buffer)
+
+(evil-define-command z-evil-goto-mark-buffer (char &optional noerror)
+  "Go to the global-marker's buffer specified by CHAR.
+
+This differs from `evil-goto-marker' in that it does not actually go to the marked position, which
+is undesired, since we use this for switching inbetween buffers and don't want our position to get
+reset each time.
+
+for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
+  :repeat nil
+  :jump t
+  (interactive (list (read-char)))
+  (let ((marker (evil-get-marker (upcase char))))
+    (cond
+     ((markerp marker)
+      (switch-to-buffer (marker-buffer marker)))
+     ((numberp marker) nil)             ;; already in buffer
+     ((consp marker)
+      (when (or (find-buffer-visiting (car marker))
+                (find-file (car marker)))))
+     ((not noerror)
+      (user-error "global marker `%c' is not set" (upcase char))))))
+
+;; make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
+  (after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (markerp (cdr entry))
+        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
+                            (marker-position (cdr entry)))))))
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
 #+end_src
 
 ** vim editing
@@ -248,11 +280,9 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 
 #+begin_src elisp
 (map! :after evil
+      :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
       :nv "S-<return>" #'newline-and-indent
       :nm "g/"  #'occur
-
-      :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
-      :nv ")"   #'sp-down-sexp
 
       :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
       :nv "-"   #'evil-numbers/dec-at-pt
@@ -274,34 +304,41 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 #+end_src
 
-** org_
+** completion
+- bindings :: use [[kbd:C-n][C-n]] for code completion, If you want evil's dabbrev based completion, use [[kbd:C-p][C-p]], which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use [[kbd:tab][tab]].
+- minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
+- minibuffer history :: navigate it in normal mode ~j, k, <return>, /~
+
 #+begin_src elisp
-(map! :map org-mode-map :localleader :after org
-      "\\" #'org-latex-preview
-      ","  #'org-ctrl-c-ctrl-c
-      "z"  #'org-add-note
-      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
-                                           (call-interactively #'org-toggle-checkbox))))
+(map! :map company-mode-map :after company
+      :i "C-n" #'company-complete)
 
-;; HACK :: make tab work like in prog-mode: expanding snippets and jumping fields (org overrides it to folding, even in insert-mode)
-(map! :map yas-keymap :after org
-      :i "<tab>" #'yas-next-field
-      :i "<backtab>" #'yas-prev-field)
+(map! :map minibuffer-mode-map
+      :i "C-n" #'completion-at-point
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "/"   #'previous-matching-history-element
+      :n "<return>" #'exit-minibuffer) ;; sane default
+
+(map! :map vertico-flat-map :after vertico
+      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
+      :i "C-p" #'previous-line-or-history-element
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "<return>" #'vertico-exit ;; sane default
+      :n "/"   #'previous-matching-history-element)
+
+(map! :map evil-ex-search-keymap :after evil
+      :n "j" #'next-line-or-history-element
+      :n "k" #'previous-line-or-history-element
+      :n "/" #'previous-matching-history-element
+      :n "<return>" #'exit-minibuffer)
+
+(map! :map vertico-map
+      :im "C-w" #'vertico-directory-delete-word
+      :im "C-d" #'consult-dir
+      :im "C-f" #'consult-dir-jump-file)
 #+end_src
-
-** dired_
-- filemanagers :: avoid using integrated filemanagers (such as dired / ranger / lf) whenever possible replace them with shell commands and fuzzy-finding (in project/root/recentfiles)
-- in most cases it is more extensible and faster using tools such as emacs find-file in combination with fuzzy finding and using global bookmarks for frequently used projects/files.
-- create new files/dir's using `find-file' (inserts filetemplate properly)
-#+begin_src elisp
-(map! :map dired-mode-map :after dired
-      :m "h" #'dired-up-directory
-      :m "l" #'dired-open-file)
-
-(map! :map dired-mode-map :localleader :after dired
-      :m "a" #'z-dired-archive)
-#+end_src
-
 ** lispy(ville)
 - use only lispyville normal mode enhancements for lisp-modes
 #+begin_src elisp
@@ -309,18 +346,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   (setq lispy-key-theme '(lispy c-digits)))
 #+end_src
 
-** pdf view
-- annotations/selections :: use the mouse.
-#+begin_src elisp
-(map! :map pdf-view-mode-map :after (pdf-view pdf-history pdf-outline)
-      :n "p" #'pdf-view-fit-page-to-window
-      :n "w" #'pdf-view-fit-width-to-window
-      :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using <tab> for "OVERVIEW"
-
-(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
-#+end_src
-
-* editor
+* evil-mode
 evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize yourself with them and harness their power.
 #+begin_src elisp
 (evil-surround-mode 1)
@@ -333,6 +359,13 @@ evil comes with powerful additions and bindings that are to be discovered: [[~/.
         evil-org-use-additional-insert nil)
   (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin))
   (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
+
+  (defadvice! z-default-last-register (fn &rest args)
+    "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
+  which is the sane default behaviour allowing you to: record a macro with `qq' and immediately call it with `@@', instead of getting an error and having to retype `@q' again."
+    :after #'evil-record-macro
+    (when (not evil-last-register)
+      (setq evil-last-register evil-last-recorded-register)))
 
   (defadvice! z-update-evil-search-reg (fn &rest args)
     "Update evil search register after jumping to a line with
@@ -355,12 +388,20 @@ This is sensible default behaviour, and integrates it into evil."
 
 (advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 
-(defadvice! z-default-last-register (fn &rest args)
-  "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
-  which is the sane default behaviour allowing you to: record a macro with `qq' and immediately call it with `@@', instead of getting an error and having to retype `@q' again."
-  :after #'evil-record-macro
-  (when (not evil-last-register)
-    (setq evil-last-register evil-last-recorded-register)))
+;; make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (markerp (cdr entry))
+        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
+                            (marker-position (cdr entry)))))))
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+
 #+end_src
 
 ** jumplist
@@ -385,78 +426,8 @@ This is sensible default behaviour, and integrates it into evil."
   (evil-remove-command-properties cmd :jump))
 #+end_src
 
-** completion
-- bindings :: use [[kbd:C-n][C-n]] for code completion, If you want evil's dabbrev based completion, use [[kbd:C-p][C-p]], which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use [[kbd:tab][tab]].
-- minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
-
-#+begin_src elisp
-(map! :map company-mode-map :after company
-      :i "C-n" #'company-complete)
-
-(map! :map minibuffer-mode-map
-      :i "C-n" #'completion-at-point
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "<return>" #'exit-minibuffer) ;; sane default
-
-(map! :map vertico-flat-map :after vertico
-      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
-      :i "C-p" #'previous-line-or-history-element
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
-      :n "<return>" #'vertico-exit ;; sane default
-      :n "/"   #'previous-matching-history-element)
-
-(map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word
-      :im "C-d" #'consult-dir
-      :im "C-f" #'consult-dir-jump-file)
-#+end_src
-
-** autoformatting
-disable autoformatting for a more distractionless coding workflow.  if you need to format the file, you can do so, but only when you explicitly need it (via binding).  i find that autoformatters tend to get in the way, since they throw expressions out of place once i save the buffer.  most times i want to format the code syntactically (eg. splitting math expressions on multiple lines at the operators) and a formatter does not allow this and becomes an annoyance.
-(especially on older PC's or larger files they cause performance delays and make UX worse)
-
-** snippets
-- nested snippets ared good
-#+begin_src elisp
-(setq yas-triggers-in-field t)
-#+end_src
-
-** file templates
-in each new file systematically insert heading metadata (as comments) with the following template
-- append more neccessary info if needed (ex: ~dependencies:~)
-#+begin_example
-# ---
-# title:  file metadata
-# author: emil lenz
-# email:  emillenz@protonmail.com
-# date:   2024-01-06
-# notes:
-# - outlines file-metadata template, to be inserted at top of every file systematically.
-# ---
-#+end_example
-
-- title :: full title of document.
-- author :: document creator/"owner".
-- email :: author's email
-- for contacting him with question's / reaching out.
-- date :: date of file creation, iso8601 format.
-- track your coding/writing progress over the years and just generally it is important to document the timing of things, to analyze/order/reconstruct them.
-- info :: short document description/summary, think of it as a docstring for the file with this the reader should know what the document is about in one line.
-
-we automate this repetetive task using a snippets.
-#+begin_src elisp
-(set-file-templates!
- '(org-mode :trigger "header")
- '(prog-mode :trigger "header")
- '(makefile-gmake-mode :ignore t))
-#+end_src
-
-
 * dired
-- always open media files externally (emacs bad at graphical stuff)
+- open most non-text filetypes files externally.
 #+begin_src elisp
 (after! dired
   (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
@@ -473,6 +444,19 @@ we automate this repetetive task using a snippets.
         dired-recursive-deletes 'always
         dired-no-confirm '(uncompress move copy)
         dired-omit-files "^\\..*$"))
+#+end_src
+
+** keybindings
+- filemanagers :: avoid using integrated filemanagers (such as dired / ranger / lf) whenever possible replace them with shell commands and fuzzy-finding (in project/root/recentfiles)
+- in most cases it is more extensible and faster using tools such as emacs find-file in combination with fuzzy finding and using global bookmarks for frequently used projects/files.
+- create new files/dir's using `find-file' (inserts filetemplate properly)
+#+begin_src elisp
+(map! :map dired-mode-map :after dired
+      :m "h" #'dired-up-directory
+      :m "l" #'dired-open-file)
+
+(map! :map dired-mode-map :localleader :after dired
+      :m "a" #'z-dired-archive)
 #+end_src
 
 ** archive file
@@ -496,8 +480,7 @@ we automate this repetetive task using a snippets.
   (revert-buffer))
 #+end_src
 
-* programming
-** indentation
+* indentation
 - formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
 - we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
 - org indentation :: keep nesting org-headlines to a minimum (visually enforce it using 8-space indents)
@@ -526,7 +509,7 @@ we automate this repetetive task using a snippets.
   ruby-indent-level z-indent-width)
 #+end_src
 
-*** rationale
+** rationale
 a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
 
 #+begin_quote
@@ -545,7 +528,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 - consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
 - using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
 
-* begin org
+* org
 #+begin_src elisp
 (after! org
 #+end_src
@@ -618,29 +601,34 @@ in short, 8-char indents make things easier to read, and have the added benefit 
                                       ("a." . "a)")
                                       ("1." . "1)")
                                       ("1)" . "a)"))
-      org-blank-before-new-entry '((heading . always)
+      org-blank-before-new-entry '((heading . nil)
                                    (plain-list-item . nil))
       org-src-ask-before-returning-to-edit-buffer nil)
 
 (defadvice! z-insert-newline-above (fn &rest args)
+  "pad newly inserted heading with newline unless is todo-item.
+
+  since i often have todolists , where i don't want the newlines.  newlines are for headings that have a body of text."
   :after #'+org/insert-item-below
-  (when (org-at-heading-p)
+  (when (and (org-at-heading-p)
+             (not (org-entry-is-todo-p)))
     (+evil/insert-newline-above 1)))
 
 (defadvice! z-insert-newline-below (fn &rest args)
   :after #'+org/insert-item-above
-  (when (org-at-heading-p)
+  (when (and (org-at-heading-p)
+             (not (org-entry-is-todo-p)))
     (+evil/insert-newline-below 1)))
 #+end_src
 
 ** symbols
-- use icons to enhance ui readability (has nothing to do with bloat, this is still editeable plaintext (utf8) but greatly improves readability at a glance)
-- clean up keywords with sybols => more concise, compact, easier to read, faster at a glance
+- clean up symbols with unicode => more clean, minimalist, easier to read.
+- use '●' for heading, '─' for list for unambiguity and a minimalist look.  org heading level is differentiated by indentation and face.
 #+begin_src elisp
 (add-hook! 'org-mode-hook '(org-superstar-mode
                             prettify-symbols-mode))
 
-(setq org-superstar-headline-bullets-list '("●" "■" "◆" "▼")) ;; "◯" "□" "◇" "△"
+(setq org-superstar-headline-bullets-list "●")
 
 (setq org-superstar-item-bullet-alist '((?- . "─")
                                         (?* . "─") ;; NOTE :: asteriks are reserved for headings only (don't use in lists) => no unambigiuity
@@ -658,6 +646,93 @@ in short, 8-char indents make things easier to read, and have the added benefit 
                                      ("->" . "→")
                                      ("=>" . "⇒")
                                      ("<=>" . "⇔"))))
+#+end_src
+
+** keybindings
+#+begin_src elisp
+(map! :map org-mode-map :after org
+      :localleader
+      "\\" #'org-latex-preview
+      ","  #'org-ctrl-c-ctrl-c
+      "z"  #'org-add-note
+      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
+                                           (call-interactively #'org-toggle-checkbox))))
+#+end_src
+
+** babel
+#+begin_src elisp
+(setq org-babel-default-header-args '((:session  . "none")
+                                      (:results  . "replace")
+                                      (:exports  . "code")
+                                      (:cache    . "yes")
+                                      (:noweb    . "yes")
+                                      (:hlines   . "no")
+                                      (:tangle   . "no")
+                                      (:mkdirp   . "yes")
+                                      (:comments . "link"))) ;; important for when wanting to retangle
+#+end_src
+
+** clock
+#+begin_src elisp
+(setq org-clock-out-when-done t
+      org-clock-persist t
+      org-clock-into-drawer t)
+#+end_src
+
+** agenda
+- multi-day-todo-events: add multiple timestamps on the same line => same task shows scheduled on different days.  ex:
+- track which university lectures you have watched & reviewed.  => even if they are spread out onto multiple days => log all completions / review-notes under the same task.
+
+#+begin_src elisp
+(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
+
+(setq org-archive-location (--> nil
+                                (string-remove-prefix "~/" org-directory)
+                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
+      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
+                               (list (z-doct-journal-file)
+                                     (--> nil
+                                          (time-subtract (current-time) (days-to-time 1))
+                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-skip-scheduled-if-done t
+      ;; org-agenda-sticky t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-tags-column 0
+      org-agenda-block-separator ?─
+      org-agenda-breadcrumbs-separator "…"
+      org-agenda-compact-blocks nil
+      org-agenda-show-future-repeats nil
+      org-deadline-warning-days 3
+      org-agenda-time-grid nil
+      org-capture-use-agenda-date t)
+
+(defadvice! z-add-newline (fn &rest args)
+  "Separate dates in 'org-agenda' with newline."
+  :around #'org-agenda-format-date-aligned
+  (concat "\n" (apply fn args) ))
+#+end_src
+
+Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align everything into columns & group items.
++ achieve a nce and consistent readeable data-orinetated view
++ all task-states have the same length, otherwise there is no task-keyword alignment.
++ Set more concise & informing ~deadline~ & ~scheduled~ strings
+#+begin_src elisp
+(setq org-agenda-todo-keyword-format "%-3s"
+      org-agenda-scheduled-leaders '(""
+                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
+      org-agenda-deadline-leaders '("─────"
+                                    ">> %1dd"
+                                    "<< %1dd")
+      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
+                                 (todo   . "%-20c%-7s%-7t")
+                                 (tags   . "%-20c%-7s%-7t")
+                                 (search . "%-20c%-7s%-7t")))
+#+end_src
+
+** org roam
+#+begin_src elisp
+(setq org-roam-directory z-wiki-dir)
 #+end_src
 
 ** task states
@@ -754,26 +829,6 @@ we prompt for a note on the task when chaning state to either: on-hold, in-prog 
                               (deldeadline . "nodeadline: %S, %t")
                               (refile      . "refile: %t")
                               (clock-out   . "")))
-#+end_src
-
-** babel
-#+begin_src elisp
-(setq org-babel-default-header-args '((:session  . "none")
-                                      (:results  . "replace")
-                                      (:exports  . "code")
-                                      (:cache    . "yes")
-                                      (:noweb    . "yes")
-                                      (:hlines   . "no")
-                                      (:tangle   . "no")
-                                      (:mkdirp   . "yes")
-                                      (:comments . "link"))) ;; important for when wanting to retangle
-#+end_src
-
-** clock
-#+begin_src elisp
-(setq org-clock-out-when-done t
-      org-clock-persist t
-      org-clock-into-drawer t)
 #+end_src
 
 ** capture templates
@@ -988,8 +1043,7 @@ PARENT-PATH :: nil (used for recursion) "
                            :file ,(file-name-concat z-org-literature-dir "readlist.org")
                            :headline "inbox"
                            :prepend t
-                           :template ("* [ ] %^{title}"
-                                      "%?"))
+                           :template ("* [ ] %^{title}"))
 
                           ("init source"
                            :keys "i"
@@ -1058,62 +1112,6 @@ PARENT-PATH :: nil (used for recursion) "
                                    (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
 #+end_src
 
-** agenda
-- multi-day-todo-events: add multiple timestamps on the same line => same task shows scheduled on different days.  ex:
-- track which university lectures you have watched & reviewed.  => even if they are spread out onto multiple days => log all completions / review-notes under the same task.
-
-#+begin_src elisp
-(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
-
-(setq org-archive-location (--> nil
-                                (string-remove-prefix "~/" org-directory)
-                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
-      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
-                               (list (z-doct-journal-file)
-                                     (--> nil
-                                          (time-subtract (current-time) (days-to-time 1))
-                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
-      org-agenda-skip-scheduled-if-done t
-      ;; org-agenda-sticky t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-tags-column 0
-      org-agenda-block-separator ?─
-      org-agenda-breadcrumbs-separator "…"
-      org-agenda-compact-blocks nil
-      org-agenda-show-future-repeats nil
-      org-deadline-warning-days 3
-      org-agenda-time-grid nil
-      org-capture-use-agenda-date t)
-
-(defadvice! z-add-newline (fn &rest args)
-  "Separate dates in 'org-agenda' with newline."
-  :around #'org-agenda-format-date-aligned
-  (concat "\n" (apply fn args) ))
-#+end_src
-
-Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align everything into columns & group items.
-+ achieve a nce and consistent readeable data-orinetated view
-+ all task-states have the same length, otherwise there is no task-keyword alignment.
-+ Set more concise & informing ~deadline~ & ~scheduled~ strings
-#+begin_src elisp
-(setq org-agenda-todo-keyword-format "%-3s"
-      org-agenda-scheduled-leaders '(""
-                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
-      org-agenda-deadline-leaders '("─────"
-                                    ">> %1dd"
-                                    "<< %1dd")
-      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
-                                 (todo   . "%-20c%-7s%-7t")
-                                 (tags   . "%-20c%-7s%-7t")
-                                 (search . "%-20c%-7s%-7t")))
-#+end_src
-
-** org roam
-#+begin_src elisp
-(setq org-roam-directory z-wiki-dir)
-#+end_src
-
 ** end org
 - end of org section started with: ~after! org~
 #+begin_src elisp
@@ -1137,7 +1135,7 @@ i always look up documentation/manuals within emacs.  (only if it's not sufficie
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 #+end_src
 
-* transcription - whisper
+* whisper: transcription
 we often formulate notes using transcription for speed and ergonomics.
 always use ~evil-define-operator~ for ~evil-mode~ integration when defining routines to act on text.
 #+begin_src elisp
@@ -1153,19 +1151,31 @@ legibility."
 #+end_src
 
 * harpoon
+- harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
+- we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are analogous to vim marks.
 #+begin_src elisp
 (after! harpoon
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")) ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
+  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
+
+  (map! 'override
+      :nm "M-1"     #'harpoon-go-to-1
+      :nm "M-2"     #'harpoon-go-to-2
+      :nm "M-3"     #'harpoon-go-to-3
+      :nm "M-4"     #'harpoon-go-to-4
+      :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
+
+(map! :leader
+      "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
 #+end_src
 
-* minibuffer completion :: vertico
+* vertico: minibuffer completion
 - i want a minimalist unobtrusive menu on the bottom of the frame, not a huge window popup disturbing my focus and workflow.
 - this is consistent with rofi theme (or dmenu if using that).
 #+begin_src elisp
 (vertico-flat-mode 1)
 #+end_src
 
-* autocomplete :: company
+* company: code completion
 - disable completion menu by default ::
   - i don't want company to show up and distract me when i already know exactly what i want.
   - make use of it only when you don't know the exact symbol name / function signature, or when typing overly long symbol-names becomes tedious.
@@ -1182,4 +1192,76 @@ legibility."
                                eshell-mode
                                org-mode
                                vterm-mode)))
+#+end_src
+
+* nov: ebooks
+#+begin_src elisp
+(use-package! nov
+  :config
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+
+  (setq nov-text-width t
+        nov-variable-pitch nil)
+
+  (map! :map nov-mode-map
+        "SPC" nil ;; don't conflict with leader-mode
+        :nm "<next>" #'nov-scroll-up
+        :nm "<prior>" #'nov-scroll-down
+        :nm "C-u" #'nov-scroll-down ;; emacs has inverse scrolling notion
+        :nm "C-d" #'nov-scroll-up)
+
+
+  (add-hook! 'nov-mode-hook
+             (setq-local next-screen-context-lines 0 ;; no confusing page overlaps
+                         global-hl-line-mode nil)    ;; buffer locally turned off
+             (hl-line-mode -1)
+             (visual-line-mode 1)
+             (face-remap-add-relative 'default :height 1.1)))
+#+end_src
+
+* pdf view
+- annotations/selections :: use the mouse.
+#+begin_src elisp
+(map! :map pdf-view-mode-map :after (pdf-view pdf-history pdf-outline)
+      :n "p" #'pdf-view-fit-page-to-window
+      :n "w" #'pdf-view-fit-width-to-window
+      :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using <tab> for "OVERVIEW"
+
+(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
+#+end_src
+
+* yas: snippets
+- nested snippets ared good
+#+begin_src elisp
+(setq yas-triggers-in-field t)
+#+end_src
+
+* file templates
+in each new file systematically insert heading metadata (as comments) with the following template
+- append more neccessary info if needed (ex: ~dependencies:~)
+#+begin_example
+# ---
+# title:  file metadata
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   2024-01-06
+# notes:
+# - outlines file-metadata template, to be inserted at top of every file systematically.
+# ---
+#+end_example
+
+- title :: full title of document.
+- author :: document creator/"owner".
+- email :: author's email
+- for contacting him with question's / reaching out.
+- date :: date of file creation, iso8601 format.
+- track your coding/writing progress over the years and just generally it is important to document the timing of things, to analyze/order/reconstruct them.
+- info :: short document description/summary, think of it as a docstring for the file with this the reader should know what the document is about in one line.
+
+we automate this repetetive task using a snippets.
+#+begin_src elisp
+(set-file-templates!
+ '(org-mode :trigger "header")
+ '(prog-mode :trigger "header")
+ '(makefile-gmake-mode :ignore t))
 #+end_src

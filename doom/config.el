@@ -70,6 +70,7 @@
              conf-mode-hook
              Info-mode-hook
              org-agenda-mode-hook
+             nov-mode-hook
              magit-mode-hook)
            #'visual-fill-column-mode)
 
@@ -138,27 +139,57 @@
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
       :nm "C-q"     #'evil-window-delete ;; dwim
-      :nm "C-s"     #'basic-save-buffer  ;; statistically most called command => ergonomic (& default) mapping
+      :nm "C-s"     #'basic-save-buffer ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
-      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer
-      :nm "M-1"     #'harpoon-go-to-1
-      :nm "M-2"     #'harpoon-go-to-2
-      :nm "M-3"     #'harpoon-go-to-3
-      :nm "M-4"     #'harpoon-go-to-4
-      :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
-
-(map! :leader
-      "m" #'harpoon-toggle-file) ;; for deleting and reordering harpoon candidates
+      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer)
 ;; global navigation scheme:1 ends here
+
+;; [[file:config.org::*global marks][global marks:1]]
+(define-key! [remap evil-goto-mark] #'evil-goto-mark-buffer)
+
+(evil-define-command z-evil-goto-mark-buffer (char &optional noerror)
+  "Go to the global-marker's buffer specified by CHAR.
+
+This differs from `evil-goto-marker' in that it does not actually go to the marked position, which
+is undesired, since we use this for switching inbetween buffers and don't want our position to get
+reset each time.
+
+for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
+  :repeat nil
+  :jump t
+  (interactive (list (read-char)))
+  (let ((marker (evil-get-marker (upcase char))))
+    (cond
+     ((markerp marker)
+      (switch-to-buffer (marker-buffer marker)))
+     ((numberp marker) nil)             ;; already in buffer
+     ((consp marker)
+      (when (or (find-buffer-visiting (car marker))
+                (find-file (car marker)))))
+     ((not noerror)
+      (user-error "global marker `%c' is not set" (upcase char))))))
+
+;; make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
+  (after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (markerp (cdr entry))
+        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
+                            (marker-position (cdr entry)))))))
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+;; global marks:1 ends here
 
 ;; [[file:config.org::*vim editing][vim editing:1]]
 (map! :after evil
+      :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
       :nv "S-<return>" #'newline-and-indent
       :nm "g/"  #'occur
-
-      :nv "("   #'sp-backward-up-sexp  ;; navigating up and down levels of nesting (vim's `()' are useless)
-      :nv ")"   #'sp-down-sexp
 
       :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
       :nv "-"   #'evil-numbers/dec-at-pt
@@ -180,44 +211,43 @@
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; vim editing:1 ends here
 
-;; [[file:config.org::*org_][org_:1]]
-(map! :map org-mode-map :localleader :after org
-      "\\" #'org-latex-preview
-      ","  #'org-ctrl-c-ctrl-c
-      "z"  #'org-add-note
-      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
-                                           (call-interactively #'org-toggle-checkbox))))
+;; [[file:config.org::*completion][completion:1]]
+(map! :map company-mode-map :after company
+      :i "C-n" #'company-complete)
 
-;; HACK :: make tab work like in prog-mode: expanding snippets and jumping fields (org overrides it to folding, even in insert-mode)
-(map! :map yas-keymap :after org
-      :i "<tab>" #'yas-next-field
-      :i "<backtab>" #'yas-prev-field)
-;; org_:1 ends here
+(map! :map minibuffer-mode-map
+      :i "C-n" #'completion-at-point
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "/"   #'previous-matching-history-element
+      :n "<return>" #'exit-minibuffer) ;; sane default
 
-;; [[file:config.org::*dired_][dired_:1]]
-(map! :map dired-mode-map :after dired
-      :m "h" #'dired-up-directory
-      :m "l" #'dired-open-file)
+(map! :map vertico-flat-map :after vertico
+      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
+      :i "C-p" #'previous-line-or-history-element
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "<return>" #'vertico-exit ;; sane default
+      :n "/"   #'previous-matching-history-element)
 
-(map! :map dired-mode-map :localleader :after dired
-      :m "a" #'z-dired-archive)
-;; dired_:1 ends here
+(map! :map evil-ex-search-keymap :after evil
+      :n "j" #'next-line-or-history-element
+      :n "k" #'previous-line-or-history-element
+      :n "/" #'previous-matching-history-element
+      :n "<return>" #'exit-minibuffer)
+
+(map! :map vertico-map
+      :im "C-w" #'vertico-directory-delete-word
+      :im "C-d" #'consult-dir
+      :im "C-f" #'consult-dir-jump-file)
+;; completion:1 ends here
 
 ;; [[file:config.org::*lispy(ville)][lispy(ville):1]]
 (after! lispy
   (setq lispy-key-theme '(lispy c-digits)))
 ;; lispy(ville):1 ends here
 
-;; [[file:config.org::*pdf view][pdf view:1]]
-(map! :map pdf-view-mode-map :after (pdf-view pdf-history pdf-outline)
-      :n "p" #'pdf-view-fit-page-to-window
-      :n "w" #'pdf-view-fit-width-to-window
-      :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using <tab> for "OVERVIEW"
-
-(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
-;; pdf view:1 ends here
-
-;; [[file:config.org::*editor][editor:1]]
+;; [[file:config.org::*evil-mode][evil-mode:1]]
 (evil-surround-mode 1)
 (after! evil
   (setq evil-want-fine-undo nil
@@ -228,6 +258,13 @@
         evil-org-use-additional-insert nil)
   (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin))
   (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
+
+  (defadvice! z-default-last-register (fn &rest args)
+    "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
+  which is the sane default behaviour allowing you to: record a macro with `qq' and immediately call it with `@@', instead of getting an error and having to retype `@q' again."
+    :after #'evil-record-macro
+    (when (not evil-last-register)
+      (setq evil-last-register evil-last-recorded-register)))
 
   (defadvice! z-update-evil-search-reg (fn &rest args)
     "Update evil search register after jumping to a line with
@@ -250,13 +287,20 @@ This is sensible default behaviour, and integrates it into evil."
 
 (advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 
-(defadvice! z-default-last-register (fn &rest args)
-  "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
-  which is the sane default behaviour allowing you to: record a macro with `qq' and immediately call it with `@@', instead of getting an error and having to retype `@q' again."
-  :after #'evil-record-macro
-  (when (not evil-last-register)
-    (setq evil-last-register evil-last-recorded-register)))
-;; editor:1 ends here
+;; make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (markerp (cdr entry))
+        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
+                            (marker-position (cdr entry)))))))
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+;; evil-mode:1 ends here
 
 ;; [[file:config.org::*jumplist][jumplist:1]]
 (dolist (cmd '(flycheck-next-error
@@ -277,42 +321,6 @@ This is sensible default behaviour, and integrates it into evil."
   (evil-remove-command-properties cmd :jump))
 ;; jumplist:1 ends here
 
-;; [[file:config.org::*completion][completion:1]]
-(map! :map company-mode-map :after company
-      :i "C-n" #'company-complete)
-
-(map! :map minibuffer-mode-map
-      :i "C-n" #'completion-at-point
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "<return>" #'exit-minibuffer) ;; sane default
-
-(map! :map vertico-flat-map :after vertico
-      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
-      :i "C-p" #'previous-line-or-history-element
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
-      :n "<return>" #'vertico-exit ;; sane default
-      :n "/"   #'previous-matching-history-element)
-
-(map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word
-      :im "C-d" #'consult-dir
-      :im "C-f" #'consult-dir-jump-file)
-;; completion:1 ends here
-
-;; [[file:config.org::*snippets][snippets:1]]
-(setq yas-triggers-in-field t)
-;; snippets:1 ends here
-
-;; [[file:config.org::*file templates][file templates:1]]
-(set-file-templates!
- '(org-mode :trigger "header")
- '(prog-mode :trigger "header")
- '(makefile-gmake-mode :ignore t))
-;; file templates:1 ends here
-
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
   (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
@@ -330,6 +338,15 @@ This is sensible default behaviour, and integrates it into evil."
         dired-no-confirm '(uncompress move copy)
         dired-omit-files "^\\..*$"))
 ;; dired:1 ends here
+
+;; [[file:config.org::*keybindings][keybindings:1]]
+(map! :map dired-mode-map :after dired
+      :m "h" #'dired-up-directory
+      :m "l" #'dired-open-file)
+
+(map! :map dired-mode-map :localleader :after dired
+      :m "a" #'z-dired-archive)
+;; keybindings:1 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
 (defvar z-archive-dir "~/Archive/")
@@ -374,9 +391,9 @@ This is sensible default behaviour, and integrates it into evil."
   ruby-indent-level z-indent-width)
 ;; indentation:1 ends here
 
-;; [[file:config.org::*begin org][begin org:1]]
+;; [[file:config.org::*org][org:1]]
 (after! org
-;; begin org:1 ends here
+;; org:1 ends here
 
 ;; [[file:config.org::*options][options:1]]
 (add-hook! 'org-mode-hook '(visual-line-mode
@@ -422,18 +439,23 @@ This is sensible default behaviour, and integrates it into evil."
                                       ("a." . "a)")
                                       ("1." . "1)")
                                       ("1)" . "a)"))
-      org-blank-before-new-entry '((heading . always)
+      org-blank-before-new-entry '((heading . nil)
                                    (plain-list-item . nil))
       org-src-ask-before-returning-to-edit-buffer nil)
 
 (defadvice! z-insert-newline-above (fn &rest args)
+  "pad newly inserted heading with newline unless is todo-item.
+
+  since i often have todolists , where i don't want the newlines.  newlines are for headings that have a body of text."
   :after #'+org/insert-item-below
-  (when (org-at-heading-p)
+  (when (and (org-at-heading-p)
+             (not (org-entry-is-todo-p)))
     (+evil/insert-newline-above 1)))
 
 (defadvice! z-insert-newline-below (fn &rest args)
   :after #'+org/insert-item-above
-  (when (org-at-heading-p)
+  (when (and (org-at-heading-p)
+             (not (org-entry-is-todo-p)))
     (+evil/insert-newline-below 1)))
 ;; options:1 ends here
 
@@ -441,7 +463,7 @@ This is sensible default behaviour, and integrates it into evil."
 (add-hook! 'org-mode-hook '(org-superstar-mode
                             prettify-symbols-mode))
 
-(setq org-superstar-headline-bullets-list '("●" "■" "◆" "▼")) ;; "◯" "□" "◇" "△"
+(setq org-superstar-headline-bullets-list "●")
 
 (setq org-superstar-item-bullet-alist '((?- . "─")
                                         (?* . "─") ;; NOTE :: asteriks are reserved for headings only (don't use in lists) => no unambigiuity
@@ -460,6 +482,81 @@ This is sensible default behaviour, and integrates it into evil."
                                      ("=>" . "⇒")
                                      ("<=>" . "⇔"))))
 ;; symbols:1 ends here
+
+;; [[file:config.org::*keybindings][keybindings:1]]
+(map! :map org-mode-map :after org
+      :localleader
+      "\\" #'org-latex-preview
+      ","  #'org-ctrl-c-ctrl-c
+      "z"  #'org-add-note
+      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
+                                           (call-interactively #'org-toggle-checkbox))))
+;; keybindings:1 ends here
+
+;; [[file:config.org::*babel][babel:1]]
+(setq org-babel-default-header-args '((:session  . "none")
+                                      (:results  . "replace")
+                                      (:exports  . "code")
+                                      (:cache    . "yes")
+                                      (:noweb    . "yes")
+                                      (:hlines   . "no")
+                                      (:tangle   . "no")
+                                      (:mkdirp   . "yes")
+                                      (:comments . "link"))) ;; important for when wanting to retangle
+;; babel:1 ends here
+
+;; [[file:config.org::*clock][clock:1]]
+(setq org-clock-out-when-done t
+      org-clock-persist t
+      org-clock-into-drawer t)
+;; clock:1 ends here
+
+;; [[file:config.org::*agenda][agenda:1]]
+(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
+
+(setq org-archive-location (--> nil
+                                (string-remove-prefix "~/" org-directory)
+                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
+      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
+                               (list (z-doct-journal-file)
+                                     (--> nil
+                                          (time-subtract (current-time) (days-to-time 1))
+                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-skip-scheduled-if-done t
+      ;; org-agenda-sticky t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-tags-column 0
+      org-agenda-block-separator ?─
+      org-agenda-breadcrumbs-separator "…"
+      org-agenda-compact-blocks nil
+      org-agenda-show-future-repeats nil
+      org-deadline-warning-days 3
+      org-agenda-time-grid nil
+      org-capture-use-agenda-date t)
+
+(defadvice! z-add-newline (fn &rest args)
+  "Separate dates in 'org-agenda' with newline."
+  :around #'org-agenda-format-date-aligned
+  (concat "\n" (apply fn args) ))
+;; agenda:1 ends here
+
+;; [[file:config.org::*agenda][agenda:2]]
+(setq org-agenda-todo-keyword-format "%-3s"
+      org-agenda-scheduled-leaders '(""
+                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
+      org-agenda-deadline-leaders '("─────"
+                                    ">> %1dd"
+                                    "<< %1dd")
+      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
+                                 (todo   . "%-20c%-7s%-7t")
+                                 (tags   . "%-20c%-7s%-7t")
+                                 (search . "%-20c%-7s%-7t")))
+;; agenda:2 ends here
+
+;; [[file:config.org::*org roam][org roam:1]]
+(setq org-roam-directory z-wiki-dir)
+;; org roam:1 ends here
 
 ;; [[file:config.org::*task states][task states:1]]
 ;; ! => save timestamp on statchange
@@ -508,24 +605,6 @@ This is sensible default behaviour, and integrates it into evil."
                               (refile      . "refile: %t")
                               (clock-out   . "")))
 ;; task states:2 ends here
-
-;; [[file:config.org::*babel][babel:1]]
-(setq org-babel-default-header-args '((:session  . "none")
-                                      (:results  . "replace")
-                                      (:exports  . "code")
-                                      (:cache    . "yes")
-                                      (:noweb    . "yes")
-                                      (:hlines   . "no")
-                                      (:tangle   . "no")
-                                      (:mkdirp   . "yes")
-                                      (:comments . "link"))) ;; important for when wanting to retangle
-;; babel:1 ends here
-
-;; [[file:config.org::*clock][clock:1]]
-(setq org-clock-out-when-done t
-      org-clock-persist t
-      org-clock-into-drawer t)
-;; clock:1 ends here
 
 ;; [[file:config.org::*capture templates][capture templates:1]]
 (setq org-directory "~/Documents/org/")
@@ -723,8 +802,7 @@ PARENT-PATH :: nil (used for recursion) "
                            :file ,(file-name-concat z-org-literature-dir "readlist.org")
                            :headline "inbox"
                            :prepend t
-                           :template ("* [ ] %^{title}"
-                                      "%?"))
+                           :template ("* [ ] %^{title}"))
 
                           ("init source"
                            :keys "i"
@@ -793,53 +871,6 @@ PARENT-PATH :: nil (used for recursion) "
                                    (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
 ;; capture templates:1 ends here
 
-;; [[file:config.org::*agenda][agenda:1]]
-(add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
-
-(setq org-archive-location (--> nil
-                                (string-remove-prefix "~/" org-directory)
-                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
-      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
-                               (list (z-doct-journal-file)
-                                     (--> nil
-                                          (time-subtract (current-time) (days-to-time 1))
-                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
-      org-agenda-skip-scheduled-if-done t
-      ;; org-agenda-sticky t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-tags-column 0
-      org-agenda-block-separator ?─
-      org-agenda-breadcrumbs-separator "…"
-      org-agenda-compact-blocks nil
-      org-agenda-show-future-repeats nil
-      org-deadline-warning-days 3
-      org-agenda-time-grid nil
-      org-capture-use-agenda-date t)
-
-(defadvice! z-add-newline (fn &rest args)
-  "Separate dates in 'org-agenda' with newline."
-  :around #'org-agenda-format-date-aligned
-  (concat "\n" (apply fn args) ))
-;; agenda:1 ends here
-
-;; [[file:config.org::*agenda][agenda:2]]
-(setq org-agenda-todo-keyword-format "%-3s"
-      org-agenda-scheduled-leaders '(""
-                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
-      org-agenda-deadline-leaders '("─────"
-                                    ">> %1dd"
-                                    "<< %1dd")
-      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
-                                 (todo   . "%-20c%-7s%-7t")
-                                 (tags   . "%-20c%-7s%-7t")
-                                 (search . "%-20c%-7s%-7t")))
-;; agenda:2 ends here
-
-;; [[file:config.org::*org roam][org roam:1]]
-(setq org-roam-directory z-wiki-dir)
-;; org roam:1 ends here
-
 ;; [[file:config.org::*end org][end org:1]]
 )
 ;; end org:1 ends here
@@ -858,7 +889,7 @@ PARENT-PATH :: nil (used for recursion) "
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 ;; devdocs:1 ends here
 
-;; [[file:config.org::*transcription - whisper][transcription - whisper:1]]
+;; [[file:config.org::*whisper: transcription][whisper: transcription:1]]
 (evil-define-operator z-reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
 speak more for it's self).  using the technical document convention of double space full stops for
@@ -868,18 +899,28 @@ legibility."
       (repunctuate-sentences t beg end)))
 
 (add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
-;; transcription - whisper:1 ends here
+;; whisper: transcription:1 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (after! harpoon
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")) ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
+  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
+
+  (map! 'override
+      :nm "M-1"     #'harpoon-go-to-1
+      :nm "M-2"     #'harpoon-go-to-2
+      :nm "M-3"     #'harpoon-go-to-3
+      :nm "M-4"     #'harpoon-go-to-4
+      :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
+
+(map! :leader
+      "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
 ;; harpoon:1 ends here
 
-;; [[file:config.org::*minibuffer completion :: vertico][minibuffer completion :: vertico:1]]
+;; [[file:config.org::*vertico: minibuffer completion][vertico: minibuffer completion:1]]
 (vertico-flat-mode 1)
-;; minibuffer completion :: vertico:1 ends here
+;; vertico: minibuffer completion:1 ends here
 
-;; [[file:config.org::*autocomplete :: company][autocomplete :: company:1]]
+;; [[file:config.org::*company: code completion][company: code completion:1]]
 (after! company
   (setq company-minimum-prefix-length 0
         company-idle-delay nil ;; only show menu when explicitly activated
@@ -889,4 +930,48 @@ legibility."
                                eshell-mode
                                org-mode
                                vterm-mode)))
-;; autocomplete :: company:1 ends here
+;; company: code completion:1 ends here
+
+;; [[file:config.org::*nov: ebooks][nov: ebooks:1]]
+(use-package! nov
+  :config
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+
+  (setq nov-text-width t
+        nov-variable-pitch nil)
+
+  (map! :map nov-mode-map
+        "SPC" nil ;; don't conflict with leader-mode
+        :nm "<next>" #'nov-scroll-up
+        :nm "<prior>" #'nov-scroll-down
+        :nm "C-u" #'nov-scroll-down ;; emacs has inverse scrolling notion
+        :nm "C-d" #'nov-scroll-up)
+
+
+  (add-hook! 'nov-mode-hook
+             (setq-local next-screen-context-lines 0 ;; no confusing page overlaps
+                         global-hl-line-mode nil)    ;; buffer locally turned off
+             (hl-line-mode -1)
+             (visual-line-mode 1)
+             (face-remap-add-relative 'default :height 1.1)))
+;; nov: ebooks:1 ends here
+
+;; [[file:config.org::*pdf view][pdf view:1]]
+(map! :map pdf-view-mode-map :after (pdf-view pdf-history pdf-outline)
+      :n "p" #'pdf-view-fit-page-to-window
+      :n "w" #'pdf-view-fit-width-to-window
+      :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using <tab> for "OVERVIEW"
+
+(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
+;; pdf view:1 ends here
+
+;; [[file:config.org::*yas: snippets][yas: snippets:1]]
+(setq yas-triggers-in-field t)
+;; yas: snippets:1 ends here
+
+;; [[file:config.org::*file templates][file templates:1]]
+(set-file-templates!
+ '(org-mode :trigger "header")
+ '(prog-mode :trigger "header")
+ '(makefile-gmake-mode :ignore t))
+;; file templates:1 ends here

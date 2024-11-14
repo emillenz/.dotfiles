@@ -1,10 +1,11 @@
 ;; -*- no-byte-compile: t; -*-
 
-(disable-packages! evil-escape    ; faster to remap <esc> to caps
-                   solaire-mode   ; distracting visual sugar
-                   evil-snipe     ; usless bloat :: just use incremental-search in combo with f/t motions
+(disable-packages! evil-escape          ; faster to remap <esc> to caps
+                   solaire-mode         ; distracting visual sugar
+                   evil-snipe ; usless bloat :: just use incremental-search in combo with f/t motions
                    evil-easymotion
-                   evil-exchange) ; do this using vanilla vim's visual pasting
+                   evil-exchange
+                   which-key) ; do this using vanilla vim's visual pasting
 
 (package! dired-open)
 (package! tldr)
@@ -17,4 +18,5 @@
 (package! modus-themes)
 (package! devdocs)
 (package! harpoon)
+(package! nov)
 (package! whisper :recipe (:host github :repo "natrys/whisper.el"))
