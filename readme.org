@@ -120,17 +120,15 @@ i'm very opinionated and have high standards regarding design process and the ph
 
 ** windowmanager: i3
 - the usual elitism amongst minimal window managers: don’t be bloated, don’t be fancy (simple borders are the most decoration have).  do not add further complexity when it can be avoided.
-- manual tiling wm ::  which is better than a autotiling wm (or god forbid a desktop-environment), since we control placement of windows and it works consistenly in the same way as emacs
-- the windowmanager follows the philosopy of eliminating mental overhead and the neccessety to arrange windows or layouts.
+- manual tiling wm ::  which superior to an autotiling wm, (or god forbid a desktop-environment), since we always use all windows maximized.
+- the windowmanager follows the philosopy of eliminating mental overhead and the neccessity to arrange windows or layouts.
   - eliminate mental overhead and reduce computational steps to get to where you need to be.
-  - finetuned to automate the workflow as much as possible.
-  - accessing a program is as efficient as possible and always consistent, no matter where in your desktop you are (different monitor/workspace/app order) you will not alt+tab through apps to get to the one you are thinking of.  instead the app is always bound to the same mnemonical keybind.
-    + we do not use a per-app workspace workflow
-      + no additional layering
-      + all apps of the same class in the same "container", clear structure...
-  - minimal keystrokes to get from where you are to the app you want to be.
-  - keyboard driven workflow only => vi-mnemonic bindings.  has a leader key system inbuilt that allows a extensible modal keybindingsystem.
-  - strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
+  - finetuned to automate the workflow as much as possible. (autostarting all frequently used programs, pinning frequently used browser tabs to Alt+<num>)
+- accessing a program is as efficient as possible and always consistent, no matter where in your desktop you are (different monitor/workspace/app order) you will not alt+tab through apps to get to the one you are thinking of.  instead the program is assigned a mark which you can jump to always using the same consisten mnemonic keybinding.
+  - we do not use a per-program workspace workflow.  introduces layers of complexity as you need to remember the workspace for pop-up windows & programs.  managing and navigating the workspaces is disorienting and complex.
+  - we essentially extend our emacs/vim workflow onto the wm, using global marks to jump to buffers immediately.  the only improvement is that we always preassign certain marks for our frequently used programs (editor, webbrowser, terminal, ...).
+- keyboard driven workflow only => vi-mnemonic bindings.  has a leader key system inbuilt that allows a extensible modal keybindingsystem.
+- strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
 
 *** using workspaces
 - workstation apps :: assigned their own workspaces and keys
