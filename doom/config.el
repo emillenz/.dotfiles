@@ -23,13 +23,12 @@
 
 ;; [[file:config.org::*font][font:1]]
 (setq doom-font                (font-spec :family "Iosevka Comfy" :size 13)
-      doom-variable-pitch-font (font-spec :family "Iosevka Comfy" :size 13)
+      doom-variable-pitch-font (font-spec :family "Noto Serif" :size 15)
       doom-serif-font          (font-spec :family "Iosevka Comfy" :size 13)
-      doom-big-font            (font-spec :family "Iosevka Comfy" :size 28))
+      doom-big-font            (font-spec :family "Iosevka Comfy" :size 22)
+      doom-font-increment 1)
 
-(map! :n "C-=" #'doom/increase-font-size
-      :n "C--" #'doom/decrease-font-size
-      :n "C-0" #'doom/reset-font-size)
+(map! :n "C-0" #'doom/reset-font-size)
 ;; font:1 ends here
 
 ;; [[file:config.org::*modeline][modeline:1]]
@@ -934,26 +933,22 @@ legibility."
 
 ;; [[file:config.org::*nov: ebooks][nov: ebooks:1]]
 (use-package! nov
+  :mode ("\\.epub\\'" . nov-mode)
   :config
-  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-
-  (setq nov-text-width t
-        nov-variable-pitch nil)
+  (setq nov-text-width t) ;; used in conjunction with visual-line-mode and visual-fill-column mode.
 
   (map! :map nov-mode-map
-        "SPC" nil ;; don't conflict with leader-mode
+        "SPC" nil ;; don't override with leader-mode
+        :nm "q" #'kill-current-buffer ;; consistent with other read-only modes
         :nm "<next>" #'nov-scroll-up
-        :nm "<prior>" #'nov-scroll-down
-        :nm "C-u" #'nov-scroll-down ;; emacs has inverse scrolling notion
-        :nm "C-d" #'nov-scroll-up)
-
+        :nm "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
              (setq-local next-screen-context-lines 0 ;; no confusing page overlaps
-                         global-hl-line-mode nil)    ;; buffer locally turned off
+                         line-spacing 3
+                         global-hl-line-mode nil) ;; HACK :: buffer local off
              (hl-line-mode -1)
-             (visual-line-mode 1)
-             (face-remap-add-relative 'default :height 1.1)))
+             (visual-line-mode 1)))
 ;; nov: ebooks:1 ends here
 
 ;; [[file:config.org::*pdf view][pdf view:1]]
