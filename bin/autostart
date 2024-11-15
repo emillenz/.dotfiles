@@ -5,6 +5,9 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2023-05-07
+# info:
+# - starting daemons (emacs, tmux) and background processes if not existing yet.
+# - running commands that i always want at startup.
 # ---
 
 def main
@@ -20,10 +23,8 @@ CMDS = [
 ].freeze
 
 PROCESSES = [
-        'alacritty --title terminal --command tmux new-session -A -s main',
-        'emacs --daemon && emacsclient --create-frame',
-        'emacsclient --reuse-frame',
-        'firefox',
+        'tmux new-session -d -s main',
+        'emacs --daemon',
         "sudo xremap --watch device #{ENV['HOME']}/.config/xremap/config.yml & disown",
         'keepassxc',
         'playerctld',

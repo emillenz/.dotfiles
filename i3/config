@@ -3,9 +3,9 @@
 # email:  emillenz@protonmail.com
 # date:   2023-05-15
 # info:
-#   - the config is full of overhead reducing implementations, like: unmuting when increasing the volume, instead of introducing another shortcut to unmute the volume.  doing changes in system (eg. volume change / internet connection change) via notifications, so  we can disable the statusbar for a more focused workflow.
-#   - get window title & class information using: `xprop` to assign it to workspaces.
 #   - manual: https://i3wm.org/docs/userguide.html
+#   - doing changes in system (eg. volume change / internet connection change) are displayed via notifications.  so we don't need the statusbar (only for leadermode indication) for a more focused workflow and more/clean screenspace.
+#   - get window title & class information using: `xprop`
 # ---
 
 # MACROS
@@ -15,7 +15,7 @@ set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $ROFI rofi -dmenu -no-custom -i -p find-file
 
-## no statusbar => using notifications to display volume change
+# no statusbar => using notifications to display volume change
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
@@ -25,14 +25,14 @@ set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
 set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection=clipboard'
 
-# AUTOSTART :: lauch all processes that we use frequently.
+# AUTOSTART :: start daemons (emacs, tmux), run startup commands, etc.
 exec_always --no-startup-id $BIN/autostart &
 
 # OPTS
 workspace_auto_back_and_forth no
 workspace_layout tabbed
 
-## NO => allow focus change across splits (containers)
+# NO => allow focus change across splits (containers)
 force_focus_wrapping no
 
 default_orientation horizontal
@@ -41,22 +41,22 @@ hide_edge_borders smart
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
-## no icons :: useless bloat, focus all windows upon opening
+# no icons :: useless bloat, focus all windows upon opening
 for_window [all] focus, title_window_icon no
 
 # KEYBINDINGS
-## mod1 = alt (ergonomic)
+# mod1 = alt (ergonomic)
 set $MOD Mod1
 floating_modifier $MOD
 bindsym button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
 bindsym --whole-window $MOD+button1: drag floating window
 bindsym --whole-window $MOD+button2: resize floating window
-## disable mousewheel functionality :: no accidental window switching
+# disable mousewheel functionality :: no accidental window switching
 bindsym button4 nop
 bindsym button5 nop
 
-## for compatibility
+# for compatibility
 bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
 bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
 bindsym XF86Display           $SHCMD xrandr --auto
@@ -72,7 +72,7 @@ bindsym XF86AudioMute         $SHCMD $VOL_MUTE
 bindsym XF86AudioMicMute      $SHCMD $MIC_MUTE
 
 # MEDIA BINDINGS
-## keep hands on the keyborad => don't use (or have) XF86 keys
+# keep hands on the keyborad => don't use (or have) XF86 keys
 bindsym $MOD+9            $SHCMD $MIC_MUTE
 bindsym $MOD+0            $SHCMD $VOL_MUTE
 bindsym $MOD+minus        $SHCMD $VOL_DEC
@@ -82,8 +82,8 @@ bindsym $MOD+bracketleft  $SHCMD playerctl previous
 bindsym $MOD+backslash    $SHCMD playerctl play-pause
 
 # NAVIGATIONAL BINDINGS
-## n/p consistent with cycling {rofi, shell, emacs} completion menus
-## use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side.
+# - n/p consistent with cycling {rofi, shell, emacs} completion menus
+# - use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side.
 bindsym $MOD+p          focus left
 bindsym $MOD+shift+p    move left
 bindsym $MOD+n          focus right
@@ -96,39 +96,57 @@ bindsym $MOD+Return     move workspace to output next
 bindsym $MOD+Tab        [con_mark=_back] focus
 
 # MARKS
-## use mnemonic UPPER-CASE marks for our most used programs.  you can assign lowercase marks to any window.  (only if you switch to it frequently, otherwise just use $MOD+b)
+# - use mnemonic UPPER-CASE marks for our most used programs (use lowercase for temporary window marks if accessing a window often).
+# - DWIM try until succeed:
+# 1) jump to existing marked window
+# 2) switch to window of the class and mark it
+# 3) lauch the program according (client-server style if possible).
+#
+# note: the braces around the commands are required, otherwise undefined behaviour.
 bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
 bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 
 ## TERMINAL
-set $TERMINAL "T"
-bindsym $MOD+t [con_mark=$TERMINAL] focus
-bindsym $MOD+shift+t mark $TERMINAL
-for_window [class="Alacritty"] mark $TERMINAL
+set $TERMINAL T
+set $TERMINAL_CLASS Alacritty
+for_window [class="$TERMINAL_CLASS"] mark $TERMINAL
+bindsym $MOD+t $SHCMD \
+        i3-msg '[con_mark=$TERMINAL] focus' \
+        || (i3-msg '[class="$TERMINAL_CLASS"] focus' && i3-msg 'mark $TERMINAL') \
+        || alacritty --command tmux new-session -n terminal -A -s main
 
 ## WEBBROWSER
-set $WEB "W"
-bindsym $MOD+w [con_mark=$WEB] focus
-bindsym $MOD+shift+w mark $WEB
-for_window [class="firefox"] mark $WEB
+set $WEB W
+set $WEB_CLASS firefox
+for_window [class="$WEB_CLASS"] mark $WEB
+bindsym $MOD+w $SHCMD \
+        i3-msg '[con_mark=$WEB] focus' \
+        || i3-msg '[class="$WEB_CLASS"] focus' && i3-msg 'mark $WEB' \
+        || firefox
 
 ## EDITOR
-set $EDITOR "E"
-bindsym $MOD+e [con_mark=$EDITOR] focus
-bindsym $MOD+shift+e mark $EDITOR
-for_window [class="Emacs"] mark $EDITOR
+set $EDITOR E
+set $EDITOR_CLASS Emacs
+for_window [class="$EDITOR_CLASS"] mark E
+bindsym $MOD+e $SHCMD i3-msg '[con_mark=$EDITOR] focus' \
+        || (i3-msg '[class="$EDITOR_CLASS"] focus' && i3-msg 'mark $EDITOR') \
+        || emacsclient --reuse-frame
 
 ## VIDEO
-set $VIDEO "M"
-bindsym $MOD+v [con_mark=$MEDIA] focus
-bindsym $MOD+shift+v mark $MEDIA
-for_window [class="mpv"] mark $MEDIA
+set $VIDEO M
+set $VIDEO_CLASS mpv
+for_window [class="$VIDEO_CLASS"] mark $VIDEO
+bindsym $MOD+v $SHCMD \
+        i3-msg '[con_mark=$VIDEO] focus' \
+        || (i3-msg '[class="$VIDEO_CLASS"] focus' && i3-msg 'mark $VIDEO')
 
 ## IMAGES
-set $IMG "I"
-bindsym $MOD+i [con_mark=$IMG] focus
-bindsym $MOD+shift+i $IMG
-for_window [class="Nsxiv"] mark $IMG
+set $IMG I
+set $IMG_CLASS Nsxiv
+for_window [class="$IMG_CLASS"] mark $IMG
+bindsym $MOD+i $SHCMD \
+        i3-msg '[con_mark=$IMG] focus' \
+        || (i3-msg '[class="$IMG_CLASS"] focus' && i3-msg 'mark $IMG')
 
 # LEADER
 bindsym $MOD+space mode "leader"
