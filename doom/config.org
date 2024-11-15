@@ -209,8 +209,8 @@ we remap ~evil-goto-mark~ since you should use ~evil-goto-mark-line~ instead any
 
 vim's normal global-mark behaviour is to jump to the originally marked posion in that buffer.  this is the wrong behaviour because when we left the buffer we have changed the cursor position to some other place.  we override ~evil-goto-mark-line~ binding, since it is redundant (for buffer-local marks, use ~evil-goto-mark~ binding instead).
 #+begin_src elisp
-(define-key! [remap evil-goto-mark-line] #'z-evil-goto-mark-buffer)
-(map! :map pdf-view-mode-map :n "`" #'pdf-view-jump-to-register)
+(map! 'override :nm "'" #' z-evil-goto-mark-buffer) ;; ensure available everywhere
+(map! :map pdf-view-mode-map :n "`" #'pdf-view-jump-to-register) ;; overridden => remap
 
 (evil-define-command z-evil-goto-mark-buffer (char &optional noerror)
   "Go to the global-marker's buffer specified by CHAR.
@@ -221,7 +221,6 @@ reset each time.
 
 for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
   :repeat nil
-  :jump t
   (interactive (list (read-char)))
   (let ((marker (evil-get-marker (upcase char))))
     (cond

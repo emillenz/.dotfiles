@@ -146,8 +146,8 @@
 ;; global navigation scheme:1 ends here
 
 ;; [[file:config.org::*global marks][global marks:1]]
-(define-key! [remap evil-goto-mark-line] #'z-evil-goto-mark-buffer)
-(map! :map pdf-view-mode-map :n "`" #'pdf-view-jump-to-register)
+(map! 'override :nm "'" #' z-evil-goto-mark-buffer) ;; ensure available everywhere
+(map! :map pdf-view-mode-map :n "`" #'pdf-view-jump-to-register) ;; overridden => remap
 
 (evil-define-command z-evil-goto-mark-buffer (char &optional noerror)
   "Go to the global-marker's buffer specified by CHAR.
@@ -158,7 +158,6 @@ reset each time.
 
 for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
   :repeat nil
-  :jump t
   (interactive (list (read-char)))
   (let ((marker (evil-get-marker (upcase char))))
     (cond
