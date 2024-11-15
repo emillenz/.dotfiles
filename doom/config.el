@@ -87,6 +87,7 @@
       confirm-kill-emacs nil
       hscroll-margin 0
       scroll-margin 0
+      next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
       enable-recursive-minibuffers nil
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
@@ -936,19 +937,19 @@ legibility."
   :mode ("\\.epub\\'" . nov-mode)
   :config
   (setq nov-text-width t) ;; used in conjunction with visual-line-mode and visual-fill-column mode.
+  (advice-add 'nov-render-title :override #'ignore) ;; we already have a modeline...
 
   (map! :map nov-mode-map
-        "SPC" nil ;; don't override with leader-mode
+        "SPC" nil                     ;; don't override with leader-mode
         :nm "q" #'kill-current-buffer ;; consistent with other read-only modes
-        :nm "<next>" #'nov-scroll-up
+
+        :nm "<next>" #'nov-scroll-up  ;; main scrolling methods
         :nm "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
-             (setq-local next-screen-context-lines 0 ;; no confusing page overlaps
-                         line-spacing 3
-                         global-hl-line-mode nil) ;; HACK :: buffer local off
-             (hl-line-mode -1)
-             (visual-line-mode 1)))
+    (setq-local line-spacing 2 ;; padding increases focus on current line for long prose text.
+                global-hl-line-mode nil) ;; HACK :: need to unset, instead of using a hook   ;; HACK :: ---
+    (visual-line-mode 1)))
 ;; nov: ebooks:1 ends here
 
 ;; [[file:config.org::*pdf view][pdf view:1]]
