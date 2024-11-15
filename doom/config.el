@@ -146,12 +146,13 @@
 ;; global navigation scheme:1 ends here
 
 ;; [[file:config.org::*global marks][global marks:1]]
-(define-key! [remap evil-goto-mark] #'evil-goto-mark-buffer)
+(define-key! [remap evil-goto-mark-line] #'z-evil-goto-mark-buffer)
+(map! :map pdf-view-mode-map :n "`" #'pdf-view-jump-to-register)
 
 (evil-define-command z-evil-goto-mark-buffer (char &optional noerror)
   "Go to the global-marker's buffer specified by CHAR.
 
-This differs from `evil-goto-marker' in that it does not actually go to the marked position, which
+This differs from `evil-goto-mark-line' in that it does not actually go to the marked position, which
 is undesired, since we use this for switching inbetween buffers and don't want our position to get
 reset each time.
 
@@ -165,13 +166,14 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
       (switch-to-buffer (marker-buffer marker)))
      ((numberp marker) nil)             ;; already in buffer
      ((consp marker)
-      (when (or (find-buffer-visiting (car marker))
-                (find-file (car marker)))))
+      (if (find-buffer-visiting (car marker))
+          (switch-to-buffer (find-buffer-visiting (car marker)))
+        (find-file (car marker))))
      ((not noerror)
       (user-error "global marker `%c' is not set" (upcase char))))))
 
-;; make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
-  (after! savehist
+;; HACK :: make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
+(after! savehist
   (add-to-list 'savehist-additional-variables 'evil-markers-alist)
   (add-hook! 'savehist-save-hook
     (kill-local-variable 'evil-markers-alist)
@@ -936,15 +938,16 @@ legibility."
 (use-package! nov
   :mode ("\\.epub\\'" . nov-mode)
   :config
-  (setq nov-text-width t) ;; used in conjunction with visual-line-mode and visual-fill-column mode.
-  (advice-add 'nov-render-title :override #'ignore) ;; we already have a modeline...
+  (setq nov-text-width t) ;; used visual-line-mode and visual-fill-column mode to visually wrap line.
+  (advice-add 'nov-render-title :override #'ignore) ;; using modeline...
 
-  (map! :map nov-mode-map
-        "SPC" nil                     ;; don't override with leader-mode
-        :nm "q" #'kill-current-buffer ;; consistent with other read-only modes
+  (map! :map (nov-mode-map nov-button-map)
+        "SPC" nil                     ;; never override leader-mode
+        "S-SPC" nil                   ;; never override leader-mode
+        :n "q" #'kill-current-buffer ;; consistent with other read-only modes (magit, dired, docs...)
 
-        :nm "<next>" #'nov-scroll-up  ;; main scrolling methods
-        :nm "<prior>" #'nov-scroll-down)
+        :n "<next>" #'nov-scroll-up  ;; main scrolling methods
+        :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
     (setq-local line-spacing 2 ;; padding increases focus on current line for long prose text.
