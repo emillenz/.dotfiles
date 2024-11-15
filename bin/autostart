@@ -6,8 +6,8 @@
 # email:  emillenz@protonmail.com
 # date:   2023-05-07
 # info:
-# - starting daemons (emacs, tmux) and background processes if not existing yet.
-# - running commands that i always want at startup.
+# - starting daemons (emacs, tmux) and background processes (if not running).
+# - running commands (to set some behaviour)
 # ---
 
 def main

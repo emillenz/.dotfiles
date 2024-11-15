@@ -1,4 +1,17 @@
-# [[file:config.org::*macros][macros:1]]
+#+title:  i3 literate configuration file
+#+author: emil lenz
+#+email:  emillenz@protonmail.com
+#+date:   [2023-05-15]
+#+info: creation: [2023-05-15], using marks & literate style: [2024-11-15]
+#+property: header-args:conf :tangle config
+
+* preface
+- [[https://i3wm.org/docs/userguide.html][i3 user-guide]]
+- doing changes in system (eg. volume change / internet connection change) are displayed via notifications.  so we don't need the statusbar (only for leadermode indication) for a more focused workflow and more/clean screenspace.
+
+* macros
+- no statusbar => using notifications to display volume change
+#+begin_src conf
 set $ESC mode "default"
 set $BIN ~/.config/bin
 set $MV move container to workspace
@@ -13,13 +26,16 @@ set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "m
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
 set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f" && echo $f | xclip -selection=clipboard'
-# macros:1 ends here
+#+end_src
 
-# [[file:config.org::*autostart][autostart:1]]
+* autostart
+start daemons (emacs, tmux), run startup commands, etc.
+#+begin_src conf
 exec_always --no-startup-id $BIN/autostart &
-# autostart:1 ends here
+#+end_src
 
-# [[file:config.org::*opts][opts:1]]
+* opts
+#+begin_src conf
 workspace_auto_back_and_forth no
 workspace_layout tabbed
 force_focus_wrapping no
@@ -30,9 +46,14 @@ title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 for_window [all] focus, title_window_icon no
-# opts:1 ends here
+#+end_src
 
-# [[file:config.org::*keybindings][keybindings:1]]
+* keybindings
+- mod1 = alt (ergonomic)
+- disable mousewheel functionality :: no accidental window switching wheen mouse is still on titlebar
+- accessibility :: we map XF86 keys for large keyboards & laptops, but most functions also available without taking the hands off the keyboards (or if minimalist keyboard without XFkeys)
+
+#+begin_src conf
 set $MOD Mod1
 floating_modifier $MOD
 bindsym button2 kill
@@ -63,9 +84,13 @@ bindsym $MOD+equal        $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
 bindsym $MOD+bracketleft  $SHCMD playerctl previous
 bindsym $MOD+backslash    $SHCMD playerctl play-pause
-# keybindings:1 ends here
+#+end_src
 
-# [[file:config.org::*navigational bindings][navigational bindings:1]]
+* navigational bindings
+- n/p consistent with cycling {rofi, shell, emacs} completion menus
+- use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side.
+- using [[https://github.com/Cretezy/i3-back][i3-back]] as daemon (in autostart)
+#+begin_src conf
 bindsym $MOD+p          focus left
 bindsym $MOD+shift+p    move left
 bindsym $MOD+n          focus right
@@ -77,31 +102,51 @@ bindsym $MOD+Return     move workspace to output next
 bindsym $MOD+Tab        [con_mark=_back] focus
 bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
 bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
-# navigational bindings:1 ends here
+#+end_src
 
-# [[file:config.org::*marks][marks:2]]
-# TERM
-for_window [class="Alacritty"] mark T
-bindsym $MOD+t exec --no-startup-id i3-msg '[con_mark=T] focus' || (i3-msg '[class="Alacritty"] focus' && i3-msg 'mark T') || alacritty --command tmux new-session -n term -A -s main
+* marks
+- use mnemonic UPPER-CASE marks for our most used programs (use lowercase for temporary window marks if accessing a window often).
+- the braces around the commands are required, otherwise undefined behaviour.
+- get window title & class information using: ~xprop~
+- DWIM try until succeed:
+  1) jump to existing marked window
+  2) switch to window of the class and mark it
+  3) lauch the program according (client-server style if possible).
 
-# EDITOR
-for_window [class="Emacs"] mark E
-bindsym $MOD+e exec --no-startup-id i3-msg '[con_mark=E] focus' || (i3-msg '[class="Emacs"] focus' && i3-msg 'mark E') || emacsclient --reuse-frame
+#+name: mark-classes
+#+begin_src elisp
+(defvar mark-classes '(("term" "t" "Alacritty" "alacritty --command tmux new-session -n term -A -s main")
+                       ("editor" "e" "Emacs" "emacsclient --reuse-frame")
+                       ("web" "w" "firefox" "firefox")
+                       ("vid" "v" "mpv")
+                       ("img" "i" "Nsxiv")))
 
-# WEB
-for_window [class="firefox"] mark W
-bindsym $MOD+w exec --no-startup-id i3-msg '[con_mark=W] focus' || (i3-msg '[class="firefox"] focus' && i3-msg 'mark W') || firefox
+(mapconcat (lambda (tuple)
+             (let* ((name (nth 0 tuple))
+                    (key (nth 1 tuple))
+                    (class (nth 2 tuple))
+                    (cmd (or (nth 3 tuple) nil))
+                    (mark (upcase key)))
+               (mapconcat #'identity
+                          (list (concat "# " (upcase name))
+                                (concat "for_window [class=\"" class "\"] mark " mark)
+                                (concat "bindsym $MOD+" key
+                                        " exec --no-startup-id i3-msg '[con_mark=" mark
+                                        "] focus' || (i3-msg '[class=\"" class
+                                        "\"] focus' && i3-msg 'mark " mark "')" (when cmd (concat " || " cmd))))
+                          "\n")))
+           mark-classes
+           "\n\n")
+#+end_src
 
-# VID
-for_window [class="mpv"] mark V
-bindsym $MOD+v exec --no-startup-id i3-msg '[con_mark=V] focus' || (i3-msg '[class="mpv"] focus' && i3-msg 'mark V')
+(read the org manual if you don't understand what magic is going on there)
+#+begin_src conf
+<<mark-classes()>>
+#+end_src
 
-# IMG
-for_window [class="Nsxiv"] mark I
-bindsym $MOD+i exec --no-startup-id i3-msg '[con_mark=I] focus' || (i3-msg '[class="Nsxiv"] focus' && i3-msg 'mark I')
-# marks:2 ends here
-
-# [[file:config.org::*leader][leader:1]]
+* leader
+- bind infrequently used commands and menus.
+#+begin_src conf
 bindsym $MOD+space mode "leader"
 mode "leader" {
         bindsym $MOD+r restart
@@ -123,9 +168,10 @@ mode "leader" {
 
         bindsym Escape mode "default"
 }
-# leader:1 ends here
+#+end_src
 
-# [[file:config.org::*modus-operandi theme][modus-operandi theme:1]]
+* modus-operandi theme
+#+begin_src conf
 set $BG          #ffffff
 set $FG          #000000
 set $MODELINE_BG #c8c8c8
@@ -139,9 +185,11 @@ client.focused_inactive $BORDER    $MODELINE_BG $FG $FG   $BORDER
 client.unfocused        $BORDER    $MODELINE_BG $FG $FG   $BORDER
 client.urgent           $URGENT_BG $URGENT_BG   $FG $FG   $URGENT_BG
 client.background       $BG
-# modus-operandi theme:1 ends here
+#+end_src
 
-# [[file:config.org::*modeline][modeline:1]]
+* modeline
+- acts as the indicator as to when leader mode is active.
+#+begin_src conf
 bar {
         mode hide
         hidden_state hide
@@ -164,4 +212,4 @@ bar {
                 urgent_workspace   $BORDER      $URGENT_BG   $FG
         }
 }
-# modeline:1 ends here
+#+end_src
