@@ -21,7 +21,8 @@ CMDS = [
 
 PROCESSES = [
         'alacritty --title terminal --command tmux new-session -A -s main',
-        'emacsclient --reuse-frame || emacs --daemon && emacsclient --create-frame',
+        'emacs --daemon && emacsclient --create-frame',
+        'emacsclient --reuse-frame',
         'firefox',
         "sudo xremap --watch device #{ENV['HOME']}/.config/xremap/config.yml & disown",
         'keepassxc',
@@ -38,7 +39,7 @@ def spawn_processes
         PROCESSES.each do |ps|
                 name = ps.split[0]
                 unless processes.include?(name)
-                        Process.detach(Process.spawn(ps, %i[out err] => File::NULL))
+                        Process.detach(Process.spawn(ps, [:out, :err] => File::NULL))
                         puts("started: #{name}")
                 end
         end
