@@ -23,12 +23,10 @@
 
 ;; [[file:config.org::*font][font:1]]
 (setq doom-font                (font-spec :family "Iosevka Comfy" :size 13)
-      doom-variable-pitch-font (font-spec :family "Noto Serif" :size 15)
+      doom-variable-pitch-font (font-spec :family "Noto Serif"    :size 13)
       doom-serif-font          (font-spec :family "Iosevka Comfy" :size 13)
       doom-big-font            (font-spec :family "Iosevka Comfy" :size 22)
       doom-font-increment 1)
-
-(map! :n "C-0" #'doom/reset-font-size)
 ;; font:1 ends here
 
 ;; [[file:config.org::*modeline][modeline:1]]
@@ -146,15 +144,15 @@
 ;; global navigation scheme:1 ends here
 
 ;; [[file:config.org::*global marks][global marks:1]]
-(map! 'override :nm "'" #' z-evil-goto-mark-buffer) ;; ensure available everywhere
-(map! :map pdf-view-mode-map :n "`" #'pdf-view-jump-to-register) ;; overridden => remap
+(map! :map 'override :nm "'" #' z-evil-goto-mark-buffer) ;; ensure consistnetly available everywhere.
+(map! :map pdf-view-mode-map :n "`" #'pdf-view-jump-to-register) ;; use vim buffer local key.
 
 (evil-define-command z-evil-goto-mark-buffer (char &optional noerror)
   "Go to the global-marker's buffer specified by CHAR.
 
-This differs from `evil-goto-mark-line' in that it does not actually go to the marked position, which
-is undesired, since we use this for switching inbetween buffers and don't want our position to get
-reset each time.
+This differs from `evil-goto-mark-line' in that it does not actually go to the marked position,
+which is undesired, since we use this for switching inbetween buffers and don't want our position to
+get reset each time.
 
 for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
   :repeat nil
@@ -171,9 +169,13 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
      ((not noerror)
       (user-error "global marker `%c' is not set" (upcase char))))))
 
-;; HACK :: make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
+;; make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
 (after! savehist
   (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+  ;; evil stores these marks in the variable 'evil-markers-alist' as markers an elisp datatype that
+  ;; can’t trivially be serialized and restored later.  we do have the option of swapping out those
+  ;; markers with (path . pos) cons cells, where path is a string and pos is an integer, and those
+  ;; are trivial to serialize.
   (add-hook! 'savehist-save-hook
     (kill-local-variable 'evil-markers-alist)
     (dolist (entry evil-markers-alist)
@@ -205,7 +207,9 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
       :nv "S"   #'evil-Surround-region)
 
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
+(define-key! [remap evil-next-visual-line] #'evil-next-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
+(define-key! [remap evil-previous-visual-line] #'evil-previous-line)
 
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
 
@@ -243,10 +247,19 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
       :im "C-f" #'consult-dir-jump-file)
 ;; completion:1 ends here
 
-;; [[file:config.org::*lispy(ville)][lispy(ville):1]]
-(after! lispy
-  (setq lispy-key-theme '(lispy c-digits)))
-;; lispy(ville):1 ends here
+;; [[file:config.org::*lispyville][lispyville:1]]
+;; call help on `lispyville-set-key-theme' to see the changed bindings.
+(lispyville-set-key-theme '(operators
+                            c-w
+                            c-u
+                            prettify
+                            text-objects
+                            commentary
+                            slurp/barf-lispy
+                            additional
+                            (atom-movement t) ;; HACK :: needs t
+                            additional-insert))
+;; lispyville:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
 (evil-surround-mode 1)
@@ -288,19 +301,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 (advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 
-;; make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
-(after! savehist
-  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-  (add-hook! 'savehist-save-hook
-    (kill-local-variable 'evil-markers-alist)
-    (dolist (entry evil-markers-alist)
-      (when (markerp (cdr entry))
-        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
-                            (marker-position (cdr entry)))))))
-  (add-hook! 'savehist-mode-hook
-    (setq-default evil-markers-alist evil-markers-alist)
-    (kill-local-variable 'evil-markers-alist)
-    (make-local-variable 'evil-markers-alist)))
+(setq-hook! 'minibuffer-setup-hook cursor-type 'bar) ;; HACK :: sometimes cursor stays normal-mode style (even though we are in insert mode)
 ;; evil-mode:1 ends here
 
 ;; [[file:config.org::*jumplist][jumplist:1]]
@@ -340,14 +341,14 @@ This is sensible default behaviour, and integrates it into evil."
         dired-omit-files "^\\..*$"))
 ;; dired:1 ends here
 
-;; [[file:config.org::*keybindings][keybindings:1]]
+;; [[file:config.org::*dired/keybindings][dired/keybindings:1]]
 (map! :map dired-mode-map :after dired
       :m "h" #'dired-up-directory
       :m "l" #'dired-open-file)
 
 (map! :map dired-mode-map :localleader :after dired
       :m "a" #'z-dired-archive)
-;; keybindings:1 ends here
+;; dired/keybindings:1 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
 (defvar z-archive-dir "~/Archive/")
@@ -403,6 +404,8 @@ This is sensible default behaviour, and integrates it into evil."
                             laas-mode
                             +org-pretty-mode
                             org-appear-mode))
+(add-hook! 'org-mode-hook :local
+  (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`"))))
 
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
@@ -444,6 +447,8 @@ This is sensible default behaviour, and integrates it into evil."
                                    (plain-list-item . nil))
       org-src-ask-before-returning-to-edit-buffer nil)
 
+(add-hook! 'org-src-mode-hook (flycheck-mode -1)) ;; flycheck full of error's, since it only reads partial buffer.
+
 (defadvice! z-insert-newline-above (fn &rest args)
   "pad newly inserted heading with newline unless is todo-item.
 
@@ -484,7 +489,7 @@ This is sensible default behaviour, and integrates it into evil."
                                      ("<=>" . "⇔"))))
 ;; symbols:1 ends here
 
-;; [[file:config.org::*keybindings][keybindings:1]]
+;; [[file:config.org::*org/keybindings][org/keybindings:1]]
 (map! :map org-mode-map :after org
       :localleader
       "\\" #'org-latex-preview
@@ -492,7 +497,7 @@ This is sensible default behaviour, and integrates it into evil."
       "z"  #'org-add-note
       "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
-;; keybindings:1 ends here
+;; org/keybindings:1 ends here
 
 ;; [[file:config.org::*babel][babel:1]]
 (setq org-babel-default-header-args '((:session  . "none")
@@ -906,15 +911,15 @@ legibility."
 (after! harpoon
   (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
 
-  (map! 'override
-      :nm "M-1"     #'harpoon-go-to-1
-      :nm "M-2"     #'harpoon-go-to-2
-      :nm "M-3"     #'harpoon-go-to-3
-      :nm "M-4"     #'harpoon-go-to-4
-      :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
+  (map! :map 'override
+        :nm "M-1"     #'harpoon-go-to-1
+        :nm "M-2"     #'harpoon-go-to-2
+        :nm "M-3"     #'harpoon-go-to-3
+        :nm "M-4"     #'harpoon-go-to-4
+        :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
 
-(map! :leader
-      "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
+  (map! :leader
+        "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
 ;; harpoon:1 ends here
 
 ;; [[file:config.org::*vertico: minibuffer completion][vertico: minibuffer completion:1]]
@@ -949,9 +954,11 @@ legibility."
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
-    (setq-local line-spacing 2 ;; padding increases focus on current line for long prose text.
-                global-hl-line-mode nil) ;; HACK :: need to unset, instead of using a hook   ;; HACK :: ---
-    (visual-line-mode 1)))
+    (setq-local line-spacing 2) ;; padding increases focus on current line for long prose text.
+    (visual-line-mode 1)
+    (progn
+      (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
+      (hl-line-mode -1))))
 ;; nov: ebooks:1 ends here
 
 ;; [[file:config.org::*pdf view][pdf view:1]]

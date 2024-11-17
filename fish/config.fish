@@ -4,14 +4,15 @@
 # email:  emillenz@protonmail.com
 # date:   2024-05-04
 # info:
-# - favor '--long-flags' over '-f' in order to make the code more unambiguous (shortflags have different meaning across different programs), readeable, easier to maintain (and you'll remember flags better for a program (and don't have to go look them up everytime)).
-# - tipp :: for prototyping (long) commands, move from the terminal to a emacs buffer (with: #!) then prototype the command until the output is satisfactory (using eval-buffer/expression to immediately see the result and correct the command).
+#  long flags :: favor '--long-flags' over '-f' in order to make the code more unambiguous (shortflags have
+#  different meaning across different programs), readeable and easier to maintain.
 # ---
 
 # OPTIONS
 set -g fish_cursor_replace_one underscore
+set -g fish_cursor_insert line # indicate mode change clearly
 set -g fish_greeting ''
-fish_config theme choose modus_operandi
+fish_config theme choose modus_operandi # ./themes/modus_operandi.theme
 
 # PATH
 set -gx PATH $PATH ~/.config/{bin, emacs/bin} ~/.cargo/bin ~/.local/bin ~/.local/share/gem/ruby/3.3.0/bin
@@ -38,8 +39,6 @@ alias echo "echo -e"
 alias curl "curl --silent"
 alias sed "sed --regexp-extended" # consistent regex-syntax with emacs, rg, fd, ...
 alias irb "irb --readline"
-# alias grep rg
-# alias find fd
 
 # FZF
 fzf_configure_bindings --directory=\cf --history --git_log --git_status --variables --processes # NOTE :: disable useless (history already inbuilt in fish: /)
@@ -57,32 +56,21 @@ bind --mode normal z clear-screen # consistent with vim: zz - center-screen
 # bind --mode insert \ce edit_command_buffer # $VISUAL as editor.  but if the command is so complex that you need your editor, you should move to using ruby and a script buffer.
 
 # FUNCTIONS
-# HACK :: must produce no output => fish prompt displays mode instead
 function fish_mode_prompt
+    # set to nil, since we indicate mode using the cursor.
 end
 
-function fish_prompt
-    # newlines to clearly separate commands in history (+ allows to jump to begin/end of command in tmux using: '{}')
-    set -l last_status $status # NOTE :: must be first statement
-    set -l stat
-    if test $last_status -ne 0
-        set stat (set_color $fish_color_error)"[$last_status]"
-    end
-
-    set -l dir (set_color $fish_color_cwd)(prompt_pwd --full-length-dirs=4)
-
-    set -l prompt $(
-        switch $fish_bind_mode
-            case insert
-                printf "$(set_color --bold purple)>"
-            case '*'
-                printf "$(set_color --bold blue)|"
+function fish_prompt --description 'newlines to clearly separate commands in history (+ allows to jump to begin/end of command in tmux using: {})'
+    set -l last_exit_code $status # NOTE :: must be first statement
+    set -l last_exit_status $(
+        if test $last_exit_code -ne 0
+            printf (set_color $fish_color_error)"[$last_exit_code]"
         end
     )
-
+    set -l dir (set_color $fish_color_cwd)(prompt_pwd --full-length-dirs=4)
+    set -l prompt "$(set_color brblue)>"
     set -l fish_color_line_bg '#dae5ec' # modus theme
-
-    echo "\n$(set_color --background=$fish_color_line_bg --bold) $dir $stat $prompt $(set_color normal)"
+    echo "\n $(set_color --background=$fish_color_line_bg --bold) $dir $last_exit_status $prompt $(set_color normal) "
 end
 
 function open_emacs_dwim --description "open editor with args, if nil open editor with fileexplorer in current directory"

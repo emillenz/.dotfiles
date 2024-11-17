@@ -229,7 +229,7 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
 - font set all font choices to the system wide font: iosevka comfy 10 and set: don't allow webpages to custom fonts.  that way it will always look uniform.
 
 *** useage
-- pin tabs that you visit frequently, such as [[https://chatgpt.com]] or [[https://spotify.com]].  this ensures that they are always opened/accessed using same hotkey Alt+<num>.  this is the analogon to tmux/harpoon.
+- auto-open tabs that you visit frequently, such as [[https://chatgpt.com]] or [[https://spotify.com]] in [[file:i3/config][i3 config]].  this allows you to hotkey to these sites using ~Alt+<number>~ consistently everytime.
 - bookmarks: name them hierarchically w keywords (syntax <=> org-mode-tags), ex: =cs:math:exercises=
   - quickly open website using bookmark searching
   - structured, easy to patternmatch (not having to put them into folders)

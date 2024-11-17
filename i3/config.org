@@ -141,7 +141,25 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 
 (read the org manual if you don't understand what magic is going on there)
 #+begin_src conf
-<<mark-classes()>>
+# TERM
+for_window [class="Alacritty"] mark T
+bindsym $MOD+t exec --no-startup-id i3-msg '[con_mark=T] focus' || (i3-msg '[class="Alacritty"] focus' && i3-msg 'mark T') || alacritty --command tmux new-session -n term -A -s main
+
+# EDITOR
+for_window [class="Emacs"] mark E
+bindsym $MOD+e exec --no-startup-id i3-msg '[con_mark=E] focus' || (i3-msg '[class="Emacs"] focus' && i3-msg 'mark E') || emacsclient --reuse-frame
+
+# WEB
+for_window [class="firefox"] mark W
+bindsym $MOD+w exec --no-startup-id i3-msg '[con_mark=W] focus' || (i3-msg '[class="firefox"] focus' && i3-msg 'mark W') || firefox --new-tab https://chatgpt.com
+
+# VID
+for_window [class="mpv"] mark V
+bindsym $MOD+v exec --no-startup-id i3-msg '[con_mark=V] focus' || (i3-msg '[class="mpv"] focus' && i3-msg 'mark V')
+
+# IMG
+for_window [class="Nsxiv"] mark I
+bindsym $MOD+i exec --no-startup-id i3-msg '[con_mark=I] focus' || (i3-msg '[class="Nsxiv"] focus' && i3-msg 'mark I')
 #+end_src
 
 * leader

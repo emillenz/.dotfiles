@@ -2,7 +2,16 @@
 ;;; This format is meant to be slightly human-readable;
 ;;; nevertheless, you probably don't want to edit it.
 ;;; -*- End Of Bookmark File Format Version Stamp -*-
-((#1="nm:problems"
+(("an2:script"
+ (filename . "~/Documents/ethz/cs/s3/an2/literature/script-analysis-II.pdf")
+ (position . 1)
+ (last-modified 26426 3703 707484 63000)
+ (page . 4)
+ (slice)
+ (size . fit-page)
+ (origin 0.0 . 0.0)
+ (handler . pdf-view-bookmark-jump-handler))
+(#1="nm:problems"
     (filename . "~/Documents/ethz/cs/s3/nm/exercises/NCSEFL_Problems.pdf")
     (position . 1)
     (last-modified 26419 32969 71400 936000)
@@ -65,9 +74,9 @@
  (position . 166)
  (last-modified 26152 39198 98722 800000))
 ("org-capture-last-stored"
- (filename . "~/Documents/org/personal/notes.org")
- (front-context-string . "* just that one ")
- (rear-context-string . " :personal:\n\n\n\n\n")
- (position . 128)
- (last-modified 26423 12278 397441 63000))
+ (filename . "~/Documents/literature/readlist.org")
+ (front-context-string . "** [ ] extensive")
+ (rear-context-string . "total.\n\n* inbox\n")
+ (position . 679)
+ (last-modified 26425 10572 357686 680000))
 )
