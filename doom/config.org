@@ -490,7 +490,26 @@ This is sensible default behaviour, and integrates it into evil."
 * indentation
 - formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
 - we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
-- org indentation :: keep nesting org-headlines to a minimum (visually enforce it using 8-space indents)
+
+** rationale
+a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
+
+#+begin_quote
+Tabs are 8 characters, and thus indentations are also 8 characters.  There are heretic movements that try to make indentations 4 (or even 2!) characters deep, and that is akin to trying to define the value of PI to be 3.  If you need more than 4 levels of indentation within a function, you’re screwed anyway, and should fix your program.
+--- Linus Torvalds
+#+end_quote
+
+the 8 space indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 100 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 100 column limit forces you to keep your code within reasonable limits.
+
+the whole idea behind indentation is to clearly define where a block of control starts and ends.  this is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  you can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  it facilitates reading through a codebase in a more tree-like fashion.
+
+every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 100-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
+
+in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
+
+- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
+- using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
+
 #+begin_src elisp
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
@@ -515,25 +534,6 @@ This is sensible default behaviour, and integrates it into evil."
   evil-shift-width z-indent-width
   ruby-indent-level z-indent-width)
 #+end_src
-
-** rationale
-a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
-
-#+begin_quote
-Tabs are 8 characters, and thus indentations are also 8 characters.  There are heretic movements that try to make indentations 4 (or even 2!) characters deep, and that is akin to trying to define the value of PI to be 3.  If you need more than 4 levels of indentation within a function, you’re screwed anyway, and should fix your program.
---- Linus Torvalds
-#+end_quote
-
-the 8 space indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 100 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 100 column limit forces you to keep your code within reasonable limits.
-
-the whole idea behind indentation is to clearly define where a block of control starts and ends.  this is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  you can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  it facilitates reading through a codebase in a more tree-like fashion.
-
-every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 100-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
-
-in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
-
-- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
-- using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
 
 * org
 #+begin_src elisp
@@ -805,13 +805,13 @@ we prompt for a note on the task when chaning state to either: on-hold, in-prog 
 #+begin_src elisp
 (setq org-directory "~/Documents/org/")
 
-(defvar z-org-journal-dir (file-name-concat "~/Documents/journal/")
+(defvar z-journal-dir (file-name-concat "~/Documents/journal/")
   "dir for daily captured journal files")
 
-(defvar z-org-literature-dir "~/Documents/literature"
+(defvar z-literature-dir "~/Documents/literature"
   "literature sources and captured notes")
 
-(defvar z-org-literature-notes-dir (file-name-concat z-org-literature-dir "notes/")
+(defvar z-literature-notes-dir (file-name-concat z-literature-dir "notes/")
   "note files for each literature source")
 
 (defvar z-wiki-dir "~/Documents/wiki/"
@@ -819,19 +819,19 @@ we prompt for a note on the task when chaning state to either: on-hold, in-prog 
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
 and the later reviewed and merged into the corresponding article of the wiki.")
 
-(defvar z-doct-default-templates '(z-doct-task-template
-                                   z-doct-event-template
-                                   z-doct-note-template))
+(defvar z-doct-projects-default-templates '(z-doct-projects-task-template
+                                            z-doct-projects-event-template
+                                            z-doct-projects-note-template))
 
 (defvar z-doct-projects `(("cs" :keys "c"
-                           :templates ,z-doct-default-templates
+                           :templates ,z-doct-projects-default-templates
                            :children (("ti"   :keys "t")
                                       ("an2"  :keys "a")
                                       ("ph1"  :keys "p")
-                                      ("spca" :keys "s" :templates (z-doct-cc-src-template))
-                                      ("nm"   :keys "n" :templates (z-doct-cc-src-template))))
-                          ("personal" :keys "p" :templates ,z-doct-default-templates)
-                          ("config"   :keys "f" :templates ,z-doct-default-templates))
+                                      ("spca" :keys "s" :templates (z-doct-projects-cc-src-template))
+                                      ("nm"   :keys "n" :templates (z-doct-projects-cc-src-template))))
+                          ("personal" :keys "p" :templates ,z-doct-projects-default-templates)
+                          ("config"   :keys "f" :templates ,z-doct-projects-default-templates))
   "- same syntax as doct,  except for the key-value-pair: `:templates LIST`,
  where LIST is a list of functions with signature: `(FN PATH) -> TEMPLATE`
  where PATH is to be generated by z-doct-projects file
@@ -846,7 +846,7 @@ TIME :: time in day of note to return. (default: today)"
        (or time (current-time))
        (format-time-string "%F" it)
        (format "%s_journal.org" it)
-       (file-name-concat z-org-journal-dir it)))
+       (file-name-concat z-journal-dir it)))
 
 (defun z-doct-projects-file (type path)
   "TYPE :: 'agenda | 'notes"
@@ -992,10 +992,10 @@ PARENT-PATH :: nil (used for recursion) "
 
               ("literature"
                :keys "l"
-               :file (lambda () (read-file-name "file: " z-org-literature-notes-dir))
+               :file (lambda () (read-file-name "file: " z-literature-notes-dir))
                :children (("add to readlist"
                            :keys "a"
-                           :file ,(file-name-concat z-org-literature-dir "readlist.org")
+                           :file ,(file-name-concat z-literature-dir "readlist.org")
                            :headline "inbox"
                            :prepend t
                            :template ("* [ ] %^{title}"))
@@ -1007,7 +1007,7 @@ PARENT-PATH :: nil (used for recursion) "
                                         (read-from-minibuffer "short title: ")
                                         (replace-regexp-in-string " " "_" it)
                                         (concat it ".org")
-                                        (file-name-concat z-org-literature-notes-dir it)))
+                                        (file-name-concat z-literature-notes-dir it)))
                            :type plain
                            :template ("#+title:  %^{full title}"
                                       "#+author: %(user-full-name)"
@@ -1188,11 +1188,13 @@ legibility."
 #+end_src
 
 * nov: ebooks
+- uses variable pitch mode
 #+begin_src elisp
 (use-package! nov
   :mode ("\\.epub\\'" . nov-mode)
   :config
-  (setq nov-text-width t) ;; used visual-line-mode and visual-fill-column mode to visually wrap line.
+  (setq nov-variable-pitch t ;; for reading use serif font
+        nov-text-width t) ;; used visual-line-mode and visual-fill-column mode to visually wrap line.
   (advice-add 'nov-render-title :override #'ignore) ;; using modeline...
 
   (map! :map (nov-mode-map nov-button-map)
@@ -1204,8 +1206,8 @@ legibility."
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
-    (setq-local line-spacing 2) ;; padding increases focus on current line for long prose text.
     (visual-line-mode 1)
+    (setq-local line-spacing 2) ;; padding increases focus on current line for long prose text.
     (progn
       (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
       (hl-line-mode -1))))
