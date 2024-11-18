@@ -90,7 +90,6 @@
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       async-shell-command-width 100
-      which-key-idle-delay 0.2 ;; when i want help, i want it fast.
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
 (+global-word-wrap-mode 1)
@@ -956,14 +955,17 @@ legibility."
 ;; nov: ebooks:1 ends here
 
 ;; [[file:config.org::*pdf view][pdf view:1]]
-(map! :map pdf-view-mode-map :after pdf-view
-      :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
-      :n "gm" #'evil-set-marker ;; needs mapping
-      :n "<next>" #'pdf-view-scroll-up-or-next-page ;; ergonomics when reading onehanded (when you want to scroll by fullpage, switch on `pdf-view-fit-page-to-window')
-      :n "<prior>" #'pdf-view-scroll-down-or-previous-page
-      :n "t" #'pdf-outline) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
+(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; don't zoom out more than neccessay
 
-(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
+;; HACK :: must use hook in order to override pdf-view's bindings (':after pdf-view' doesn't work here)
+(add-hook! 'pdf-view-mode-hook
+  (map! :map pdf-view-mode-map
+        :n "<next>" #'pdf-view-scroll-up-or-next-page ;; ergonomics when reading onehanded (when you want to scroll by fullpage, switch on `pdf-view-fit-page-to-window')
+        :n "<prior>" #'pdf-view-scroll-down-or-previous-page
+        :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
+        :n "gm" #'evil-set-marker ;; needs mapping
+        :n "t" #'pdf-outline ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
+        ))
 ;; pdf view:1 ends here
 
 ;; [[file:config.org::*yas: snippets][yas: snippets:1]]
