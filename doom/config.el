@@ -145,7 +145,6 @@
 
 ;; [[file:config.org::*global marks][global marks:1]]
 (map! :map 'override :nm "'" #' z-evil-goto-mark-buffer) ;; ensure consistnetly available everywhere.
-(map! :map pdf-view-mode-map :n "`" #'pdf-view-jump-to-register) ;; use vim buffer local key.
 
 (evil-define-command z-evil-goto-mark-buffer (char &optional noerror)
   "Go to the global-marker's buffer specified by CHAR.
@@ -618,7 +617,7 @@ TIME :: time in day of note to return. (default: today)"
        (format "%s.org" it)
        (file-name-concat org-directory path it)))
 
-(defun z-doct-task-template (path)
+(defun z-doct-projects-task-template (path)
   (list "task"
         :keys "t"
         :file (z-doct-projects-file 'agenda path)
@@ -627,7 +626,7 @@ TIME :: time in day of note to return. (default: today)"
         :empty-lines-after 1
         :template '("* [ ] %^{title}%?")))
 
-(defun z-doct-event-template (path)
+(defun z-doct-projects-event-template (path)
   (list "event"
         :keys "e"
         :file (z-doct-projects-file 'agenda path)
@@ -642,7 +641,7 @@ TIME :: time in day of note to return. (default: today)"
                     ":material: %^{material}"
                     ":END:")))
 
-(defun z-doct-note-template (path)
+(defun z-doct-projects-note-template (path)
   (list "note"
         :keys "n"
         :file (z-doct-projects-file 'notes path)
@@ -654,7 +653,7 @@ TIME :: time in day of note to return. (default: today)"
                     ":END:"
                     "%?")))
 
-(defun z-doct-cc-src-template (path)
+(defun z-doct-projects-cc-src-template (path)
   "for quickly implementing/testing ideas (like a scratchpad, but you have all your experimentations
   in a single literate document).  choose either c or c++"
   (list "note: src cc"
@@ -674,7 +673,7 @@ TIME :: time in day of note to return. (default: today)"
                     "}"
                     "#+end_src")))
 
-(defun z-doct-expand-templates (projects &optional inherited-templates parent-path)
+(defun z-doct-projects-expand-templates (projects &optional inherited-templates parent-path)
   "PROJECTS :: `z-doct-projects'
 PARENT-PATH :: nil (used for recursion) "
   (mapcar (lambda (project)
@@ -689,8 +688,8 @@ PARENT-PATH :: nil (used for recursion) "
                       (if children
                           (--> nil ;; HAS CHILDREN => is project-node => recursivly expand children
                                (list self)
-                               (z-doct-expand-templates it templates) ;; template out of self
-                               (append it (z-doct-expand-templates children templates path))
+                               (z-doct-projects-expand-templates it templates) ;; template out of self
+                               (append it (z-doct-projects-expand-templates children templates path))
                                (list :children it))
                         (--> nil ;; NO CHILDREN => is leaf-node => instantiate templates
                              (mapcar (lambda (fn-sym)
@@ -701,7 +700,7 @@ PARENT-PATH :: nil (used for recursion) "
 
 (setq org-capture-templates
       (doct `(;; PROJECT TEMPLATES
-              ,@(z-doct-expand-templates z-doct-projects)
+              ,@(z-doct-projects-expand-templates z-doct-projects)
 
               ;; NON-PROJECT TEMPLATES
               ("journal"
@@ -962,10 +961,9 @@ legibility."
 ;; nov: ebooks:1 ends here
 
 ;; [[file:config.org::*pdf view][pdf view:1]]
-(map! :map pdf-view-mode-map :after (pdf-view pdf-history pdf-outline)
-      :n "p" #'pdf-view-fit-page-to-window
-      :n "w" #'pdf-view-fit-width-to-window
-      :n "<tab>" #'pdf-outline) ;; consistent with (org mode, magit, etc) :: using <tab> for "OVERVIEW"
+(map! :map pdf-view-mode-map :after pdf-view
+      :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
+      :n "t" #'pdf-outline) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
 
 (define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
 ;; pdf view:1 ends here
