@@ -152,6 +152,13 @@ explicitly do NOT enable for ::
 - i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
 - always keep on exploring, learning new, efficient keybindings and break your old routines for newer, more effcient one's after evaluating wether they are faster or not.
 
+** note on whichkey
+removed on purpose
+  - the concept of ~whichkey~ is creating the bad habit of searching through a menu to find a keybindings (the exact opposite of what a keybind is for, to be executed instantaneously, engrained in memory)
+  - if you know roughly what you are looking for, then use [[kbd:m-x][m-x]] and fuzzy search for the command and it will show you the binding for next time.  fuzzy finding is more efficient.
+  - we remove annoying unwanted popup's and reduce visual sugar (=> distractionless, focused workflow).
+  - this idea correlates with the insight that you should use a keyboard with blank keycaps.  which will force you to learn to type, without ever taking the focus off the screen.  (reduced context switching, no speed bottleneck, increased continuity).
+
 ** leader ([[kbd:SPC][SPC]], [[kbd:,][,]])
 #+begin_src elisp
 (setq doom-leader-key "SPC"
