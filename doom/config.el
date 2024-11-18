@@ -103,7 +103,7 @@
 (global-auto-revert-mode 1)
 ;; general options:1 ends here
 
-;; [[file:config.org::*leader (\[\[kbd:SPC\]\[SPC\]\], \[\[kbd:,\]\[,\]\])][leader ([[kbd:SPC][SPC]], [[kbd:,][,]]):1]]
+;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
       doom-leader-alt-key "C-SPC"
       doom-localleader-key ","
@@ -131,9 +131,9 @@
                "g" #'org-capture-goto-last-stored)
       (:prefix "t"
                "c" #'visual-fill-column-mode))
-;; leader ([[kbd:SPC][SPC]], [[kbd:,][,]]):1 ends here
+;; leaderkey:1 ends here
 
-;; [[file:config.org::*global navigation scheme][global navigation scheme:1]]
+;; [[file:config.org::*global navigation][global navigation:1]]
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
       :nm "C-q"     #'evil-window-delete ;; dwim
@@ -141,7 +141,7 @@
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer)
-;; global navigation scheme:1 ends here
+;; global navigation:1 ends here
 
 ;; [[file:config.org::*global marks][global marks:1]]
 (map! :map 'override :nm "'" #' z-evil-goto-mark-buffer) ;; ensure consistnetly available everywhere.
@@ -187,11 +187,41 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
     (make-local-variable 'evil-markers-alist)))
 ;; global marks:1 ends here
 
-;; [[file:config.org::*vim editing][vim editing:1]]
+;; [[file:config.org::*minibuffer][minibuffer:1]]
+(map! :map minibuffer-mode-map
+      :i "C-n" #'completion-at-point
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "/"   #'previous-matching-history-element
+      :n "<return>" #'exit-minibuffer) ;; sane default
+
+(map! :map evil-ex-search-keymap :after evil
+      :n "j" #'next-line-or-history-element
+      :n "k" #'previous-line-or-history-element
+      :n "/" #'previous-matching-history-element
+      :n "<return>" #'exit-minibuffer)
+
+(map! :map vertico-flat-map :after vertico
+      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
+      :i "C-p" #'previous-line-or-history-element
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "<return>" #'vertico-exit ;; sane default
+      :n "/"   #'previous-matching-history-element)
+
+(map! :map vertico-map
+      :im "C-w" #'vertico-directory-delete-word
+      :im "C-d" #'consult-dir
+      :im "C-f" #'consult-dir-jump-file)
+
+(map! :map company-mode-map :after company
+      :i "C-n" #'company-complete)
+;; minibuffer:1 ends here
+
+;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
       :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
       :nv "S-<return>" #'newline-and-indent
-      :nm "g/"  #'occur
 
       :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
       :nv "-"   #'evil-numbers/dec-at-pt
@@ -213,52 +243,22 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
 
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
-;; vim editing:1 ends here
+;; editing:1 ends here
 
-;; [[file:config.org::*completion][completion:1]]
-(map! :map company-mode-map :after company
-      :i "C-n" #'company-complete)
+;; [[file:config.org::*harpoon][harpoon:1]]
+(after! harpoon
+  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
 
-(map! :map minibuffer-mode-map
-      :i "C-n" #'completion-at-point
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "<return>" #'exit-minibuffer) ;; sane default
+  (map! :map 'override
+        :nm "M-1"     #'harpoon-go-to-1
+        :nm "M-2"     #'harpoon-go-to-2
+        :nm "M-3"     #'harpoon-go-to-3
+        :nm "M-4"     #'harpoon-go-to-4
+        :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
 
-(map! :map vertico-flat-map :after vertico
-      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
-      :i "C-p" #'previous-line-or-history-element
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
-      :n "<return>" #'vertico-exit ;; sane default
-      :n "/"   #'previous-matching-history-element)
-
-(map! :map evil-ex-search-keymap :after evil
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
-      :n "/" #'previous-matching-history-element
-      :n "<return>" #'exit-minibuffer)
-
-(map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word
-      :im "C-d" #'consult-dir
-      :im "C-f" #'consult-dir-jump-file)
-;; completion:1 ends here
-
-;; [[file:config.org::*lispyville][lispyville:1]]
-;; call help on `lispyville-set-key-theme' to see the changed bindings.
-(lispyville-set-key-theme '(operators
-                            c-w
-                            c-u
-                            prettify
-                            text-objects
-                            commentary
-                            slurp/barf-lispy
-                            additional
-                            (atom-movement t) ;; HACK :: needs t
-                            additional-insert))
-;; lispyville:1 ends here
+  (map! :leader
+        "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
+;; harpoon:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
 (evil-surround-mode 1)
@@ -321,6 +321,14 @@ This is sensible default behaviour, and integrates it into evil."
                evil-forward-section-end))
   (evil-remove-command-properties cmd :jump))
 ;; jumplist:1 ends here
+
+;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
+(map! :map occur-mode-map :after replace
+      :n "q" #'quit-window) ;; consistent with other read-only modes (magit, dired, docs, pdf...)
+
+(map! :after evil
+      :nm "g/"  #'occur)
+;; occur: emacs interactive grep:1 ends here
 
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
@@ -906,21 +914,6 @@ legibility."
 (add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
 ;; whisper: transcription:1 ends here
 
-;; [[file:config.org::*harpoon][harpoon:1]]
-(after! harpoon
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
-
-  (map! :map 'override
-        :nm "M-1"     #'harpoon-go-to-1
-        :nm "M-2"     #'harpoon-go-to-2
-        :nm "M-3"     #'harpoon-go-to-3
-        :nm "M-4"     #'harpoon-go-to-4
-        :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
-
-  (map! :leader
-        "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
-;; harpoon:1 ends here
-
 ;; [[file:config.org::*vertico: minibuffer completion][vertico: minibuffer completion:1]]
 (vertico-flat-mode 1)
 ;; vertico: minibuffer completion:1 ends here
@@ -978,3 +971,18 @@ legibility."
  '(prog-mode :trigger "header")
  '(makefile-gmake-mode :ignore t))
 ;; file templates:1 ends here
+
+;; [[file:config.org::*lispyville: editing lisp in vim][lispyville: editing lisp in vim:1]]
+;; call help on `lispyville-set-key-theme' to see the changed bindings.
+(after! lispyville
+  (lispyville-set-key-theme '(operators
+                              c-w
+                              c-u
+                              prettify
+                              text-objects
+                              commentary
+                              slurp/barf-lispy
+                              additional
+                              (atom-movement t) ;; HACK :: needs t
+                              additional-insert)))
+;; lispyville: editing lisp in vim:1 ends here

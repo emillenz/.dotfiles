@@ -146,19 +146,17 @@ explicitly do NOT enable for ::
 (global-auto-revert-mode 1)
 #+end_src
 
-* keybindings
+* global keybindings
 - ~helpful-key~ and are crucial to understanding what your tools can do for you (ex: magit, dired, org-mode)
 - i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
 - always keep on exploring, learning new, efficient keybindings and break your old routines for newer, more effcient one's after evaluating wether they are faster or not.
-
-** note on whichkey
-removed on purpose
+- whichkey :: removed on purpose
   - the concept of ~whichkey~ is creating the bad habit of searching through a menu to find a keybindings (the exact opposite of what a keybind is for, to be executed instantaneously, engrained in memory)
   - if you know roughly what you are looking for, then use [[kbd:m-x][m-x]] and fuzzy search for the command and it will show you the binding for next time.  fuzzy finding is more efficient.
   - we remove annoying unwanted popup's and reduce visual sugar (=> distractionless, focused workflow).
   - this idea correlates with the insight that you should use a keyboard with blank keycaps.  which will force you to learn to type, without ever taking the focus off the screen.  (reduced context switching, no speed bottleneck, increased continuity).
 
-** leader ([[kbd:SPC][SPC]], [[kbd:,][,]])
+** leaderkey
 #+begin_src elisp
 (setq doom-leader-key "SPC"
       doom-leader-alt-key "C-SPC"
@@ -189,7 +187,7 @@ removed on purpose
                "c" #'visual-fill-column-mode))
 #+end_src
 
-** global navigation scheme
+** global navigation
 - follows the os-consistent keymap
 - splits :: we never manually create split-windows for buffers.  we prefer the full screen, full focus, no distractions - workflow.  (no multitasking, no clutter)
   however when emacs creates popup buffers (docs, compilation, etc.) in windows we must handle them.  using [[kbd:][c-w c-w, c-w c-q]] just too many keypresses,  especially if we call it repeatedly.  since our window arrangement is only ever a single window or a vsplit, we can condendse all the bindings into just [[kbd:][c-w, c-q]].  they do all window-management.
@@ -256,7 +254,43 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
     (make-local-variable 'evil-markers-alist)))
 #+end_src
 
-** vim editing
+** minibuffer
+- bindings :: use [[kbd:C-n][C-n]] for code completion, If you want evil's dabbrev based completion, use [[kbd:C-p][C-p]], which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use [[kbd:tab][tab]].
+- minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
+- minibuffer history :: navigate it in normal mode ~j, k, <return>, /~
+
+#+begin_src elisp
+(map! :map minibuffer-mode-map
+      :i "C-n" #'completion-at-point
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "/"   #'previous-matching-history-element
+      :n "<return>" #'exit-minibuffer) ;; sane default
+
+(map! :map evil-ex-search-keymap :after evil
+      :n "j" #'next-line-or-history-element
+      :n "k" #'previous-line-or-history-element
+      :n "/" #'previous-matching-history-element
+      :n "<return>" #'exit-minibuffer)
+
+(map! :map vertico-flat-map :after vertico
+      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
+      :i "C-p" #'previous-line-or-history-element
+      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
+      :n "j"   #'next-line-or-history-element
+      :n "<return>" #'vertico-exit ;; sane default
+      :n "/"   #'previous-matching-history-element)
+
+(map! :map vertico-map
+      :im "C-w" #'vertico-directory-delete-word
+      :im "C-d" #'consult-dir
+      :im "C-f" #'consult-dir-jump-file)
+
+(map! :map company-mode-map :after company
+      :i "C-n" #'company-complete)
+#+end_src
+
+** editing
 goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and improve consistency of implementation.
 - splits ::
   - at most have 2 splits => toggle between windows with single key (instead of mental overhead for directional navigation ex: [[kbd:c-hjkl][c-hjkl]] )
@@ -274,7 +308,6 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 - & ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.
 - s/S :: vim's ~s/S~ is useless, since it basically duplicates: ~x~ and ~C~.  we introduce a powerful operator: ~evil-surround~.
   - readme: https://github.com/emacs-evil/evil-surround
-- occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
 - [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 - newline-and-indent:S-<return> :: inverse of: ~J~ and for some reason doesn't exist in vim by default.  this is really convenient to eg. function arguments onto newlines (hit ~W S-<return>~ successively).
 
@@ -282,7 +315,6 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (map! :after evil
       :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
       :nv "S-<return>" #'newline-and-indent
-      :nm "g/"  #'occur
 
       :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
       :nv "-"   #'evil-numbers/dec-at-pt
@@ -306,56 +338,22 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 #+end_src
 
-** completion
-- bindings :: use [[kbd:C-n][C-n]] for code completion, If you want evil's dabbrev based completion, use [[kbd:C-p][C-p]], which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use [[kbd:tab][tab]].
-- minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
-- minibuffer history :: navigate it in normal mode ~j, k, <return>, /~
-
+** harpoon
+- harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
+- we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are analogous to vim marks.
 #+begin_src elisp
-(map! :map company-mode-map :after company
-      :i "C-n" #'company-complete)
+(after! harpoon
+  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
 
-(map! :map minibuffer-mode-map
-      :i "C-n" #'completion-at-point
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "<return>" #'exit-minibuffer) ;; sane default
+  (map! :map 'override
+        :nm "M-1"     #'harpoon-go-to-1
+        :nm "M-2"     #'harpoon-go-to-2
+        :nm "M-3"     #'harpoon-go-to-3
+        :nm "M-4"     #'harpoon-go-to-4
+        :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
 
-(map! :map vertico-flat-map :after vertico
-      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
-      :i "C-p" #'previous-line-or-history-element
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
-      :n "<return>" #'vertico-exit ;; sane default
-      :n "/"   #'previous-matching-history-element)
-
-(map! :map evil-ex-search-keymap :after evil
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
-      :n "/" #'previous-matching-history-element
-      :n "<return>" #'exit-minibuffer)
-
-(map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word
-      :im "C-d" #'consult-dir
-      :im "C-f" #'consult-dir-jump-file)
-#+end_src
-
-** lispyville
-- makes vim's motions dwmi in lisp modes (mainly respecting parenthesis).
-#+begin_src elisp
-;; call help on `lispyville-set-key-theme' to see the changed bindings.
-(lispyville-set-key-theme '(operators
-                            c-w
-                            c-u
-                            prettify
-                            text-objects
-                            commentary
-                            slurp/barf-lispy
-                            additional
-                            (atom-movement t) ;; HACK :: needs t
-                            additional-insert))
+  (map! :leader
+        "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
 #+end_src
 
 * evil-mode
@@ -423,6 +421,16 @@ This is sensible default behaviour, and integrates it into evil."
                evil-forward-paragraph
                evil-forward-section-end))
   (evil-remove-command-properties cmd :jump))
+#+end_src
+
+* occur: emacs interactive grep
+- occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
+#+begin_src elisp
+(map! :map occur-mode-map :after replace
+      :n "q" #'quit-window) ;; consistent with other read-only modes (magit, dired, docs, pdf...)
+
+(map! :after evil
+      :nm "g/"  #'occur)
 #+end_src
 
 * dired
@@ -1153,24 +1161,6 @@ legibility."
 (add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
 #+end_src
 
-* harpoon
-- harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
-- we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are analogous to vim marks.
-#+begin_src elisp
-(after! harpoon
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
-
-  (map! :map 'override
-        :nm "M-1"     #'harpoon-go-to-1
-        :nm "M-2"     #'harpoon-go-to-2
-        :nm "M-3"     #'harpoon-go-to-3
-        :nm "M-4"     #'harpoon-go-to-4
-        :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
-
-  (map! :leader
-        "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
-#+end_src
-
 * vertico: minibuffer completion
 - i want a minimalist unobtrusive menu on the bottom of the frame, not a huge window popup disturbing my focus and workflow.
 - this is consistent with rofi theme (or dmenu if using that).
@@ -1265,4 +1255,21 @@ we automate this repetetive task using a snippets.
  '(org-mode :trigger "header")
  '(prog-mode :trigger "header")
  '(makefile-gmake-mode :ignore t))
+#+end_src
+
+* lispyville: editing lisp in vim
+- makes vim's motions dwmi in lisp modes (mainly respecting parenthesis).
+#+begin_src elisp
+;; call help on `lispyville-set-key-theme' to see the changed bindings.
+(after! lispyville
+  (lispyville-set-key-theme '(operators
+                              c-w
+                              c-u
+                              prettify
+                              text-objects
+                              commentary
+                              slurp/barf-lispy
+                              additional
+                              (atom-movement t) ;; HACK :: needs t
+                              additional-insert)))
 #+end_src
