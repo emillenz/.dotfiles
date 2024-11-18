@@ -123,7 +123,7 @@ i'm very opinionated and have high standards regarding design process and the ph
 - manual tiling wm ::  which superior to an autotiling wm, (or god forbid a desktop-environment), since we always use all windows maximized.
 - the windowmanager follows the philosopy of eliminating mental overhead and the neccessity to arrange windows or layouts.
   - eliminate mental overhead and reduce computational steps to get to where you need to be.
-  - finetuned to automate the workflow as much as possible. (autostarting all frequently used programs, pinning frequently used browser tabs to Alt+<num>)
+  - finetuned to automate the workflow as much as possible. (autostarting all frequently used programs, pinning frequently used browser tabs to [[kbd:][M-<num>]])
 - accessing a program is as efficient as possible and always consistent, no matter where in your desktop you are (different monitor/workspace/app order) you will not alt+tab through apps to get to the one you are thinking of.  instead the program is assigned a mark which you can jump to always using the same consisten mnemonic keybinding.
   - we do not use a per-program workspace workflow.  introduces layers of complexity as you need to remember the workspace for pop-up windows & programs.  managing and navigating the workspaces is disorienting and complex.
   - we essentially extend our emacs/vim workflow onto the wm, using global marks to jump to buffers immediately.  the only improvement is that we always preassign certain marks for our frequently used programs (editor, webbrowser, terminal, ...).
@@ -135,7 +135,7 @@ i'm very opinionated and have high standards regarding design process and the ph
   - these are apps that you use frequently (statistically) and need hotkey access to (application switching)
   - each assigned workspace is specific.
 - The idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remains the same.  (eg: vim instead of emacs)
-- these main apps have a dedicated open shortcut, all other apps are better to be opened via ~S-x~
+- these main apps have a dedicated open shortcut, all other apps are better to be opened via rofi desktop laucher.
 
 ** shell: fish / ruby
 bash is coherent with respect to the mind of certain benevolent dictator.  bash is a steaming pile of inconsistent user-unfrienly shit.  we want the best interactive features in a shell, fish has powerful features inbuilt and is consistent in its design and configuration.  (autocomplete, documentation, keybindings, aliases, etc..)
@@ -145,7 +145,7 @@ On the command line, I don't really need a full language with a repl-like interf
 a shell only exists for interactive use and running commands: launching processes/commands, interaction with the filesystem and programs (mv, cp, find, grep..).
 for scripting however, anything that cannot be done in a oneliner (using && || etc.).  for example: data manipulation (JSON, etc.), conditional execution (if else), functions or the usage of variables/datastructures, you should always opt towards a proper scripting language such as ruby.  since it offer's full library support, is more extensible and maintaineable.
 
-when writing shell commands in scripts one should always favor '--long-flags' over '-l' in order to increase code readability  and maintaineability.  this makes understanding the script for people who may not be familiar with the programs easier to understand and modify (reduce elitism in free software).
+when writing shell commands in scripts one should always favor ~--long-flags~ over ~-l~ in order to increase code readability  and maintaineability.  this makes understanding the script for people who may not be familiar with the programs easier to understand and modify (reduce elitism in free software).
 
 even though it may have a steeper learning curve and requires a more structured and less hacky approach to scripting.  but once fluent in it, it smoothly bridges the gap between compiled highly efficient languages such as rust or c and the interactive nature of a shell.
 
@@ -211,7 +211,7 @@ The saying, "give 'em enough rope, and they'll likely hang themselves," holds tr
 - the best support for literate programming covering every language (looking at you: jupyter..)
 
 *** emacs everywhere
-use emacs everywhere for anytime you are using a a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
+use emacs everywhere for anytime you are using a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
 
 ** documentreader: zathura
 - lightweight
@@ -229,13 +229,13 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
 - font set all font choices to the system wide font: iosevka comfy 10 and set: don't allow webpages to custom fonts.  that way it will always look uniform.
 
 *** useage
-- auto-open tabs that you visit frequently, such as [[https://chatgpt.com]] or [[https://spotify.com]] in [[file:i3/config][i3 config]].  this allows you to hotkey to these sites using ~Alt+<number>~ consistently everytime.
-- bookmarks: name them hierarchically w keywords (syntax <=> org-mode-tags), ex: =cs:math:exercises=
+- pin tabs that you want to assign to fixed hotkeys ([[kbd:][M-<number>]]), such as [[https://chatgpt.com]] or [[https://spotify.com]].  they will automatically open and you cant't accidentally close them with [[kbd:][C-w]].
+- bookmarks: name them hierarchically w keywords (syntax like ~org-mode-tags~), ex: ~cs:math:exercises~
   - quickly open website using bookmark searching
   - structured, easy to patternmatch (not having to put them into folders)
 - use ~*^%~ in the searchbar for finding tabs, bookmarks & history
 - make use of google search operators (~site:~, quoting, ~-~)
-- use shortcuts :: ~C-L, C-t, C-w, C-[], C-f (C-g)~
+- use inbuilt shortcuts...
 
 ** filexplorer
 - avoid using integrated filemanagers and manually navigating directory structures (such as dired / ranger / thunar) whenever possible (and dont even dare to suggest a gui file manager...).
@@ -252,35 +252,35 @@ use emacs everywhere for anytime you are using a a prompt that requires more tha
 
 * keybindings
 ** general notes
-- <ctrl/esc> :: mapped to <capslock> this greatly increases ergonomics and speed for all ctrl-bindings (even though we don't use emacs, vim still makes use of them all the time too (and other apps like the shell also)).  hold down for <ctrl>, single press for <esc>.
-  - when bill-joy orignially developed VI, the terminal's keyboard, had <esc> on todays <tab> and <ctrl> on <caps>.  this is where <ctrl> should have always stayed at.
-- deleting characters :: make using <c-h/w/u> instead of <backspace> a habit.  it is more ergonomic and faster than using the incredibly unergonomic and hard to reach <backspace>.  hence we implement these bindings in all apps.
+- [[kbd:][<ctrl>, <esc>]] :: mapped to [[kbd:][<capslock>]] this greatly increases ergonomics and speed for all ctrl-bindings (even though we don't use emacs, vim still makes use of them all the time too (and other apps like the shell also)).  hold down for [[kbd:][<ctrl>]], single press for [[kbd:][<esc>]].
+  - when bill-joy orignially developed VI, the terminal's keyboard, had [[kbd:][<esc>]] on todays [[kbd:][<tab>]] and [[kbd:][<ctrl>]] on [[kbd:][<caps>.]]  this is where [[kbd:][<ctrl>]] should have always stayed at.
+- deleting characters :: make using [[kbd:][<c-{h, w, u}>]] instead of [[kbd:][<backspace>]] a habit.  it is more ergonomic and faster than using the incredibly unergonomic and hard to reach [[kbd:][<backspace>.]]  hence we implement these bindings in all apps.
 - no vim layer :: we purposefully do not implement a vim-navigation layer globally, since if you are doing more than just typing something into a prompt, you should just use ~emacs-everywhere~ instead.  the implemented keybinds are consistent with vim's insert state and provide the most useful deletion commands when typing into a prompt.
 - no homerowmods / layers :: they greatly increase the complexity of the keybinding layer's and introduce unneccessary mental overhead.  additionally and most importantly they cause a delay in typing the actual character which is absolutely inacceptable.  (slow's you down, bottlenecking your typing speed)
   - this config is kept simple, fast and overheadfree (no double functionality: hold down and single-press)
 - typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
 - ctrl-map :: bindings found on this layer are related to navigation (~switch-to-buffer~, ~find-file~, ~jump-backwards~, etc..)
-- key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down <j/k> instead using <c-u/d>  not spamming delete, instead using <d-{motion}>
+- key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][<c-{u, d}>]]  not spamming delete, instead using [[kbd:][d-<motion>]]
 
 ** navigational standard
 | mod+key | action                   | consistency                            |
 |---------+--------------------------+----------------------------------------|
-| b       | buffer/window, prompt    | vim: :b <name>                         |
-| q       | [q]uit (buffer/window)   | vim: :q                                |
-| f       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file  |
-| <tab>   | alterate buffer/tab      | standard convention (apps & other oss) |
-| 1-4     | switch to buffer/tab 1-4 | harpoon                                |
-| <spc>   | leader-key               | vim                                    |
+| [[kbd:][b]]       | buffer/window, prompt    | vim: :b <name>                         |
+| [[kbd:][q]]       | [q]uit (buffer/window)   | vim: :q                                |
+| [[kbd:][f]]       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file  |
+| [[kbd:][<tab>]]   | alterate buffer/tab      | standard convention (apps & other oss) |
+| [[kbd:][1-4]]     | switch to buffer/tab 1-4 | harpoon                                |
+| [[kbd:][<space>]] | leader-key               | vim                                    |
 
 - condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.
-  - <ctrl> :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
+  - [[kbd:][<ctrl>]] :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
 - inter program keyboard shortcuts consistency is important because they make the keys easier to remember and you will not have to learn multiple paradigms of keymaps.  the here defined set of keybindings are shared across applications (webbrowser, emacs, terminal, etc)
 - windowmanager :: the set of program-names during runtime is known and consistent (unlike tabs in applications, where we cannot make presumtions about the contents of the tabs, hence we use numbers), we use specific-chars for switching to the tabs.
 
 ***  workflow
 when you need to navigate to a different file/tab, this should be your order of modus-operandi ::
 1. alternate buffer :: when you are alternating between 2 files/tabs or need to just jump back to the last visited buffer.  this takes the least amount of overhead and is the fastest.
-2. hotswitch tab [1..4] :: use each of them for a file/tmux window/page within the project you are working on (ex: tmux: [1]repl, [2] compilation, [3] manpages, emacs: [1] main.c, [2] srcfile.c, [3] makefile).  you can then navigate between these files instantly without mental overhead.  we purposefully do not allow more than 4 tabs, since that is usually all that is neede within a project.  we want to ensure that it really is frequently visited files and thus keep the overhead low.  avoid manual tab creation if possible => auto-create a tab if it doesn't exist upon focusing it.  we never want visual indication for tabs.   instead switching to other buffer's should be muscle memory => eliminate bad habit and mental overhead of looking at tab-bar to find the tab you want, and instead hotkey to the file instantly.  no tablines, no statusbars.
+2. hotswitch tab [[kbd:][1-4]] :: use each of them for a file/tmux window/page within the project you are working on (ex: tmux: [1]repl, [2] compilation, [3] manpages, emacs: [1] main.c, [2] srcfile.c, [3] makefile).  you can then navigate between these files instantly without mental overhead.  we purposefully do not allow more than 4 tabs, since that is usually all that is neede within a project.  we want to ensure that it really is frequently visited files and thus keep the overhead low.  avoid manual tab creation if possible => auto-create a tab if it doesn't exist upon focusing it.  we never want visual indication for tabs.   instead switching to other buffer's should be muscle memory => eliminate bad habit and mental overhead of looking at tab-bar to find the tab you want, and instead hotkey to the file instantly.  no tablines, no statusbars.
 3. find buffer/tab :: search through the list of open buffers/tabs to switch to the one you need.
 
 ** no symbol layers and homerow mods

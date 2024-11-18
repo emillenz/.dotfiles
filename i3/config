@@ -90,7 +90,7 @@ bindsym $MOD+e exec --no-startup-id i3-msg '[con_mark=E] focus' || (i3-msg '[cla
 
 # WEB
 for_window [class="firefox"] mark W
-bindsym $MOD+w exec --no-startup-id i3-msg '[con_mark=W] focus' || (i3-msg '[class="firefox"] focus' && i3-msg 'mark W') || firefox --new-tab https://chatgpt.com
+bindsym $MOD+w exec --no-startup-id i3-msg '[con_mark=W] focus' || (i3-msg '[class="firefox"] focus' && i3-msg 'mark W') || firefox
 
 # VID
 for_window [class="mpv"] mark V

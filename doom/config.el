@@ -90,6 +90,7 @@
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       async-shell-command-width 100
+      which-key-idle-delay 0.2 ;; when i want help, i want it fast.
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
 (+global-word-wrap-mode 1)
@@ -250,11 +251,11 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
   (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
 
   (map! :map 'override
-        :nm "M-1"     #'harpoon-go-to-1
-        :nm "M-2"     #'harpoon-go-to-2
-        :nm "M-3"     #'harpoon-go-to-3
-        :nm "M-4"     #'harpoon-go-to-4
-        :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
+        :nm "M-1" #'harpoon-go-to-1
+        :nm "M-2" #'harpoon-go-to-2
+        :nm "M-3" #'harpoon-go-to-3
+        :nm "M-4" #'harpoon-go-to-4
+        :nm "M"   #'harpoon-add-file) ;; quickly add file to harpoon
 
   (map! :leader
         "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
@@ -943,7 +944,7 @@ legibility."
         "S-SPC" nil                   ;; never override leader-mode
         :n "q" #'kill-current-buffer ;; consistent with other read-only modes (magit, dired, docs...)
 
-        :n "<next>" #'nov-scroll-up  ;; main scrolling methods
+        :n "<next>" #'nov-scroll-up  ;; next/previous page of ebook (ergonomic for 1 hand reading)
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
@@ -957,6 +958,9 @@ legibility."
 ;; [[file:config.org::*pdf view][pdf view:1]]
 (map! :map pdf-view-mode-map :after pdf-view
       :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
+      :n "gm" #'evil-set-marker ;; needs mapping
+      :n "<next>" #'pdf-view-scroll-up-or-next-page ;; ergonomics when reading onehanded (when you want to scroll by fullpage, switch on `pdf-view-fit-page-to-window')
+      :n "<prior>" #'pdf-view-scroll-down-or-previous-page
       :n "t" #'pdf-outline) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
 
 (define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.

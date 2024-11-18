@@ -133,6 +133,7 @@ explicitly do NOT enable for ::
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       async-shell-command-width 100
+      which-key-idle-delay 0.2 ;; when i want help, i want it fast.
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
 (+global-word-wrap-mode 1)
@@ -150,11 +151,6 @@ explicitly do NOT enable for ::
 - ~helpful-key~ and are crucial to understanding what your tools can do for you (ex: magit, dired, org-mode)
 - i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
 - always keep on exploring, learning new, efficient keybindings and break your old routines for newer, more effcient one's after evaluating wether they are faster or not.
-- whichkey :: removed on purpose
-  - the concept of ~whichkey~ is creating the bad habit of searching through a menu to find a keybindings (the exact opposite of what a keybind is for, to be executed instantaneously, engrained in memory)
-  - if you know roughly what you are looking for, then use [[kbd:m-x][m-x]] and fuzzy search for the command and it will show you the binding for next time.  fuzzy finding is more efficient.
-  - we remove annoying unwanted popup's and reduce visual sugar (=> distractionless, focused workflow).
-  - this idea correlates with the insight that you should use a keyboard with blank keycaps.  which will force you to learn to type, without ever taking the focus off the screen.  (reduced context switching, no speed bottleneck, increased continuity).
 
 ** leaderkey
 #+begin_src elisp
@@ -346,11 +342,11 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
 
   (map! :map 'override
-        :nm "M-1"     #'harpoon-go-to-1
-        :nm "M-2"     #'harpoon-go-to-2
-        :nm "M-3"     #'harpoon-go-to-3
-        :nm "M-4"     #'harpoon-go-to-4
-        :nm "M"       #'harpoon-add-file) ;; quickly add file to harpoon
+        :nm "M-1" #'harpoon-go-to-1
+        :nm "M-2" #'harpoon-go-to-2
+        :nm "M-3" #'harpoon-go-to-3
+        :nm "M-4" #'harpoon-go-to-4
+        :nm "M"   #'harpoon-add-file) ;; quickly add file to harpoon
 
   (map! :leader
         "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
@@ -1202,7 +1198,7 @@ legibility."
         "S-SPC" nil                   ;; never override leader-mode
         :n "q" #'kill-current-buffer ;; consistent with other read-only modes (magit, dired, docs...)
 
-        :n "<next>" #'nov-scroll-up  ;; main scrolling methods
+        :n "<next>" #'nov-scroll-up  ;; next/previous page of ebook (ergonomic for 1 hand reading)
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
@@ -1218,6 +1214,9 @@ legibility."
 #+begin_src elisp
 (map! :map pdf-view-mode-map :after pdf-view
       :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
+      :n "gm" #'evil-set-marker ;; needs mapping
+      :n "<next>" #'pdf-view-scroll-up-or-next-page ;; ergonomics when reading onehanded (when you want to scroll by fullpage, switch on `pdf-view-fit-page-to-window')
+      :n "<prior>" #'pdf-view-scroll-down-or-previous-page
       :n "t" #'pdf-outline) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
 
 (define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; view fit-page fit as reset.
