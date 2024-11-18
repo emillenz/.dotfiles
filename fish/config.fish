@@ -29,16 +29,15 @@ set -gx MANPAGER bat --paging=always
 set -gx MANWIDTH 100
 
 # ALIASES :: better defaults
-alias ls "ls -v --human-readable --group-directories-first --color=auto"
+alias ls "ls -lv --human-readable --group-directories-first --color=auto"
 alias rm "rm --recursive --verbose"
 alias du "du --human-readable"
 alias mv "mv --verbose"
 alias cp "cp --recursive --verbose"
 alias yay "yay --noconfirm"
-alias echo "echo -e"
 alias curl "curl --silent"
 alias sed "sed --regexp-extended" # consistent regex-syntax with emacs, rg, fd, ...
-alias irb "irb --readline"
+abbr -- -h '--help | bat -L=help'
 
 # FZF
 fzf_configure_bindings --directory=\cf --history --git_log --git_status --variables --processes # NOTE :: disable useless (history already inbuilt in fish: /)
@@ -70,7 +69,7 @@ function fish_prompt --description 'newlines to clearly separate commands in his
     set -l dir (set_color $fish_color_cwd)(prompt_pwd --full-length-dirs=4)
     set -l prompt "$(set_color brblue)>"
     set -l fish_color_line_bg '#dae5ec' # modus theme
-    echo "\n $(set_color --background=$fish_color_line_bg --bold) $dir $last_exit_status $prompt $(set_color normal) "
+    printf "\n $(set_color --background=$fish_color_line_bg --bold) $dir $last_exit_status $prompt $(set_color normal) "
 end
 
 function open_emacs_dwim --description "open editor with args, if nil open editor with fileexplorer in current directory"
