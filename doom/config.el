@@ -90,6 +90,7 @@
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       async-shell-command-width 100
+      which-key-idle-delay 0.5
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
 (+global-word-wrap-mode 1)
@@ -168,23 +169,107 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
      ((not noerror)
       (user-error "global marker `%c' is not set" (upcase char))))))
 
-;; make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
-(after! savehist
-  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-  ;; evil stores these marks in the variable 'evil-markers-alist' as markers an elisp datatype that
-  ;; can’t trivially be serialized and restored later.  we do have the option of swapping out those
-  ;; markers with (path . pos) cons cells, where path is a string and pos is an integer, and those
-  ;; are trivial to serialize.
-  (add-hook! 'savehist-save-hook
-    (kill-local-variable 'evil-markers-alist)
-    (dolist (entry evil-markers-alist)
-      (when (markerp (cdr entry))
-        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
-                            (marker-position (cdr entry)))))))
-  (add-hook! 'savehist-mode-hook
-    (setq-default evil-markers-alist evil-markers-alist)
-    (kill-local-variable 'evil-markers-alist)
-    (make-local-variable 'evil-markers-alist)))
+;; ;; replicate vim's behaviour of making evil's global markers persist across sessions
+;; ;; rationale :: save state => reduce repetition, increase consistency.
+;; (after! savehist
+;;   (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+
+;;   (add-hook! 'savehist-save-hook
+;;     (setq-default evil-markers-alist (z-serialize-evil-global-markers-alist)))
+
+;;   (add-hook! 'savehist-mode-hook
+;;     (setq-default evil-markers-alist evil-markers-alist) ;; set global value
+;;     (setq evil-markers-alist (default-value 'evil-markers-alist)))) ;; set buffer local value
+
+;; now when i save a projects working state with 'doom/save-session' (open buffer's, windows, etc) i also want the marks to be saved, so that when i jump back into the project with 'doom/load-session' the marks that were set last time are restored (so i don't have to set them again and can just start jumping between the files right away (i still know what file is on what mark)).
+;; i still don't quite understand as to how 'evil-markers-alist' works in conjunction with 'desktop.el', but i only got it to work by using a user-defined variable that stores the serialized 'evil-markers-alist' values on 'desktop-save', and then resets evil-markers-alist after 'desktop-read'.
+(require 'desktop)
+
+(defun z-serialize-evil-global-markers-alist ()
+  "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
+    trivially be serialized and restored later.
+
+
+    (path . pos) cons cells, where path is a string and pos is an integer, and those are trivial to
+    serialize."
+  (mapcar (lambda (it)
+            (if (markerp (cdr it))
+                (cons (car it)
+                      (cons (file-truename (buffer-file-name (marker-buffer (cdr it))))
+                            (marker-position (cdr it))))
+              it))
+          (default-value 'evil-markers-alist))) ;; only use global marks
+
+(defvar z-evil-global-markers-alist nil)
+
+(add-to-list 'desktop-globals-to-save 'z-evil-global-markers-alist)
+
+(add-hook! 'desktop-save-hook
+  (setq z-evil-global-markers-alist (z-serialize-evil-global-markers-alist)))
+
+(add-hook! 'desktop-after-read-hook
+  (setq-default evil-markers-alist z-evil-global-markers-alist))
+
+(defun z-desktop-session-dir (&optional session-name)
+  (or (when session-name (file-name-concat (file-name-directory (desktop-full-file-name))
+                                           session-name))
+      (read-from-minibuffer "session name: "
+                            (file-name-directory (desktop-full-file-name)))
+      (error "no session input. aborting!")))
+
+(defun z-desktop-save-session (&optional session-name)
+  (interactive)
+  (let ((session-dir (z-desktop-session-dir session-name)))
+
+    (unless (file-exists-p session-dir)
+      (make-directory session-dir))
+
+    (desktop-save session-dir nil t)
+    (message "saved '%s' session" session-dir)))
+
+(defun z-desktop-load-session (&optional session-name)
+  (interactive)
+  (let ((session-dir (z-desktop-session-dir session-name)))
+    (if (file-directory-p session-dir)
+        (desktop-read session-dir)
+             )
+    ))
+
+
+(defun z-doom/save-session (file)
+  "TODO"
+  (interactive
+   (let ((session-file (doom-session-file)))
+     (list (or (read-file-name "Save session to: "
+                               (file-name-directory session-file)
+                               (file-name-nondirectory session-file))
+               (user-error "No session selected. Aborting")))))
+  (unless file
+    (error "No session file selected"))
+  (message "Saving '%s' session" file)
+  (z-doom-save-session file))
+
+(defun z-doom-save-session (&optional file)
+  (setq file (expand-file-name (or file (doom-session-file))))
+  (cond ((require 'persp-mode nil t)
+         (unless persp-mode (persp-mode +1))
+         (setq persp-auto-save-opt 0)
+         (persp-save-state-to-file file))
+        ((and (require 'frameset nil t)
+              (require 'restart-emacs nil t))
+         (let ((frameset-filter-alist (append '((client . restart-emacs--record-tty-file))
+                                              frameset-filter-alist))
+               (desktop-base-file-name (file-name-nondirectory file))
+               (desktop-dirname (file-name-directory file))
+               (desktop-restore-eager t)
+               desktop-file-modtime)
+           (make-directory desktop-dirname t)
+           ;; Prevents confirmation prompts
+           (let ((desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name)))))
+             (message "%s" desktop-dirname)
+             ;; (desktop-save desktop-dirname t)
+             )))
+        ((error "No session backend to save session with"))))
 ;; global marks:1 ends here
 
 ;; [[file:config.org::*minibuffer][minibuffer:1]]
@@ -964,8 +1049,7 @@ legibility."
         :n "<prior>" #'pdf-view-scroll-down-or-previous-page
         :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
         :n "gm" #'evil-set-marker ;; needs mapping
-        :n "t" #'pdf-outline ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
-        ))
+        :n "t" #'pdf-outline)) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
 ;; pdf view:1 ends here
 
 ;; [[file:config.org::*yas: snippets][yas: snippets:1]]
@@ -993,3 +1077,7 @@ legibility."
                               (atom-movement t) ;; HACK :: needs t
                               additional-insert)))
 ;; lispyville: editing lisp in vim:1 ends here
+
+;; [[file:config.org::*desktop][desktop:1]]
+
+;; desktop:1 ends here

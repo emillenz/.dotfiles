@@ -18,8 +18,8 @@ fish_config theme choose modus_operandi # ./themes/modus_operandi.theme
 set -gx PATH $PATH ~/.config/{bin, emacs/bin} ~/.cargo/bin ~/.local/bin ~/.local/share/gem/ruby/3.3.0/bin
 
 # PROGRAMS
-set -gx EDITOR emacsclient --alternate-editor emacs
-set -gx VISUAL emacsclient -nw --alternate-editor emacs
+set -gx EDITOR emacsclient -nw --alternate-editor='emacs -nw'
+set -gx VISUAL emacsclient --create-frame --alternate-editor=emacs
 set -gx BROWSER firefox
 
 # PAGER
@@ -38,6 +38,7 @@ alias yay "yay --noconfirm"
 alias curl "curl --silent"
 alias sed "sed --regexp-extended" # consistent regex-syntax with emacs, rg, fd, ...
 abbr -- -h '--help | bat -L=help'
+abbr -- echo printf # get in the habit of using more powerful printf instead...
 
 # FZF
 fzf_configure_bindings --directory=\cf --history --git_log --git_status --variables --processes # NOTE :: disable useless (history already inbuilt in fish: /)
@@ -72,14 +73,14 @@ function fish_prompt --description 'newlines to clearly separate commands in his
     printf "\n $(set_color --background=$fish_color_line_bg --bold) $dir $last_exit_status $prompt $(set_color normal) "
 end
 
-function open_emacs_dwim --description "open editor with args, if nil open editor with fileexplorer in current directory"
+function open_editor_dwim --description "open editor with args, if nil open editor with fileexplorer in current directory"
     if test -z "$argv"
-        emacs -nw (pwd)
+        $EDITOR
     else
-        emacs -nw $argv
+        $EDITOR $argv
     end
 end
-alias e open_emacs_dwim
+alias e open_editor_dwim
 
 function mkdir_cd --description "create a directory and set cwd"
     command mkdir $argv
