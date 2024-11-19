@@ -190,8 +190,8 @@ explicitly do NOT enable for ::
 - splits :: we never manually create split-windows for buffers.  we prefer the full screen, full focus, no distractions - workflow.  (no multitasking, no clutter)
   however when emacs creates popup buffers (docs, compilation, etc.) in windows we must handle them.  using [[kbd:][c-w c-w, c-w c-q]] just too many keypresses,  especially if we call it repeatedly.  since our window arrangement is only ever a single window or a vsplit, we can condendse all the bindings into just [[kbd:][c-w, c-q]].  they do all window-management.
 - these mappings are universal to all programs (shell, emacs, browser, i3) and highly frequently accessed (from any mode/file).
-- workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, harpoon, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
-- we generally don't really delete buffers unless they slow down emacs (then kill them all to reset).  since we usually access the same buffer's repeatedly we only have to open them once.  same as we don't close tmux windows or as we don't jump in and out of emacs on the commandline (like vim users do) or same as we don't shutdown the computer (just sleep).  its all about preserving the working state between sessions, in order to minimize the setuptimes.  (also why we use harpoon instead of vim global marks, since it is persistent inbetween sessions).
+- workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, global-marks, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
+- we generally don't really delete buffers unless they slow down emacs (then kill them all to reset).  since we usually access the same buffer's repeatedly we only have to open them once.  same as we don't close tmux windows or as we don't jump in and out of emacs on the commandline (like vim users do) or same as we don't shutdown the computer (just sleep).  its all about preserving the working state between sessions, in order to minimize the setuptimes.  (also why we use global marks for jumping inbetween files of a project).
 
 #+begin_src elisp
 (map! :map 'override
@@ -306,7 +306,8 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 #+end_src
 
 ** global marks
-- mark the files you find yourself alternating between with global-marks, and then jump to the exact file you want directly via the mark.
+- when you are in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers you find yourself alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since you need to alternate between more than 2 file.
+- ~evil-set-mark~ on a file with evil's global-marks (UPPERCASE), and then jump back and forth between them.
 - we remap ~evil-goto-mark~ since you should use ~evil-goto-mark-line~ instead anyways.
 - vim's normal global-mark behaviour is to jump to the originally marked posion in that buffer.  this is the wrong behaviour because when we left the buffer we have changed the cursor position to some other place.  we override ~evil-goto-mark-line~ binding, since it is redundant (for buffer-local marks, use ~evil-goto-mark~ binding instead).
 
@@ -389,7 +390,7 @@ using 'dir-locals-2.el' as per emacs manual to not conflict with a potentially a
 (add-hook! 'hack-local-variables-hook
   (setq-default evil-markers-alist evil-markers-alist)) ;; once directory-local variables are loaded, we must update the global-value of 'evil-markers-alist' in order for global variables to work.
 
-(add-hook! 'projectile-before-switch-project-hook #'z-global-marks-save)
+(add-hook! 'projectile-before-switch-project-hook #'z-global-marks-save) ;; autosave when switching projects.
 #+end_src
 
 * evil-mode

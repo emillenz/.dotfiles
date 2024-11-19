@@ -269,7 +269,7 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 | [[kbd:][q]]       | [q]uit (buffer/window)   | vim: :q                                |
 | [[kbd:][f]]       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file  |
 | [[kbd:][<tab>]]   | alterate buffer/tab      | standard convention (apps & other oss) |
-| [[kbd:][1-4]]     | switch to buffer/tab 1-4 | harpoon                                |
+| [[kbd:][1-4]]     | switch to buffer/tab 1-4 |                                        |
 | [[kbd:][<space>]] | leader-key               | vim                                    |
 
 - condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.
