@@ -296,7 +296,9 @@ using 'dir-locals-2.el' as per emacs manual to not conflict with a potentially a
 (add-hook! 'hack-local-variables-hook
   (setq-default evil-markers-alist evil-markers-alist)) ;; once directory-local variables are loaded, we must update the global-value of 'evil-markers-alist' in order for global variables to work.
 
-(add-hook! 'projectile-before-switch-project-hook #'z-global-marks-save) ;; autosave when switching projects.
+(add-hook! 'projectile-before-switch-project-hook
+  (when (projectil-project-p)
+    (z-global-marks-save))) ;; update current projects marks when switching to another project.
 ;; global marks:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
