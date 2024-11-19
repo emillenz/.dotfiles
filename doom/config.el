@@ -93,15 +93,15 @@
       which-key-idle-delay 0.5
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
-(+global-word-wrap-mode 1)
+(+global-word-wrap-mode)
 (add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
 
-(save-place-mode 1)
-(global-subword-mode 1)
+(save-place-mode)
+(global-subword-mode)
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
 
 (setq global-auto-revert-non-file-buffers t)
-(global-auto-revert-mode 1)
+(global-auto-revert-mode)
 ;; general options:1 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
@@ -143,134 +143,6 @@
       :nm "C-b"     #'consult-buffer
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer)
 ;; global navigation:1 ends here
-
-;; [[file:config.org::*global marks][global marks:1]]
-(map! :map 'override :nm "'" #' z-evil-goto-mark-buffer) ;; ensure consistnetly available everywhere.
-
-(evil-define-command z-evil-goto-mark-buffer (char &optional noerror)
-  "Go to the global-marker's buffer specified by CHAR.
-
-This differs from `evil-goto-mark-line' in that it does not actually go to the marked position,
-which is undesired, since we use this for switching inbetween buffers and don't want our position to
-get reset each time.
-
-for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
-  :repeat nil
-  (interactive (list (read-char)))
-  (let ((marker (evil-get-marker (upcase char))))
-    (cond
-     ((markerp marker)
-      (switch-to-buffer (marker-buffer marker)))
-     ((numberp marker) nil)             ;; already in buffer
-     ((consp marker)
-      (if (find-buffer-visiting (car marker))
-          (switch-to-buffer (find-buffer-visiting (car marker)))
-        (find-file (car marker))))
-     ((not noerror)
-      (user-error "global marker `%c' is not set" (upcase char))))))
-
-;; ;; replicate vim's behaviour of making evil's global markers persist across sessions
-;; ;; rationale :: save state => reduce repetition, increase consistency.
-;; (after! savehist
-;;   (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-
-;;   (add-hook! 'savehist-save-hook
-;;     (setq-default evil-markers-alist (z-serialize-evil-global-markers-alist)))
-
-;;   (add-hook! 'savehist-mode-hook
-;;     (setq-default evil-markers-alist evil-markers-alist) ;; set global value
-;;     (setq evil-markers-alist (default-value 'evil-markers-alist)))) ;; set buffer local value
-
-;; now when i save a projects working state with 'doom/save-session' (open buffer's, windows, etc) i also want the marks to be saved, so that when i jump back into the project with 'doom/load-session' the marks that were set last time are restored (so i don't have to set them again and can just start jumping between the files right away (i still know what file is on what mark)).
-;; i still don't quite understand as to how 'evil-markers-alist' works in conjunction with 'desktop.el', but i only got it to work by using a user-defined variable that stores the serialized 'evil-markers-alist' values on 'desktop-save', and then resets evil-markers-alist after 'desktop-read'.
-(require 'desktop)
-
-(defun z-serialize-evil-global-markers-alist ()
-  "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
-    trivially be serialized and restored later.
-
-
-    (path . pos) cons cells, where path is a string and pos is an integer, and those are trivial to
-    serialize."
-  (mapcar (lambda (it)
-            (if (markerp (cdr it))
-                (cons (car it)
-                      (cons (file-truename (buffer-file-name (marker-buffer (cdr it))))
-                            (marker-position (cdr it))))
-              it))
-          (default-value 'evil-markers-alist))) ;; only use global marks
-
-(defvar z-evil-global-markers-alist nil)
-
-(add-to-list 'desktop-globals-to-save 'z-evil-global-markers-alist)
-
-(add-hook! 'desktop-save-hook
-  (setq z-evil-global-markers-alist (z-serialize-evil-global-markers-alist)))
-
-(add-hook! 'desktop-after-read-hook
-  (setq-default evil-markers-alist z-evil-global-markers-alist))
-
-(defun z-desktop-session-dir (&optional session-name)
-  (or (when session-name (file-name-concat (file-name-directory (desktop-full-file-name))
-                                           session-name))
-      (read-from-minibuffer "session name: "
-                            (file-name-directory (desktop-full-file-name)))
-      (error "no session input. aborting!")))
-
-(defun z-desktop-save-session (&optional session-name)
-  (interactive)
-  (let ((session-dir (z-desktop-session-dir session-name)))
-
-    (unless (file-exists-p session-dir)
-      (make-directory session-dir))
-
-    (desktop-save session-dir nil t)
-    (message "saved '%s' session" session-dir)))
-
-(defun z-desktop-load-session (&optional session-name)
-  (interactive)
-  (let ((session-dir (z-desktop-session-dir session-name)))
-    (if (file-directory-p session-dir)
-        (desktop-read session-dir)
-             )
-    ))
-
-
-(defun z-doom/save-session (file)
-  "TODO"
-  (interactive
-   (let ((session-file (doom-session-file)))
-     (list (or (read-file-name "Save session to: "
-                               (file-name-directory session-file)
-                               (file-name-nondirectory session-file))
-               (user-error "No session selected. Aborting")))))
-  (unless file
-    (error "No session file selected"))
-  (message "Saving '%s' session" file)
-  (z-doom-save-session file))
-
-(defun z-doom-save-session (&optional file)
-  (setq file (expand-file-name (or file (doom-session-file))))
-  (cond ((require 'persp-mode nil t)
-         (unless persp-mode (persp-mode +1))
-         (setq persp-auto-save-opt 0)
-         (persp-save-state-to-file file))
-        ((and (require 'frameset nil t)
-              (require 'restart-emacs nil t))
-         (let ((frameset-filter-alist (append '((client . restart-emacs--record-tty-file))
-                                              frameset-filter-alist))
-               (desktop-base-file-name (file-name-nondirectory file))
-               (desktop-dirname (file-name-directory file))
-               (desktop-restore-eager t)
-               desktop-file-modtime)
-           (make-directory desktop-dirname t)
-           ;; Prevents confirmation prompts
-           (let ((desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name)))))
-             (message "%s" desktop-dirname)
-             ;; (desktop-save desktop-dirname t)
-             )))
-        ((error "No session backend to save session with"))))
-;; global marks:1 ends here
 
 ;; [[file:config.org::*minibuffer][minibuffer:1]]
 (map! :map minibuffer-mode-map
@@ -331,7 +203,8 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
 ;; editing:1 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:1]]
-(after! harpoon
+(use-package! harpoon
+  :config
   (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
 
   (map! :map 'override
@@ -341,12 +214,93 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
         :nm "M-4" #'harpoon-go-to-4
         :nm "M"   #'harpoon-add-file) ;; quickly add file to harpoon
 
-  (map! :leader
-        "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
+  (map! :leader "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
 ;; harpoon:1 ends here
 
+;; [[file:config.org::*global marks][global marks:1]]
+(map! :map 'override :nm "'" #' z-global-marks-goto) ;; ensure consistently available everywhere.
+(map! :leader (:prefix "b" "g" #'z-global-marks-save))
+
+(evil-define-command z-global-marks-goto (char &optional noerror)
+  "Go to the global-marker's buffer specified by CHAR.
+
+This differs from `evil-goto-mark-line' in that it does not actually go to the marked position,
+which is undesired, since we use this for switching inbetween buffers and don't want our position to
+get reset each time.
+
+for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
+  :repeat nil
+  (interactive (list (read-char)))
+  (let ((marker (evil-get-marker (upcase char))))
+    (cond
+     ((markerp marker)
+      (switch-to-buffer (marker-buffer marker)))
+     ((numberp marker) nil)             ;; already in buffer
+     ((consp marker)
+      (if (find-buffer-visiting (car marker))
+          (switch-to-buffer (find-buffer-visiting (car marker)))
+        (find-file (car marker))))
+     ((not noerror)
+      (user-error "global marker `%c' is not set" (upcase char))))))
+
+(defun z-global-marks-serialize ()
+  "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
+    trivially be serialized and restored later.
+
+    (path . pos) cons cells, where path is a string and pos is an integer, and those are trivial to
+    serialize."
+  (mapcar (lambda (it)
+            (if (markerp (cdr it))
+                (let ((marker-file (file-truename (buffer-file-name (marker-buffer (cdr it))))))
+                  (when marker-file     ;; only if marker associated with a file
+                    (cons (car it)
+                          (cons marker-file
+                                (marker-position (cdr it))))))
+              it))
+          (default-value 'evil-markers-alist))) ;; preserve only global marks, discard buffer local ones
+
+;; replicate vim's behaviour of making evil's global markers persist across sessions
+;; rationale :: save state => reduce repetition, increase consistency.
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+
+  (add-hook! 'savehist-save-hook
+    (setq-default evil-markers-alist (z-global-marks-serialize)))
+
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist) ;; set global value
+    (setq evil-markers-alist (default-value 'evil-markers-alist)))) ;; set buffer local value
+
+(defun z-global-marks-save ()
+  "save serialized 'evil-marks-alist' as dir-local-variable to: 'projectile-project-root' or
+  'default-directory'.
+
+usage: whenever we update our marks for jumping inbetween files in the project we are working in,
+call this function to save them to disk to have them automatically loaded when we reenter this
+project.
+
+using 'dir-locals-2.el' as per emacs manual to not conflict with a potentially already existing
+'.dir-locals.el' file"
+  (interactive)
+  (let ((dir-locals-file (file-name-concat (or (projectile-project-root)
+                                               default-directory)
+                                           ".dir-locals-2.el")))
+    (write-region (format "((nil . ((evil-markers-alist . %s))))"
+                          (prin1-to-string (z-global-marks-serialize)))
+                  nil
+                  dir-locals-file)
+    (message "saved global marks to: %s" dir-locals-file)))
+
+(put 'evil-markers-alist 'safe-local-variable 'listp) ;; never prompt before loading local variable 'evil-markers-alist'
+
+(add-hook! 'hack-local-variables-hook
+  (setq-default evil-markers-alist evil-markers-alist)) ;; once directory-local variables are loaded, we must update the global-value of 'evil-markers-alist' in order for global variables to work.
+
+(add-hook! 'projectile-before-switch-project-hook #'z-global-marks-save)
+;; global marks:1 ends here
+
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
-(evil-surround-mode 1)
+(evil-surround-mode)
 (after! evil
   (setq evil-want-fine-undo nil
         evil-ex-substitute-global t
@@ -925,14 +879,13 @@ PARENT-PATH :: nil (used for recursion) "
 ;; [[file:config.org::*agenda][agenda:1]]
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
-(setq org-archive-location (--> nil
-                                (string-remove-prefix "~/" org-directory)
-                                (file-name-concat "~/Archive/" it "%s::")) ;; NOTE :: archive based on file path
-      org-agenda-files (append (directory-files-recursively org-directory org-agenda-file-regexp t)
+(setq org-archive-location (file-name-concat z-archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
+      org-agenda-files (append (directory-files-recursively org-directory
+                                                            org-agenda-file-regexp
+                                                            t)
                                (list (z-doct-journal-file)
-                                     (--> nil
-                                          (time-subtract (current-time) (days-to-time 1))
-                                          (z-doct-journal-file it)))) ;; include tasks from {today's, yesterday's} journal's agenda
+                                     (z-doct-journal-file (time-subtract (current-time)
+                                                                         (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
       org-agenda-skip-scheduled-if-done t
       ;; org-agenda-sticky t
       org-agenda-skip-deadline-if-done t
@@ -1000,7 +953,7 @@ legibility."
 ;; whisper: transcription:1 ends here
 
 ;; [[file:config.org::*vertico: minibuffer completion][vertico: minibuffer completion:1]]
-(vertico-flat-mode 1)
+(vertico-flat-mode)
 ;; vertico: minibuffer completion:1 ends here
 
 ;; [[file:config.org::*company: code completion][company: code completion:1]]
@@ -1032,7 +985,7 @@ legibility."
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
-    (visual-line-mode 1)
+    (visual-line-mode)
     (setq-local line-spacing 2) ;; padding increases focus on current line for long prose text.
     (progn
       (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
@@ -1078,6 +1031,6 @@ legibility."
                               additional-insert)))
 ;; lispyville: editing lisp in vim:1 ends here
 
-;; [[file:config.org::*desktop][desktop:1]]
-
-;; desktop:1 ends here
+;; [[file:config.org::*emacs-lisp][emacs-lisp:1]]
+(add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
+;; emacs-lisp:1 ends here
