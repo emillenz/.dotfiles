@@ -49,8 +49,9 @@
 (setq doom-font                (font-spec :family "Iosevka Comfy" :size 13)
       doom-variable-pitch-font (font-spec :family "Noto Serif"    :size 13)
       doom-serif-font          (font-spec :family "Iosevka Comfy" :size 13)
-      doom-big-font            (font-spec :family "Iosevka Comfy" :size 22)
+      doom-big-font            (font-spec :family "Iosevka Comfy" :size 23) ;; for presentation purposes.
       doom-font-increment 1)
+(map! "C-M-0" #'doom/reset-font-size) ;; consistent with C-M-=, C-M--
 #+end_src
 
 * modeline
@@ -287,24 +288,6 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 #+end_src
 
-** harpoon
-- harpoon :: hotswitch between files in a project you are working on simultaneoutsly.  you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
-- we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are analogous to vim marks.
-#+begin_src elisp
-(use-package! harpoon
-  :config
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
-
-  (map! :map 'override
-        :nm "M-1" #'harpoon-go-to-1
-        :nm "M-2" #'harpoon-go-to-2
-        :nm "M-3" #'harpoon-go-to-3
-        :nm "M-4" #'harpoon-go-to-4
-        :nm "M"   #'harpoon-add-file) ;; quickly add file to harpoon
-
-  (map! :leader "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
-#+end_src
-
 ** global marks
 - when you are in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers you find yourself alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since you need to alternate between more than 2 file.
 - ~evil-set-mark~ on a file with evil's global-marks (UPPERCASE), and then jump back and forth between them.
@@ -391,7 +374,7 @@ using 'dir-locals-2.el' as per emacs manual to not conflict with a potentially a
   (setq-default evil-markers-alist evil-markers-alist)) ;; once directory-local variables are loaded, we must update the global-value of 'evil-markers-alist' in order for global variables to work.
 
 (add-hook! 'projectile-before-switch-project-hook
-  (when (projectil-project-p)
+  (when (projectile-project-p)
     (z-global-marks-save))) ;; update current projects marks when switching to another project.
 #+end_src
 

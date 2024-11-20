@@ -16,6 +16,5 @@
 (package! laas)
 (package! modus-themes)
 (package! devdocs)
-(package! harpoon)
 (package! nov)
 (package! whisper :recipe (:host github :repo "natrys/whisper.el"))

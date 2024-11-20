@@ -25,8 +25,9 @@
 (setq doom-font                (font-spec :family "Iosevka Comfy" :size 13)
       doom-variable-pitch-font (font-spec :family "Noto Serif"    :size 13)
       doom-serif-font          (font-spec :family "Iosevka Comfy" :size 13)
-      doom-big-font            (font-spec :family "Iosevka Comfy" :size 22)
+      doom-big-font            (font-spec :family "Iosevka Comfy" :size 23) ;; for presentation purposes.
       doom-font-increment 1)
+(map! "C-M-0" #'doom/reset-font-size) ;; consistent with C-M-=, C-M--
 ;; font:1 ends here
 
 ;; [[file:config.org::*modeline][modeline:1]]
@@ -202,21 +203,6 @@
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; editing:1 ends here
 
-;; [[file:config.org::*harpoon][harpoon:1]]
-(use-package! harpoon
-  :config
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/") ;; HACK :: move it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
-
-  (map! :map 'override
-        :nm "M-1" #'harpoon-go-to-1
-        :nm "M-2" #'harpoon-go-to-2
-        :nm "M-3" #'harpoon-go-to-3
-        :nm "M-4" #'harpoon-go-to-4
-        :nm "M"   #'harpoon-add-file) ;; quickly add file to harpoon
-
-  (map! :leader "m" #'harpoon-toggle-file)) ;; for deleting and reordering harpoon candidates
-;; harpoon:1 ends here
-
 ;; [[file:config.org::*global marks][global marks:1]]
 (map! :map 'override :nm "'" #' z-global-marks-goto) ;; ensure consistently available everywhere.
 (map! :leader (:prefix "b" "g" #'z-global-marks-save))
@@ -297,7 +283,7 @@ using 'dir-locals-2.el' as per emacs manual to not conflict with a potentially a
   (setq-default evil-markers-alist evil-markers-alist)) ;; once directory-local variables are loaded, we must update the global-value of 'evil-markers-alist' in order for global variables to work.
 
 (add-hook! 'projectile-before-switch-project-hook
-  (when (projectil-project-p)
+  (when (projectile-project-p)
     (z-global-marks-save))) ;; update current projects marks when switching to another project.
 ;; global marks:1 ends here
 
