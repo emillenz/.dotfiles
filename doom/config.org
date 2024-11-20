@@ -1287,6 +1287,7 @@ we automate this repetetive task using a snippets.
 
 * lispyville: editing lisp in vim
 - makes vim's motions dwmi in lisp modes (mainly respecting parenthesis).
+- we only want ~lispyville-mode~ (evil integration), but no confusing <insert-mode> bindings (coming from ~lispy-mode~, and is meant for emacs native bindings.
 #+begin_src elisp
 ;; call help on `lispyville-set-key-theme' to see the changed bindings.
 (after! lispyville
@@ -1298,8 +1299,10 @@ we automate this repetetive task using a snippets.
                               commentary
                               slurp/barf-lispy
                               additional
-                              (atom-movement t) ;; HACK :: needs t
+                              (atom-movement t)
                               additional-insert)))
+
+(lispy-mode -1) 
 #+end_src
 
 * emacs-lisp

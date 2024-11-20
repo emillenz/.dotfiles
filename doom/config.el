@@ -1015,8 +1015,10 @@ legibility."
                               commentary
                               slurp/barf-lispy
                               additional
-                              (atom-movement t) ;; HACK :: needs t
+                              (atom-movement t)
                               additional-insert)))
+
+(lispy-mode -1)
 ;; lispyville: editing lisp in vim:1 ends here
 
 ;; [[file:config.org::*emacs-lisp][emacs-lisp:1]]
