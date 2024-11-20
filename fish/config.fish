@@ -18,31 +18,31 @@ fish_config theme choose modus_operandi # ./themes/modus_operandi.theme
 set -gx PATH $PATH ~/.config/{bin, emacs/bin} ~/.cargo/bin ~/.local/bin ~/.local/share/gem/ruby/3.3.0/bin
 
 # PROGRAMS
-set -gx EDITOR emacsclient -nw --alternate-editor='emacs -nw'
-set -gx VISUAL emacsclient --create-frame --alternate-editor=emacs
+set -gx EDITOR emacsclient -nw --alternate-editor 'emacs -nw'
+set -gx VISUAL emacsclient --create-frame --alternate-editor emacs
 set -gx BROWSER firefox
 
 # PAGER
 alias cat bat
-set -gx PAGER bat --paging=always
-set -gx MANPAGER bat --paging=always
+set -gx PAGER bat --paging always
+set -gx MANPAGER bat --paging always
 set -gx MANWIDTH 100
 
 # ALIASES :: better defaults
-alias ls "ls -lv --human-readable --group-directories-first --color=auto"
-alias rm "rm --recursive --verbose"
-alias du "du --human-readable"
-alias mv "mv --verbose"
-alias cp "cp --recursive --verbose"
-alias yay "yay --noconfirm"
-alias curl "curl --silent"
-alias sed "sed --regexp-extended" # consistent regex-syntax with emacs, rg, fd, ...
-abbr -- -h '--help | bat -L=help'
-abbr -- echo printf # get in the habit of using more powerful printf instead...
+alias ls 'ls -lv --human-readable --group-directories-first --color auto'
+alias rm 'rm --recursive --verbose'
+alias du 'du --human-readable'
+alias mv 'mv --verbose'
+alias cp 'cp --recursive --verbose'
+alias yay 'yay --noconfirm'
+alias curl 'curl --silent'
+alias sed 'sed --regexp-extended' # consistent regex-syntax with emacs, rg, fd, ...
+abbr ps 'ps -e -o user,pid,time,%cpu,%mem,command --sort %cpu' # get overview
+abbr echo printf # get in the habit of using more powerful printf instead...
 
 # FZF
-fzf_configure_bindings --directory=\cf --history --git_log --git_status --variables --processes # NOTE :: disable useless (history already inbuilt in fish: /)
-set -gx FZF_DEFAULT_OPTS --reverse --height=16 --color light --scheme path
+fzf_configure_bindings --directory \cf --history --git_log --git_status --variables --processes # NOTE :: disable useless (history already inbuilt in fish: /)
+set -gx FZF_DEFAULT_OPTS --reverse --height 16 --color light --scheme path
 
 # VIM KEYBINDINGS
 set -g fish_key_bindings fish_vi_key_bindings
@@ -67,10 +67,10 @@ function fish_prompt --description 'newlines to clearly separate commands in his
             printf (set_color $fish_color_error)"[$last_exit_code]"
         end
     )
-    set -l dir (set_color $fish_color_cwd)(prompt_pwd --full-length-dirs=4)
+    set -l dir (set_color $fish_color_cwd)(prompt_pwd --full-length-dirs 4)
     set -l prompt "$(set_color brblue)>"
     set -l fish_color_line_bg '#dae5ec' # modus theme
-    printf "\n $(set_color --background=$fish_color_line_bg --bold) $dir $last_exit_status $prompt $(set_color normal) "
+    printf "\n $(set_color --background $fish_color_line_bg --bold) $dir $last_exit_status $prompt $(set_color normal) "
 end
 
 function open_editor_dwim --description "open editor with args, if nil open editor with fileexplorer in current directory"
@@ -82,7 +82,7 @@ function open_editor_dwim --description "open editor with args, if nil open edit
 end
 alias e open_editor_dwim
 
-function mkdir_cd --description "create a directory and set cwd"
+function mkdir_cd --description 'create a directory and set cwd'
     command mkdir $argv
     if test $status = 0
         switch $argv[(count $argv)]
