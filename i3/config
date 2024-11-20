@@ -29,16 +29,15 @@ hide_edge_borders smart
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
-for_window [all] focus, title_window_icon no
+for_window [all] focus, title_window_icon no, floating disable
 # opts:1 ends here
 
 # [[file:config.org::*keybindings][keybindings:1]]
 set $MOD Mod1
 floating_modifier $MOD
+tiling_drag modifier titlebar
 bindsym button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
-bindsym --whole-window $MOD+button1: drag floating window
-bindsym --whole-window $MOD+button2: resize floating window
 bindsym button4 nop
 bindsym button5 nop
 
@@ -104,6 +103,7 @@ bindsym $MOD+i exec --no-startup-id i3-msg '[con_mark=I] focus' || (i3-msg '[cla
 # [[file:config.org::*leader][leader:1]]
 bindsym $MOD+space mode "leader"
 mode "leader" {
+        # used to call autostart script, when daemons/processes were killed.
         bindsym $MOD+r restart
 
         bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC

@@ -35,6 +35,7 @@ exec_always --no-startup-id $BIN/autostart &
 #+end_src
 
 * opts
+- force all windows into tabbed mode, never allow floating windows.
 #+begin_src conf
 workspace_auto_back_and_forth no
 workspace_layout tabbed
@@ -45,7 +46,7 @@ hide_edge_borders smart
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
-for_window [all] focus, title_window_icon no
+for_window [all] focus, title_window_icon no, floating disable
 #+end_src
 
 * keybindings
@@ -56,10 +57,9 @@ for_window [all] focus, title_window_icon no
 #+begin_src conf
 set $MOD Mod1
 floating_modifier $MOD
+tiling_drag modifier titlebar
 bindsym button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
-bindsym --whole-window $MOD+button1: drag floating window
-bindsym --whole-window $MOD+button2: resize floating window
 bindsym button4 nop
 bindsym button5 nop
 
@@ -149,6 +149,7 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 #+begin_src conf
 bindsym $MOD+space mode "leader"
 mode "leader" {
+        # used to call autostart script, when daemons/processes were killed.
         bindsym $MOD+r restart
 
         bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
