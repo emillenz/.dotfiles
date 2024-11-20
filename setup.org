@@ -28,7 +28,7 @@ sudo pacman -Syyu
 * core tools
 ** terminal, shell, scripting
 #+begin_src sh
-yay --noconfirm --sync alacritty curl libtool fzf fd ripgrep xclip xdg-utils cmake bat git gcc make xdotool htop-vim ttf-iosevka-comfy tmux tldr
+yay --noconfirm --sync alacritty curl libtool fzf fd ripgrep xclip xdg-utils cmake bat git gcc make xdotool ttf-iosevka-comfy tmux tldr
 #+end_src
 
 *** interactive shell: fish
