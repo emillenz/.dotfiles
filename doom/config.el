@@ -235,16 +235,15 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
 
     (path . pos) cons cells, where path is a string and pos is an integer, and those are trivial to
     serialize."
-  (mapcar (lambda (it)
-            (let* ((marker-file (condition-case ;; returns filename if is marker and associated with a file (can have markers to non-file buffers (eg. *compilation*), otherwise nil.
-                                    (file-truename (buffer-file-name (marker-buffer (cdr it))))
-                                    (error nil)))
-                   (global-mark-p (and (markerp (cdr it)) marker-file)))
-              (if global-mark-p
-                  (cons (car it)
-                        (cons marker-file
-                              (marker-position (cdr it))))
-                it)))
+  (mapcar (lambda (entry)
+            (let* ((marker (cdr entry))
+                   (marker-file-name-base (and (markerp marker)
+                                               (buffer-file-name (marker-buffer marker))))) ;; marker can be to non-file-buffer, eg. *compilation*.  we don't save these (useless).
+              (if marker-file-name-base
+                  (cons (car entry)
+                        (cons (file-truename marker-file-name-base)
+                              (marker-position marker)))
+                entry)))                           ;; non-marker entry
           (default-value 'evil-markers-alist))) ;; use global value (save only global marks)
 
 ;; replicate vim's behaviour of making evil's global markers persist across sessions
