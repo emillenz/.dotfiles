@@ -207,13 +207,13 @@
 
 ;; ensure bindings consistently available everywhere.
 (map! :map 'override
-      :nm "'" #'global-marks-goto
+      :nm "'" #'globalmarks-goto
 
       :nm "m" #'evil-set-marker+)
 
-(map! :leader "m" #'global-marks-save)
+(map! :leader "m" #'globalmarks-save)
 
-(evil-define-command global-marks-goto (char &optional noerror)
+(evil-define-command globalmarks-goto (char &optional noerror)
   "Go to the global-marker's buffer specified by CHAR.
 
 This differs from `evil-goto-mark-line' in that it does not actually go to the marked position,
@@ -236,19 +236,19 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
       (user-error "global marker `%c' is not set" (upcase char))))))
 
 (defun evil-set-marker+ (char)
-  "wrapper for 'evil-set-marker' that saves global-marks to disk when a global mark was set and we
+  "wrapper for 'evil-set-marker' that saves globalmarks to disk when a global mark was set and we
 are currently in a project.
 
 if you are outside a project (but still want global marks functionality for that directory, you must
- explicilty call 'global-marks-save'."
+ explicilty call 'globalmarks-save'."
   (interactive (list (read-char)))
   (evil-set-marker char)
   (when (and (char-uppercase-p char)
              (or (projectile-project-root)
                  (dir-locals-find-file default-directory)))
-    (global-marks-save)))
+    (globalmarks-save)))
 
-(defun global-marks--serialize ()
+(defun globalmarks--serialize ()
   "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
     trivially be serialized and restored later.
 
@@ -271,13 +271,13 @@ if you are outside a project (but still want global marks functionality for that
   (add-to-list 'savehist-additional-variables 'evil-markers-alist)
 
   (add-hook! 'savehist-save-hook
-    (setq-default evil-markers-alist (global-marks--serialize)))
+    (setq-default evil-markers-alist (globalmarks--serialize)))
 
   (add-hook! 'savehist-mode-hook
     (setq-default evil-markers-alist evil-markers-alist) ;; set global value
     (setq evil-markers-alist (default-value 'evil-markers-alist))))
 
-(defun global-marks-save ()
+(defun globalmarks-save ()
   "save serialized 'evil-marks-alist' as dir-local-variable to: 'projectile-project-root' or
   'default-directory'.
 
@@ -296,13 +296,13 @@ project."
   (let ((og-buffer (current-buffer)))
     (modify-dir-local-variable 'nil
                                'evil-markers-alist
-                               (global-marks--serialize)
+                               (globalmarks--serialize)
                                'add-or-replace) ;; nil <=> all modes
     (save-buffer)
     (switch-to-buffer og-buffer))
 
   (setq-default evil-markers-alist evil-markers-alist)
-  (message "[global-marks] saved "))
+  (message "[globalmarks] saved "))
 
 ;; never prompt when loading local variable 'evil-markers-alist'
 (put 'evil-markers-alist 'safe-local-variable 'listp)
