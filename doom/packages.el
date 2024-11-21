@@ -14,7 +14,7 @@
 (package! org-tidy)
 (package! org-fragtog)
 (package! laas)
-(package! modus-themes)
+(package! modus-themes)                 ;; NOTE :: it is already part of emacs, but we want the upstream version
 (package! devdocs)
 (package! nov)
 (package! whisper :recipe (:host github :repo "natrys/whisper.el"))

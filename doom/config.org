@@ -10,7 +10,7 @@
 * preface
 - a total of {{{src-len}}} LOC.
 - for debugging your configuration, start emacs with: ~emacs --debug-init~ to get a backtrace.  when debuggin lisp code, enable ~toggle-debug-on-error~ and eval the code.
-- read up on and use emacs lisp style guide.
+- read up on and adhere to [[https://github.com/bbatsov/emacs-lisp-style-guide][emacs-lisp style guide]].
 - lazyload packages using ~after!~.  this keeps emacs efficent, since it now only loads the settings & packages when they are actually needed (no emacs bankruptcy).
 - i believe that customizations are personal and should not be blindly copied.  Everyone should carefully consider each customizable setting they hear about and decide for themselves whether they like it or not.  Non-trivial customizations that include Lisp code should be fully understood before they are accepted, rejected, or amended to personal taste.  (read the manual)
   - i encourage you to master the tool that you are using.  this means thuroughly reading the complete documentation, keymaps for the tools you are using (eg. vertico, evil-mode, magit, leader-mode).
@@ -22,9 +22,36 @@
 (setq user-full-name "emil lenz"
       user-mail-address "emillenz@protonmail.com")
 #+end_src
+* general options
+#+begin_src elisp
+(setq initial-scratch-message ""
+      delete-by-moving-to-trash t
+      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (preserve for newinstalls)
+      auto-save-default t
+      confirm-kill-emacs nil
+      hscroll-margin 0
+      scroll-margin 0
+      next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
+      enable-recursive-minibuffers nil
+      display-line-numbers-type 'visual
+      shell-command-prompt-show-cwd t
+      async-shell-command-width 100
+      which-key-idle-delay 0.5
+      shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
-* modus-theme
-- hack :: needs use-package
+(+global-word-wrap-mode)
+(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
+
+(save-place-mode)
+(global-subword-mode)
+(add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+
+(setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode)
+#+end_src
+
+* ui
+** modus-theme
 #+begin_src elisp
 (use-package! modus-themes
   :config
@@ -43,7 +70,7 @@
   (setq doom-theme 'modus-operandi))
 #+end_src
 
-* font
+** font
 - emacs gui fontsizing is weirdly different to global (wm/terminal, gtk, etc.) fontsize.  emacs: 13 <=> global: 10.
 #+begin_src elisp
 (setq doom-font                (font-spec :family "Iosevka Comfy" :size 13)
@@ -54,7 +81,7 @@
 (map! "C-M-0" #'doom/reset-font-size) ;; consistent with C-M-=, C-M--
 #+end_src
 
-* modeline
+** modeline
 - no overlapping funcionality (time & date is on my physical wrist watch, don't need it in any program (also not wm)).
 - very minimal, only displaying what's needed (using (:modeline +light))
 #+begin_src elisp
@@ -64,34 +91,55 @@
       +modeline-bar-width nil) ;; visual clutter => off
 #+end_src
 
-* window layout & behavior
-- vertical split always :: constrain buffers to consistently, and always vertically split (side by side).  vertical splits don't restrict the visible area in the buffer and use the screen realestate efficiently since the right side of the master buffer is plain anyways (linewrap at 100).
-  - slave/master window :: we constrain all slave buffers (buffer name starting with *) to a single vertically split window to the right of the master window.  the slave window is for side-by-side viewing of documentation and compilation outputs, etc.  we explicitly don't allow more than 2 windows in the frame, since any more than that are cluttering the screen, distracting, increase the navigational overhead (instead of simple back and forth).  the slave window never gets focus once being created (or a new buffer placed inside of it), since it is mostly just to read from.  the master window is never split.
+** window layout & behavior
+- why split at all :: in [[file:~/.config/readme.org][readme]] we state that we prefer the single maximized window workflow, however when editing there are usually auxiliary buffer's that we need to consult (docs, compilation output, etc).
+- vertical split always :: constrain windows to consistently only ever always vertical split (side by side) and never horizontally (top and bottom).  vertical splits don't restrict the visible area in the buffer (since we use a constrained ~text-width~ <= 100) and thus use the screen realestate effectively.
+  - main/side window setup :: we constrain all slave buffers (buffer name starting with ~*~, eg. ~*compilation*~) to a single vertically split window to the right of the main window.  the side window is for side-by-side viewing of documentation and compilation outputs, etc.  we explicitly don't allow more than 2 windows in the frame, since any more than that are cluttering the screen, distracting, increase the navigational overhead (instead of simple back and forth).  the side window never gets focus once being created (or a new buffer placed inside of it), since we mostly only want to read in it and keep editing in the main window.
 - retionale :: we line-wrap every buffer at 100 for better readability, and only ever edit/view a SINGLE buffer at a time, hence vertical splits use screen realestate effectivly.
 
 #+begin_src elisp
 (setq evil-vsplit-window-right t
-      evil-split-window-below t
       even-window-sizes 'width-only
       window-combination-resize t
-      split-height-threshold nil
-      split-width-threshold 100) ;; force vsplits, not more than 2 windows
+      split-height-threshold nil) ;; never allow horizontal-splits
 
 (after! org
   (setq org-src-window-setup 'current-window
-        org-agenda-window-setup 'current-window))
+        org-agenda-window-setup 'current-window)) ;; full-window, no split
 
-(add-hook 'org-capture-mode-hook #'delete-other-windows)
+(defun u-display-buffer-main-window (buffer action-alist)
+  "Display BUFFER in the main window (not a side window).
 
-(setq display-buffer-alist `(("^\\*\\(Org Src\\|Org Agenda\\)";; edge-case *buffers* that i treat as master buffers
+for use in display buffer
+
+BUFFER is the buffer to be displayed.
+ACTION-ALIST is an alist of actions passed by `display-buffer` (currently unused)."
+
+  (let* ((side-window-p (eq (window-parameter nil 'window-side) 'right))
+         (main-window (if side-window-p
+                          (next-window nil 'no-minibuffer)
+                        (selected-window))))
+    (set-window-buffer main-window buffer)
+    main-window))
+
+(setq display-buffer-alist `((,(rx (seq bol (or "magit" " *transient"))) nil) ;; some major-modes (eg. magit) have their own complex buffer setup systems.  ignore them.
+
+                             (,(rx (seq bol (or (seq "*" (or "Org Src" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
+                                                             "Org Agenda"
+                                                             "doom:scratch"
+                                                             "scratch"))
+                                                (seq (not (any "*"))))))
                               (display-buffer-same-window))
-                             ("^\\*" ;; all slave *buffers*
+
+                             ("^*" ;; all *special-buffers*
                               (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
                               (side . right)
+                              (slot . 0)
                               (window-width . 0.5) ;; equal 2 window split
                               (slot . 0))))
 
-(define-key! [remap doom/open-scratch-buffer] #'doom/switch-to-scratch-buffer) ;; open scratch in fullscreen, not popup
+;; this prevents accidentally showing file buffers in the side window & vice versa.  (we remove the mental overhead of having to think and switch windows before switching buffer's)
+(setq switch-to-buffer-obey-display-actions t)
 #+end_src
 
 - centered windows :: better ergonomics & less eye travel (distance + switching from left to middle from eg: terminal to webpage).
@@ -121,33 +169,52 @@ explicitly do NOT enable for ::
               fill-column 100)
 #+end_src
 
-* general options
-- disable ~flycheck-mode~ by default ::  no annying mid code popups and suggestions (distractionfree coding!)  when i want to check the buffer, i can do so explicitly.
+** indentation
+- formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
+- we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
+
+** rationale
+a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
+
+#+begin_quote
+Tabs are 8 characters, and thus indentations are also 8 characters.  There are heretic movements that try to make indentations 4 (or even 2!) characters deep, and that is akin to trying to define the value of PI to be 3.  If you need more than 4 levels of indentation within a function, you’re screwed anyway, and should fix your program.
+--- Linus Torvalds
+#+end_quote
+
+the 8 space indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 100 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 100 column limit forces you to keep your code within reasonable limits.
+
+the whole idea behind indentation is to clearly define where a block of control starts and ends.  this is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  you can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  it facilitates reading through a codebase in a more tree-like fashion.
+
+every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 100-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
+
+in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
+
+- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
+- using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
+
 #+begin_src elisp
-(setq initial-scratch-message ""
-      delete-by-moving-to-trash t
-      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (preserve for newinstalls)
-      auto-save-default t
-      confirm-kill-emacs nil
-      hscroll-margin 0
-      scroll-margin 0
-      next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
-      enable-recursive-minibuffers nil
-      display-line-numbers-type 'visual
-      shell-command-prompt-show-cwd t
-      async-shell-command-width 100
-      which-key-idle-delay 0.5
-      shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
+(advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
-(+global-word-wrap-mode)
-(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
+(defvar global-indent-width 8)
 
-(save-place-mode)
-(global-subword-mode)
-(add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+(setq-default standard-indent global-indent-width
+              evil-shift-width global-indent-width
+              tab-width global-indent-width
+              fill-column 100
+              org-indent-indentation-per-level global-indent-width
+              evil-indent-convert-tabs t
+              indent-tabs-mode nil)
 
-(setq global-auto-revert-non-file-buffers t)
-(global-auto-revert-mode)
+(setq-hook! '(c++-mode-hook
+              c-mode-hook
+              java-mode-hook)
+  tab-width global-indent-width
+  c-basic-offset global-indent-width
+  evil-shift-width global-indent-width)
+
+(setq-hook! 'ruby-mode-hook
+  evil-shift-width global-indent-width
+  ruby-indent-level global-indent-width)
 #+end_src
 
 * global keybindings
@@ -287,67 +354,6 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 #+end_src
 
-** evil global marks
-- we remap ~evil-goto-mark~ since you should use ~evil-goto-mark-line~ instead anyways.
-- vim's normal global-mark behaviour is to jump to the originally marked posion in that buffer.  this is the wrong behaviour because when we left the buffer we have changed the cursor position to some other place.  we override ~evil-goto-mark-line~ binding, since it is redundant (for buffer-local marks, use ~evil-goto-mark~ binding instead).
-- they are for truly global jumping (not inside a project like harpoon).
-- savehist :: replicate vim's behaviour of making evil's global markers persist across sessions
-  - rationale :: save state => reduce repetition, increase consistency.
-
-#+begin_src elisp
-;; ensure binding available everywhere (eg. pdf-view overrides that mapping)
-(map! :map 'override :nm "'" #'evil-goto-mark+)
-
-(evil-define-command evil-goto-mark+ (char &optional noerror)
-  "Go to the global-marker's buffer specified by CHAR.
-
-This differs from `evil-goto-mark-line' in that it does not actually go to the marked position,
-which is undesired, since we use this for switching inbetween buffers and don't want our position to
-get reset each time.
-
-for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
-  :repeat nil
-  (interactive (list (read-char)))
-  (let ((marker (evil-get-marker (upcase char))))
-    (cond
-     ((markerp marker)
-      (switch-to-buffer (marker-buffer marker)))
-     ((numberp marker) nil) ;; already in buffer
-     ((consp marker)
-      (if (find-buffer-visiting (car marker))
-          (switch-to-buffer (find-buffer-visiting (car marker)))
-        (find-file (car marker))))
-     ((not noerror)
-      (user-error "global-mark: `%c' is not set" (upcase char))))))
-
-(defun globalmarks--serialize ()
-  "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
-    trivially be serialized and restored later.
-
-    (path . pos) cons cells, where path is a string and pos is an integer, and those are trivial to
-    serialize."
-  (mapcar (lambda (entry)
-            (let* ((marker (cdr entry))
-                   (marker-file-name-base (and (markerp marker)
-                                               (buffer-file-name (marker-buffer marker))))) ;; marker can be to non-file-buffer, eg. *compilation*.  we don't save these (useless).
-              (if marker-file-name-base
-                  (cons (car entry)
-                        (cons (file-truename marker-file-name-base)
-                              (marker-position marker)))
-                entry)))                        ;; non-marker entry
-          (default-value 'evil-markers-alist))) ;; use global value (save only global marks)
-
-(after! savehist
-  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-
-  (add-hook! 'savehist-save-hook
-    (setq-default evil-markers-alist (globalmarks--serialize)))
-
-  (add-hook! 'savehist-mode-hook
-    (setq-default evil-markers-alist evil-markers-alist) ;; set global value
-    (setq evil-markers-alist (default-value 'evil-markers-alist))))
-#+end_src
-
 ** harpoon
 - when you are in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers you find yourself alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since you need to alternate between more than 2 file.
 - you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
@@ -355,7 +361,6 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
 #+begin_src elisp
 (use-package! harpoon
   :config
-  (setq harpoon-without-project-function #'harpoon--current-file-directory)
   (map! :map 'override
         :nm "M-1" #'harpoon-go-to-1
         :nm "M-2" #'harpoon-go-to-2
@@ -484,54 +489,6 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
             (rename-file file dest 1)))
         (dired-get-marked-files nil nil))
   (revert-buffer))
-#+end_src
-
-* indentation
-- formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
-- we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
-
-** rationale
-a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
-
-#+begin_quote
-Tabs are 8 characters, and thus indentations are also 8 characters.  There are heretic movements that try to make indentations 4 (or even 2!) characters deep, and that is akin to trying to define the value of PI to be 3.  If you need more than 4 levels of indentation within a function, you’re screwed anyway, and should fix your program.
---- Linus Torvalds
-#+end_quote
-
-the 8 space indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 100 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 100 column limit forces you to keep your code within reasonable limits.
-
-the whole idea behind indentation is to clearly define where a block of control starts and ends.  this is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  you can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  it facilitates reading through a codebase in a more tree-like fashion.
-
-every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 100-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
-
-in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
-
-- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
-- using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
-
-#+begin_src elisp
-(advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
-
-(defvar global-indent-width 8)
-
-(setq-default standard-indent global-indent-width
-              evil-shift-width global-indent-width
-              tab-width global-indent-width
-              fill-column 100
-              org-indent-indentation-per-level global-indent-width
-              evil-indent-convert-tabs t
-              indent-tabs-mode nil)
-
-(setq-hook! '(c++-mode-hook
-              c-mode-hook
-              java-mode-hook)
-  tab-width global-indent-width
-  c-basic-offset global-indent-width
-  evil-shift-width global-indent-width)
-
-(setq-hook! 'ruby-mode-hook
-  evil-shift-width global-indent-width
-  ruby-indent-level global-indent-width)
 #+end_src
 
 * org
@@ -884,7 +841,7 @@ TIME :: time in day of note to return. (default: today)"
         :keys "n"
         :file (doct-projects-file 'notes path)
         :prepend t
-        :empty-lines 1
+        :empty-lines-after 1
         :template '("* %^{title} %^g"
                     ":PROPERTIES:"
                     ":created: %U"
@@ -1227,8 +1184,6 @@ legibility."
         :n "<home>" #'pdf-view-scroll-up-or-next-page
         :n "<end>" #'pdf-view-scroll-down-or-previous-page
 
-        :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
-        :n "gm" #'pdf-view-position-to-register ;; needs mapping since 'global-marks' globally override 'm'
         :n "t" #'pdf-outline)) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
 #+end_src
 
@@ -1290,8 +1245,3 @@ we automate this repetetive task using a snippets.
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 #+end_src
 
-* asm
-#+begin_src elisp
-(after! asm-mode
-  (setq asm-comment-char ?#))
-#+end_src

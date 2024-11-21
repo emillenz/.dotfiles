@@ -3,6 +3,33 @@
       user-mail-address "emillenz@protonmail.com")
 ;; user:1 ends here
 
+;; [[file:config.org::*general options][general options:1]]
+(setq initial-scratch-message ""
+      delete-by-moving-to-trash t
+      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (preserve for newinstalls)
+      auto-save-default t
+      confirm-kill-emacs nil
+      hscroll-margin 0
+      scroll-margin 0
+      next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
+      enable-recursive-minibuffers nil
+      display-line-numbers-type 'visual
+      shell-command-prompt-show-cwd t
+      async-shell-command-width 100
+      which-key-idle-delay 0.5
+      shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
+
+(+global-word-wrap-mode)
+(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
+
+(save-place-mode)
+(global-subword-mode)
+(add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+
+(setq global-auto-revert-non-file-buffers t)
+(global-auto-revert-mode)
+;; general options:1 ends here
+
 ;; [[file:config.org::*modus-theme][modus-theme:1]]
 (use-package! modus-themes
   :config
@@ -39,27 +66,47 @@
 
 ;; [[file:config.org::*window layout & behavior][window layout & behavior:1]]
 (setq evil-vsplit-window-right t
-      evil-split-window-below t
       even-window-sizes 'width-only
       window-combination-resize t
-      split-height-threshold nil
-      split-width-threshold 100) ;; force vsplits, not more than 2 windows
+      split-height-threshold nil) ;; never allow horizontal-splits
 
 (after! org
   (setq org-src-window-setup 'current-window
-        org-agenda-window-setup 'current-window))
+        org-agenda-window-setup 'current-window)) ;; full-window, no split
 
-(add-hook 'org-capture-mode-hook #'delete-other-windows)
+(defun u-display-buffer-main-window (buffer action-alist)
+  "Display BUFFER in the main window (not a side window).
 
-(setq display-buffer-alist `(("^\\*\\(Org Src\\|Org Agenda\\)";; edge-case *buffers* that i treat as master buffers
+for use in display buffer
+
+BUFFER is the buffer to be displayed.
+ACTION-ALIST is an alist of actions passed by `display-buffer` (currently unused)."
+
+  (let* ((side-window-p (eq (window-parameter nil 'window-side) 'right))
+         (main-window (if side-window-p
+                          (next-window nil 'no-minibuffer)
+                        (selected-window))))
+    (set-window-buffer main-window buffer)
+    main-window))
+
+(setq display-buffer-alist `((,(rx (seq bol (or "magit" " *transient"))) nil) ;; some major-modes (eg. magit) have their own complex buffer setup systems.  ignore them.
+
+                             (,(rx (seq bol (or (seq "*" (or "Org Src" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
+                                                             "Org Agenda"
+                                                             "doom:scratch"
+                                                             "scratch"))
+                                                (seq (not (any "*"))))))
                               (display-buffer-same-window))
-                             ("^\\*" ;; all slave *buffers*
+
+                             ("^*" ;; all *special-buffers*
                               (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
                               (side . right)
+                              (slot . 0)
                               (window-width . 0.5) ;; equal 2 window split
                               (slot . 0))))
 
-(define-key! [remap doom/open-scratch-buffer] #'doom/switch-to-scratch-buffer) ;; open scratch in fullscreen, not popup
+;; this prevents accidentally showing file buffers in the side window & vice versa.  (we remove the mental overhead of having to think and switch windows before switching buffer's)
+(setq switch-to-buffer-obey-display-actions t)
 ;; window layout & behavior:1 ends here
 
 ;; [[file:config.org::*window layout & behavior][window layout & behavior:2]]
@@ -78,32 +125,30 @@
               fill-column 100)
 ;; window layout & behavior:2 ends here
 
-;; [[file:config.org::*general options][general options:1]]
-(setq initial-scratch-message ""
-      delete-by-moving-to-trash t
-      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (preserve for newinstalls)
-      auto-save-default t
-      confirm-kill-emacs nil
-      hscroll-margin 0
-      scroll-margin 0
-      next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
-      enable-recursive-minibuffers nil
-      display-line-numbers-type 'visual
-      shell-command-prompt-show-cwd t
-      async-shell-command-width 100
-      which-key-idle-delay 0.5
-      shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
+;; [[file:config.org::*rationale][rationale:1]]
+(advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
-(+global-word-wrap-mode)
-(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
+(defvar global-indent-width 8)
 
-(save-place-mode)
-(global-subword-mode)
-(add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+(setq-default standard-indent global-indent-width
+              evil-shift-width global-indent-width
+              tab-width global-indent-width
+              fill-column 100
+              org-indent-indentation-per-level global-indent-width
+              evil-indent-convert-tabs t
+              indent-tabs-mode nil)
 
-(setq global-auto-revert-non-file-buffers t)
-(global-auto-revert-mode)
-;; general options:1 ends here
+(setq-hook! '(c++-mode-hook
+              c-mode-hook
+              java-mode-hook)
+  tab-width global-indent-width
+  c-basic-offset global-indent-width
+  evil-shift-width global-indent-width)
+
+(setq-hook! 'ruby-mode-hook
+  evil-shift-width global-indent-width
+  ruby-indent-level global-indent-width)
+;; rationale:1 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
@@ -202,64 +247,9 @@
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; editing:1 ends here
 
-;; [[file:config.org::*evil global marks][evil global marks:1]]
-;; ensure binding available everywhere (eg. pdf-view overrides that mapping)
-(map! :map 'override :nm "'" #'evil-goto-mark+)
-
-(evil-define-command evil-goto-mark+ (char &optional noerror)
-  "Go to the global-marker's buffer specified by CHAR.
-
-This differs from `evil-goto-mark-line' in that it does not actually go to the marked position,
-which is undesired, since we use this for switching inbetween buffers and don't want our position to
-get reset each time.
-
-for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE marks)."
-  :repeat nil
-  (interactive (list (read-char)))
-  (let ((marker (evil-get-marker (upcase char))))
-    (cond
-     ((markerp marker)
-      (switch-to-buffer (marker-buffer marker)))
-     ((numberp marker) nil) ;; already in buffer
-     ((consp marker)
-      (if (find-buffer-visiting (car marker))
-          (switch-to-buffer (find-buffer-visiting (car marker)))
-        (find-file (car marker))))
-     ((not noerror)
-      (user-error "global-mark: `%c' is not set" (upcase char))))))
-
-(defun globalmarks--serialize ()
-  "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
-    trivially be serialized and restored later.
-
-    (path . pos) cons cells, where path is a string and pos is an integer, and those are trivial to
-    serialize."
-  (mapcar (lambda (entry)
-            (let* ((marker (cdr entry))
-                   (marker-file-name-base (and (markerp marker)
-                                               (buffer-file-name (marker-buffer marker))))) ;; marker can be to non-file-buffer, eg. *compilation*.  we don't save these (useless).
-              (if marker-file-name-base
-                  (cons (car entry)
-                        (cons (file-truename marker-file-name-base)
-                              (marker-position marker)))
-                entry)))                        ;; non-marker entry
-          (default-value 'evil-markers-alist))) ;; use global value (save only global marks)
-
-(after! savehist
-  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-
-  (add-hook! 'savehist-save-hook
-    (setq-default evil-markers-alist (globalmarks--serialize)))
-
-  (add-hook! 'savehist-mode-hook
-    (setq-default evil-markers-alist evil-markers-alist) ;; set global value
-    (setq evil-markers-alist (default-value 'evil-markers-alist))))
-;; evil global marks:1 ends here
-
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon
   :config
-  (setq harpoon-without-project-function #'harpoon--current-file-directory)
   (map! :map 'override
         :nm "M-1" #'harpoon-go-to-1
         :nm "M-2" #'harpoon-go-to-2
@@ -373,31 +363,6 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
         (dired-get-marked-files nil nil))
   (revert-buffer))
 ;; archive file:1 ends here
-
-;; [[file:config.org::*rationale][rationale:1]]
-(advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
-
-(defvar global-indent-width 8)
-
-(setq-default standard-indent global-indent-width
-              evil-shift-width global-indent-width
-              tab-width global-indent-width
-              fill-column 100
-              org-indent-indentation-per-level global-indent-width
-              evil-indent-convert-tabs t
-              indent-tabs-mode nil)
-
-(setq-hook! '(c++-mode-hook
-              c-mode-hook
-              java-mode-hook)
-  tab-width global-indent-width
-  c-basic-offset global-indent-width
-  evil-shift-width global-indent-width)
-
-(setq-hook! 'ruby-mode-hook
-  evil-shift-width global-indent-width
-  ruby-indent-level global-indent-width)
-;; rationale:1 ends here
 
 ;; [[file:config.org::*org][org:1]]
 (after! org
@@ -654,7 +619,7 @@ TIME :: time in day of note to return. (default: today)"
         :keys "n"
         :file (doct-projects-file 'notes path)
         :prepend t
-        :empty-lines 1
+        :empty-lines-after 1
         :template '("* %^{title} %^g"
                     ":PROPERTIES:"
                     ":created: %U"
@@ -966,8 +931,6 @@ legibility."
         :n "<home>" #'pdf-view-scroll-up-or-next-page
         :n "<end>" #'pdf-view-scroll-down-or-previous-page
 
-        :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
-        :n "gm" #'pdf-view-position-to-register ;; needs mapping since 'global-marks' globally override 'm'
         :n "t" #'pdf-outline)) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
 ;; pdf view:1 ends here
 
@@ -1000,8 +963,3 @@ legibility."
 ;; [[file:config.org::*emacs-lisp][emacs-lisp:1]]
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 ;; emacs-lisp:1 ends here
-
-;; [[file:config.org::*asm][asm:1]]
-(after! asm-mode
-  (setq asm-comment-char ?#))
-;; asm:1 ends here
