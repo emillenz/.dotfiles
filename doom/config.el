@@ -226,7 +226,7 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
           (switch-to-buffer (find-buffer-visiting (car marker)))
         (find-file (car marker))))
      ((not noerror)
-      (user-error "[evil] global marker `%c' is not set" (upcase char))))))
+      (user-error "global-mark: `%c' is not set" (upcase char))))))
 
 (defun globalmarks--serialize ()
   "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
@@ -259,9 +259,6 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon
   :config
-  ;; HACK :: move 'harpoon-cache-file' it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
-  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")
-
   (map! :map 'override
         :nm "M-1" #'harpoon-go-to-1
         :nm "M-2" #'harpoon-go-to-2
@@ -1002,3 +999,8 @@ legibility."
 ;; [[file:config.org::*emacs-lisp][emacs-lisp:1]]
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 ;; emacs-lisp:1 ends here
+
+;; [[file:config.org::*asm][asm:1]]
+(after! asm-mode
+  (setq asm-comment-char ?#))
+;; asm:1 ends here
