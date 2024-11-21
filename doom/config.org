@@ -1240,7 +1240,8 @@ legibility."
         "S-SPC" nil                   ;; never override leader-mode
         :n "q" #'kill-current-buffer ;; consistent with other read-only modes (magit, dired, docs...)
 
-        :n "<next>" #'nov-scroll-up  ;; next/previous page of ebook (ergonomic for 1 hand reading)
+        ;; need mappings, since we can't use SPC
+        :n "<next>" #'nov-scroll-up
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
@@ -1259,8 +1260,8 @@ legibility."
 ;; HACK :: must use hook in order to override pdf-view's bindings (':after pdf-view' doesn't work here)
 (add-hook! 'pdf-view-mode-hook
   (map! :map pdf-view-mode-map
-        :n "<next>" #'pdf-view-scroll-up-or-next-page ;; ergonomics when reading onehanded (when you want to scroll by fullpage, switch on `pdf-view-fit-page-to-window')
-        :n "<prior>" #'pdf-view-scroll-down-or-previous-page
+        :n "<return>" #'pdf-view-scroll-up-or-next-page ;; ergonomics when reading onehanded
+        :n "<backspace>" #'pdf-view-scroll-down-or-previous-page
         :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
         :n "gm" #'pdf-view-position-to-register ;; needs mapping since 'global-marks' globally override 'm'
         :n "t" #'pdf-outline)) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
