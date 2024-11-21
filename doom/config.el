@@ -202,18 +202,11 @@
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; editing:1 ends here
 
-;; [[file:config.org::*global marks][global marks:1]]
-(require 'files-x)
+;; [[file:config.org::*evil global marks][evil global marks:1]]
+;; ensure binding available everywhere (eg. pdf-view overrides that mapping)
+(map! :map 'override :nm "'" #'evil-goto-mark+)
 
-;; ensure bindings consistently available everywhere.
-(map! :map 'override
-      :nm "'" #'globalmarks-goto
-
-      :nm "m" #'evil-set-marker+)
-
-(map! :leader "m" #'globalmarks-save)
-
-(evil-define-command globalmarks-goto (char &optional noerror)
+(evil-define-command evil-goto-mark+ (char &optional noerror)
   "Go to the global-marker's buffer specified by CHAR.
 
 This differs from `evil-goto-mark-line' in that it does not actually go to the marked position,
@@ -233,19 +226,7 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
           (switch-to-buffer (find-buffer-visiting (car marker)))
         (find-file (car marker))))
      ((not noerror)
-      (user-error "global marker `%c' is not set" (upcase char))))))
-
-(defun evil-set-marker+ (char)
-  "wrapper for 'evil-set-marker' that saves globalmarks to disk when a global mark was set and we
-are currently in a project.
-
-if you are outside a project (but still want global marks functionality for that directory), you must
- explicilty call 'globalmarks-save'."
-  (interactive (list (read-char)))
-  (evil-set-marker char)
-  (when (and (char-uppercase-p char)
-             (projectile-project-root))
-    (globalmarks-save)))
+      (user-error "[evil] global marker `%c' is not set" (upcase char))))))
 
 (defun globalmarks--serialize ()
   "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
@@ -264,8 +245,6 @@ if you are outside a project (but still want global marks functionality for that
                 entry)))                        ;; non-marker entry
           (default-value 'evil-markers-alist))) ;; use global value (save only global marks)
 
-;; replicate vim's behaviour of making evil's global markers persist across sessions
-;; rationale :: save state => reduce repetition, increase consistency.
 (after! savehist
   (add-to-list 'savehist-additional-variables 'evil-markers-alist)
 
@@ -275,41 +254,23 @@ if you are outside a project (but still want global marks functionality for that
   (add-hook! 'savehist-mode-hook
     (setq-default evil-markers-alist evil-markers-alist) ;; set global value
     (setq evil-markers-alist (default-value 'evil-markers-alist))))
+;; evil global marks:1 ends here
 
-(defun globalmarks-save ()
-  "save serialized 'evil-marks-alist' as dir-local-variable to: 'projectile-project-root' or
-  'default-directory'.
+;; [[file:config.org::*harpoon][harpoon:1]]
+(use-package! harpoon
+  :config
+  ;; HACK :: move 'harpoon-cache-file' it out of '.config', since '.config' has a git repo (harpoon interprets it as project => harpooning in harpoonfile will use the harpoonfile of project: '.config' instead of currently-opened harpoonfile).
+  (setq harpoon-cache-file "~/.local/share/emacs/harpoon/")
 
-usage: whenever we update our marks for jumping inbetween files in the project we are working in,
-call this function to save them to disk to have them automatically loaded when we reenter this
-project."
-  (interactive)
+  (map! :map 'override
+        :nm "M-1" #'harpoon-go-to-1
+        :nm "M-2" #'harpoon-go-to-2
+        :nm "M-3" #'harpoon-go-to-3
+        :nm "M-4" #'harpoon-go-to-4
+        :nm "M" #'harpoon-add-file) ;; quickly add file to harpoon (big brother of vims: 'm')
 
-  ;; create file in 'projectile-project-root' instead of 'default-directory', 'modify-dir-local-variable' uses that one and does not create one in 'default-directory' (default if none found).
-  (let ((project-locals-file (when (projectile-project-root)
-                               (file-name-concat (projectile-project-root) dir-locals-file))))
-    (unless project-locals-file
-      (make-empty-file project-locals-file)))
-
-  ;; HACK :: can't use 'save-excursion' with 'modify-dir-local-variable'
-  (let ((og-buffer (current-buffer)))
-    (modify-dir-local-variable 'nil
-                               'evil-markers-alist
-                               (globalmarks--serialize)
-                               'add-or-replace) ;; nil <=> all modes
-    (save-buffer)
-    (switch-to-buffer og-buffer))
-
-  (setq-default evil-markers-alist evil-markers-alist) ;; update global value
-  (message "[globalmarks] saved!"))
-
-;; never prompt when loading local variable 'evil-markers-alist'
-(put 'evil-markers-alist 'safe-local-variable 'listp)
-
-;; once directory-local variables are loaded, we must update the global-value of 'evil-markers-alist' (using the local value, which contains the newly read value).
-(add-hook! 'hack-local-variables-hook
-  (setq-default evil-markers-alist evil-markers-alist))
-;; global marks:1 ends here
+  (map! :leader "m" #'harpoon-toggle-file)) ;; manage harpoon candidates
+;; harpoon:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
 (evil-surround-mode)

@@ -18,3 +18,4 @@
 (package! devdocs)
 (package! nov)
 (package! whisper :recipe (:host github :repo "natrys/whisper.el"))
+(package! harpoon)
