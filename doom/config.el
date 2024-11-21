@@ -259,6 +259,7 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon
   :config
+  (setq harpoon-without-project-function #'harpoon--current-file-directory)
   (map! :map 'override
         :nm "M-1" #'harpoon-go-to-1
         :nm "M-2" #'harpoon-go-to-2
