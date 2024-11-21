@@ -209,10 +209,7 @@
 (map! :map 'override
       :nm "'" #'global-marks-goto
 
-      ;; when new mark set and global marks are saved => update global marks on disk.
-      :nm "m" (cmd! (call-interactively #'evil-set-marker)
-                    (when (dir-locals-find-file default-directory)
-                      (global-marks-save))))
+      :nm "m" #'evil-set-marker+)
 
 (map! :leader "m" #'global-marks-save)
 
@@ -230,13 +227,26 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
     (cond
      ((markerp marker)
       (switch-to-buffer (marker-buffer marker)))
-     ((numberp marker) nil)             ;; already in buffer
+     ((numberp marker) nil) ;; already in buffer
      ((consp marker)
       (if (find-buffer-visiting (car marker))
           (switch-to-buffer (find-buffer-visiting (car marker)))
         (find-file (car marker))))
      ((not noerror)
       (user-error "global marker `%c' is not set" (upcase char))))))
+
+(defun evil-set-marker+ (char)
+  "wrapper for 'evil-set-marker' that saves global-marks to disk when a global mark was set and we
+are currently in a project.
+
+if you are outside a project (but still want global marks functionality for that directory, you must
+ explicilty call 'global-marks-save'."
+  (interactive (list (read-char)))
+  (evil-set-marker char)
+  (when (and (char-uppercase-p char)
+             (or (projectile-project-root)
+                 (dir-locals-find-file default-directory)))
+    (global-marks-save)))
 
 (defun global-marks--serialize ()
   "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
@@ -252,7 +262,7 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
                   (cons (car entry)
                         (cons (file-truename marker-file-name-base)
                               (marker-position marker)))
-                entry)))                           ;; non-marker entry
+                entry)))                        ;; non-marker entry
           (default-value 'evil-markers-alist))) ;; use global value (save only global marks)
 
 ;; replicate vim's behaviour of making evil's global markers persist across sessions
@@ -282,7 +292,7 @@ project."
     (unless project-locals-file
       (make-empty-file project-locals-file)))
 
-  ;; HACK :: can't use 'save-excursion' (not working)
+  ;; HACK :: can't use 'save-excursion' with 'modify-dir-local-variable'
   (let ((og-buffer (current-buffer)))
     (modify-dir-local-variable 'nil
                                'evil-markers-alist
@@ -291,6 +301,7 @@ project."
     (save-buffer)
     (switch-to-buffer og-buffer))
 
+  (setq-default evil-markers-alist evil-markers-alist)
   (message "[global-marks] saved "))
 
 ;; never prompt when loading local variable 'evil-markers-alist'
