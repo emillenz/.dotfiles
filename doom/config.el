@@ -239,13 +239,12 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
   "wrapper for 'evil-set-marker' that saves globalmarks to disk when a global mark was set and we
 are currently in a project.
 
-if you are outside a project (but still want global marks functionality for that directory, you must
+if you are outside a project (but still want global marks functionality for that directory), you must
  explicilty call 'globalmarks-save'."
   (interactive (list (read-char)))
   (evil-set-marker char)
   (when (and (char-uppercase-p char)
-             (or (projectile-project-root)
-                 (dir-locals-find-file default-directory)))
+             (projectile-project-root))
     (globalmarks-save)))
 
 (defun globalmarks--serialize ()
@@ -301,8 +300,8 @@ project."
     (save-buffer)
     (switch-to-buffer og-buffer))
 
-  (setq-default evil-markers-alist evil-markers-alist)
-  (message "[globalmarks] saved "))
+  (setq-default evil-markers-alist evil-markers-alist) ;; update global value
+  (message "[globalmarks] saved!"))
 
 ;; never prompt when loading local variable 'evil-markers-alist'
 (put 'evil-markers-alist 'safe-local-variable 'listp)
@@ -1001,11 +1000,13 @@ legibility."
 ;; [[file:config.org::*pdf view][pdf view:1]]
 (define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; don't zoom out more than neccessay
 
-;; HACK :: must use hook in order to override pdf-view's bindings (':after pdf-view' doesn't work here)
+;; HACK :: must use a hook in order to override 'pdf-view' bindings ('map!' doesn't work)
 (add-hook! 'pdf-view-mode-hook
   (map! :map pdf-view-mode-map
-        :n "<return>" #'pdf-view-scroll-up-or-next-page ;; ergonomics when reading onehanded
-        :n "<backspace>" #'pdf-view-scroll-down-or-previous-page
+         ;; ergonomics when reading onehanded  (<next>, <prior> already mapped).
+        :n "<home>" #'pdf-view-scroll-up-or-next-page
+        :n "<end>" #'pdf-view-scroll-down-or-previous-page
+
         :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
         :n "gm" #'pdf-view-position-to-register ;; needs mapping since 'global-marks' globally override 'm'
         :n "t" #'pdf-outline)) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
