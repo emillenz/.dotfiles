@@ -2,7 +2,13 @@
 ;;; This format is meant to be slightly human-readable;
 ;;; nevertheless, you probably don't want to edit it.
 ;;; -*- End Of Bookmark File Format Version Stamp -*-
-((#1="nm:problems"
+(("literature"
+ (filename . "~/Documents/literature/")
+ (front-context-string . "notes\n  drwxr-xr")
+ (rear-context-string . "0K Oct 18 08:04 ")
+ (position . 80)
+ (last-modified 26430 52685 659411 635000))
+(#1="nm:problems"
     (filename . "~/Documents/ethz/cs/s3/nm/exercises/NCSEFL_Problems.pdf")
     (position . 1)
     (last-modified 26419 32969 71400 936000)
@@ -65,9 +71,9 @@
  (position . 166)
  (last-modified 26152 39198 98722 800000))
 ("org-capture-last-stored"
- (filename . "~/Documents/org/cs/spca/notes.org")
- (front-context-string . "* malloc for arr")
- (rear-context-string . ".h>\n#+end_src\n\n\n")
- (position . 243)
- (last-modified 26429 50732 820707 506000))
+ (filename . "~/Documents/org/config/agenda.org")
+ (front-context-string . "** [ ] defadvice")
+ (rear-context-string . "ontent\n\n* inbox\n")
+ (position . 184)
+ (last-modified 26430 57967 880828 109000))
 )

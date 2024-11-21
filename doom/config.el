@@ -114,7 +114,6 @@
 (map! :leader
       "." #'vertico-repeat
       "'" #'consult-bookmark
-      "X" #'whisper-run
       (:prefix "h"
                "w" #'tldr)
       (:prefix "s"
@@ -204,10 +203,20 @@
 ;; editing:1 ends here
 
 ;; [[file:config.org::*global marks][global marks:1]]
-(map! :map 'override :nm "'" #' z-global-marks-goto) ;; ensure consistently available everywhere.
-(map! :leader (:prefix "b" "g" #'z-global-marks-save))
+(require 'files-x)
 
-(evil-define-command z-global-marks-goto (char &optional noerror)
+;; ensure bindings consistently available everywhere.
+(map! :map 'override
+      :nm "'" #'global-marks-goto
+
+      ;; when new mark set and global marks are saved => update global marks on disk.
+      :nm "m" (cmd! (call-interactively #'evil-set-marker)
+                    (when (dir-locals-find-file default-directory)
+                      (global-marks-save))))
+
+(map! :leader "m" #'global-marks-save)
+
+(evil-define-command global-marks-goto (char &optional noerror)
   "Go to the global-marker's buffer specified by CHAR.
 
 This differs from `evil-goto-mark-line' in that it does not actually go to the marked position,
@@ -229,7 +238,7 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
      ((not noerror)
       (user-error "global marker `%c' is not set" (upcase char))))))
 
-(defun z-global-marks-serialize ()
+(defun global-marks--serialize ()
   "evil stores marks in the variable 'evil-markers-alist' as markers an elisp datatype that can’t
     trivially be serialized and restored later.
 
@@ -252,40 +261,44 @@ for ergonomics and speed you can input the mark as lowercase (vim uses UPPERCASE
   (add-to-list 'savehist-additional-variables 'evil-markers-alist)
 
   (add-hook! 'savehist-save-hook
-    (setq-default evil-markers-alist (z-global-marks-serialize)))
+    (setq-default evil-markers-alist (global-marks--serialize)))
 
   (add-hook! 'savehist-mode-hook
     (setq-default evil-markers-alist evil-markers-alist) ;; set global value
-    (setq evil-markers-alist (default-value 'evil-markers-alist)))) ;; set buffer local value
+    (setq evil-markers-alist (default-value 'evil-markers-alist))))
 
-(defun z-global-marks-save ()
+(defun global-marks-save ()
   "save serialized 'evil-marks-alist' as dir-local-variable to: 'projectile-project-root' or
   'default-directory'.
 
 usage: whenever we update our marks for jumping inbetween files in the project we are working in,
 call this function to save them to disk to have them automatically loaded when we reenter this
-project.
-
-using 'dir-locals-2.el' as per emacs manual to not conflict with a potentially already existing
-'.dir-locals.el' file"
+project."
   (interactive)
-  (let ((dir-locals-file (file-name-concat (or (projectile-project-root)
-                                               default-directory)
-                                           ".dir-locals-2.el")))
-    (write-region (format "((nil . ((evil-markers-alist . %s))))"
-                          (prin1-to-string (z-global-marks-serialize)))
-                  nil
-                  dir-locals-file)
-    (message "saved global marks to: %s" dir-locals-file)))
 
-(put 'evil-markers-alist 'safe-local-variable 'listp) ;; never prompt before loading local variable 'evil-markers-alist'
+  ;; create file in 'projectile-project-root' instead of 'default-directory', 'modify-dir-local-variable' uses that one and does not create one in 'default-directory' (default if none found).
+  (let ((project-locals-file (when (projectile-project-root)
+                               (file-name-concat (projectile-project-root) dir-locals-file))))
+    (unless project-locals-file
+      (make-empty-file project-locals-file)))
 
+  ;; HACK :: can't use 'save-excursion' (not working)
+  (let ((og-buffer (current-buffer)))
+    (modify-dir-local-variable 'nil
+                               'evil-markers-alist
+                               (global-marks--serialize)
+                               'add-or-replace) ;; nil <=> all modes
+    (save-buffer)
+    (switch-to-buffer og-buffer))
+
+  (message "[global-marks] saved "))
+
+;; never prompt when loading local variable 'evil-markers-alist'
+(put 'evil-markers-alist 'safe-local-variable 'listp)
+
+;; once directory-local variables are loaded, we must update the global-value of 'evil-markers-alist' (using the local value, which contains the newly read value).
 (add-hook! 'hack-local-variables-hook
-  (setq-default evil-markers-alist evil-markers-alist)) ;; once directory-local variables are loaded, we must update the global-value of 'evil-markers-alist' in order for global variables to work.
-
-(add-hook! 'projectile-before-switch-project-hook
-  (when (projectile-project-p)
-    (z-global-marks-save))) ;; update current projects marks when switching to another project.
+  (setq-default evil-markers-alist evil-markers-alist))
 ;; global marks:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
@@ -300,25 +313,14 @@ using 'dir-locals-2.el' as per emacs manual to not conflict with a potentially a
   (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin))
   (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
 
-  (defadvice! z-default-last-register (fn &rest args)
+  (defadvice! update-last-macro-register (fn &rest args)
     "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
   which is the sane default behaviour allowing you to: record a macro with `qq' and immediately call it with `@@', instead of getting an error and having to retype `@q' again."
     :after #'evil-record-macro
     (when (not evil-last-register)
-      (setq evil-last-register evil-last-recorded-register)))
+      (setq evil-last-register evil-last-recorded-register))))
 
-  (defadvice! z-update-evil-search-reg (fn &rest args)
-    "Update evil search register after jumping to a line with
-`+default/search-buffer' to be able to jump to next/prev matches.
-This is sensible default behaviour, and integrates it into evil."
-    :after #'+default/search-buffer
-    (let ((str (--> nil
-                    (car consult--line-history)
-                    (string-replace " " ".*" it))))
-      (push str evil-ex-search-history)
-      (setq evil-ex-search-pattern (list str t t)))))
-
-(defadvice! z-save-excursion (fn &rest args)
+(defadvice! preserve-point (fn &rest args)
   "when modifying the buffer with one of these functions, do the edit and then  restore point to where it was originally."
   :around '(query-replace-regexp
             query-replace
@@ -382,19 +384,19 @@ This is sensible default behaviour, and integrates it into evil."
       :m "l" #'dired-open-file)
 
 (map! :map dired-mode-map :localleader :after dired
-      :m "a" #'z-dired-archive)
+      :m "a" #'dired-archive)
 ;; dired/keybindings:1 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
-(defvar z-archive-dir "~/Archive/")
+(defvar archive-dir "~/Archive/")
 
-(defun z-dired-archive ()
-  "`mv' marked file/s to: `z-archive-dir'/{relative-filepath-to-HOME}/{filename}"
+(defun dired-archive ()
+  "`mv' marked file/s to: `archive-dir'/{relative-filepath-to-HOME}/{filename}"
   (interactive)
   (mapc (lambda (file)
           (let* ((dest (--> file
                             (file-relative-name it "~/")
-                            (file-name-concat z-archive-dir it)))
+                            (file-name-concat archive-dir it)))
                  (dir (file-name-directory dest)))
             (unless (file-exists-p dir)
               (make-directory dir t))
@@ -406,26 +408,26 @@ This is sensible default behaviour, and integrates it into evil."
 ;; [[file:config.org::*rationale][rationale:1]]
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
-(defvar z-indent-width 8)
+(defvar global-indent-width 8)
 
-(setq-default standard-indent z-indent-width
-              evil-shift-width z-indent-width
-              tab-width z-indent-width
+(setq-default standard-indent global-indent-width
+              evil-shift-width global-indent-width
+              tab-width global-indent-width
               fill-column 100
-              org-indent-indentation-per-level z-indent-width
+              org-indent-indentation-per-level global-indent-width
               evil-indent-convert-tabs t
               indent-tabs-mode nil)
 
 (setq-hook! '(c++-mode-hook
               c-mode-hook
               java-mode-hook)
-  tab-width z-indent-width
-  c-basic-offset z-indent-width
-  evil-shift-width z-indent-width)
+  tab-width global-indent-width
+  c-basic-offset global-indent-width
+  evil-shift-width global-indent-width)
 
 (setq-hook! 'ruby-mode-hook
-  evil-shift-width z-indent-width
-  ruby-indent-level z-indent-width)
+  evil-shift-width global-indent-width
+  ruby-indent-level global-indent-width)
 ;; rationale:1 ends here
 
 ;; [[file:config.org::*org][org:1]]
@@ -484,7 +486,7 @@ This is sensible default behaviour, and integrates it into evil."
 
 (add-hook! 'org-src-mode-hook (flycheck-mode -1)) ;; flycheck full of error's, since it only reads partial buffer.
 
-(defadvice! z-insert-newline-above (fn &rest args)
+(defadvice! insert-newline-above (fn &rest args)
   "pad newly inserted heading with newline unless is todo-item.
 
   since i often have todolists , where i don't want the newlines.  newlines are for headings that have a body of text."
@@ -493,7 +495,7 @@ This is sensible default behaviour, and integrates it into evil."
              (not (org-entry-is-todo-p)))
     (+evil/insert-newline-above 1)))
 
-(defadvice! z-insert-newline-below (fn &rest args)
+(defadvice! insert-newline-below (fn &rest args)
   :after #'+org/insert-item-above
   (when (and (org-at-heading-p)
              (not (org-entry-is-todo-p)))
@@ -603,41 +605,41 @@ This is sensible default behaviour, and integrates it into evil."
 ;; [[file:config.org::*capture templates][capture templates:1]]
 (setq org-directory "~/Documents/org/")
 
-(defvar z-journal-dir (file-name-concat "~/Documents/journal/")
+(defvar journal-dir (file-name-concat "~/Documents/journal/")
   "dir for daily captured journal files")
 
-(defvar z-literature-dir "~/Documents/literature"
+(defvar literature-dir "~/Documents/literature"
   "literature sources and captured notes")
 
-(defvar z-literature-notes-dir (file-name-concat z-literature-dir "notes/")
+(defvar literature-notes-dir (file-name-concat literature-dir "notes/")
   "note files for each literature source")
 
-(defvar z-wiki-dir "~/Documents/wiki/"
+(defvar wiki-dir "~/Documents/wiki/"
   "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
 and the later reviewed and merged into the corresponding article of the wiki.")
 
-(defvar z-doct-projects-default-templates '(z-doct-projects-task-template
-                                            z-doct-projects-event-template
-                                            z-doct-projects-note-template))
+(defvar doct-projects-default-templates '(doct-projects-task-template
+                                            doct-projects-event-template
+                                            doct-projects-note-template))
 
-(defvar z-doct-projects `(("cs" :keys "c"
-                           :templates ,z-doct-projects-default-templates
+(defvar doct-projects `(("cs" :keys "c"
+                           :templates ,doct-projects-default-templates
                            :children (("ti"   :keys "t")
                                       ("an2"  :keys "a")
                                       ("ph1"  :keys "p")
-                                      ("spca" :keys "s" :templates (z-doct-projects-cc-src-template))
-                                      ("nm"   :keys "n" :templates (z-doct-projects-cc-src-template))))
-                          ("personal" :keys "p" :templates ,z-doct-projects-default-templates)
-                          ("config"   :keys "f" :templates ,z-doct-projects-default-templates))
+                                      ("spca" :keys "s" :templates (doct-projects-cc-src-template))
+                                      ("nm"   :keys "n" :templates (doct-projects-cc-src-template))))
+                          ("personal" :keys "p" :templates ,doct-projects-default-templates)
+                          ("config"   :keys "f" :templates ,doct-projects-default-templates))
   "same syntax as doct,  except for the key-value-pair: `:templates LIST`,
  where LIST is a list of functions with signature: `(PATH) -> VALID-DOCT-TEMPLATE`
- where PATH is to be generated by 'z-doct-projects-file'
+ where PATH is to be generated by 'doct-projects-file'
  where TEMPLATE is a valid 'doct-capture-template'.
 ':templates' is inherited by the parent-group and if present in a childgroup it appends the
    additionally defined templates.")
 
-(defun z-doct-journal-file (&optional time)
+(defun doct-journal-file (&optional time)
   "returns a structured filename based on the current date.
 eg: 2024-11-03_journal.org
 TIME :: time in day of note to return. (default: today)"
@@ -645,28 +647,28 @@ TIME :: time in day of note to return. (default: today)"
        (or time (current-time))
        (format-time-string "%F" it)
        (format "%s_journal.org" it)
-       (file-name-concat z-journal-dir it)))
+       (file-name-concat journal-dir it)))
 
-(defun z-doct-projects-file (type path)
+(defun doct-projects-file (type path)
   "TYPE :: 'agenda | 'notes"
   (--> nil
        (symbol-name type)
        (format "%s.org" it)
        (file-name-concat org-directory path it)))
 
-(defun z-doct-projects-task-template (path)
+(defun doct-projects-task-template (path)
   (list "task"
         :keys "t"
-        :file (z-doct-projects-file 'agenda path)
+        :file (doct-projects-file 'agenda path)
         :headline "inbox"
         :prepend t
         :empty-lines-after 1
         :template '("* [ ] %^{title}%?")))
 
-(defun z-doct-projects-event-template (path)
+(defun doct-projects-event-template (path)
   (list "event"
         :keys "e"
-        :file (z-doct-projects-file 'agenda path)
+        :file (doct-projects-file 'agenda path)
         :headline "events"
         :prepend t
         :empty-lines-after 1
@@ -678,10 +680,10 @@ TIME :: time in day of note to return. (default: today)"
                     ":material: %^{material}"
                     ":END:")))
 
-(defun z-doct-projects-note-template (path)
+(defun doct-projects-note-template (path)
   (list "note"
         :keys "n"
-        :file (z-doct-projects-file 'notes path)
+        :file (doct-projects-file 'notes path)
         :prepend t
         :empty-lines 1
         :template '("* %^{title} %^g"
@@ -690,12 +692,12 @@ TIME :: time in day of note to return. (default: today)"
                     ":END:"
                     "%?")))
 
-(defun z-doct-projects-cc-src-template (path)
+(defun doct-projects-cc-src-template (path)
   "for quickly implementing/testing ideas (like a scratchpad, but you have all your experimentations
   in a single literate document).  choose either c or c++"
   (list "note: src cc"
         :keys "s"
-        :file (z-doct-projects-file 'notes path)
+        :file (doct-projects-file 'notes path)
         :prepend t
         :empty-lines 1
         :template '("* %^{title} :%^{lang|C|C|cpp}:"
@@ -710,8 +712,8 @@ TIME :: time in day of note to return. (default: today)"
                     "}"
                     "#+end_src")))
 
-(defun z-doct-projects-expand-templates (projects &optional inherited-templates parent-path)
-  "PROJECTS :: `z-doct-projects'
+(defun doct-projects-expand-templates (projects &optional inherited-templates parent-path)
+  "PROJECTS :: `doct-projects'
 PARENT-PATH :: nil (used for recursion) "
   (mapcar (lambda (project)
             (let* ((tag (car project))
@@ -725,8 +727,8 @@ PARENT-PATH :: nil (used for recursion) "
                       (if children
                           (--> nil ;; HAS CHILDREN => is project-node => recursivly expand children
                                (list self)
-                               (z-doct-projects-expand-templates it templates) ;; template out of self
-                               (append it (z-doct-projects-expand-templates children templates path))
+                               (doct-projects-expand-templates it templates) ;; template out of self
+                               (append it (doct-projects-expand-templates children templates path))
                                (list :children it))
                         (--> nil ;; NO CHILDREN => is leaf-node => instantiate templates
                              (mapcar (lambda (fn-sym)
@@ -737,12 +739,12 @@ PARENT-PATH :: nil (used for recursion) "
 
 (setq org-capture-templates
       (doct `(;; PROJECT TEMPLATES
-              ,@(z-doct-projects-expand-templates z-doct-projects)
+              ,@(doct-projects-expand-templates doct-projects)
 
               ;; NON-PROJECT TEMPLATES
               ("journal"
                :keys "j"
-               :file (lambda () (z-doct-journal-file))
+               :file (lambda () (doct-journal-file))
                :title (lambda ()
                         (--> nil
                              (format-time-string "journal: %A, %e. %B %Y")
@@ -782,7 +784,7 @@ PARENT-PATH :: nil (used for recursion) "
                            :file (lambda ()
                                    (--> nil
                                         (time-subtract (current-time) (days-to-time 1))
-                                        (z-doct-journal-file it)))
+                                        (doct-journal-file it)))
                            :template ("* gratitude"
                                       "- %?"
                                       ""
@@ -791,10 +793,10 @@ PARENT-PATH :: nil (used for recursion) "
 
               ("literature"
                :keys "l"
-               :file (lambda () (read-file-name "file: " z-literature-notes-dir))
+               :file (lambda () (read-file-name "file: " literature-notes-dir))
                :children (("add to readlist"
                            :keys "a"
-                           :file ,(file-name-concat z-literature-dir "readlist.org")
+                           :file ,(file-name-concat literature-dir "readlist.org")
                            :headline "inbox"
                            :prepend t
                            :template ("* [ ] %^{title}"))
@@ -806,7 +808,7 @@ PARENT-PATH :: nil (used for recursion) "
                                         (read-from-minibuffer "short title: ")
                                         (replace-regexp-in-string " " "_" it)
                                         (concat it ".org")
-                                        (file-name-concat z-literature-notes-dir it)))
+                                        (file-name-concat literature-notes-dir it)))
                            :type plain
                            :template ("#+title:  %^{full title}"
                                       "#+author: %(user-full-name)"
@@ -869,12 +871,12 @@ PARENT-PATH :: nil (used for recursion) "
 ;; [[file:config.org::*agenda][agenda:1]]
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
-(setq org-archive-location (file-name-concat z-archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
+(setq org-archive-location (file-name-concat archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
       org-agenda-files (append (directory-files-recursively org-directory
                                                             org-agenda-file-regexp
                                                             t)
-                               (list (z-doct-journal-file)
-                                     (z-doct-journal-file (time-subtract (current-time)
+                               (list (doct-journal-file)
+                                     (doct-journal-file (time-subtract (current-time)
                                                                          (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
       org-agenda-skip-scheduled-if-done t
       ;; org-agenda-sticky t
@@ -889,7 +891,7 @@ PARENT-PATH :: nil (used for recursion) "
       org-agenda-time-grid nil
       org-capture-use-agenda-date t)
 
-(defadvice! z-add-newline (fn &rest args)
+(defadvice! add-newline (fn &rest args)
   "Separate dates in 'org-agenda' with newline."
   :around #'org-agenda-format-date-aligned
   (concat "\n" (apply fn args) ))
@@ -909,7 +911,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; agenda:2 ends here
 
 ;; [[file:config.org::*org roam][org roam:1]]
-(setq org-roam-directory z-wiki-dir)
+(setq org-roam-directory wiki-dir)
 ;; org roam:1 ends here
 
 ;; [[file:config.org::*end org][end org:1]]
@@ -931,7 +933,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*whisper: transcription][whisper: transcription:1]]
-(evil-define-operator z-reformat-prose (beg end)
+(evil-define-operator reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
 speak more for it's self).  using the technical document convention of double space full stops for
 legibility."
@@ -939,7 +941,9 @@ legibility."
       (downcase-region beg end)
       (repunctuate-sentences t beg end)))
 
-(add-hook! 'whisper-after-transcription-hook (z-reformat-prose (point-min) (point-max)))
+(add-hook! 'whisper-after-transcription-hook (reformat-prose (point-min) (point-max)))
+
+(map! :leader "X" #'whisper-run)
 ;; whisper: transcription:1 ends here
 
 ;; [[file:config.org::*vertico: minibuffer completion][vertico: minibuffer completion:1]]
@@ -991,7 +995,7 @@ legibility."
         :n "<next>" #'pdf-view-scroll-up-or-next-page ;; ergonomics when reading onehanded (when you want to scroll by fullpage, switch on `pdf-view-fit-page-to-window')
         :n "<prior>" #'pdf-view-scroll-down-or-previous-page
         :n "`" #'pdf-view-jump-to-register ;; vim consistency (we use ' for global marks)
-        :n "gm" #'evil-set-marker ;; needs mapping
+        :n "gm" #'pdf-view-position-to-register ;; needs mapping since 'global-marks' globally override 'm'
         :n "t" #'pdf-outline)) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
 ;; pdf view:1 ends here
 
@@ -1006,7 +1010,7 @@ legibility."
  '(makefile-gmake-mode :ignore t))
 ;; file templates:1 ends here
 
-;; [[file:config.org::*lispyville: editing lisp in vim][lispyville: editing lisp in vim:1]]
+;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:1]]
 ;; call help on `lispyville-set-key-theme' to see the changed bindings.
 (after! lispyville
   (lispyville-set-key-theme '(operators
@@ -1019,9 +1023,7 @@ legibility."
                               additional
                               (atom-movement t)
                               additional-insert)))
-
-(lispy-mode -1)
-;; lispyville: editing lisp in vim:1 ends here
+;; lispy(ville): editing lisp in vim:1 ends here
 
 ;; [[file:config.org::*emacs-lisp][emacs-lisp:1]]
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
