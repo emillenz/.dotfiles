@@ -124,9 +124,9 @@ i'm very opinionated and have high standards regarding design process and the ph
 - the windowmanager follows the philosopy of eliminating mental overhead and the neccessity to arrange windows or layouts.
   - eliminate mental overhead and reduce computational steps to get to where you need to be.
   - finetuned to automate the workflow as much as possible. (autostarting all frequently used programs, pinning frequently used browser tabs to [[kbd:][M-<num>]])
-- accessing a program is as efficient as possible and always consistent, no matter where in your desktop you are (different monitor/workspace/app order) you will not alt+tab through apps to get to the one you are thinking of.  instead the program is assigned a mark which you can jump to always using the same consisten mnemonic keybinding.
+- accessing a program is as efficient as possible and always consistent, no matter where in your desktop you are (different monitor/workspace/app order) you will not alt+tab through apps to get to the one you are thinking of.  instead the program is assigned a mark which you can goto to always using the same consisten mnemonic keybinding.
   - we do not use a per-program workspace workflow.  introduces layers of complexity as you need to remember the workspace for pop-up windows & programs.  managing and navigating the workspaces is disorienting and complex.
-  - we essentially extend our emacs/vim workflow of using harpoon to jump between files onto the wm, using global marks to jump to buffers immediately.  the only improvement is that we always preassign certain marks for our frequently used programs (editor, webbrowser, terminal, ...).
+  - we essentially extend our emacs/vim workflow of using harpoon to jump between files onto the wm, using global marks to goto to buffers immediately.  the only improvement is that we always preassign certain marks for our frequently used programs (editor, webbrowser, terminal, ...).
 - keyboard driven workflow only => vi-mnemonic bindings.  has a leader key system inbuilt that allows a extensible modal keybindingsystem.
 - strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
 
@@ -199,7 +199,7 @@ The saying, "give 'em enough rope, and they'll likely hang themselves," holds tr
   - todo-management :: org mode
   - filemanager :: dired fast interactive text-based file manger
   - manpager
-  - pdfviewer :: vim navigation (marks, jumping etc), annotations, occur.
+  - pdfviewer :: vim navigation (marks, goto etc), annotations, occur.
   - file/dir navigation & management: find-file, fuzzy-find, (book)marks, dired
     - the most efficient workflow for finding, opening and editing files on the os that i have ever developed.
 
@@ -241,7 +241,7 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 - avoid using integrated filemanagers and manually navigating directory structures (such as dired / ranger / thunar) whenever possible (and dont even dare to suggest a gui file manager...).
   - only use a fileexplorer for getting an overview of a directory.
   - it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding and using harpoon-marks, global-marks and bookmarks for switching to other directories and files.
-    - ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly jumping to the file you are looking for.
+    - ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file you are looking for.
 * hardware
 ** single monitor only
 :PROPERTIES:
@@ -263,14 +263,14 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 - key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][<c-{u, d}>]]  not spamming delete, instead using [[kbd:][d-<motion>]]
 
 ** navigational standard
-| mod+key | action                   | consistency                                             |
-|---------+--------------------------+---------------------------------------------------------|
-| [[kbd:][b]]       | buffer/window, prompt    | vim: :b <name>                                          |
-| [[kbd:][q]]       | [q]uit (buffer/window)   | vim: :q                                                 |
-| [[kbd:][f]]       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file                   |
-| [[kbd:][<tab>]]   | alterate buffer/tab      | standard convention (apps & other oss)                  |
-| [[kbd:][1-4]]     | switch to buffer/tab 1-4 | emacs (harpoon) / tmux (windows) / browser (pinned tabs)   |
-| [[kbd:][<space>]] | leader-key               | vim                                                     |
+| mod+key | action                   | consistency                                              |
+|---------+--------------------------+----------------------------------------------------------|
+| [[kbd:][b]]       | buffer/window, prompt    | vim: :b <name>                                           |
+| [[kbd:][q]]       | [q]uit (buffer/window)   | vim: :q                                                  |
+| [[kbd:][f]]       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file                    |
+| [[kbd:][<tab>]]   | alterate buffer/tab      | standard convention (apps & other oss)                   |
+| [[kbd:][1-4]]     | switch to buffer/tab 1-4 | emacs (harpoon) / tmux (windows) / browser (pinned tabs) |
+| [[kbd:][<space>]] | leader-key               | vim                                                      |
 
 - condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.
   - [[kbd:][<ctrl>]] :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
@@ -279,7 +279,7 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 
 ***  workflow
 when you need to navigate to a different file/tab, this should be your order of modus-operandi ::
-1. alternate buffer :: when you are alternating between 2 files/tabs or need to just jump back to the last visited buffer.  this takes the least amount of overhead and is the fastest.
+1. alternate buffer :: when you are alternating between 2 files/tabs or need to just goto back to the last visited buffer.  this takes the least amount of overhead and is the fastest.
 2. hotswitch tab [[kbd:][1-4]] :: use each of them for a file/tmux window/page within the project you are working on (ex: tmux: [1]repl, [2] compilation, [3] manpages, emacs: [1] main.c, [2] srcfile.c, [3] makefile).  you can then navigate between these files instantly without mental overhead.  we purposefully do not allow more than 4 tabs, since that is usually all that is neede within a project.  we want to ensure that it really is frequently visited files and thus keep the overhead low.  avoid manual tab creation if possible => auto-create a tab if it doesn't exist upon focusing it.  we never want visual indication for tabs.   instead switching to other buffer's should be muscle memory => eliminate bad habit and mental overhead of looking at tab-bar to find the tab you want, and instead hotkey to the file instantly.  no tablines, no statusbars.
 3. find buffer/tab :: search through the list of open buffers/tabs to switch to the one you need.
 

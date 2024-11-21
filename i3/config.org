@@ -105,11 +105,11 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 #+end_src
 
 * marks
-- use mnemonic UPPER-CASE marks for our most used programs (use lowercase for temporary window marks if accessing a window often).
+- use mnemonic UPPERCASEmarks for our most used programs (if accessing a temporary window often in the current sessino, mark it with ~$MOD+m~ and goto to it using ~$MOD+apostrophe~).
 - the braces around the commands are required, otherwise undefined behaviour.
 - get window title & class information using: ~xprop~
 - DWIM try until succeed:
-  1) jump to existing marked window
+  1) goto to existing marked window
   2) switch to window of the class and mark it
   3) lauch the program according (client-server style if possible).
 
@@ -129,7 +129,7 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
                     (mark (upcase key)))
                (mapconcat #'identity
                           (list (concat "# " (upcase name))
-                                (concat "for_window [class=\"" class "\"] mark " mark)
+                                (concat "for_window [class=\"" class "\"] mark " key)
                                 (concat "bindsym $MOD+" key
                                         " exec --no-startup-id i3-msg '[con_mark=" mark
                                         "] focus' || (i3-msg '[class=\"" class
