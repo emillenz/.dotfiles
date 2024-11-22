@@ -943,8 +943,8 @@ legibility."
 (add-hook! 'pdf-view-mode-hook
   (map! :map pdf-view-mode-map
          ;; ergonomics when reading onehanded  (<next>, <prior> already mapped).
-        :n "<home>" #'pdf-view-scroll-up-or-next-page
-        :n "<end>" #'pdf-view-scroll-down-or-previous-page
+        :n "<home>" #'pdf-view-scroll-down-or-previous-page
+        :n "<end>" #'pdf-view-scroll-up-or-next-page
 
         :n "t" #'pdf-outline)) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
 ;; pdf view:1 ends here
