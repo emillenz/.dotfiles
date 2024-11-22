@@ -178,7 +178,7 @@ ACTION-ALIST is an alist of actions passed by `display-buffer` (currently unused
 ;; [[file:config.org::*global navigation][global navigation:1]]
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
-      :nm "C-q"     #'evil-window-delete ;; dwim
+      :nm "C-q"     #'kill-buffer-and-window ;; dwim
       :nm "C-s"     #'basic-save-buffer ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
