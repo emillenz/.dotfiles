@@ -3,7 +3,7 @@
       user-mail-address "emillenz@protonmail.com")
 ;; user:1 ends here
 
-;; [[file:config.org::*general options][general options:1]]
+;; [[file:config.org::*global options][global options:1]]
 (setq initial-scratch-message ""
       delete-by-moving-to-trash t
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (preserve for newinstalls)
@@ -19,16 +19,17 @@
       which-key-idle-delay 0.5
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
-(+global-word-wrap-mode)
-(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable again
-
 (save-place-mode)
 (global-subword-mode)
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+(add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
+
+(+global-word-wrap-mode)
+(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable like this
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
-;; general options:1 ends here
+;; global options:1 ends here
 
 ;; [[file:config.org::*modus-theme][modus-theme:1]]
 (use-package! modus-themes
@@ -77,10 +78,8 @@
 (defun u-display-buffer-main-window (buffer action-alist)
   "Display BUFFER in the main window (not a side window).
 
-for use in display buffer
-
 BUFFER is the buffer to be displayed.
-ACTION-ALIST is an alist of actions passed by `display-buffer` (currently unused)."
+ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused)."
 
   (let* ((side-window-p (eq (window-parameter nil 'window-side) 'right))
          (main-window (if side-window-p
@@ -89,17 +88,24 @@ ACTION-ALIST is an alist of actions passed by `display-buffer` (currently unused
     (set-window-buffer main-window buffer)
     main-window))
 
-(setq display-buffer-alist `(("^\\(magit\\| *transient\\)" nil) ;; some major-modes (eg. magit) have their own complex buffer setup systems => ignore them.
+(setq display-buffer-alist `((,(rx bol (or "magit" " *transient"))
+                              nil) ;; some major-modes (eg. magit) have their own complex buffer setup systems.  ignore them.
 
-                             ("^*\\(Org Src\\|Org Agenda\\|doom:scratch\\|scratch\\|[^*]\\)" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
+                             (,(rx bol (or (seq ?* (or "Org Src" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
+                                                       "Org Agenda"
+                                                       "doom:scratch"
+                                                       "scratch"))
+                                           (seq (not (any ?*)))))
                               (display-buffer-same-window))
 
-                             ("^*" ;; all *special-buffers*
-                              (display-buffer-in-side-window)
+                             (,(rx bol ?*) ;; all *special-buffers*
+                              (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
                               (side . right)
                               (slot . 0)
-                              (window-width . 0.5)
+                              (window-width . 0.5) ;; equal 2 window split
                               (slot . 0))))
+
+
 
 ;; this prevents accidentally showing file buffers in the side window & vice versa.  (we remove the mental overhead of having to think and switch windows before switching buffer's)
 (setq switch-to-buffer-obey-display-actions t)
@@ -969,6 +975,6 @@ legibility."
                               additional-insert)))
 ;; lispy(ville): editing lisp in vim:1 ends here
 
-;; [[file:config.org::*emacs-lisp][emacs-lisp:1]]
-(add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
-;; emacs-lisp:1 ends here
+;; [[file:config.org::*lispyville][lispyville:1]]
+(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
+;; lispyville:1 ends here

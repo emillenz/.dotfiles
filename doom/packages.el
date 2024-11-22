@@ -4,6 +4,7 @@
                    solaire-mode         ; distracting visual sugar
                    evil-snipe ; usless bloat :: just use incremental-search in combo with f/t motions
                    evil-easymotion
+                   lispy                ;; we use lispyvile
                    evil-exchange) ; do this using vanilla vim's visual pasting
 
 (package! dired-open)
