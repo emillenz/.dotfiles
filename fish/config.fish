@@ -18,8 +18,8 @@ fish_config theme choose modus_operandi # ./themes/modus_operandi.theme
 set -gx PATH $PATH ~/.config/{bin, emacs/bin} ~/.cargo/bin ~/.local/bin ~/.local/share/gem/ruby/3.3.0/bin
 
 # PROGRAMS
-set -gx EDITOR emacsclient -nw --alternate-editor 'emacs -nw'
-set -gx VISUAL emacsclient --create-frame --alternate-editor emacs
+set -gx EDITOR emacsclient -nw --alternate-editor='emacs -nw'
+set -gx VISUAL emacsclient --reuse-frame --alternate-editor=emacs
 set -gx BROWSER firefox
 
 # PAGER
@@ -53,7 +53,7 @@ bind --mode=insert \cp up-line # consistent with vim: C-{n/p} - completion next/
 bind --mode=normal V __fish_preview_current_file
 bind --mode=normal V __fish_preview_current_file
 bind --mode=normal z clear-screen # consistent with vim: zz - center-screen
-# bind --mode=insert \ce edit_command_buffer # $VISUAL as editor.  but if the command is so complex that you need your editor, you should move to using ruby and a script buffer.
+# bind --mode=insert \ce edit_command_buffer # $VISUAL as editor.  this is disabled, since if the command is so complex that you need your editor, you should move to using ruby and/or a script buffer.
 
 # FUNCTIONS
 function fish_mode_prompt
@@ -73,9 +73,9 @@ function fish_prompt --description='newlines to clearly separate commands in his
     printf "\n $(set_color --background=$fish_color_line_bg --bold) $dir $last_exit_status $prompt $(set_color normal) "
 end
 
-function open_editor_dwim --description="open editor with args, if nil open editor with fileexplorer in current directory"
+function open_editor_dwim --description="open $EDITOR with args, if nil open $EDITOR with fileexplorer in current directory"
     if test -z "$argv"
-        $EDITOR
+        $EDITOR .
     else
         $EDITOR $argv
     end
