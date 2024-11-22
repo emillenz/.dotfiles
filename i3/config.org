@@ -129,8 +129,8 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
                     (mark (upcase key)))
                (mapconcat #'identity
                           (list (concat "# " (upcase name))
-                                (concat "for_window [class=\"" class "\"] mark " key)
-                                (concat "bindsym $MOD+" key
+                                (concat "for_window [class=\"" class "\"] mark " mark)
+                                (concat "bindsym $MOD+" mark
                                         " exec --no-startup-id i3-msg '[con_mark=" mark
                                         "] focus' || (i3-msg '[class=\"" class
                                         "\"] focus' && i3-msg 'mark " mark "')" (when cmd (concat " || " cmd))))
