@@ -342,7 +342,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :nv "g<"  #'evil-lion-left
       :nv "g>"  #'evil-lion-right
 
-      :nv "&"   #'query-replace-regexp
+      :nv "&"    #'query-replace-regexp
       :nv "s"   #'evil-surround-region
       :nv "S"   #'evil-Surround-region)
 
@@ -390,27 +390,31 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
         evil-want-C-h-delete t
         evil-want-minibuffer t ;; don't loose your powers in the minibuffer
         evil-org-use-additional-insert nil)
-  (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin))
+  (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
   (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
 
   (defadvice! update-last-macro-register (fn &rest args)
-    "when a macro is recorded and `evil-last-register' is still `nil' (no macro executed before), set it to the just recorded macro.
-  which is the sane default behaviour allowing you to: record a macro with `qq' and immediately call it with `@@', instead of getting an error and having to retype `@q' again."
+    "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
+    set it to the just recorded macro.
+
+  this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
+  immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
+  '@q' (the exact key) for the first time and then only after that you may call '@@'."
     :after #'evil-record-macro
     (when (not evil-last-register)
       (setq evil-last-register evil-last-recorded-register))))
 
 (defadvice! preserve-point (fn &rest args)
   "when modifying the buffer with one of these functions, do the edit and then  restore point to where it was originally."
-  :around '(query-replace-regexp
-            query-replace
+  :around '(anzu-query-replace-regexp
+            anzu-query-replace
             +format:region)
   (save-excursion
     (apply fn args)))
 
 (advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 
-(setq-hook! 'minibuffer-setup-hook cursor-type 'bar) ;; HACK :: sometimes cursor stays normal-mode style (even though we are in insert mode)
+(setq-hook! 'minibuffer-setup-hook cursor-type 'bar) ;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
 #+end_src
 
 ** jumplist
