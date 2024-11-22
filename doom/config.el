@@ -89,20 +89,16 @@ ACTION-ALIST is an alist of actions passed by `display-buffer` (currently unused
     (set-window-buffer main-window buffer)
     main-window))
 
-(setq display-buffer-alist `((,(rx (seq bol (or "magit" " *transient"))) nil) ;; some major-modes (eg. magit) have their own complex buffer setup systems.  ignore them.
+(setq display-buffer-alist `(("^\\(magit\\| *transient\\)" nil) ;; some major-modes (eg. magit) have their own complex buffer setup systems => ignore them.
 
-                             (,(rx (seq bol (or (seq "*" (or "Org Src" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
-                                                             "Org Agenda"
-                                                             "doom:scratch"
-                                                             "scratch"))
-                                                (seq (not (any "*"))))))
+                             ("^*\\(Org Src\\|Org Agenda\\|doom:scratch\\|scratch\\|[^*]\\)" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
                               (display-buffer-same-window))
 
                              ("^*" ;; all *special-buffers*
-                              (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
+                              (display-buffer-in-side-window)
                               (side . right)
                               (slot . 0)
-                              (window-width . 0.5) ;; equal 2 window split
+                              (window-width . 0.5)
                               (slot . 0))))
 
 ;; this prevents accidentally showing file buffers in the side window & vice versa.  (we remove the mental overhead of having to think and switch windows before switching buffer's)
@@ -257,7 +253,13 @@ ACTION-ALIST is an alist of actions passed by `display-buffer` (currently unused
         :nm "M-4" #'harpoon-go-to-4
         :nm "M" #'harpoon-add-file) ;; quickly add file to harpoon (big brother of vims: 'm')
 
-  (map! :leader "m" #'harpoon-toggle-file)) ;; manage harpoon candidates
+  (map! :leader "m" #'harpoon-toggle-file) ;; manage harpoon candidates
+
+  (map! :map harpoon-mode-map :after harpoon
+        :nm "q" #'kill-current-buffer) ;; exit like in pdf-view, help, magit, dired...
+
+  (setq-hook! 'harpoon-mode-hook
+    display-line-numbers t)) ;; since each file is mapped to its line number
 ;; harpoon:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
@@ -318,6 +320,13 @@ ACTION-ALIST is an alist of actions passed by `display-buffer` (currently unused
 (map! :after evil
       :nm "g/"  #'occur)
 ;; occur: emacs interactive grep:1 ends here
+
+;; [[file:config.org::*anzu][anzu:1]]
+(after! anzu
+  (global-anzu-mode)
+  (define-key! [remap query-replace] #'anzu-query-replace)
+  (define-key! [remap query-replace-regexp] #'anzu-query-replace-regexp))
+;; anzu:1 ends here
 
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
