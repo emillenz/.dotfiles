@@ -75,7 +75,7 @@
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window)) ;; full-window, no split
 
-(defun u-display-buffer-main-window (buffer action-alist)
+(defun display-buffer-main-window (buffer action-alist)
   "Display BUFFER in the main window (not a side window).
 
 BUFFER is the buffer to be displayed.
@@ -88,17 +88,17 @@ ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused
     (set-window-buffer main-window buffer)
     main-window))
 
-(setq display-buffer-alist `((,(rx bol (or "magit" " *transient"))
+(setq display-buffer-alist `((,(rx (seq bol (or "magit" " *transient")))
                               nil) ;; some major-modes (eg. magit) have their own complex buffer setup systems.  ignore them.
 
-                             (,(rx bol (or (seq ?* (or "Org Src" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
+                             (,(rx (seq bol (or (seq ?* (or "Org Src" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
                                                        "Org Agenda"
                                                        "doom:scratch"
                                                        "scratch"))
-                                           (seq (not (any ?*)))))
-                              (display-buffer-same-window))
+                                           (seq (not (any ?*))))))
+                              (display-buffer-main-window))
 
-                             (,(rx bol ?*) ;; all *special-buffers*
+                             (,(rx (seq bol ?*)) ;; all *special-buffers*
                               (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
                               (side . right)
                               (slot . 0)
