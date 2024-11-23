@@ -11,7 +11,6 @@
       confirm-kill-emacs nil
       hscroll-margin 0
       scroll-margin 0
-      next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
       enable-recursive-minibuffers nil
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
@@ -50,12 +49,18 @@
 ;; modus-theme:1 ends here
 
 ;; [[file:config.org::*font][font:1]]
-(setq doom-font                (font-spec :family "Iosevka Comfy" :size 13)
-      doom-variable-pitch-font (font-spec :family "Noto Serif"    :size 13)
-      doom-serif-font          (font-spec :family "Iosevka Comfy" :size 13)
-      doom-big-font            (font-spec :family "Iosevka Comfy" :size 23) ;; for presentation purposes.
-      doom-font-increment 1)
-(map! "C-M-0" #'doom/reset-font-size) ;; consistent with C-M-=, C-M--
+(let ((global-font "Iosevka Comfy")
+      (serif-font "Noto serif"))
+
+  (when (doom-font-exists-p global-font)
+    (setq doom-font (font-spec :family global-font :size 13)
+          doom-big-font (font-spec :family global-font :size 13)))
+
+  (when (doom-font-exists-p serif-font)
+    (setq doom-variable-pitch-font (font-spec :family serif-font :size 13))))
+
+(after! shr
+  (setq shr-use-fonts nil)) ;; 'simple-html-rendering' lib ('shr') should always use the universally applicable default font since we can't presume the content to be displayed with it.
 ;; font:1 ends here
 
 ;; [[file:config.org::*modeline][modeline:1]]
@@ -75,7 +80,7 @@
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window)) ;; full-window, no split
 
-(defun display-buffer-main-window (buffer action-alist)
+(defun u-display-buffer-main-window (buffer action-alist)
   "Display BUFFER in the main window (not a side window).
 
 BUFFER is the buffer to be displayed.
@@ -94,16 +99,16 @@ ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused
                              (,(rx (seq bol (or (seq ?* (or "Org Src" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
                                                        "Org Agenda"
                                                        "doom:scratch"
-                                                       "scratch"))
+                                                       "scratch"
+                                                       ""))
                                            (seq (not (any ?*))))))
-                              (display-buffer-main-window))
+                              (u-display-buffer-main-window))
 
                              (,(rx (seq bol ?*)) ;; all *special-buffers*
                               (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
-                              (side . right)
+                              (side . bottom)
                               (slot . 0)
-                              (window-width . 0.5) ;; equal 2 window split
-                              (slot . 0))))
+                              (window-width . 0.5)))) ;; equal split
 
 
 
@@ -130,26 +135,26 @@ ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused
 ;; [[file:config.org::*rationale][rationale:1]]
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
-(defvar global-indent-width 8)
+(defvar u-global-indent-width 8)
 
-(setq-default standard-indent global-indent-width
-              evil-shift-width global-indent-width
-              tab-width global-indent-width
+(setq-default standard-indent u-global-indent-width
+              evil-shift-width u-global-indent-width
+              tab-width u-global-indent-width
               fill-column 100
-              org-indent-indentation-per-level global-indent-width
+              org-indent-indentation-per-level u-global-indent-width
               evil-indent-convert-tabs t
               indent-tabs-mode nil)
 
 (setq-hook! '(c++-mode-hook
               c-mode-hook
               java-mode-hook)
-  tab-width global-indent-width
-  c-basic-offset global-indent-width
-  evil-shift-width global-indent-width)
+  tab-width u-global-indent-width
+  c-basic-offset u-global-indent-width
+  evil-shift-width u-global-indent-width)
 
 (setq-hook! 'ruby-mode-hook
-  evil-shift-width global-indent-width
-  ruby-indent-level global-indent-width)
+  evil-shift-width u-global-indent-width
+  ruby-indent-level u-global-indent-width)
 ;; rationale:1 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
@@ -366,15 +371,15 @@ ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused
 ;; dired/keybindings:1 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
-(defvar archive-dir "~/Archive/")
+(defvar u-archive-dir "~/Archive/")
 
 (defun dired-archive ()
-  "`mv' marked file/s to: `archive-dir'/{relative-filepath-to-HOME}/{filename}"
+  "`mv' marked file/s to: `u-archive-dir'/{relative-filepath-to-HOME}/{filename}"
   (interactive)
   (mapc (lambda (file)
           (let* ((dest (--> file
                             (file-relative-name it "~/")
-                            (file-name-concat archive-dir it)))
+                            (file-name-concat u-archive-dir it)))
                  (dir (file-name-directory dest)))
             (unless (file-exists-p dir)
               (make-directory dir t))
@@ -558,36 +563,36 @@ ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused
 ;; [[file:config.org::*capture templates][capture templates:1]]
 (setq org-directory "~/Documents/org/")
 
-(defvar journal-dir (file-name-concat "~/Documents/journal/")
+(defvar u-journal-dir (file-name-concat "~/Documents/journal/")
   "dir for daily captured journal files")
 
-(defvar literature-dir "~/Documents/literature"
+(defvar u-literature-dir "~/Documents/literature"
   "literature sources and captured notes")
 
-(defvar literature-notes-dir (file-name-concat literature-dir "notes/")
+(defvar u-literature-notes-dir (file-name-concat u-literature-dir "notes/")
   "note files for each literature source")
 
-(defvar wiki-dir "~/Documents/wiki/"
+(defvar u-wiki-dir "~/Documents/wiki/"
   "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
 and the later reviewed and merged into the corresponding article of the wiki.")
 
-(defvar doct-projects-default-templates '(doct-projects-task-template
-                                            doct-projects-event-template
-                                            doct-projects-note-template))
+(defvar u-u-doct-projects-default-templates '(u-doct-projects-task-template
+                                            u-doct-projects-event-template
+                                            u-doct-projects-note-template))
 
-(defvar doct-projects `(("cs" :keys "c"
-                           :templates ,doct-projects-default-templates
+(defvar u-doct-projects `(("cs" :keys "c"
+                           :templates ,u-u-doct-projects-default-templates
                            :children (("ti"   :keys "t")
                                       ("an2"  :keys "a")
                                       ("ph1"  :keys "p")
-                                      ("spca" :keys "s" :templates (doct-projects-cc-src-template))
-                                      ("nm"   :keys "n" :templates (doct-projects-cc-src-template))))
-                          ("personal" :keys "p" :templates ,doct-projects-default-templates)
-                          ("config"   :keys "f" :templates ,doct-projects-default-templates))
+                                      ("spca" :keys "s" :templates (u-doct-projects-cc-src-template))
+                                      ("nm"   :keys "n" :templates (u-doct-projects-cc-src-template))))
+                          ("personal" :keys "p" :templates ,u-u-doct-projects-default-templates)
+                          ("config"   :keys "f" :templates ,u-u-doct-projects-default-templates))
   "same syntax as doct,  except for the key-value-pair: `:templates LIST`,
  where LIST is a list of functions with signature: `(PATH) -> VALID-DOCT-TEMPLATE`
- where PATH is to be generated by 'doct-projects-file'
+ where PATH is to be generated by 'u-doct-projects-file'
  where TEMPLATE is a valid 'doct-capture-template'.
 ':templates' is inherited by the parent-group and if present in a childgroup it appends the
    additionally defined templates.")
@@ -600,28 +605,28 @@ TIME :: time in day of note to return. (default: today)"
        (or time (current-time))
        (format-time-string "%F" it)
        (format "%s_journal.org" it)
-       (file-name-concat journal-dir it)))
+       (file-name-concat u-journal-dir it)))
 
-(defun doct-projects-file (type path)
+(defun u-doct-projects-file (type path)
   "TYPE :: 'agenda | 'notes"
   (--> nil
        (symbol-name type)
        (format "%s.org" it)
        (file-name-concat org-directory path it)))
 
-(defun doct-projects-task-template (path)
+(defun u-doct-projects-task-template (path)
   (list "task"
         :keys "t"
-        :file (doct-projects-file 'agenda path)
+        :file (u-doct-projects-file 'agenda path)
         :headline "inbox"
         :prepend t
         :empty-lines-after 1
         :template '("* [ ] %^{title}%?")))
 
-(defun doct-projects-event-template (path)
+(defun u-doct-projects-event-template (path)
   (list "event"
         :keys "e"
-        :file (doct-projects-file 'agenda path)
+        :file (u-doct-projects-file 'agenda path)
         :headline "events"
         :prepend t
         :empty-lines-after 1
@@ -633,10 +638,10 @@ TIME :: time in day of note to return. (default: today)"
                     ":material: %^{material}"
                     ":END:")))
 
-(defun doct-projects-note-template (path)
+(defun u-doct-projects-note-template (path)
   (list "note"
         :keys "n"
-        :file (doct-projects-file 'notes path)
+        :file (u-doct-projects-file 'notes path)
         :prepend t
         :empty-lines-after 1
         :template '("* %^{title} %^g"
@@ -645,12 +650,12 @@ TIME :: time in day of note to return. (default: today)"
                     ":END:"
                     "%?")))
 
-(defun doct-projects-cc-src-template (path)
+(defun u-doct-projects-cc-src-template (path)
   "for quickly implementing/testing ideas (like a scratchpad, but you have all your experimentations
   in a single literate document).  choose either c or c++"
   (list "note: src cc"
         :keys "s"
-        :file (doct-projects-file 'notes path)
+        :file (u-doct-projects-file 'notes path)
         :prepend t
         :empty-lines 1
         :template '("* %^{title} :%^{lang|C|C|cpp}:"
@@ -665,8 +670,8 @@ TIME :: time in day of note to return. (default: today)"
                     "}"
                     "#+end_src")))
 
-(defun doct-projects-expand-templates (projects &optional inherited-templates parent-path)
-  "PROJECTS :: `doct-projects'
+(defun u-doct-projects-expand-templates (projects &optional inherited-templates parent-path)
+  "PROJECTS :: `u-doct-projects'
 PARENT-PATH :: nil (used for recursion) "
   (mapcar (lambda (project)
             (let* ((tag (car project))
@@ -680,8 +685,8 @@ PARENT-PATH :: nil (used for recursion) "
                       (if children
                           (--> nil ;; HAS CHILDREN => is project-node => recursivly expand children
                                (list self)
-                               (doct-projects-expand-templates it templates) ;; template out of self
-                               (append it (doct-projects-expand-templates children templates path))
+                               (u-doct-projects-expand-templates it templates) ;; template out of self
+                               (append it (u-doct-projects-expand-templates children templates path))
                                (list :children it))
                         (--> nil ;; NO CHILDREN => is leaf-node => instantiate templates
                              (mapcar (lambda (fn-sym)
@@ -692,7 +697,7 @@ PARENT-PATH :: nil (used for recursion) "
 
 (setq org-capture-templates
       (doct `(;; PROJECT TEMPLATES
-              ,@(doct-projects-expand-templates doct-projects)
+              ,@(u-doct-projects-expand-templates u-doct-projects)
 
               ;; NON-PROJECT TEMPLATES
               ("journal"
@@ -746,10 +751,10 @@ PARENT-PATH :: nil (used for recursion) "
 
               ("literature"
                :keys "l"
-               :file (lambda () (read-file-name "file: " literature-notes-dir))
+               :file (lambda () (read-file-name "file: " u-literature-notes-dir))
                :children (("add to readlist"
                            :keys "a"
-                           :file ,(file-name-concat literature-dir "readlist.org")
+                           :file ,(file-name-concat u-literature-dir "readlist.org")
                            :headline "inbox"
                            :prepend t
                            :template ("* [ ] %^{title}"))
@@ -761,7 +766,7 @@ PARENT-PATH :: nil (used for recursion) "
                                         (read-from-minibuffer "short title: ")
                                         (replace-regexp-in-string " " "_" it)
                                         (concat it ".org")
-                                        (file-name-concat literature-notes-dir it)))
+                                        (file-name-concat u-literature-notes-dir it)))
                            :type plain
                            :template ("#+title:  %^{full title}"
                                       "#+author: %(user-full-name)"
@@ -824,7 +829,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; [[file:config.org::*agenda][agenda:1]]
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
-(setq org-archive-location (file-name-concat archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
+(setq org-archive-location (file-name-concat u-archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
       org-agenda-files (append (directory-files-recursively org-directory
                                                             org-agenda-file-regexp
                                                             t)
@@ -864,7 +869,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; agenda:2 ends here
 
 ;; [[file:config.org::*org roam][org roam:1]]
-(setq org-roam-directory wiki-dir)
+(setq org-roam-directory u-wiki-dir)
 ;; org roam:1 ends here
 
 ;; [[file:config.org::*end org][end org:1]]
@@ -878,6 +883,9 @@ PARENT-PATH :: nil (used for recursion) "
 ;; dictionary:1 ends here
 
 ;; [[file:config.org::*devdocs][devdocs:1]]
+(after! devdocs
+  (setq devdocs-window-select t))
+
 ;; unfortunately using cl-loop/mapcar/dolist don't work...
 (setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
 (setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
@@ -919,7 +927,7 @@ legibility."
 (use-package! nov
   :mode ("\\.epub\\'" . nov-mode)
   :config
-  (setq nov-variable-pitch t ;; for reading use serif font
+  (setq nov-variable-pitch t ;; serif for prose reading
         nov-text-width t) ;; used visual-line-mode and visual-fill-column mode to visually wrap line.
   (advice-add 'nov-render-title :override #'ignore) ;; using modeline...
 
@@ -928,13 +936,15 @@ legibility."
         "S-SPC" nil                   ;; never override leader-mode
         :n "q" #'kill-current-buffer ;; consistent with other read-only modes (magit, dired, docs...)
 
-        ;; need mappings, since we can't use SPC
+        ;; next/previous page
         :n "<next>" #'nov-scroll-up
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
     (visual-line-mode)
-    (setq-local line-spacing 2) ;; padding increases focus on current line for long prose text.
+    (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
+                line-spacing 2) ;; padding increases focus on current line for long prose text.
+
     (progn
       (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
       (hl-line-mode -1))))
@@ -965,9 +975,12 @@ legibility."
 ;; file templates:1 ends here
 
 ;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:1]]
+(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
+
 ;; call help on `lispyville-set-key-theme' to see the changed bindings.
 (after! lispyville
   (lispyville-set-key-theme '(operators
+                              insert
                               c-w
                               c-u
                               prettify
@@ -978,7 +991,3 @@ legibility."
                               (atom-movement t)
                               additional-insert)))
 ;; lispy(ville): editing lisp in vim:1 ends here
-
-;; [[file:config.org::*lispyville][lispyville:1]]
-(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
-;; lispyville:1 ends here
