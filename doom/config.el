@@ -50,15 +50,8 @@
 ;; modus-theme:1 ends here
 
 ;; [[file:config.org::*font][font:1]]
-(let ((global-font "Iosevka Comfy")
-      (serif-font "Noto serif"))
-
-  (when (doom-font-exists-p global-font)
-    (setq doom-font (font-spec :family global-font :size 13)
-          doom-big-font (font-spec :family global-font :size 13)))
-
-  (when (doom-font-exists-p serif-font)
-    (setq doom-variable-pitch-font (font-spec :family serif-font :size 13))))
+(setq doom-font (font-spec :family "Iosevka Comfy" :size 13))
+(setq doom-variable-pitch-font (font-spec :family "Noto Serif" :size 13))
 
 (after! shr
   (setq shr-use-fonts nil)) ;; 'simple-html-rendering' lib ('shr') should always use the universally applicable default font since we can't presume the content to be displayed with it.

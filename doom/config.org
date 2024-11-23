@@ -75,19 +75,11 @@
 
 ** font
 - emacs gui fontsizing is weirdly different to global (wm/terminal, gtk, etc.) fontsize.  emacs: 13 <=> global: 10.
-- i don't believe in using variable pitch fonts.  i want a systemwide consistent font (in size and appearance) for all things: gui menus, displaying technical documents, source code, data (eg. terminal output), etc..
-- only for prose might i use a serif font to become more immersed in the reading experience.
+- only for prose i (sometimes via ~variable-pitch-mode~ use a serif font to become more immersed in the reading experience.
 - font-size :: don't use manual font-size increasing, instead just use ~doom-big-font-mode~ if you need big font for presentation purposes.
 #+begin_src elisp
-(let ((global-font "Iosevka Comfy")
-      (serif-font "Noto serif"))
-
-  (when (doom-font-exists-p global-font)
-    (setq doom-font (font-spec :family global-font :size 13)
-          doom-big-font (font-spec :family global-font :size 13)))
-
-  (when (doom-font-exists-p serif-font)
-    (setq doom-variable-pitch-font (font-spec :family serif-font :size 13))))
+(setq doom-font (font-spec :family "Iosevka Comfy" :size 13))
+(setq doom-variable-pitch-font (font-spec :family "Noto Serif" :size 13))
 
 (after! shr
   (setq shr-use-fonts nil)) ;; 'simple-html-rendering' lib ('shr') should always use the universally applicable default font since we can't presume the content to be displayed with it.
