@@ -33,7 +33,8 @@
       confirm-kill-emacs nil
       hscroll-margin 0
       scroll-margin 0
-      enable-recursive-minibuffers nil
+      fill-column 100
+      enable-recursive-minibuffers nil ;; less confusion
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       async-shell-command-width 100
@@ -114,47 +115,26 @@
       window-combination-resize t
       split-height-threshold nil) ;; never allow horizontal-splits
 
-(after! org
-  (setq org-src-window-setup 'current-window
-        org-agenda-window-setup 'current-window)) ;; full-window, no split
-
-(defun u-display-buffer-main-window (buffer action-alist)
-  "Display BUFFER in the main window (not a side window).
-
-BUFFER is the buffer to be displayed.
-ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused)."
-
-  (let* ((side-window-p (eq (window-parameter nil 'window-side) 'right))
-         (main-window (if side-window-p
-                          (next-window nil 'no-minibuffer)
-                        (selected-window))))
-    (set-window-buffer main-window buffer)
-    main-window))
-
 (setq display-buffer-alist `(
-                             ;; ignore buffer's of 'major-modes' with their own complex buffer setup systems.
-                             (,(rx (seq bol (or "magit"
-                                                " *transient")))
-                              nil)
+                             ;; display them like a minibuffer => at the bottom of the screen
+                             (,(rx (or "transient" "Org Select" "Agenda Commands"))
+                              (display-buffer-in-side-window)
+                              (side . bottom)
+                              (window-height . 0.3) ;; choose accordingly
+                              (slot . 0))
+                             (,(rx "magit") nil) ;; has it's own complex window setup, don't override
 
-                             ;; regular buffers and '*buffers*' that shall be viewed in the main window
-                             (,(rx (seq bol (or (seq ?* (or "Org Src"
-                                                            "Org Agenda"
-                                                            "doom:scratch"
-                                                            "scratch"
-                                                            ))
-                                                (seq (not (any ?*))))))
-                              (u-display-buffer-main-window))
-
-                             ;; '*buffers*'
-                             (,(rx (seq bol ?*))
-                              (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
-                              (side . right) ;; vertical split
-                              (slot . 0) ;; override already existing side window.
-                              (window-width . 0.5)))) ;; equal split
+                             ("" (display-buffer-same-window))))
 
 ;; this prevents accidentally showing buffers in the wrong window when opened through 'switch-to-buffer'
 (setq switch-to-buffer-obey-display-actions t)
+
+(after! org
+  (setq org-src-window-setup 'current-window ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
+        org-agenda-window-setup 'current-window))
+
+(after! magit
+  (setq +magit-open-windows-in-direction 'down))
 #+end_src
 
 - centered windows :: better ergonomics & less eye travel (distance + switching from left to middle from eg: terminal to webpage).
@@ -168,21 +148,6 @@ ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused
 
 explicitly do NOT enable for ::
 - prog-mode ::  since it is incompatible with flycheck and we usually have the slave window with compilation or docs open.
-#+begin_src elisp
-(add-hook! '(dired-mode-hook
-             text-mode-hook
-             conf-mode-hook
-             Info-mode-hook
-             org-agenda-mode-hook
-             nov-mode-hook
-             magit-mode-hook)
-           #'visual-fill-column-mode)
-
-(setq-default visual-fill-column-enable-sensible-window-split t
-              visual-fill-column-center-text t
-              visual-fill-column-width 100
-              fill-column 100)
-#+end_src
 
 ** indentation
 - formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
@@ -263,8 +228,9 @@ in short, 8-char indents make things easier to read, and have the added benefit 
                         "T" #'org-babel-detangle))
       (:prefix "n"
                "g" #'org-capture-goto-last-stored)
-      (:prefix "t"
-               "c" #'visual-fill-column-mode))
+      ;; (:prefix "t"
+      ;;          "c" #'visual-fill-column-mode)
+      )
 #+end_src
 
 ** global navigation
@@ -1203,13 +1169,18 @@ legibility."
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
-    (visual-line-mode)
-    (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
-                line-spacing 2) ;; padding increases focus on current line for long prose text.
+             (progn
+               (setq-local visual-fill-column-width 80
+                           visual-fill-column-center-text t)
+               (visual-fill-column-mode)
+               (visual-line-mode))
 
-    (progn
-      (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
-      (hl-line-mode -1))))
+             (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
+                         line-spacing 2) ;; padding increases focus on current line for long prose text.
+
+             (progn
+               (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
+               (hl-line-mode -1))))
 #+end_src
 
 * pdf view
