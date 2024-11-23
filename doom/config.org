@@ -424,12 +424,23 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 
 (setq-hook! 'minibuffer-setup-hook cursor-type 'bar) ;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
-#+end_src
 
-** jumplist
-- jumplist is for functions that jump out of screen
-- don't populate jumplist with fuctions that are executed repeatedly (ex: forward-paragraph)
-#+begin_src elisp
+;; HACK :: make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (markerp (cdr entry))
+        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
+                            (marker-position (cdr entry)))))))
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+
+;; jumplist is for functions that jump out of screen
+;; don't populate jumplist with fuctions that are executed repeatedly (ex: forward-paragraph)
 (dolist (cmd '(flycheck-next-error
                flycheck-previous-error
                +lookup/definition
@@ -446,6 +457,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
                evil-forward-paragraph
                evil-forward-section-end))
   (evil-remove-command-properties cmd :jump))
+
 #+end_src
 
 * occur: emacs interactive grep
@@ -725,7 +737,6 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   - no longer neccessary
 
 ~[x]~: completed
-
 
 we prompt for a note on the task when chaning state to either: on-hold, in-prog or delegated, since we want to leave a comment on how work should be resumed next time the task is being revisited (eg. page number of a book, who to check in with after delegating the task, exercise that is to be worked on)
 #+begin_src elisp
@@ -1145,7 +1156,7 @@ i always look up documentation/manuals within emacs.  (only if it's not sufficie
 we often formulate notes using transcription for speed and ergonomics.
 always use ~evil-define-operator~ for ~evil-mode~ integration when defining routines to act on text.
 #+begin_src elisp
-(evil-define-operator reformat-prose (beg end)
+(evil-define-operator u-reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
 speak more for it's self).  using the technical document convention of double space full stops for
 legibility."

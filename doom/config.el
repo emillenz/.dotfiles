@@ -267,9 +267,23 @@
 (advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 
 (setq-hook! 'minibuffer-setup-hook cursor-type 'bar) ;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
-;; evil-mode:1 ends here
 
-;; [[file:config.org::*jumplist][jumplist:1]]
+;; HACK :: make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (markerp (cdr entry))
+        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
+                            (marker-position (cdr entry)))))))
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+
+;; jumplist is for functions that jump out of screen
+;; don't populate jumplist with fuctions that are executed repeatedly (ex: forward-paragraph)
 (dolist (cmd '(flycheck-next-error
                flycheck-previous-error
                +lookup/definition
@@ -286,7 +300,7 @@
                evil-forward-paragraph
                evil-forward-section-end))
   (evil-remove-command-properties cmd :jump))
-;; jumplist:1 ends here
+;; evil-mode:1 ends here
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
 (map! :map occur-mode-map :after replace
@@ -855,7 +869,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*whisper: transcription][whisper: transcription:1]]
-(evil-define-operator reformat-prose (beg end)
+(evil-define-operator u-reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
 speak more for it's self).  using the technical document convention of double space full stops for
 legibility."
