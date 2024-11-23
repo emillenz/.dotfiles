@@ -38,7 +38,7 @@ set $GAPSIZE 450
 gaps horizontal $GAPSIZE
 smart_gaps inverse_outer
 
-bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
+bindsym $MOD+z fullscreen toggle
 # gaps:1 ends here
 
 # [[file:config.org::*keybindings][keybindings:1]]
@@ -151,7 +151,7 @@ client.urgent           $URGENT_BG $URGENT_BG   $FG $FG   $URGENT_BG
 client.background       $BG
 # modus-operandi theme:1 ends here
 
-# [[file:config.org::*modeline][modeline:1]]
+# [[file:config.org::*modeline / tabbar][modeline / tabbar:1]]
 bar {
         mode hide
         hidden_state hide
@@ -174,4 +174,4 @@ bar {
                 urgent_workspace   $BORDER      $URGENT_BG   $FG
         }
 }
-# modeline:1 ends here
+# modeline / tabbar:1 ends here
