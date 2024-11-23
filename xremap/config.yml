@@ -3,8 +3,21 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2024-01-18
-# info:   gtk apps are configured to use readline bindings already (gtk-emacs-keytheme)
-#         if you are on a different linux machine, use gnome-tweak-tools and: `setxkbmap -option ctrl:nocaps` to get basically the same effect.
+# info:
+
+# - gtk :: gtk apps are configured to use readline bindings already (gtk-emacs-keytheme) if you are on
+# a different linux machine, use gnome-tweak-tools and: `setxkbmap -option ctrl:nocaps` to get
+# basically the same effect.
+
+# - no symbol layers or homerow mods :: they are a gimics and introduce unneccessary complexity into
+# the system.  you are slowing yourself down using them, since the always require a modifier, and
+# waiting for that modifier to be released makes you need to wait before continuing to hammer on in
+# typing.  using a symbol top layer layout: programmer-dvorak is far superior, more ergonomic and
+# allows you to bang out symbols as fast as if you were writing prose.
+
+# - we want to reduce the depth of layering in our system.  layers always bring an increase in
+# complexity and introduce mental overhead which is our aim to reduce as much as possible without
+# limiting functionality.
 # ---
 
 modmap:

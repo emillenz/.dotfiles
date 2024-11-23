@@ -307,6 +307,7 @@
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
   (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+  ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
                                         (let ((extensions (car pair))
                                               (app (cdr pair)))

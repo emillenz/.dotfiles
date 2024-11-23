@@ -8,6 +8,16 @@
 * preface
 - [[https://i3wm.org/docs/userguide.html][i3 user-guide]]
 - doing changes in system (eg. volume change / internet connection change) are displayed via notifications.  so we don't need the statusbar (only for leadermode indication) for a more focused workflow and more/clean screenspace.
+- i3 exhibits the usual elitism amongst minimal window managers: don’t be bloated, don’t be fancy (simple borders are the most decoration it has).  do not add further complexity when it can be avoided.
+- manual tiling wm ::  which superior to an autotiling wm, (or god forbid a desktop-environment), since we always use all windows maximized.
+- the windowmanager follows the philosopy of eliminating mental overhead and the neccessity to arrange windows or layouts.
+  - eliminate mental overhead and reduce computational steps to get to where you need to be.
+  - finetuned to automate the workflow as much as possible. (autostarting all frequently used programs, pinning frequently used browser tabs to [[kbd:][M-<num>]])
+- accessing a program is as efficient as possible and always consistent, no matter where in your desktop you are (different monitor/workspace/app order) you will not alt+tab through apps to get to the one you are thinking of.  instead the program is assigned a mark which you can goto to always using the same consisten mnemonic keybinding.
+  - we do not use a per-program workspace workflow.  introduces layers of complexity as you need to remember the workspace for pop-up windows & programs.  managing and navigating the workspaces is disorienting and complex.
+  - we essentially extend our emacs/vim workflow of using harpoon to jump between files onto the wm, using global marks to goto to buffers immediately.  the only improvement is that we always preassign certain marks for our frequently used programs (editor, webbrowser, terminal, ...).
+- keyboard driven workflow only => vi-mnemonic bindings.  has a leader key system inbuilt that allows a extensible modal keybindingsystem.
+- strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
 
 * macros
 - no statusbar => using notifications to display volume change
@@ -127,7 +137,8 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 #+end_src
 
 * marks
-- use mnemonic UPPERCASEmarks for our most used programs (if accessing a temporary window often in the current sessino, mark it with ~$MOD+m~ and goto to it using ~$MOD+apostrophe~).
+- use mnemonic UPPERCASEmarks for our most used programs (if accessing a temporary window often in the current sessino, mark it with ~$MOD+m~ and goto to it using ~$MOD+apostrophe~).  the idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remains the same.  (eg: vim instead of emacs)
+- these main apps have a dedicated open shortcut, all other apps are better to be opened via rofi desktop laucher.
 - the braces around the commands are required, otherwise undefined behaviour.
 - get window title & class information using: ~xprop~
 - DWIM try until succeed:
@@ -211,6 +222,17 @@ client.background       $BG
 #+end_src
 
 * modeline
+** modeline / tabbar
+- a wm statusbar unneccessarily take up screen real-estate and usually just causes a distraction rather than actually being useful.
+  - you don't need visual indication of how to navigate to tabs, each specific tab is always on the same keybind, and if not it's faster to search for it than visually navigate/select some list / menu.
+- for full immersion, reduced distraction and enhanced focus, disable it and work fullscreen.
+  - no overlapping functionality.  ex:: you wear a watch (if not, you should) => don't need time & date displayed, and have timer's at hand.
+  - you always know what window you are looking at by its contents.
+  - you don't need visual indication of how to navigate to tabs, nor interact with the statusbar (ex: click something) => each specific tab is always on the same keybind.
+- the aestetic and efficiency of a decluttered and maximized screen is (imo) unmatched.
+- the theory is to make switching so ergonomic and instantaneous, engrained into muscle memory, that you are faster that people using, say 2 monitors.
+- (modelines are useful (browser / emacs) as they indicate in which mode/context we are in.)
+
 - acts as the indicator as to when leader mode is active.
 #+begin_src conf
 bar {

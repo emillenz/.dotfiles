@@ -6,8 +6,7 @@
 
 #+macro: src-len (eval (save-excursion (find-file doom-module-config-file) (count-lines (point-min) (point-max))))
 #+property: header-args:elisp tangle config.el :comments link :results silent
-
-* preface
+* about this config
 - a total of {{{src-len}}} LOC.
 - for debugging your configuration, start emacs with: ~emacs --debug-init~ to get a backtrace.  when debuggin lisp code, enable ~toggle-debug-on-error~ and eval the code.
 - read up on and adhere to [[https://github.com/bbatsov/emacs-lisp-style-guide][emacs-lisp style guide]].
@@ -17,6 +16,64 @@
   - i encourage you to master the tool that you are using.  this means thuroughly reading the complete documentation, keymaps for the tools you are using (eg. vertico, evil-mode, magit, leader-mode).
   - try to first fundamentally understand & master the functionality your tool offers.  then you can assess and see if a extension really provides value to you, or if that functionality is already included.
 - use ~use-package!~ for configuring packages added via ~package!~ in ~./packages.el~
+
+* preface
+** why emacs
+#+begin_quote
+Today, many aspects of daily computer usage are split between different applications which act like islands, but this often doesn’t mirror how we actually use our computers.  Emacs, if one goes down the rabbit hole, can give users the power to bridge this gap into a visually and functionally consistent environment.
+
+Professional, minimalist tools like Emacs have a high learning curve and require thought and time to initially set up.  But once things are working and customized they will work for years at a stretch without needing to fiddle with the nobs.  And once mastered you can eliminate the "modern" GUI bits -- tool bars, menus, scrollbars and fancy animations and the like and what is left is about as clean an interface as you can get stripping everything down to the bare metal where it gets out of your way and provides the most streamlined workflow.  The difference is that something like emacs is a longterm investment, it requires you to get over the high entry barrier but then never annoys you with a more elongated, bloated workflow that in other, more beginner friendly applications is the norm and cannot be changed away from.
+
+The saying, "give 'em enough rope, and they'll likely hang themselves," holds true.  Emacs provides the rope if you are not careful.
+--- anonymous
+#+end_quote
+
+*emacs* is one of the most incredible piece of software ever made:
+- purely keyboard driven.
+- everything is text and can be modified.
+- enables one to complete tasks with a consistent, standard set of keybindings, gui and editing methods - learn once, use everywhere
+- compressing the stages of a project - a more centralised workflow can progress with greater ease
+- integration between tasks previously relegated to different applications, but with a common subject - e.g.  linking to an email in a to-do list etc
+- emacs can be thought of as a platform within which various elements of your workflow may settle, while being able to interlink them interactively.
+- reduced context-switching, many tools in one connected, coherent, interwoven keyboard-driven interface.  this integration is very efficient and consistent, since now any function can be reused in all tools (eg.  fuzzy finding, and doesn't have to be implemented in each separate program itself).  it greatly reduces the mental overhead needed to customize and extend the tools, since the context and language is always the same.  since these tools are text-centric, they align withthe single focus, no multitasking buffer wokflow philosophy.
+  - editor
+    - technical documents :: latex & org
+    - academic papers
+    - code
+    - notes
+    - journaling
+  - coding tools
+    - git interface :: magit
+    - manpages
+    - diff
+    - debugger
+  - agenda
+  - emailclient
+  - todo-management :: org mode
+  - filemanager :: dired fast interactive text-based file manger
+  - manpager
+  - pdfviewer :: vim navigation (marks, goto etc), annotations, occur.
+  - file/dir navigation & management: find-file, fuzzy-find, (book)marks, dired
+    - the most efficient workflow for finding, opening and editing files on the os that i have ever developed.
+
+*** org mode
+- in my opinion the most elegant markup language, all the while keeping the syntax opinionated and simple with only one way to do it (=> looking at you: markdown with your weird spacing rules and arcane markup for links/quotes).
+- one to rule them all, create websites, tables, journals, todolists, calendars and programs, all with the same consistent elegant and formatted syntax.
+- automate making entries into files and databases at specific places.
+- completely integrated into the editor (think: finding/filtering headlines, notes, tasks..)
+- the best support for literate programming covering every language (looking at you: jupyter..)
+
+*** emacs everywhere
+use emacs everywhere for anytime you are using a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
+
+** terminal vs emacs
+- the terminal is used to run their own terminal-based programs and system related commands (mainly tuis and long async-processes) and commands: htop, nmtui, git, metasploit, transmission-cli, ssh.
+- use simple minbuffer-shell-commands in emacs whenever possible (don't juggle a external terminal and emacs at the same time).  especially when programming, start REPL's and interactive environments from within emacs (terminal emulation) in order to have a seamless integration and navigation between running commands in the shell and programmning.  this has the benefit that you can navigate command output like a normal buffer and use the full power of emacs for the prompt editing.
+- extend emacs by writing custom functions for things that you do repetitivly (moving files, manipulating text...) instead of writing shell aliases / shellscripts
+  + more extensible and in a proper language
+  + write shell-scripts (purely) for launching programs & processes.
+- all coding, writing, fileopening, viewing, navigating is done inside emacs (do not leaving the environment), because this makes for a consistent and coherent workflow.
+  - use inbuilt programs like magit & diff for more speed interactivity and ergonomics than doing it with git command aliases on the command-line.
 
 * user
 #+begin_src elisp
@@ -430,10 +487,16 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 #+end_src
 
 * dired
-- open most non-text filetypes files externally.
+- avoid using integrated filemanagers and manually navigating directory structures (such as dired / ranger / thunar) whenever possible (and dont even dare to suggest a gui file manager...).
+- if think you need a sidebar type file explorer, you are doing something terribly inefficient in your workflow.
+- use a fileexplorer mostly for getting an overview of a directory and to manipulate files in that directory.
+- it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding and using harpoon-marks, global-marks and bookmarks for switching to other directories and files.
+- ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file you are looking for.
+
 #+begin_src elisp
 (after! dired
   (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+  ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
                                         (let ((extensions (car pair))
                                               (app (cdr pair)))
