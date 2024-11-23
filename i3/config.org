@@ -53,11 +53,17 @@ for_window [all] focus, title_window_icon no, floating disable
 - constrain window-width and centering windows to the middle of the screen.
 - this make the single-focus workflow more ergonomic and focused.
 - terminal, editor, etc. uncomfortably align to the left edge of the screen.  whereas other windows contents (like the browser) are already ergonomically centered and constrained, which causes you to refocus the fov from the edge to the center of the window (& vice versa).
-- browser :: it hides away unsed and distracting sidebars of overbloated websites.
-- gapsize :: since we can't assume what windows will be displayed, we use a compromise that will work for the majority of programs & websites.  if it is insufficient, the user can just toggle the gaps.
+- narrowed fov yields improved readability & focus of textparagraphs, especially if you stare at the computer for 8+ hours a day.
+- the data is compact and coherent
+- vertical navigation is easier than horizontal
+- reading code/data/formulas is easiest sequentially = top to bottom // vs horizontally
+  - take math as example, its easier to read equations if they are short and concise on newline, rather than in one big equation
+  - coding: typically one statement per line
+- line wrap :: command outputs or browser webpages are often not fixed to some width, instead displayed across the entire available width, thus making it very hard to not loose focus of the current line.  using gaps, it makes the text easier to read.
+- gapsize :: since we aren't in a position to presume what content a window will display, we use a compromise that will work for the majority of programs & websites (making enough space for a small index colum and a text column, as found on eg. wikipedia).  if it is insufficient, the user can just toggle the gaps.
 #+begin_src conf
-# 1920x1080 display
-set $GAPSIZE 400
+# 1920x1080 display (adjust ifdifferent screenresolution)
+set $GAPSIZE 450
 gaps horizontal $GAPSIZE
 smart_gaps inverse_outer
 
