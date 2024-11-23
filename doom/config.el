@@ -93,26 +93,29 @@ ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused
     (set-window-buffer main-window buffer)
     main-window))
 
-(setq display-buffer-alist `((,(rx (seq bol (or "magit" " *transient")))
-                              nil) ;; some major-modes (eg. magit) have their own complex buffer setup systems.  ignore them.
+(setq display-buffer-alist `(
+                             ;; ignore buffer's of 'major-modes' with their own complex buffer setup systems.
+                             (,(rx (seq bol (or "magit"
+                                                " *transient")))
+                              nil)
 
-                             (,(rx (seq bol (or (seq ?* (or "Org Src" ;; all file buffer's & edge-case *buffers* that i treat as master buffers
-                                                       "Org Agenda"
-                                                       "doom:scratch"
-                                                       "scratch"
-                                                       ""))
-                                           (seq (not (any ?*))))))
+                             ;; regular buffers and '*buffers*' that shall be viewed in the main window
+                             (,(rx (seq bol (or (seq ?* (or "Org Src"
+                                                            "Org Agenda"
+                                                            "doom:scratch"
+                                                            "scratch"
+                                                            ))
+                                                (seq (not (any ?*))))))
                               (u-display-buffer-main-window))
 
-                             (,(rx (seq bol ?*)) ;; all *special-buffers*
+                             ;; '*buffers*'
+                             (,(rx (seq bol ?*))
                               (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
-                              (side . right)
-                              (slot . 0)
+                              (side . right) ;; vertical split
+                              (slot . 0) ;; override already existing side window.
                               (window-width . 0.5)))) ;; equal split
 
-
-
-;; this prevents accidentally showing file buffers in the side window & vice versa.  (we remove the mental overhead of having to think and switch windows before switching buffer's)
+;; this prevents accidentally showing buffers in the wrong window when opened through 'switch-to-buffer'
 (setq switch-to-buffer-obey-display-actions t)
 ;; window layout & behavior:1 ends here
 
