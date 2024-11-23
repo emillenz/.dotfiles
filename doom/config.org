@@ -28,7 +28,7 @@ The saying, "give 'em enough rope, and they'll likely hang themselves," holds tr
 --- anonymous
 #+end_quote
 
-*emacs* is one of the most incredible piece of software ever made:
+emacs is one of the most incredible piece of software ever made:
 - purely keyboard driven.
 - everything is text and can be modified.
 - enables one to complete tasks with a consistent, standard set of keybindings, gui and editing methods - learn once, use everywhere
@@ -90,11 +90,12 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
       confirm-kill-emacs nil
       hscroll-margin 0
       scroll-margin 0
-      fill-column 100
       enable-recursive-minibuffers nil ;; less confusion
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
-      async-shell-command-width 100
+      fill-column 80
+      async-shell-command-width 80
+      visual-fill-column-width
       which-key-idle-delay 0.5
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
@@ -103,8 +104,8 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
-(+global-word-wrap-mode)
-(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable like this
+(global-visual-fill-column-mode) ;;
+(global-visual-line-mode)
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
@@ -199,11 +200,11 @@ Tabs are 8 characters, and thus indentations are also 8 characters.  There are h
 --- Linus Torvalds
 #+end_quote
 
-the 8 space indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 100 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 100 column limit forces you to keep your code within reasonable limits.
+the 8 space indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 80 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 80 column limit forces you to keep your code within reasonable limits.
 
 the whole idea behind indentation is to clearly define where a block of control starts and ends.  this is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  you can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  it facilitates reading through a codebase in a more tree-like fashion.
 
-every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 100-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
+every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 80-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
 
 in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
 
@@ -218,7 +219,6 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 (setq-default standard-indent u-global-indent-width
               evil-shift-width u-global-indent-width
               tab-width u-global-indent-width
-              fill-column 100
               org-indent-indentation-per-level u-global-indent-width
               evil-indent-convert-tabs t
               indent-tabs-mode nil)
@@ -383,8 +383,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   (map! :map harpoon-mode-map :after harpoon
         :nm "q" #'kill-current-buffer) ;; exit like in pdf-view, help, magit, dired...
 
-  (setq-hook! 'harpoon-mode-hook
-    display-line-numbers t)) ;; since each file is mapped to its line number
+  (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
 #+end_src
 
 * evil-mode
@@ -574,6 +573,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
                             laas-mode
                             +org-pretty-mode
                             org-appear-mode))
+
 (add-hook! 'org-mode-hook :local
   (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`"))))
 

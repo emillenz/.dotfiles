@@ -11,11 +11,12 @@
       confirm-kill-emacs nil
       hscroll-margin 0
       scroll-margin 0
-      fill-column 100
       enable-recursive-minibuffers nil ;; less confusion
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
-      async-shell-command-width 100
+      fill-column 80
+      async-shell-command-width 80
+      visual-fill-column-width
       which-key-idle-delay 0.5
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
@@ -24,8 +25,8 @@
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
-(+global-word-wrap-mode)
-(add-hook! 'compilation-mode-hook #'+word-wrap-mode) ;; HACK :: must enable like this
+(global-visual-fill-column-mode) ;;
+(global-visual-line-mode)
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
@@ -103,7 +104,6 @@
 (setq-default standard-indent u-global-indent-width
               evil-shift-width u-global-indent-width
               tab-width u-global-indent-width
-              fill-column 100
               org-indent-indentation-per-level u-global-indent-width
               evil-indent-convert-tabs t
               indent-tabs-mode nil)
@@ -230,8 +230,7 @@
   (map! :map harpoon-mode-map :after harpoon
         :nm "q" #'kill-current-buffer) ;; exit like in pdf-view, help, magit, dired...
 
-  (setq-hook! 'harpoon-mode-hook
-    display-line-numbers t)) ;; since each file is mapped to its line number
+  (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
 ;; harpoon:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
@@ -375,6 +374,7 @@
                             laas-mode
                             +org-pretty-mode
                             org-appear-mode))
+
 (add-hook! 'org-mode-hook :local
   (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`"))))
 
