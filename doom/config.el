@@ -106,7 +106,7 @@ ACTION-ALIST is an alist of actions passed by 'display-buffer' (currently unused
 
                              (,(rx (seq bol ?*)) ;; all *special-buffers*
                               (display-buffer-in-side-window) ;; make slave buffers appear as vertical split to right of master buffer
-                              (side . bottom)
+                              (side . right)
                               (slot . 0)
                               (window-width . 0.5)))) ;; equal split
 
@@ -934,7 +934,8 @@ legibility."
   (map! :map (nov-mode-map nov-button-map)
         "SPC" nil                     ;; never override leader-mode
         "S-SPC" nil                   ;; never override leader-mode
-        :n "q" #'kill-current-buffer ;; consistent with other read-only modes (magit, dired, docs...)
+        :n "q" #'kill-current-buffer  ;; consistent with other read-only modes (magit, dired, docs...)
+        :n "o" #'nov-goto-toc         ;; o => outline, which is more mnemonic (consistent with pdf-view-mode, info-mode, evil: 'imenu' outline when in code)
 
         ;; next/previous page
         :n "<next>" #'nov-scroll-up
@@ -958,9 +959,7 @@ legibility."
   (map! :map pdf-view-mode-map
          ;; ergonomics when reading onehanded  (<next>, <prior> already mapped).
         :n "<home>" #'pdf-view-scroll-down-or-previous-page
-        :n "<end>" #'pdf-view-scroll-up-or-next-page
-
-        :n "t" #'pdf-outline)) ;; TOC :: consistency in bindings with org-mode, nov-mode and info-mode
+        :n "<end>" #'pdf-view-scroll-up-or-next-page))
 ;; pdf view:1 ends here
 
 ;; [[file:config.org::*yas: snippets][yas: snippets:1]]
