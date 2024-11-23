@@ -57,7 +57,8 @@ for_window [all] focus, title_window_icon no, floating disable
 #+begin_src conf
 set $MOD Mod1
 floating_modifier $MOD
-tiling_drag modifier titlebar
+# we don't tile
+tiling_drag off
 bindsym button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
 bindsym button4 nop
