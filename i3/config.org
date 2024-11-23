@@ -119,7 +119,7 @@ bindsym $MOD+backslash    $SHCMD playerctl play-pause
 #+end_src
 
 * navigational bindings
-- n/p consistent with cycling {rofi, shell, emacs} completion menus
+- n/p consistent with vim, rofi, shell, emacs completion menu bindings.  (we don't use j/k, since navigating windows is not always up/down.  n/p is more universal).
 - use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side.
 - using [[https://github.com/Cretezy/i3-back][i3-back]] as daemon (in autostart)
 #+begin_src conf
