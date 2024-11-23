@@ -60,37 +60,35 @@
 ;; [[file:config.org::*modeline][modeline:1]]
 (setq display-battery-mode nil
       display-time-mode nil
-      +modeline-height 8
-      +modeline-bar-width nil) ;; visual clutter => off
+      +modeline-height 8)
 ;; modeline:1 ends here
 
-;; [[file:config.org::*window layout & behavior][window layout & behavior:1]]
-(setq evil-vsplit-window-right t
-      even-window-sizes 'width-only
+;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
+(setq evil-split-window-below t
       window-combination-resize t
-      split-height-threshold nil) ;; never allow horizontal-splits
+      split-width-threshold nil) ;; force horizontal splits, always
 
-(setq display-buffer-alist `(
-                             ;; display them like a minibuffer => at the bottom of the screen
-                             (,(rx (or "transient" "Org Select" "Agenda Commands"))
+(setq display-buffer-alist `(;; exceptions :: display them like a menu => at the bottom of the screen (consistent with minibuffer prompt, whichkey, etc)
+                             (,(rx (seq "*" (or "transient"
+                                                (seq "Org " (or "Select" "todo"))
+                                                "Agenda Commands"
+                                                "doom eval")))
                               (display-buffer-in-side-window)
                               (side . bottom)
-                              (window-height . 0.3) ;; choose accordingly
-                              (slot . 0))
-                             (,(rx "magit") nil) ;; has it's own complex window setup, don't override
+                              (slot . 0)) ;; reuse bottom window if exists
 
-                             ("" (display-buffer-same-window))))
+                             ("" (display-buffer-same-window))) ;; default (all buffer's no)
 
-;; this prevents accidentally showing buffers in the wrong window when opened through 'switch-to-buffer'
-(setq switch-to-buffer-obey-display-actions t)
+      switch-to-buffer-obey-display-actions t)
 
 (after! org
   (setq org-src-window-setup 'current-window ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
         org-agenda-window-setup 'current-window))
 
 (after! magit
-  (setq +magit-open-windows-in-direction 'down))
-;; window layout & behavior:1 ends here
+  (setq magit-commit-diff-inhibit-same-window t
+        +magit-open-windows-in-direction 'down)) ;; for when commiting, let magit use it's own window layout.
+;; window layout & behavior :: single maximized buffer workflow:1 ends here
 
 ;; [[file:config.org::*rationale][rationale:1]]
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
@@ -307,6 +305,7 @@
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
   (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+  ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
                                         (let ((extensions (car pair))
                                               (app (cdr pair)))

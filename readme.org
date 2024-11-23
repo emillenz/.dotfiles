@@ -12,6 +12,7 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
 #+end_quote
 
 * philosophy
+- i am of the strong opinion that you should minimize things you do repeatedly.  thus when closing the terminal by accident => can be restored instead of redoing everything.  launching emacs on every startup? => just run the daemon in the background => always accessible & no waiting time.
 - this config aims at making the workflow the most effective, while being as bare metal and lightweight as possible, avoiding bloat and focusing on speed and amount of computational steps.  (no headaches, no unexpected behavior, minimal mental overhead).
 - this system is 100% centered at keyboard usage and aims to unify all navigational commands across the terminal, editor, webbrowser, window manager and other possible applications using vim-bindings in combination with a custom global navigation keybinding-scheme which is used & consistent cross-application.  (bindings should be minimalistic and lightweight, because light goes fast and far)
 - using the mouse for non creative, non graphical usages is inefficient and creates mental overhead.  having to take the focus off the project just in order to click some ui takes way more mental capacity and computational steps than neccessary and can be negated by using the keyboard and having the same actions always on the same keys.
@@ -22,7 +23,7 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
   - this system puts emphasis on a text & data driven evironment wherever possible this will reduce complexity and increase extensibility and interchangeablilty.  you will also benefit from a more unified and consistent interface across applications.
 - consistency :: this config aims to be globally consistent in its design, behaviour and control.
   - which means things like (colorscheme, font, workflow, keybindings, ui..) were once carefully analyzed, choosen and designed and then implemented as consistent as possible across tools (terminal, editor, webbrowser, wm, reader..)
-- maximized focus ui :: avoid using splits in your programs and prefer the maximized buffer tabs-only workflow.  (hence we don't include split management bindings in the wm)  i have found it less intrusive and faster to just switch to the tab instead.
+- single focused window :: avoid using splits in your programs and prefer the maximized buffer tabs-only workflow.  (hence we don't include split management bindings in the wm)  i have found it less intrusive and faster to just switch to the tab instead.
   - humans are not designed and not good at multitasking, they excel at linear singular focus processing.
   - splits are mostly useless and take up screenspace, cluttering it with information you are not processing, and that will distract your focus.
   - when you need the buffer/file, it is better to pull it into focus instantly and from muscle memory, instead of letting it occupy your working area.  (it is there when needed instantly but otherwise hidden)
@@ -47,28 +48,7 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
   - ex: use vims search replace with patterns instead of manually going through and changing each instance
   - ex: relative line jumping over spamming =j=
   - ex: tab switching => thinking fast & instinctive, develop muscle memory (when there are too many => use analytical brain by searching through the list)
-- single monitor :: don't use multimonitors, you are actually faster using a tiling windowmanager and hotkeys to access the individual windows (bound to specific workspaces).  managing windows over multiple monitors becomes increasingly complex and produces overhead.  it's faster to switch to the window you need instantaneously with a keyboard shortcut, instead of physically tilting the head (which is also unergonomic).  additionally we want consistency in the workflow inbetween using the laptop and desktop setup (if you even have that).
-
-** constrain text width & center text
- - center text windows for better ergonomics & less eye travel (distance - switching from left to middle from eg: terminal to webpage).
- - narrowed fov yields improved readability & focus of textparagraphs, especially if you stare at the computer for 8h- a day.
- - the data is compact and coherent
- - allows the user to keep the entire window in the fov
- - vertical navigation is easier than horizontal
- - reading code/data/formulas is easiest sequentially = top to bottom // vs horizontally
-   - take math as example, its easier to read equations if they are short and concise on newline, rather than in one big equation
-   - coding: typically one statement per line
-
-** modeline / tabbar
-- a wm statusbar unneccessarily take up screen real-estate and usually just causes a distraction rather than actually being useful.
-  - you don't need visual indication of how to navigate to tabs, each specific tab is always on the same keybind, and if not it's faster to search for it than visually navigate/select some list / menu.
-- for full immersion, reduced distraction and enhanced focus, disable it and work fullscreen.
-  - no overlapping functionality.  ex:: you wear a watch (if not, you should) => don't need time & date displayed, and have timer's at hand.
-  - you always know what window you are looking at by its contents.
-  - you don't need visual indication of how to navigate to tabs, nor interact with the statusbar (ex: click something) => each specific tab is always on the same keybind.
-- the aestetic and efficiency of a decluttered and maximized screen is (imo) unmatched.
-- the theory is to make switching so ergonomic and instantaneous, engrained into muscle memory, that you are faster that people using, say 2 monitors.
-- (modelines are useful (browser / emacs) as they indicate in which mode/context we are in.)
+- its all about preserving the working state between sessions to achieve consistency and minimize time needed to get working.  this is why we run emacs as a background daemon and the shell in tmux.  why we don't close tmux windows or as we don't jump in and out of emacs on the commandline (like vim users do).  why we don't poweroff a computer and instead just hibernate/sleep it.
 
 ** The mouse
 #+begin_quote
@@ -118,110 +98,6 @@ learning a tool is an investment and you wouldn't want to sink your time into so
 this is why secure and fast languages such as rust and go are preferred over inconsistent and hacky languages such as perl or python, that require constant maintaining.
 i'm very opinionated and have high standards regarding design process and the philosophy behind the tools focused on, hence the selection undergoes a rigorous coparison and selection process.
 
-** windowmanager: i3
-- the usual elitism amongst minimal window managers: don’t be bloated, don’t be fancy (simple borders are the most decoration have).  do not add further complexity when it can be avoided.
-- manual tiling wm ::  which superior to an autotiling wm, (or god forbid a desktop-environment), since we always use all windows maximized.
-- the windowmanager follows the philosopy of eliminating mental overhead and the neccessity to arrange windows or layouts.
-  - eliminate mental overhead and reduce computational steps to get to where you need to be.
-  - finetuned to automate the workflow as much as possible. (autostarting all frequently used programs, pinning frequently used browser tabs to [[kbd:][M-<num>]])
-- accessing a program is as efficient as possible and always consistent, no matter where in your desktop you are (different monitor/workspace/app order) you will not alt+tab through apps to get to the one you are thinking of.  instead the program is assigned a mark which you can goto to always using the same consisten mnemonic keybinding.
-  - we do not use a per-program workspace workflow.  introduces layers of complexity as you need to remember the workspace for pop-up windows & programs.  managing and navigating the workspaces is disorienting and complex.
-  - we essentially extend our emacs/vim workflow of using harpoon to jump between files onto the wm, using global marks to goto to buffers immediately.  the only improvement is that we always preassign certain marks for our frequently used programs (editor, webbrowser, terminal, ...).
-- keyboard driven workflow only => vi-mnemonic bindings.  has a leader key system inbuilt that allows a extensible modal keybindingsystem.
-- strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
-
-*** using workspaces
-- workstation apps :: assigned their own workspaces and keys
-  - these are apps that you use frequently (statistically) and need hotkey access to (application switching)
-  - each assigned workspace is specific.
-- The idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remains the same.  (eg: vim instead of emacs)
-- these main apps have a dedicated open shortcut, all other apps are better to be opened via rofi desktop laucher.
-
-** shell: fish / ruby
-bash is coherent with respect to the mind of certain benevolent dictator.  bash is a steaming pile of inconsistent user-unfrienly shit.  we want the best interactive features in a shell, fish has powerful features inbuilt and is consistent in its design and configuration.  (autocomplete, documentation, keybindings, aliases, etc..)
-On the command line, I don't really need a full language with a repl-like interface.  I want a fast and quick way to interface with the OS.  Anything beyond that should be written in a proper language (ruby) that will inherently bring more benefits.
-
-*** ruby scripting rationale
-a shell only exists for interactive use and running commands: launching processes/commands, interaction with the filesystem and programs (mv, cp, find, grep..).
-for scripting however, anything that cannot be done in a oneliner (using && || etc.).  for example: data manipulation (JSON, etc.), conditional execution (if else), functions or the usage of variables/datastructures, you should always opt towards a proper scripting language such as ruby.  since it offer's full library support, is more extensible and maintaineable.
-
-when writing shell commands in scripts one should always favor ~--long-flags~ over ~-l~ in order to increase code readability  and maintaineability.  this makes understanding the script for people who may not be familiar with the programs easier to understand and modify (reduce elitism in free software).
-
-even though it may have a steeper learning curve and requires a more structured and less hacky approach to scripting.  but once fluent in it, it smoothly bridges the gap between compiled highly efficient languages such as rust or c and the interactive nature of a shell.
-
-choosen over python since it is well designed, has a very minimal, clean, consistent syntax.  close interconnectedness with ~sh~ by running ~sh~-commands with ~``~.  i love the fact that everything is a expression (has a value).  This means, it's a extreme joy for functional programers.  Python is pretty badly designed, lots inconsistencies in syntax as well as semantics.  ruby follows the MIT philosophy of making the userinterface consistent and a joy to use.
-
-** terminal: alacritty & tmux
-i am of the strong opinion that you should minimize things you do repeatedly.  thus when closing the terminal by accident => can be restored instead of redoing everything.  launching emacs on every startup? => just run the daemon in the background => always accessible & no waiting time.
- - terminal applications can be made persistent through tmux sessions => thus closing the terminal window has no effect on the program, bc when you open another terminal, it will attach right back into the session allowing you to continue where left off.
- - additionally it allows you to ssh into your machine from anywhere and attach to these running clients seamlessly and keep processes alive when done.
-
-*** workflow with emacs
-- the terminal is used to run their own terminal-based programs and system related commands (mainly tuis and long async-processes) and commands: htop, nmtui, git, metasploit, transmission-cli, ssh.
-- use simple minbuffer-shell-commands in emacs whenever possible (don't juggle a external terminal and emacs at the same time).  especially when programming, start REPL's and interactive environments from within emacs (terminal emulation) in order to have a seamless integration and navigation between running commands in the shell and programmning.  this has the benefit that you can navigate command output like a normal buffer and use the full power of emacs for the prompt editing.
-- extend emacs by writing custom functions for things that you do repetitivly (moving files, manipulating text...) instead of writing shell aliases / shellscripts
-  + more extensible and in a proper language
-  + write shell-scripts (purely) for launching programs & processes.
-- all coding, writing, fileopening, viewing, navigating is done inside emacs (do not leaving the environment), because this makes for a consistent and coherent workflow.
-  - use inbuilt programs like magit & diff for more speed interactivity and ergonomics than doing it with git command aliases on the command-line.
-
-** editor: (doom) emacs
-#+begin_quote
-Today, many aspects of daily computer usage are split between different applications which act like islands, but this often doesn’t mirror how we actually use our computers.  Emacs, if one goes down the rabbit hole, can give users the power to bridge this gap into a visually and functionally consistent environment.
-
-Professional, minimalist tools like Emacs have a high learning curve and require thought and time to initially set up.  But once things are working and customized they will work for years at a stretch without needing to fiddle with the nobs.  And once mastered you can eliminate the "modern" GUI bits -- tool bars, menus, scrollbars and fancy animations and the like and what is left is about as clean an interface as you can get stripping everything down to the bare metal where it gets out of your way and provides the most streamlined workflow.  The difference is that something like emacs is a longterm investment, it requires you to get over the high entry barrier but then never annoys you with a more elongated, bloated workflow that in other, more beginner friendly applications is the norm and cannot be changed away from.
-
-The saying, "give 'em enough rope, and they'll likely hang themselves," holds true.  Emacs provides the rope if you are not careful.
---- anonymous
-#+end_quote
-
-*emacs* is one of the most incredible piece of software ever made:
-- purely keyboard driven.
-- everything is text and can be modified.
-- enables one to complete tasks with a consistent, standard set of keybindings, gui and editing methods - learn once, use everywhere
-- compressing the stages of a project - a more centralised workflow can progress with greater ease
-- integration between tasks previously relegated to different applications, but with a common subject - e.g.  linking to an email in a to-do list etc
-- emacs can be thought of as a platform within which various elements of your workflow may settle, while being able to interlink them interactively.
-- reduced context-switching, many tools in one connected, coherent, interwoven keyboard-driven interface.  this integration is very efficient and consistent, since now any function can be reused in all tools (eg.  fuzzy finding, and doesn't have to be implemented in each separate program itself).  it greatly reduces the mental overhead needed to customize and extend the tools, since the context and language is always the same.  since these tools are text-centric, they align withthe single focus, no multitasking buffer wokflow philosophy.
-  - editor
-    - technical documents :: latex & org
-    - academic papers
-    - code
-    - notes
-    - journaling
-  - coding tools
-    - git interface :: magit
-    - manpages
-    - diff
-    - debugger
-  - agenda
-  - emailclient 
-  - todo-management :: org mode
-  - filemanager :: dired fast interactive text-based file manger
-  - manpager
-  - pdfviewer :: vim navigation (marks, goto etc), annotations, occur.
-  - file/dir navigation & management: find-file, fuzzy-find, (book)marks, dired
-    - the most efficient workflow for finding, opening and editing files on the os that i have ever developed.
-
-*** org mode
-- in my opinion the most elegant markup language, all the while keeping the syntax opinionated and simple with only one way to do it (=> looking at you: markdown with your weird spacing rules and arcane markup for links/quotes).
-- one to rule them all, create websites, tables, journals, todolists, calendars and programs, all with the same consistent elegant and formatted syntax.
-- automate making entries into files and databases at specific places.
-- completely integrated into the editor (think: finding/filtering headlines, notes, tasks..)
-- the best support for literate programming covering every language (looking at you: jupyter..)
-
-*** emacs everywhere
-use emacs everywhere for anytime you are using a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
-
-** documentreader: zathura
-- lightweight
-- distraction free, no unneccessary features.
-- vi-keybindings
-- allows for viewing the document/book in solarized theme to keep it inline with the os.
-
-** video-player: mpv
-- allows all types of video to be played (media, yt..) => less distractions and don't get lost in recommended video's by succumbing to the algorithm
-
 ** webbrowser: firefox
 *** install & configure extensions manually
 - password manager
@@ -237,17 +113,13 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 - make use of google search operators (~site:~, quoting, ~-~)
 - use inbuilt shortcuts...
 
-** filexplorer
-- avoid using integrated filemanagers and manually navigating directory structures (such as dired / ranger / thunar) whenever possible (and dont even dare to suggest a gui file manager...).
-  - only use a fileexplorer for getting an overview of a directory.
-  - it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding and using harpoon-marks, global-marks and bookmarks for switching to other directories and files.
-    - ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file you are looking for.
 * hardware
 ** single monitor only
 :PROPERTIES:
 :created: [2024-05-21 Tue 11:38]
 :END:
-- don't use multiple monitor's, instead just use/develop an efficient & fast navigation-scheme to navigate within virtual workspaces (using a window manager) which is faster (than physically reorienting your FOV) more extensible (have as many as you need), and more consistent (always available, even when on laptop).  additionally this navigational scheme can then be configured within applications, making your workflow there consistent and fast.
+- don't use multiple monitors, instead just get used to the efficient & fast navigation- to navigate within virtual workspaces (using a window manager) which is faster (than physically reorienting your FOV) more extensible (have as many as you need), and more consistent (always available, even when on laptop).  additionally this navigational scheme can then be configured within applications, making your workflow there consistent and fast.
+- managing windows over multiple monitors becomes increasingly complex and produces overhead.  it's faster to switch to the window you need instantaneously with a keyboard shortcut, instead of physically tilting the head (which is also unergonomic).  additionally we want consistency in the workflow inbetween using the laptop and desktop setup (if you even have that).
 - using a single monitor only not only makes you faster, but it also aligns with the focused singletasking fullscreen workflow.
 
 * keybindings
@@ -282,10 +154,6 @@ when you need to navigate to a different file/tab, this should be your order of 
 1. alternate buffer :: when you are alternating between 2 files/tabs or need to just goto back to the last visited buffer.  this takes the least amount of overhead and is the fastest.
 2. hotswitch tab [[kbd:][1-4]] :: use each of them for a file/tmux window/page within the project you are working on (ex: tmux: [1]repl, [2] compilation, [3] manpages, emacs: [1] main.c, [2] srcfile.c, [3] makefile).  you can then navigate between these files instantly without mental overhead.  we purposefully do not allow more than 4 tabs, since that is usually all that is neede within a project.  we want to ensure that it really is frequently visited files and thus keep the overhead low.  avoid manual tab creation if possible => auto-create a tab if it doesn't exist upon focusing it.  we never want visual indication for tabs.   instead switching to other buffer's should be muscle memory => eliminate bad habit and mental overhead of looking at tab-bar to find the tab you want, and instead hotkey to the file instantly.  no tablines, no statusbars.
 3. find buffer/tab :: search through the list of open buffers/tabs to switch to the one you need.
-
-** no symbol layers and homerow mods
-- they are a gimics and introduce unneccessary complexity into the system.  you are slowing yourself down using them, since the always require a modifier, and waiting for that modifier to be released makes you need to wait before continuing to hammer on in typing.  using a symbol top layer layout: programmer-dvorak is far superior, more ergonomic and allows you to bang out symbols as fast as if you were writing prose.
-- we want to reduce the depth of layering in our system.  layers always bring an increase in complexity and introduce mental overhead which is our aim to reduce as much as possible without limiting functionality.
 
 * principles
 ** keep your workflow dry

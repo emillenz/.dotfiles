@@ -3,9 +3,6 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2024-05-04
-# info:
-#  long flags :: favor '--long-flags' over '-f' in order to make the code more unambiguous (shortflags have
-#  different meaning across different programs), readeable and easier to maintain.  additionally always use '--key=value' with the '=' over '--key value', since this distinguishes flag-arguments from key-value pairs
 # ---
 
 # OPTIONS

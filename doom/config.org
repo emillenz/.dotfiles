@@ -6,8 +6,7 @@
 
 #+macro: src-len (eval (save-excursion (find-file doom-module-config-file) (count-lines (point-min) (point-max))))
 #+property: header-args:elisp tangle config.el :comments link :results silent
-
-* preface
+* about this config
 - a total of {{{src-len}}} LOC.
 - for debugging your configuration, start emacs with: ~emacs --debug-init~ to get a backtrace.  when debuggin lisp code, enable ~toggle-debug-on-error~ and eval the code.
 - read up on and adhere to [[https://github.com/bbatsov/emacs-lisp-style-guide][emacs-lisp style guide]].
@@ -17,6 +16,64 @@
   - i encourage you to master the tool that you are using.  this means thuroughly reading the complete documentation, keymaps for the tools you are using (eg. vertico, evil-mode, magit, leader-mode).
   - try to first fundamentally understand & master the functionality your tool offers.  then you can assess and see if a extension really provides value to you, or if that functionality is already included.
 - use ~use-package!~ for configuring packages added via ~package!~ in ~./packages.el~
+
+* preface
+** why emacs
+#+begin_quote
+Today, many aspects of daily computer usage are split between different applications which act like islands, but this often doesn’t mirror how we actually use our computers.  Emacs, if one goes down the rabbit hole, can give users the power to bridge this gap into a visually and functionally consistent environment.
+
+Professional, minimalist tools like Emacs have a high learning curve and require thought and time to initially set up.  But once things are working and customized they will work for years at a stretch without needing to fiddle with the nobs.  And once mastered you can eliminate the "modern" GUI bits -- tool bars, menus, scrollbars and fancy animations and the like and what is left is about as clean an interface as you can get stripping everything down to the bare metal where it gets out of your way and provides the most streamlined workflow.  The difference is that something like emacs is a longterm investment, it requires you to get over the high entry barrier but then never annoys you with a more elongated, bloated workflow that in other, more beginner friendly applications is the norm and cannot be changed away from.
+
+The saying, "give 'em enough rope, and they'll likely hang themselves," holds true.  Emacs provides the rope if you are not careful.
+--- anonymous
+#+end_quote
+
+*emacs* is one of the most incredible piece of software ever made:
+- purely keyboard driven.
+- everything is text and can be modified.
+- enables one to complete tasks with a consistent, standard set of keybindings, gui and editing methods - learn once, use everywhere
+- compressing the stages of a project - a more centralised workflow can progress with greater ease
+- integration between tasks previously relegated to different applications, but with a common subject - e.g.  linking to an email in a to-do list etc
+- emacs can be thought of as a platform within which various elements of your workflow may settle, while being able to interlink them interactively.
+- reduced context-switching, many tools in one connected, coherent, interwoven keyboard-driven interface.  this integration is very efficient and consistent, since now any function can be reused in all tools (eg.  fuzzy finding, and doesn't have to be implemented in each separate program itself).  it greatly reduces the mental overhead needed to customize and extend the tools, since the context and language is always the same.  since these tools are text-centric, they align withthe single focus, no multitasking buffer wokflow philosophy.
+  - editor
+    - technical documents :: latex & org
+    - academic papers
+    - code
+    - notes
+    - journaling
+  - coding tools
+    - git interface :: magit
+    - manpages
+    - diff
+    - debugger
+  - agenda
+  - emailclient
+  - todo-management :: org mode
+  - filemanager :: dired fast interactive text-based file manger
+  - manpager
+  - pdfviewer :: vim navigation (marks, goto etc), annotations, occur.
+  - file/dir navigation & management: find-file, fuzzy-find, (book)marks, dired
+    - the most efficient workflow for finding, opening and editing files on the os that i have ever developed.
+
+*** org mode
+- in my opinion the most elegant markup language, all the while keeping the syntax opinionated and simple with only one way to do it (=> looking at you: markdown with your weird spacing rules and arcane markup for links/quotes).
+- one to rule them all, create websites, tables, journals, todolists, calendars and programs, all with the same consistent elegant and formatted syntax.
+- automate making entries into files and databases at specific places.
+- completely integrated into the editor (think: finding/filtering headlines, notes, tasks..)
+- the best support for literate programming covering every language (looking at you: jupyter..)
+
+*** emacs everywhere
+use emacs everywhere for anytime you are using a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
+
+** terminal vs emacs
+- the terminal is used to run their own terminal-based programs and system related commands (mainly tuis and long async-processes) and commands: htop, nmtui, git, metasploit, transmission-cli, ssh.
+- use simple minbuffer-shell-commands in emacs whenever possible (don't juggle a external terminal and emacs at the same time).  especially when programming, start REPL's and interactive environments from within emacs (terminal emulation) in order to have a seamless integration and navigation between running commands in the shell and programmning.  this has the benefit that you can navigate command output like a normal buffer and use the full power of emacs for the prompt editing.
+- extend emacs by writing custom functions for things that you do repetitivly (moving files, manipulating text...) instead of writing shell aliases / shellscripts
+  + more extensible and in a proper language
+  + write shell-scripts (purely) for launching programs & processes.
+- all coding, writing, fileopening, viewing, navigating is done inside emacs (do not leaving the environment), because this makes for a consistent and coherent workflow.
+  - use inbuilt programs like magit & diff for more speed interactivity and ergonomics than doing it with git command aliases on the command-line.
 
 * user
 #+begin_src elisp
@@ -91,55 +148,41 @@
 #+begin_src elisp
 (setq display-battery-mode nil
       display-time-mode nil
-      +modeline-height 8
-      +modeline-bar-width nil) ;; visual clutter => off
+      +modeline-height 8)
 #+end_src
 
-** window layout & behavior
-- why split at all :: in [[file:~/.config/readme.org][readme]] we state that we prefer the single maximized window workflow, however when editing there are usually auxiliary buffer's that we need to consult (docs, compilation output, etc).
-- vertical split always :: constrain windows to consistently only ever always vertical split (side by side) and never horizontally (top and bottom).  vertical splits don't restrict the visible area in the buffer (since we use a constrained ~text-width~ <= 100) and thus use the screen realestate effectively.
-  - main/side window setup :: we constrain all slave buffers (buffer name starting with ~*~, eg. ~*compilation*~) to a single vertically split window to the right of the main window.  the side window is for side-by-side viewing of documentation and compilation outputs, etc.  we explicitly don't allow more than 2 windows in the frame, since any more than that are cluttering the screen, distracting, increase the navigational overhead (instead of simple back and forth).  the side window never gets focus once being created (or a new buffer placed inside of it), since we mostly only want to read in it and keep editing in the main window.
+** window layout & behavior :: single maximized buffer workflow
+- single maximized buffer workflow explanation and rationale: [[file:~/.config/readme.org][readme.org]].
+- only horizontal split :: since emacs sometimes creates splits in special views (eg. magit, ediff), and thus we must handle them to consistently split below and never side-by-side, since due to the wm, our emacs window is in full height but has a constrained width, perfectly sized for displaying source-code / technical documents.
+- single maximized buffer workflow :: we explicitly never use more than a single window (we don't split a window) in the frame, since we can only ever focus on a single thing anyways, and thus in the meantime other windows would clutter the screen distractingly.  additionally using multiple windows introduces additional navigational overhead first having to go to the correct window before using ~switch-to-buffer~, ~harpoon~ etc. managing windows and placing them correctly is complex and inconsistent, some windows recieve focus, other's don't, some buffer's create a split, completely changing window layout, others don't.  instead of using windows, you should become really efficient at navigating between buffers using ~switch-to-buffer~, ~evil-switch-to-windows-last-buffer~, ~harpoon~ and evil's ~global-marks~.
 - retionale :: we line-wrap every buffer at 100 for better readability, and only ever edit/view a SINGLE buffer at a time, hence vertical splits use screen realestate effectivly.
 
 #+begin_src elisp
-(setq evil-vsplit-window-right t
-      even-window-sizes 'width-only
+(setq evil-split-window-below t
       window-combination-resize t
-      split-height-threshold nil) ;; never allow horizontal-splits
+      split-width-threshold nil) ;; force horizontal splits, always
 
-(setq display-buffer-alist `(
-                             ;; display them like a minibuffer => at the bottom of the screen
-                             (,(rx (or "transient" "Org Select" "Agenda Commands"))
+(setq display-buffer-alist `(;; exceptions :: display them like a menu => at the bottom of the screen (consistent with minibuffer prompt, whichkey, etc)
+                             (,(rx (seq "*" (or "transient"
+                                                (seq "Org " (or "Select" "todo"))
+                                                "Agenda Commands"
+                                                "doom eval")))
                               (display-buffer-in-side-window)
                               (side . bottom)
-                              (window-height . 0.3) ;; choose accordingly
-                              (slot . 0))
-                             (,(rx "magit") nil) ;; has it's own complex window setup, don't override
+                              (slot . 0)) ;; reuse bottom window if exists
 
-                             ("" (display-buffer-same-window))))
+                             ("" (display-buffer-same-window))) ;; default (all buffer's no)
 
-;; this prevents accidentally showing buffers in the wrong window when opened through 'switch-to-buffer'
-(setq switch-to-buffer-obey-display-actions t)
+      switch-to-buffer-obey-display-actions t)
 
 (after! org
   (setq org-src-window-setup 'current-window ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
         org-agenda-window-setup 'current-window))
 
 (after! magit
-  (setq +magit-open-windows-in-direction 'down))
+  (setq magit-commit-diff-inhibit-same-window t
+        +magit-open-windows-in-direction 'down)) ;; for when commiting, let magit use it's own window layout.
 #+end_src
-
-- centered windows :: better ergonomics & less eye travel (distance + switching from left to middle from eg: terminal to webpage).
-- narrowed fov yields improved readability & focus of textparagraphs, especially if you stare at the computer for 8h+ a day.
-- compact and coherent data
-- allows the user to keep the entire window in the fov
-- vertical navigation is easier than horizontal
-- reading code/data/formulas is easiest sequentially = top to bottom // vs horizontally
-- take math for example, its easier to read equations if they are on newline
-- coding: typically one statement per line
-
-explicitly do NOT enable for ::
-- prog-mode ::  since it is incompatible with flycheck and we usually have the slave window with compilation or docs open.
 
 ** indentation
 - formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
@@ -227,11 +270,9 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
 ** global navigation
 - follows the os-consistent keymap
-- splits :: we never manually create split-windows for buffers.  we prefer the full screen, full focus, no distractions - workflow.  (no multitasking, no clutter)
-  however when emacs creates popup buffers (docs, compilation, etc.) in windows we must handle them.  using [[kbd:][c-w c-w, c-w c-q]] just too many keypresses,  especially if we call it repeatedly.  since our window arrangement is only ever a single window or a vsplit, we can condendse all the bindings into just [[kbd:][c-w, c-q]].  they do all window-management.
+- when emacs creates windows (magit etc.) we must handle them.  using vim's traditional [[kbd:][c-w]] is just too many keypresses and we don't need all bindings.  since our window arrangement is at most 2 windows, we can condense all the bindings into just [[kbd:][c-w]].
 - these mappings are universal to all programs (shell, emacs, browser, i3) and highly frequently accessed (from any mode/file).
 - workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, global-marks, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
-- we generally don't really delete buffers unless they slow down emacs (then kill them all to reset).  since we usually access the same buffer's repeatedly we only have to open them once.  same as we don't close tmux windows or as we don't jump in and out of emacs on the commandline (like vim users do) or same as we don't shutdown the computer (just sleep).  its all about preserving the working state between sessions, in order to minimize the setuptimes.  (also why we use global marks for jumping inbetween files of a project).
 
 #+begin_src elisp
 (map! :map 'override
@@ -281,10 +322,6 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
 ** editing
 goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and improve consistency of implementation.
-- splits ::
-  - at most have 2 splits => toggle between windows with single key (instead of mental overhead for directional navigation ex: [[kbd:c-hjkl][c-hjkl]] )
-  - this is for navigating and controlling some inevitable popup-buffers.
-  - avoid splits at all costs and use tabs instead
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vim, we improve on them, as to retain muscle memory and consistency in other applications (eg. tmux scrollback, vim emulations).
 
@@ -430,10 +467,16 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 #+end_src
 
 * dired
-- open most non-text filetypes files externally.
+- avoid using integrated filemanagers and manually navigating directory structures (such as dired / ranger / thunar) whenever possible (and dont even dare to suggest a gui file manager...).
+- if think you need a sidebar type file explorer, you are doing something terribly inefficient in your workflow.
+- use a fileexplorer mostly for getting an overview of a directory and to manipulate files in that directory.
+- it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding and using harpoon-marks, global-marks and bookmarks for switching to other directories and files.
+- ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file you are looking for.
+
 #+begin_src elisp
 (after! dired
   (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+  ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
                                         (let ((extensions (car pair))
                                               (app (cdr pair)))
@@ -1049,7 +1092,7 @@ PARENT-PATH :: nil (used for recursion) "
   (concat "\n" (apply fn args) ))
 #+end_src
 
-Org-agenda by default is a clusterfuck.  This will clean it up: cleanly align everything into columns & group items.
+org-agenda by default is a clusterfuck.  this will clean it up: cleanly align everything into columns & group items.
 + achieve a nce and consistent readeable data-orinetated view
 + all task-states have the same length, otherwise there is no task-keyword alignment.
 + Set more concise & informing ~deadline~ & ~scheduled~ strings
