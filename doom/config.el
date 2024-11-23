@@ -69,11 +69,12 @@
       window-combination-resize t
       split-width-threshold nil) ;; force horizontal splits, always
 
-(setq display-buffer-alist `(;; exceptions :: display them like a menu => at the bottom of the screen (consistent with minibuffer prompt, whichkey, etc)
+(setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc
                              (,(rx (seq "*" (or "transient"
                                                 (seq "Org " (or "Select" "todo"))
                                                 "Agenda Commands"
-                                                "doom eval")))
+                                                "doom eval"
+                                                "lsp-help")))
                               (display-buffer-in-side-window)
                               (side . bottom)
                               (slot . 0)) ;; reuse bottom window if exists
@@ -81,6 +82,9 @@
                              ("" (display-buffer-same-window))) ;; default (all buffer's no)
 
       switch-to-buffer-obey-display-actions t)
+
+;; close popup window (eg. *lsp-help*) from the main window with <escape> in normal mode
+(add-hook! 'doom-escape-hook #'delete-other-windows)
 
 (after! org
   (setq org-src-window-setup 'current-window ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
@@ -140,10 +144,7 @@
                         "t" #'org-babel-tangle
                         "T" #'org-babel-detangle))
       (:prefix "n"
-               "g" #'org-capture-goto-last-stored)
-      ;; (:prefix "t"
-      ;;          "c" #'visual-fill-column-mode)
-      )
+               "g" #'org-capture-goto-last-stored))
 ;; leaderkey:1 ends here
 
 ;; [[file:config.org::*global navigation][global navigation:1]]

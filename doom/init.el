@@ -33,7 +33,7 @@
        ;;nav-flash                  ; blink cursor line after big motions
        ;;neotree                    ; a project drawer, like NERDTree for vim
        ophints                      ; highlight the region an operation acts on
-       ;;popup                      ; (+all) NOTE :: NOT! enabled. (this just makes managing windows more complex, we want a focused single maximized window workflow.)
+       ;; popup                     ; (+all) NOTE :: NOT! enabled. (this just makes managing windows more complex, we want a focused single maximized window workflow.)
        ;;tabs                       ; a tab bar for Emacs
        ;;treemacs                   ; a project drawer, like neotree but cooler
        unicode                      ; extended unicode support for various languages

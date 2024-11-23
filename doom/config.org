@@ -154,19 +154,19 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 
 ** window layout & behavior :: single maximized buffer workflow
 - single maximized buffer workflow :: we explicitly never use more than a single window (we don't split a window) in the frame, since we can only ever focus on a single thing anyways, and thus in the meantime other windows would clutter the screen distractingly.  additionally using multiple windows introduces additional navigational overhead first having to go to the correct window before using ~switch-to-buffer~, ~harpoon~ etc. managing windows and placing them correctly is complex and inconsistent, some windows recieve focus, other's don't, some buffer's create a split, completely changing window layout, others don't.  instead of using windows, you should become really efficient at navigating between buffers using ~switch-to-buffer~, ~evil-switch-to-windows-last-buffer~, ~harpoon~ and evil's ~global-marks~.  it is more efficiet to just change the buffer in the current window, instead of getting disrupted by the newly opened window and having to change your eyes focus.  read more at [[file:~/.config/readme.org][readme.org]].
-- only horizontal split :: since emacs sometimes creates splits in special views (eg. magit, ediff), and thus we must handle them to consistently split below and never side-by-side, since due to the wm, our emacs window is in full height but has a constrained width, perfectly sized for displaying source-code / technical documents.
-- retionale :: we line-wrap every buffer at 100 for better readability, and only ever edit/view a SINGLE buffer at a time, hence vertical splits use screen realestate effectivly.
+- only horizontal split :: since emacs sometimes creates splits in special views (eg. magit, ediff) or for displaying additional information (lsp-help...), and thus we must handle them to consistently split below and never side-by-side, since due to the wm, our emacs window is in full height but has a constrained width, perfectly sized for displaying source-code / technical documents.
 
 #+begin_src elisp
 (setq evil-split-window-below t
       window-combination-resize t
       split-width-threshold nil) ;; force horizontal splits, always
 
-(setq display-buffer-alist `(;; exceptions :: display them like a menu => at the bottom of the screen (consistent with minibuffer prompt, whichkey, etc)
+(setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc
                              (,(rx (seq "*" (or "transient"
                                                 (seq "Org " (or "Select" "todo"))
                                                 "Agenda Commands"
-                                                "doom eval")))
+                                                "doom eval"
+                                                "lsp-help")))
                               (display-buffer-in-side-window)
                               (side . bottom)
                               (slot . 0)) ;; reuse bottom window if exists
@@ -174,6 +174,9 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
                              ("" (display-buffer-same-window))) ;; default (all buffer's no)
 
       switch-to-buffer-obey-display-actions t)
+
+;; close popup window (eg. *lsp-help*) from the main window with <escape> in normal mode
+(add-hook! 'doom-escape-hook #'delete-other-windows)
 
 (after! org
   (setq org-src-window-setup 'current-window ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
@@ -262,10 +265,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
                         "t" #'org-babel-tangle
                         "T" #'org-babel-detangle))
       (:prefix "n"
-               "g" #'org-capture-goto-last-stored)
-      ;; (:prefix "t"
-      ;;          "c" #'visual-fill-column-mode)
-      )
+               "g" #'org-capture-goto-last-stored))
 #+end_src
 
 ** global navigation
