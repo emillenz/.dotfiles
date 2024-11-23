@@ -16,7 +16,7 @@
       shell-command-prompt-show-cwd t
       fill-column 80
       async-shell-command-width 80
-      visual-fill-column-width
+      visual-fill-column-width 80
       which-key-idle-delay 0.5
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
@@ -150,7 +150,7 @@
 ;; [[file:config.org::*global navigation][global navigation:1]]
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
-      :nm "C-q"     #'kill-buffer-and-window ;; dwim
+      :nm "C-q"     #'kill-current-buffer
       :nm "C-s"     #'basic-save-buffer ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer

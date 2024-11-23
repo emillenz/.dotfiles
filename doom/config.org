@@ -95,7 +95,7 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
       shell-command-prompt-show-cwd t
       fill-column 80
       async-shell-command-width 80
-      visual-fill-column-width
+      visual-fill-column-width 80
       which-key-idle-delay 0.5
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
@@ -270,14 +270,14 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
 ** global navigation
 - follows the os-consistent keymap
-- when emacs creates windows (magit etc.) we must handle them.  using vim's traditional [[kbd:][c-w]] is just too many keypresses and we don't need all bindings.  since our window arrangement is at most 2 windows, we can condense all the bindings into just [[kbd:][c-w]].
+- when emacs creates windows (magit etc.) we must handle them.  using vim's traditional [[kbd:][c-w]] is just too many keypresses and we don't need all bindings.  since our window arrangement is at most 2 windows, we can condense all the bindings into just [[kbd:][c-w]].  (we close other windows with: [[kbd:][<C-g>]] or [[kbd:][<escape>]] when in normal mode (on ~doom/escape~).)
 - these mappings are universal to all programs (shell, emacs, browser, i3) and highly frequently accessed (from any mode/file).
 - workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, global-marks, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
 
 #+begin_src elisp
 (map! :map 'override
       :nm "C-w"     #'next-window-any-frame
-      :nm "C-q"     #'kill-buffer-and-window ;; dwim
+      :nm "C-q"     #'kill-current-buffer
       :nm "C-s"     #'basic-save-buffer ;; statistically most called command => ergonomic (& default) mapping
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer

@@ -34,7 +34,7 @@ alias cp 'cp --recursive --verbose'
 alias yay 'yay --noconfirm'
 alias curl 'curl --silent'
 alias sed 'sed --regexp-extended' # consistent regex-syntax with emacs, rg, fd, ...
-abbr ps 'ps -e -o user,pid,time,%cpu,%mem,command --sort=%cpu' # get overview
+abbr ps 'ps aux' # get overview
 abbr echo printf # get in the habit of using more powerful printf instead...
 
 # FZF

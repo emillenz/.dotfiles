@@ -33,8 +33,8 @@ PROCESSES = [
         'i3-back',
 ].freeze
 def spawn_processes
-        processes = `ps -e`.lines.drop(1).map do |line|
-                line.delete(':').split(/\s+/)[4..][0] # HACK :: delete(":") is from 'tmux: server'
+        processes = `ps -e -o command`.lines.drop(1).map do |line|
+                line.split(/\s+/)[0]
         end
 
         PROCESSES.each do |ps|
