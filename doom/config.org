@@ -148,7 +148,8 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 #+begin_src elisp
 (setq display-battery-mode nil
       display-time-mode nil
-      +modeline-height 8)
+      +modeline-height 8
+      +modeline-bar-width nil) ;; hide
 #+end_src
 
 ** window layout & behavior :: single maximized buffer workflow

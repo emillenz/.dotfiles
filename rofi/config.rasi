@@ -28,7 +28,7 @@ window {
         location:                    south;
         anchor:                      south;
         fullscreen:                  false;
-        width:                       100%;
+        width:                       53.2%; // aligned with i3 gaps
         x-offset:                    0px;
         y-offset:                    0px;
 
@@ -38,7 +38,7 @@ window {
         enabled:                     true;
         margin:                      0px;
         padding:                     0px 0px 0px 8px;
-        border:                      1px 0px 0px 0px;
+        border:                      1px;
         border-radius:               0px;
         border-color:                @background-alt;
         cursor:                      "default";

@@ -60,7 +60,8 @@
 ;; [[file:config.org::*modeline][modeline:1]]
 (setq display-battery-mode nil
       display-time-mode nil
-      +modeline-height 8)
+      +modeline-height 8
+      +modeline-bar-width nil) ;; hide
 ;; modeline:1 ends here
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
