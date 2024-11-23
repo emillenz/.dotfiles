@@ -18,6 +18,7 @@
   - we essentially extend our emacs/vim workflow of using harpoon to jump between files onto the wm, using global marks to goto to buffers immediately.  the only improvement is that we always preassign certain marks for our frequently used programs (editor, webbrowser, terminal, ...).
 - keyboard driven workflow only => vi-mnemonic bindings.  has a leader key system inbuilt that allows a extensible modal keybindingsystem.
 - strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
+- if at work and forced to use a desktop environment, just use [[kbd:][M-<tab>]] to switch windows and resize your emacs/webbrowser in a similar fashion to get 90% of the benefits of i3.
 
 * macros
 - no statusbar => using notifications to display volume change

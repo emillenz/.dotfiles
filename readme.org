@@ -118,7 +118,8 @@ i'm very opinionated and have high standards regarding design process and the ph
 :PROPERTIES:
 :created: [2024-05-21 Tue 11:38]
 :END:
-- don't use multiple monitors, instead just get used to the efficient & fast navigation- to navigate within virtual workspaces (using a window manager) which is faster (than physically reorienting your FOV) more extensible (have as many as you need), and more consistent (always available, even when on laptop).  additionally this navigational scheme can then be configured within applications, making your workflow there consistent and fast.
+- don't use multiple monitors, instead just get used to the efficient & fast navigation- to navigate within virtual workspaces (using a window manager) which is faster (than physically reorienting your FOV) more extensible (have as many as you need), and more consistent (always available, even when on laptop).
+- this is consistent with the navigational workflow inside emacs, where we also never use splits and instead use the current window.
 - managing windows over multiple monitors becomes increasingly complex and produces overhead.  it's faster to switch to the window you need instantaneously with a keyboard shortcut, instead of physically tilting the head (which is also unergonomic).  additionally we want consistency in the workflow inbetween using the laptop and desktop setup (if you even have that).
 - using a single monitor only not only makes you faster, but it also aligns with the focused singletasking fullscreen workflow.
 
