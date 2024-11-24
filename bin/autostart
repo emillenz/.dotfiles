@@ -15,6 +15,20 @@ def main
         CMDS.each { |cmd| system(cmd) }
 end
 
+def spawn_processes
+        processes = `ps -e -o comm`.lines.drop(1).map do |line|
+                line.gsub(/tmux:.*/, 'tmux').chomp # HACK: delete(":") is from 'tmux: server'
+        end
+
+        PROCESSES.each do |ps|
+                name = ps.split[0]
+                unless processes.include?(name)
+                        Process.detach(Process.spawn(ps, [:out, :err] => File::NULL))
+                        puts("started: #{name}")
+                end
+        end
+end
+
 CMDS = [
         'xsetroot -solid "#ffffff"', # modus-vivendi background color
         'xset dpms 0 0 0', # no screensaving (activate manually)
@@ -32,19 +46,5 @@ PROCESSES = [
         'batsignal -bpe -w 50 -c 20 -d 5',
         'i3-back',
 ].freeze
-def spawn_processes
-        processes = `ps -e -o command`.lines.drop(1).map do |line|
-                line.split(/\s+/)[0]
-        end
-
-        PROCESSES.each do |ps|
-                name = ps.split[0]
-                unless processes.include?(name)
-                        Process.detach(Process.spawn(ps, [:out, :err] => File::NULL))
-                        puts("started: #{name}")
-                end
-        end
-end
-
 
 main

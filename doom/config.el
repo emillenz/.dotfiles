@@ -14,9 +14,6 @@
       enable-recursive-minibuffers nil ;; less confusion
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
-      fill-column 80
-      async-shell-command-width 80
-      visual-fill-column-width 80
       which-key-idle-delay 0.5
       shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
 
@@ -25,8 +22,13 @@
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
-(global-visual-fill-column-mode) ;;
-(global-visual-line-mode)
+(let ((width 100))
+  (setq fill-column width
+        async-shell-command-width width
+        visual-fill-column-width width)
+  (global-visual-fill-column-mode)
+  (global-visual-line-mode))
+(add-hook! 'prog-mode-hook (visual-fill-column-mode -1)) ;; breaks with flycheck
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
@@ -94,6 +96,9 @@
 (after! magit
   (setq magit-commit-diff-inhibit-same-window t
         +magit-open-windows-in-direction 'down)) ;; for when commiting, let magit use it's own window layout.
+
+(after! man
+  (setq Man-notify-method 'pushy)) ;; use curr window
 ;; window layout & behavior :: single maximized buffer workflow:1 ends here
 
 ;; [[file:config.org::*rationale][rationale:1]]
@@ -186,6 +191,9 @@
 
 (map! :map company-mode-map :after company
       :i "C-n" #'company-complete)
+
+;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
+(setq evil-complete-previous-minibuffer-func #'(lambda () (apply evil-complete-previous-func '(1))))
 ;; minibuffer:1 ends here
 
 ;; [[file:config.org::*editing][editing:1]]
@@ -201,7 +209,7 @@
       :nv "g<"  #'evil-lion-left
       :nv "g>"  #'evil-lion-right
 
-      :nv "&"    #'query-replace-regexp
+      :nv "&"   #'query-replace-regexp
       :nv "s"   #'evil-surround-region
       :nv "S"   #'evil-Surround-region)
 
@@ -918,18 +926,14 @@ legibility."
         :n "<prior>" #'nov-scroll-down)
 
   (add-hook! 'nov-mode-hook
-             (progn
-               (setq-local visual-fill-column-width 80
-                           visual-fill-column-center-text t)
-               (visual-fill-column-mode)
-               (visual-line-mode))
+    (visual-fill-column-mode)
+    (visual-line-mode)
 
-             (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
-                         line-spacing 2) ;; padding increases focus on current line for long prose text.
+    (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
+                line-spacing 2) ;; padding increases focus on current line for long prose text.
 
-             (progn
-               (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
-               (hl-line-mode -1))))
+    (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
+    (hl-line-mode -1)))
 ;; nov: ebooks:1 ends here
 
 ;; [[file:config.org::*pdf view][pdf view:1]]
