@@ -77,16 +77,17 @@
                                                 (seq "Org " (or "Select" "todo"))
                                                 "Agenda Commands"
                                                 "doom eval"
+                                                "Backtrace"
                                                 "lsp-help")))
                               (display-buffer-in-side-window)
                               (side . bottom)
                               (slot . 0)) ;; reuse bottom window if exists
 
-                             ("" (display-buffer-same-window))) ;; default (all buffer's no)
+                             ("." (display-buffer-same-window))) ;; default (all buffer's)
 
       switch-to-buffer-obey-display-actions t)
 
-;; close popup window (eg. *lsp-help*) from the main window with <escape> in normal mode
+;; close popup window (eg. '*lsp-help*') from the main window with '<escape>' in normal mode
 (add-hook! 'doom-escape-hook #'delete-other-windows)
 
 (after! org
@@ -101,29 +102,29 @@
   (setq Man-notify-method 'pushy)) ;; use curr window
 ;; window layout & behavior :: single maximized buffer workflow:1 ends here
 
-;; [[file:config.org::*rationale][rationale:1]]
+;; [[file:config.org::*indentation][indentation:1]]
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
-(defvar u-global-indent-width 8)
+(let ((indent-width 8))
 
-(setq-default standard-indent u-global-indent-width
-              evil-shift-width u-global-indent-width
-              tab-width u-global-indent-width
-              org-indent-indentation-per-level u-global-indent-width
-              evil-indent-convert-tabs t
-              indent-tabs-mode nil)
+ (setq-default standard-indent indent-width
+               evil-shift-width indent-width
+               tab-width indent-width
+               org-indent-indentation-per-level indent-width
+               evil-indent-convert-tabs t
+               indent-tabs-mode nil)
 
-(setq-hook! '(c++-mode-hook
-              c-mode-hook
-              java-mode-hook)
-  tab-width u-global-indent-width
-  c-basic-offset u-global-indent-width
-  evil-shift-width u-global-indent-width)
+ (setq-hook! '(c++-mode-hook
+               c-mode-hook
+               java-mode-hook)
+   tab-width indent-width
+   c-basic-offset indent-width
+   evil-shift-width indent-width)
 
-(setq-hook! 'ruby-mode-hook
-  evil-shift-width u-global-indent-width
-  ruby-indent-level u-global-indent-width)
-;; rationale:1 ends here
+ (setq-hook! 'ruby-mode-hook
+   evil-shift-width indent-width
+   ruby-indent-level indent-width))
+;; indentation:1 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
@@ -168,20 +169,20 @@
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
       :n "j"   #'next-line-or-history-element
       :n "/"   #'previous-matching-history-element
-      :n "<return>" #'exit-minibuffer) ;; sane default
+      :n "RET" #'exit-minibuffer) ;; sane default
 
 (map! :map evil-ex-search-keymap :after evil
       :n "j" #'next-line-or-history-element
       :n "k" #'previous-line-or-history-element
       :n "/" #'previous-matching-history-element
-      :n "<return>" #'exit-minibuffer)
+      :n "RET" #'exit-minibuffer)
 
 (map! :map vertico-flat-map :after vertico
       :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
       :i "C-p" #'previous-line-or-history-element
       :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
       :n "j"   #'next-line-or-history-element
-      :n "<return>" #'vertico-exit ;; sane default
+      :n "RET" #'vertico-exit ;; sane default
       :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
@@ -199,19 +200,19 @@
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
       :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
-      :nv "S-<return>" #'newline-and-indent
+      :nv "L"    #'newline-and-indent ;; we don't use vim's M, H, L.  instead use relative-line-jumping/incsearch instead.
 
-      :nv "+"   #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
-      :nv "-"   #'evil-numbers/dec-at-pt
-      :nv "g+"  #'evil-numbers/inc-at-pt-incremental
-      :nv "g-"  #'evil-numbers/dec-at-pt-incremental
+      :nv "+"    #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
+      :nv "-"    #'evil-numbers/dec-at-pt
+      :nv "g+"   #'evil-numbers/inc-at-pt-incremental
+      :nv "g-"   #'evil-numbers/dec-at-pt-incremental
 
-      :nv "g<"  #'evil-lion-left
-      :nv "g>"  #'evil-lion-right
+      :nv "g<"   #'evil-lion-left
+      :nv "g>"   #'evil-lion-right
 
-      :nv "&"   #'query-replace-regexp
-      :nv "s"   #'evil-surround-region
-      :nv "S"   #'evil-Surround-region)
+      :nv "&"    #'query-replace-regexp
+      :nv "s"    #'evil-surround-region
+      :nv "S"    #'evil-Surround-region)
 
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-next-visual-line] #'evil-next-line)
