@@ -15,10 +15,10 @@ require 'English'
 ROFI_CMD = %w[rofi -dmenu -no-custom -i -p killprocess].freeze
 
 def main
-        processes = `ps -e`.lines.drop(1).map do |line|
-                columns = line.split(/\s+/)
-                name = columns[4..].join(' ').strip
-                pid = columns[1]
+        processes = `ps -e -o pid,comm`.lines.drop(1).map do |line|
+                columns = line.strip.split(/\s+/)
+                pid = columns[0]
+                name = columns[1..].join(' ')
                 [name, pid]
         end.to_h
 
