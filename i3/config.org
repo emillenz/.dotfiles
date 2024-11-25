@@ -78,7 +78,7 @@ set $GAPSIZE 450
 gaps horizontal $GAPSIZE
 smart_gaps inverse_outer
 
-bindsym $MOD+z fullscreen toggle
+bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 #+end_src
 
 * keybindings
