@@ -11,7 +11,7 @@
       confirm-kill-emacs nil
       hscroll-margin 0
       scroll-margin 0
-      enable-recursive-minibuffers nil ;; less confusion
+      enable-recursive-minibuffers nil
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       which-key-idle-delay 0.5
@@ -28,7 +28,9 @@
         visual-fill-column-width width)
   (global-visual-fill-column-mode)
   (global-visual-line-mode))
-(add-hook! 'prog-mode-hook (visual-fill-column-mode -1)) ;; breaks with flycheck
+(add-hook! '(prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
+             pdf-view-mode-hook) ;; using it's own centering mechanism
+  (visual-fill-column-mode -1))
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
@@ -39,7 +41,7 @@
   :config
   (setq modus-themes-italic-constructs t
         modus-themes-bold-constructs t
-        modus-themes-common-palette-overrides `((fg-region unspecified) ;; NOTE :: don't override syntax highlighting in region
+        modus-themes-common-palette-overrides `((fg-region unspecified) ;; don't grey out syntax highlighting in active region
                                                 (fg-heading-1 fg-heading-0)
                                                 (bg-prose-block-contents bg-dim)))
 
@@ -56,8 +58,10 @@
 (setq doom-font (font-spec :family "Iosevka Comfy" :size 13))
 (setq doom-variable-pitch-font (font-spec :family "Noto Serif" :size 13))
 
+(set-face-attribute 'line-number nil :inherit 'fixed)
+
 (after! shr
-  (setq shr-use-fonts nil)) ;; 'simple-html-rendering' lib ('shr') should always use the universally applicable default font since we can't presume the content to be displayed with it.
+  (setq shr-use-fonts nil))
 ;; font:1 ends here
 
 ;; [[file:config.org::*modeline][modeline:1]]
@@ -84,7 +88,8 @@
                               (slot . 0)) ;; reuse bottom window if exists
 
                              ;; default (all buffer's) :: replace existing window (side window is never used by this)
-                             ("." (display-buffer-use-some-window)))
+                             ("." (display-buffer-same-window
+                                   display-buffer-use-least-recent-window)))
 
       switch-to-buffer-obey-display-actions t)
 
@@ -106,25 +111,24 @@
 ;; [[file:config.org::*indentation][indentation:1]]
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
-(defvar u-global-indent-width 8)
+(let ((indent-width 8))
+ (setq-default standard-indent indent-width
+               evil-shift-width indent-width
+               tab-width indent-width
+               org-indent-indentation-per-level indent-width
+               evil-indent-convert-tabs t
+               indent-tabs-mode nil)
 
-(setq-default standard-indent u-global-indent-width
-              evil-shift-width u-global-indent-width
-              tab-width u-global-indent-width
-              org-indent-indentation-per-level u-global-indent-width
-              evil-indent-convert-tabs t
-              indent-tabs-mode nil)
+ (setq-hook! '(c++-mode-hook
+               c-mode-hook
+               java-mode-hook)
+   tab-width indent-width
+   c-basic-offset indent-width
+   evil-shift-width indent-width)
 
-(setq-hook! '(c++-mode-hook
-              c-mode-hook
-              java-mode-hook)
-  tab-width u-global-indent-width
-  c-basic-offset u-global-indent-width
-  evil-shift-width u-global-indent-width)
-
-(setq-hook! 'ruby-mode-hook
-  evil-shift-width u-global-indent-width
-  ruby-indent-level u-global-indent-width)
+ (setq-hook! 'ruby-mode-hook
+   evil-shift-width indent-width
+   ruby-indent-level indent-width))
 ;; indentation:1 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
@@ -156,9 +160,8 @@
 
 ;; [[file:config.org::*global navigation][global navigation:1]]
 (map! :map 'override
-      :nm "C-w"     #'next-window-any-frame
       :nm "C-q"     #'kill-current-buffer
-      :nm "C-s"     #'basic-save-buffer ;; statistically most called command => ergonomic (& default) mapping
+      :nm "C-s"     #'basic-save-buffer
       :nm "C-f"     #'find-file
       :nm "C-b"     #'consult-buffer
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer)
@@ -201,7 +204,6 @@
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
       :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
-      :nv "L"    #'newline-and-indent ;; we don't use vim's M, H, L.  instead use relative-line-jumping/incsearch instead.
 
       :nv "+"    #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
       :nv "-"    #'evil-numbers/dec-at-pt
@@ -219,6 +221,7 @@
 (define-key! [remap evil-next-visual-line] #'evil-next-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
 (define-key! [remap evil-previous-visual-line] #'evil-previous-line)
+(define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
 (define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
 
@@ -255,7 +258,7 @@
   (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
   (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
 
-  (defadvice! update-last-macro-register (fn &rest args)
+  (defadvice! u-update-last-macro-register (fn &rest args)
     "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
     set it to the just recorded macro.
 
@@ -266,10 +269,9 @@
     (when (not evil-last-register)
       (setq evil-last-register evil-last-recorded-register))))
 
-(defadvice! preserve-point (fn &rest args)
-  "when modifying the buffer with one of these functions, do the edit and then  restore point to where it was originally."
+(defadvice! u-preserve-point (fn &rest args)
   :around '(anzu-query-replace-regexp
-            anzu-query-replace
+            query-replace-regexp
             +format:region)
   (save-excursion
     (apply fn args)))
@@ -348,10 +350,11 @@
 
 ;; [[file:config.org::*dired/keybindings][dired/keybindings:1]]
 (map! :map dired-mode-map :after dired
-      :m "h" #'dired-up-directory
+      :m "h" #'dired-up-directory ;; navigate using hjkl
       :m "l" #'dired-open-file)
 
 (map! :map dired-mode-map :localleader :after dired
+      :m "d" #'dired-hide-details-mode
       :m "a" #'dired-archive)
 ;; dired/keybindings:1 ends here
 
@@ -362,9 +365,8 @@
   "`mv' marked file/s to: `u-archive-dir'/{relative-filepath-to-HOME}/{filename}"
   (interactive)
   (mapc (lambda (file)
-          (let* ((dest (--> file
-                            (file-relative-name it "~/")
-                            (file-name-concat u-archive-dir it)))
+          (let* ((dest (file-name-concat u-archive-dir
+                                         (file-relative-name file "~/")))
                  (dir (file-name-directory dest)))
             (unless (file-exists-p dir)
               (make-directory dir t))
@@ -419,18 +421,14 @@
       org-pretty-entities t
       org-pretty-entities-include-sub-superscripts t
       org-list-demote-modify-bullet '(("-"  . "-")
-                                      ("+"  . "+")
-                                      ("*"  . "-")
-                                      ("a." . "a)")
-                                      ("1." . "1)")
-                                      ("1)" . "a)"))
+                                      ("1." . "a."))
       org-blank-before-new-entry '((heading . nil)
                                    (plain-list-item . nil))
       org-src-ask-before-returning-to-edit-buffer nil)
 
 (add-hook! 'org-src-mode-hook (flycheck-mode -1)) ;; flycheck full of error's, since it only reads partial buffer.
 
-(defadvice! insert-newline-above (fn &rest args)
+(defadvice! u-insert-newline-above (fn &rest args)
   "pad newly inserted heading with newline unless is todo-item.
 
   since i often have todolists , where i don't want the newlines.  newlines are for headings that have a body of text."
@@ -439,7 +437,7 @@
              (not (org-entry-is-todo-p)))
     (+evil/insert-newline-above 1)))
 
-(defadvice! insert-newline-below (fn &rest args)
+(defadvice! u-insert-newline-below (fn &rest args)
   :after #'+org/insert-item-above
   (when (and (org-at-heading-p)
              (not (org-entry-is-todo-p)))
@@ -564,8 +562,8 @@
 and the later reviewed and merged into the corresponding article of the wiki.")
 
 (defvar u-u-doct-projects-default-templates '(u-doct-projects-task-template
-                                            u-doct-projects-event-template
-                                            u-doct-projects-note-template))
+                                              u-doct-projects-event-template
+                                              u-doct-projects-note-template))
 
 (defvar u-doct-projects `(("cs" :keys "c"
                            :templates ,u-u-doct-projects-default-templates
@@ -585,20 +583,19 @@ and the later reviewed and merged into the corresponding article of the wiki.")
 
 (defun doct-journal-file (&optional time)
   "returns a structured filename based on the current date.
-eg: 2024-11-03_journal.org
+eg: journal_2024-11-03.org
 TIME :: time in day of note to return. (default: today)"
-  (--> nil
-       (or time (current-time))
-       (format-time-string "%F" it)
-       (format "%s_journal.org" it)
-       (file-name-concat u-journal-dir it)))
+  (file-name-concat u-journal-dir
+                    (format "journal_%s.org"
+                            (format-time-string "%F"
+                                                (or time
+                                                    (current-time))))))
 
 (defun u-doct-projects-file (type path)
   "TYPE :: 'agenda | 'notes"
-  (--> nil
-       (symbol-name type)
-       (format "%s.org" it)
-       (file-name-concat org-directory path it)))
+  (file-name-concat org-directory
+                    path (format "%s.org"
+                                 (symbol-name type))))
 
 (defun u-doct-projects-task-template (path)
   (list "task"
@@ -669,16 +666,18 @@ PARENT-PATH :: nil (used for recursion) "
                    (path (file-name-concat parent-path tag)))
               (append self
                       (if children
-                          (--> nil ;; HAS CHILDREN => is project-node => recursivly expand children
-                               (list self)
-                               (u-doct-projects-expand-templates it templates) ;; template out of self
-                               (append it (u-doct-projects-expand-templates children templates path))
-                               (list :children it))
-                        (--> nil ;; NO CHILDREN => is leaf-node => instantiate templates
-                             (mapcar (lambda (fn-sym)
-                                       (funcall fn-sym path))
-                                     templates)
-                             (list :children it))))))
+                          ;; HAS CHILDREN => is project-node => recursivly expand children
+                          (list :children
+                                (append (u-doct-projects-expand-templates (list self)
+                                                                          templates)
+                                        (u-doct-projects-expand-templates children
+                                                                          templates
+                                                                          path)))
+
+                        ;; NO CHILDREN => is leaf-node => instantiate templates
+                        (list :children (mapcar (lambda (fn-sym)
+                                                  (funcall fn-sym path))
+                                                templates))))))
           projects))
 
 (setq org-capture-templates
@@ -690,9 +689,7 @@ PARENT-PATH :: nil (used for recursion) "
                :keys "j"
                :file (lambda () (doct-journal-file))
                :title (lambda ()
-                        (--> nil
-                             (format-time-string "journal: %A, %e. %B %Y")
-                             (downcase it)))
+                        (downcase (format-time-string "journal: %A, %e. %B %Y")))
 
                :children (("journal init"
                            :keys "j"
@@ -726,9 +723,8 @@ PARENT-PATH :: nil (used for recursion) "
                            :keys "y"
                            :unnarrowed t
                            :file (lambda ()
-                                   (--> nil
-                                        (time-subtract (current-time) (days-to-time 1))
-                                        (doct-journal-file it)))
+                                   (doct-journal-file (time-subtract (current-time)
+                                                                     (days-to-time 1))))
                            :template ("* gratitude"
                                       "- %?"
                                       ""
@@ -748,11 +744,11 @@ PARENT-PATH :: nil (used for recursion) "
                           ("init source"
                            :keys "i"
                            :file (lambda ()
-                                   (--> nil
-                                        (read-from-minibuffer "short title: ")
-                                        (replace-regexp-in-string " " "_" it)
-                                        (concat it ".org")
-                                        (file-name-concat u-literature-notes-dir it)))
+                                   (file-name-concat u-literature-notes-dir
+                                                     (concat (replace-regexp-in-string " "
+                                                                                       "_"
+                                                                                       (read-from-minibuffer "short title: "))
+                                                             ".org")))
                            :type plain
                            :template ("#+title:  %^{full title}"
                                       "#+author: %(user-full-name)"
@@ -835,7 +831,7 @@ PARENT-PATH :: nil (used for recursion) "
       org-agenda-time-grid nil
       org-capture-use-agenda-date t)
 
-(defadvice! add-newline (fn &rest args)
+(defadvice! u-add-newline (fn &rest args)
   "Separate dates in 'org-agenda' with newline."
   :around #'org-agenda-format-date-aligned
   (concat "\n" (apply fn args) ))
@@ -872,7 +868,6 @@ PARENT-PATH :: nil (used for recursion) "
 (after! devdocs
   (setq devdocs-window-select t))
 
-;; unfortunately using cl-loop/mapcar/dolist don't work...
 (setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
 (setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
@@ -944,9 +939,11 @@ legibility."
 ;; HACK :: must use a hook in order to override 'pdf-view' bindings ('map!' doesn't work)
 (add-hook! 'pdf-view-mode-hook
   (map! :map pdf-view-mode-map
-         ;; ergonomics when reading onehanded  (<next>, <prior> already mapped).
-        :n "<home>" #'pdf-view-scroll-down-or-previous-page
-        :n "<end>" #'pdf-view-scroll-up-or-next-page))
+        :n "r" #'revert-buffer
+
+         ;; ergonomics when reading onehanded
+        :n "<prior>" #'pdf-view-scroll-down-or-previous-page
+        :n "<next>" #'pdf-view-scroll-up-or-next-page))
 ;; pdf view:1 ends here
 
 ;; [[file:config.org::*yas: snippets][yas: snippets:1]]

@@ -3,6 +3,8 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2024-05-04
+# info:
+# - using `u_` prefix to indicate user defined functions (defined in `./functions`)
 # ---
 
 # OPTIONS
@@ -33,8 +35,11 @@ alias mv 'mv --verbose'
 alias cp 'cp --recursive --verbose'
 alias yay 'yay --noconfirm'
 alias curl 'curl --silent'
-alias sed 'sed --regexp-extended' # consistent regex-syntax with emacs, rg, fd, ...
-abbr echo printf # get in the habit of using more powerful printf instead...
+alias echo 'echo -e'
+alias mkdir u_mkdir
+alias mv u_mv
+alias cp u_cp
+alias e u_editor
 
 # FZF
 fzf_configure_bindings --directory=\cf --history --git_log --git_status --variables --processes # NOTE :: disable useless (history already inbuilt in fish: /)
@@ -43,51 +48,38 @@ set -gx FZF_DEFAULT_OPTS --reverse --height=16 --color light --scheme=path
 # VIM KEYBINDINGS
 set -g fish_key_bindings fish_vi_key_bindings
 bind --mode=normal K __fish_man_page # consistent with vim: K - view documentation
+bind --mode=normal V __fish_preview_current_file
 bind --mode=insert \t accept-autosuggestion
 bind --mode=insert \cn complete # consistent with vim: C-{n/p} - completion next/prev
 bind --mode=insert \cp up-line # consistent with vim: C-{n/p} - completion next/prev
-bind --mode=normal V __fish_preview_current_file
-bind --mode=normal V __fish_preview_current_file
-bind --mode=normal z clear-screen # consistent with vim: zz - center-screen
-# bind --mode=insert \ce edit_command_buffer # $VISUAL as editor.  this is disabled, since if the command is so complex that you need your editor, you should move to using ruby and/or a script buffer.
 
 # FUNCTIONS
 function fish_mode_prompt
-    # set to nil, since we indicate mode using the cursor.
+    # set to nil, since we indicate mode using the cursor-style.
 end
 
-function fish_prompt --description='newlines to clearly separate commands in history (+ allows to jump to begin/end of command in tmux using: {})'
+function fish_prompt --description="newlines to clearly separate commands in history (+ allows to jump to begin/end of command in tmux using: {}).
+    using modus theme colors configured by the terminal.
+"
     set -l last_exit_code $status # NOTE :: must be first statement
-    set -l last_exit_status $(
+    set -l last_exit_status (
         if test $last_exit_code -ne 0
-            printf (set_color $fish_color_error)"[$last_exit_code]"
+            echo -n (set_color $fish_color_error)"[$last_exit_code]"
         end
     )
     set -l dir (set_color $fish_color_cwd)(prompt_pwd --full-length-dirs 4)
-    set -l prompt "$(set_color brblue)>"
-    set -l fish_color_line_bg '#dae5ec' # modus theme
-    printf "\n $(set_color --background=$fish_color_line_bg --bold) $dir $last_exit_status $prompt $(set_color normal) "
-end
+    set -l prompt "$(set_color brblue)>$(set_color black)"
 
-function open_editor_dwim --description="open $EDITOR with args, if nil open $EDITOR with fileexplorer in current directory"
-    if test -z "$argv"
-        $EDITOR .
-    else
-        $EDITOR $argv
-    end
-end
-alias e open_editor_dwim
-
-function mkdir_cd --description='create a directory and set cwd'
-    command mkdir $argv
-    if test $status = 0
-        switch $argv[(count $argv)]
-            case '-*'
-                #
-            case '*'
-                cd $argv[(count $argv)]
-                return
+    set -l git_branch (
+        if git branch &>/dev/null
+            echo -n $(set_color bryellow)"[$(git branch --color=always --show-current)]"
+            else
+                echo -n ""
         end
-    end
+
+    )
+
+    set -l fish_color_line_bg '#dae5ec' # modus theme active bg (os global accent color)
+    echo -e "\n $(set_color --background=$fish_color_line_bg --bold) $git_branch $dir $last_exit_status $prompt $(set_color normal) "
 end
-alias mkdir mkdir_cd
+

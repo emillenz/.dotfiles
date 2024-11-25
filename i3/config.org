@@ -149,28 +149,28 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 
 #+name: mark-classes
 #+begin_src elisp
-(defvar mark-classes '(("term" "t" "Alacritty" "alacritty --command tmux new-session -n term -A -s main")
-                       ("editor" "e" "Emacs" "emacsclient --reuse-frame")
-                       ("web" "w" "firefox" "firefox")
-                       ("vid" "v" "mpv")
-                       ("img" "i" "Nsxiv")))
+(let ((mark-classes '(("term" "t" "Alacritty" "alacritty --command tmux new-session -n term -A -s main")
+                      ("editor" "e" "Emacs" "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)")
+                      ("web" "w" "firefox" "firefox")
+                      ("vid" "v" "mpv")
+                      ("img" "i" "Nsxiv"))))
 
-(mapconcat (lambda (tuple)
-             (let* ((name (nth 0 tuple))
-                    (key (nth 1 tuple))
-                    (class (nth 2 tuple))
-                    (cmd (or (nth 3 tuple) nil))
-                    (mark (upcase key)))
-               (mapconcat #'identity
-                          (list (concat "# " (upcase name))
-                                (concat "for_window [class=\"" class "\"] mark " mark)
-                                (concat "bindsym $MOD+" mark
-                                        " exec --no-startup-id i3-msg '[con_mark=" mark
-                                        "] focus' || (i3-msg '[class=\"" class
-                                        "\"] focus' && i3-msg 'mark " mark "')" (when cmd (concat " || " cmd))))
-                          "\n")))
-           mark-classes
-           "\n\n")
+  (mapconcat (lambda (tuple)
+               (let* ((name (nth 0 tuple))
+                      (key (nth 1 tuple))
+                      (class (nth 2 tuple))
+                      (cmd (or (nth 3 tuple) nil))
+                      (mark (upcase key)))
+                 (mapconcat #'identity
+                            (list (concat "# " (upcase name))
+                                  (concat "for_window [class=\"" class "\"] mark " mark)
+                                  (concat "bindsym $MOD+" mark
+                                          " exec --no-startup-id i3-msg '[con_mark=" mark
+                                          "] focus' || (i3-msg '[class=\"" class
+                                          "\"] focus' && i3-msg 'mark " mark "')" (when cmd (concat " || " cmd))))
+                            "\n")))
+             mark-classes
+             "\n\n"))
 #+end_src
 
 (read: ~m-x info-display-manual org~ chapter: "16 working with source code", if you don't know what kind magic is going on there)
@@ -183,9 +183,6 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 #+begin_src conf
 bindsym $MOD+space mode "leader"
 mode "leader" {
-        # used to call autostart script, when daemons/processes were killed.
-        bindsym $MOD+r restart
-
         bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
         bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
         bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC

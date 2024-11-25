@@ -95,7 +95,7 @@ bindsym $MOD+T exec --no-startup-id i3-msg '[con_mark=T] focus' || (i3-msg '[cla
 
 # EDITOR
 for_window [class="Emacs"] mark E
-bindsym $MOD+E exec --no-startup-id i3-msg '[con_mark=E] focus' || (i3-msg '[class="Emacs"] focus' && i3-msg 'mark E') || emacsclient --reuse-frame
+bindsym $MOD+E exec --no-startup-id i3-msg '[con_mark=E] focus' || (i3-msg '[class="Emacs"] focus' && i3-msg 'mark E') || emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 
 # WEB
 for_window [class="firefox"] mark W
@@ -113,9 +113,6 @@ bindsym $MOD+I exec --no-startup-id i3-msg '[con_mark=I] focus' || (i3-msg '[cla
 # [[file:config.org::*leader][leader:1]]
 bindsym $MOD+space mode "leader"
 mode "leader" {
-        # used to call autostart script, when daemons/processes were killed.
-        bindsym $MOD+r restart
-
         bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
         bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
         bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
