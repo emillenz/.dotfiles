@@ -28,7 +28,7 @@ window {
         location:                    south;
         anchor:                      south;
         fullscreen:                  false;
-        width:                       53.2%; // aligned with i3 gaps
+        width:                       100%; // aligned with i3 gaps
         x-offset:                    0px;
         y-offset:                    0px;
 
