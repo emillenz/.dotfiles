@@ -24,22 +24,15 @@ workspace_auto_back_and_forth no
 workspace_layout tabbed
 force_focus_wrapping no
 default_orientation horizontal
-default_border normal 1
+# <pixel> hides titlebars when only window on the workspace
+default_border pixel 1
 hide_edge_borders smart_no_gaps
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 for_window [all] focus, title_window_icon no, floating disable
-# opts:1 ends here
-
-# [[file:config.org::*gaps][gaps:1]]
-# 1920x1080 display (adjust ifdifferent screenresolution)
-set $GAPSIZE 450
-gaps horizontal $GAPSIZE
 smart_gaps inverse_outer
-
-bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
-# gaps:1 ends here
+# opts:1 ends here
 
 # [[file:config.org::*keybindings][keybindings:1]]
 set $MOD Mod1
@@ -72,6 +65,9 @@ bindsym $MOD+equal        $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
 bindsym $MOD+bracketleft  $SHCMD playerctl previous
 bindsym $MOD+backslash    $SHCMD playerctl play-pause
+
+# in case you must display workspace temporarily without gaps.
+bindsym $MOD+z fullscreen toggle
 # keybindings:1 ends here
 
 # [[file:config.org::*navigational bindings][navigational bindings:1]]
@@ -83,32 +79,37 @@ bindsym $MOD+q          kill
 bindsym $MOD+b          $SHCMD rofi -show window
 bindsym $MOD+semicolon  $SHCMD rofi -show drun
 bindsym $MOD+Return     move workspace to output next
-bindsym $MOD+Tab        [con_mark=_back] focus
+bindsym $MOD+Tab        workspace back_and_forth
 bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
 bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 # navigational bindings:1 ends here
 
-# [[file:config.org::*marks][marks:2]]
-# TERM
-for_window [class="Alacritty"] mark T
-bindsym $MOD+T exec --no-startup-id i3-msg '[con_mark=T] focus' || (i3-msg '[class="Alacritty"] focus' && i3-msg 'mark T') || alacritty --command tmux new-session -n term -A -s main
+# [[file:config.org::*gaps][gaps:2]]
+# WORKSPACE: TERM
+workspace term gaps horizontal 500
+for_window [class="Alacritty"] move container to workspace term
+bindsym $MOD+t workspace term
+bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -n term -A -s main
 
-# EDITOR
-for_window [class="Emacs"] mark E
-bindsym $MOD+E exec --no-startup-id i3-msg '[con_mark=E] focus' || (i3-msg '[class="Emacs"] focus' && i3-msg 'mark E') || emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
+# WORKSPACE: EDITOR
+workspace editor gaps horizontal 500
+for_window [class="Emacs"] move container to workspace editor
+bindsym $MOD+e workspace editor
+bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 
-# WEB
-for_window [class="firefox"] mark W
-bindsym $MOD+W exec --no-startup-id i3-msg '[con_mark=W] focus' || (i3-msg '[class="firefox"] focus' && i3-msg 'mark W') || firefox
+# WORKSPACE: WEB
+for_window [class="firefox"] move container to workspace web
+bindsym $MOD+w workspace web
+bindsym $MOD+shift+w exec --no-startup-id firefox
 
-# VID
-for_window [class="mpv"] mark V
-bindsym $MOD+V exec --no-startup-id i3-msg '[con_mark=V] focus' || (i3-msg '[class="mpv"] focus' && i3-msg 'mark V')
+# WORKSPACE: VID
+for_window [class="mpv"] move container to workspace vid
+bindsym $MOD+v workspace vid
 
-# IMG
-for_window [class="Nsxiv"] mark I
-bindsym $MOD+I exec --no-startup-id i3-msg '[con_mark=I] focus' || (i3-msg '[class="Nsxiv"] focus' && i3-msg 'mark I')
-# marks:2 ends here
+# WORKSPACE: IMG
+for_window [class="Nsxiv"] move container to workspace img
+bindsym $MOD+i workspace img
+# gaps:2 ends here
 
 # [[file:config.org::*leader][leader:1]]
 bindsym $MOD+space mode "leader"
@@ -152,7 +153,7 @@ client.background       $BG
 bar {
         mode hide
         hidden_state hide
-        workspace_buttons no
+        workspace_buttons yes
         binding_mode_indicator yes
         modifier none
         tray_output primary

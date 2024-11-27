@@ -30,7 +30,7 @@ def spawn_processes
 end
 
 CMDS = [
-        'xsetroot -solid "#ffffff"', # modus-vivendi background color
+        'xsetroot -solid "#f2f2f2"', # minimalist simple color bg => modus-vivendi dim-fg (distinguish apps with #000000 normal bg color from bg)
         'xset dpms 0 0 0', # no screensaving (activate manually)
         'xset s off',
         'xset r off', # disable key repeat (efficiency!)
@@ -38,13 +38,13 @@ CMDS = [
 
 PROCESSES = [
         'tmux new-session -d -s main',
-        'emacs --daemon',
+        'alacritty --command tmux new-session -n term -A -s main',
+        'emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)',
         "sudo xremap --watch device #{ENV['HOME']}/.config/xremap/config.yml & disown",
         'keepassxc',
         'playerctld',
         'unclutter',
         'batsignal -bpe -w 50 -c 20 -d 5',
-        'i3-back',
 ].freeze
 
 main

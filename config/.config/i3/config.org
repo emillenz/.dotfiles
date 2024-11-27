@@ -46,40 +46,22 @@ exec_always --no-startup-id $BIN/autostart &
 #+end_src
 
 * opts
+- minimalist borders
 - force all windows into tabbed mode, never allow floating windows.
+- no widow icons (bloat)
 #+begin_src conf
 workspace_auto_back_and_forth no
 workspace_layout tabbed
 force_focus_wrapping no
 default_orientation horizontal
-default_border normal 1
+# <pixel> hides titlebars when only window on the workspace
+default_border pixel 1
 hide_edge_borders smart_no_gaps
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 for_window [all] focus, title_window_icon no, floating disable
-#+end_src
-
-* gaps
-- constrain window-width and centering windows to the middle of the screen.
-- this make the single-focus workflow more ergonomic and focused.
-- terminal, editor, etc. uncomfortably align to the left edge of the screen.  whereas other windows contents (like the browser) are already ergonomically centered and constrained, which causes you to refocus the fov from the edge to the center of the window (& vice versa).
-- narrowed fov yields improved readability & focus of textparagraphs, especially if you stare at the computer for 8+ hours a day.
-- the data is compact and coherent
-- vertical navigation is easier than horizontal
-- reading code/data/formulas is easiest sequentially = top to bottom // vs horizontally
-  - take math as example, its easier to read equations if they are short and concise on newline, rather than in one big equation
-  - coding: typically one statement per line
-- line wrap :: command outputs or browser webpages are often not fixed to some width, instead displayed across the entire available width, thus making it very hard to not loose focus of the current line.  using gaps, it makes the text easier to read.
-- gapsize :: since we aren't in a position to presume what content a window will display, we use a compromise that will work for the majority of programs & websites (making enough space for a small index colum and a text column, as found on eg. wikipedia).  if it is insufficient, the user can just toggle fullscreen.
-
-#+begin_src conf
-# 1920x1080 display (adjust ifdifferent screenresolution)
-set $GAPSIZE 450
-gaps horizontal $GAPSIZE
 smart_gaps inverse_outer
-
-bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 #+end_src
 
 * keybindings
@@ -118,6 +100,9 @@ bindsym $MOD+equal        $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
 bindsym $MOD+bracketleft  $SHCMD playerctl previous
 bindsym $MOD+backslash    $SHCMD playerctl play-pause
+
+# in case you must display workspace temporarily without gaps.
+bindsym $MOD+z fullscreen toggle
 #+end_src
 
 * navigational bindings
@@ -133,48 +118,93 @@ bindsym $MOD+q          kill
 bindsym $MOD+b          $SHCMD rofi -show window
 bindsym $MOD+semicolon  $SHCMD rofi -show drun
 bindsym $MOD+Return     move workspace to output next
-bindsym $MOD+Tab        [con_mark=_back] focus
+bindsym $MOD+Tab        workspace back_and_forth
 bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
 bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 #+end_src
 
-* marks
-- use mnemonic UPPERCASEmarks for our most used programs (if accessing a temporary window often in the current sessino, mark it with ~$MOD+m~ and goto to it using ~$MOD+apostrophe~).  the idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remains the same.  (eg: vim instead of emacs)
-- these main apps have a dedicated open shortcut, all other apps are better to be opened via rofi desktop laucher.
-- the braces around the commands are required, otherwise undefined behaviour.
+* workspaces
+- the idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remain the same.  (eg: vim instead of emacs).
+- each workspace has it's own optimal gap size for a focused & ergonomic view (browser's fullscreen, text-based programs width constrained).
+- if you are forced to work with a desktop environment, you can easily replicate this config by manually puttin clients on separate workspaces and using Alt+<number> to swtich.
+- workspace assigned programs are started automatically by the ~autostart~ script and a binding to open them client-server style when it makes sense (if accidentally closed), all other apps are to be opened via rofi desktop laucher.  ensuring these programs are always running just reduces mental overhead and startup time.
+- the parenthesis around the commands are required, otherwise undefined behaviour.
 - get window title & class information using: ~xprop~
-- DWIM try until succeed:
-  1) goto to existing marked window
-  2) switch to window of the class and mark it
-  3) lauch the program according (client-server style if possible).
+- for windows that are not assigned to workspaces it is most efficient to use the rofi find-window menu.
+- workspaces are powerful, since they allow multiple windows of the same class to be opened on the same workspace (eg. multiple instances of zathura).  and they allow per window gaps/fulscreen configuration.
+
+** gaps
+- constrain window-width and centering windows to the middle of the screen.
+- this make the single-focus workflow more ergonomic and focused.
+- terminal, editor, etc. uncomfortably align to the left edge of the screen.  whereas other windows contents (like the browser) are already ergonomically centered and constrained, which causes you to refocus the fov from the edge to the center of the window (& vice versa).
+- narrowed fov yields improved readability & focus of textparagraphs, especially if you stare at the computer for 8+ hours a day.
+- the data is compact and coherent
+- vertical navigation is easier than horizontal
+- reading code/data/formulas is easiest sequentially = top to bottom // vs horizontally
+  - take math as example, its easier to read equations if they are short and concise on newline, rather than in one big equation
+  - coding: typically one statement per line
+- line wrap :: command outputs or browser webpages are often not fixed to some width, instead displayed across the entire available width, thus making it very hard to not loose focus of the current line.  using gaps, it makes the text easier to read.
+- gapsize :: 1920x1080 display (adjust ifdifferent screenresolution)
 
 #+name: mark-classes
 #+begin_src elisp
-(let ((mark-classes '(("term" "t" "Alacritty" "alacritty --command tmux new-session -n term -A -s main")
-                      ("editor" "e" "Emacs" "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)")
-                      ("web" "w" "firefox" "firefox")
-                      ("vid" "v" "mpv")
-                      ("img" "i" "Nsxiv"))))
+(let ((gapsize 500)
+      (mark-classes '(;; ("name" "key" "wmclass" "startcmd" "gaps")
+                      ("term"
+                       "t"
+                       "Alacritty"
+                       "alacritty --title term --command tmux new-session -n term -A -s main"
+                       t)
+
+                      ("editor"
+                       "e"
+                       "Emacs"
+                       "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"
+                       t)
+
+                      ("web"
+                       "w"
+                       "firefox"
+                       "firefox")
+
+                      ("vid"
+                       "v"
+                       "mpv")
+
+                      ("img"
+                       "i"
+                       "Nsxiv"))))
 
   (mapconcat (lambda (tuple)
                (let* ((name (nth 0 tuple))
                       (key (nth 1 tuple))
                       (class (nth 2 tuple))
-                      (cmd (or (nth 3 tuple) nil))
-                      (mark (upcase key)))
+                      (cmd (nth 3 tuple))
+                      (gaps-flag (nth 4 tuple)))
+
                  (mapconcat #'identity
-                            (list (concat "# " (upcase name))
-                                  (concat "for_window [class=\"" class "\"] mark " mark)
-                                  (concat "bindsym $MOD+" mark
-                                          " exec --no-startup-id i3-msg '[con_mark=" mark
-                                          "] focus' || (i3-msg '[class=\"" class
-                                          "\"] focus' && i3-msg 'mark " mark "')" (when cmd (concat " || " cmd))))
+                            (remove nil (list (format "# WORKSPACE: %s" (upcase name))
+
+                                              (when gaps-flag
+                                                (format "workspace %s gaps horizontal %s"
+                                                        name
+                                                        gapsize))
+
+                                              (format "for_window [class=\"%s\"] move container to workspace %s"
+                                                      class
+                                                      name)
+
+                                              (format "bindsym $MOD+%s workspace %s"
+                                                      key
+                                                      name)
+
+                                              (when cmd (format "bindsym $MOD+shift+%s exec --no-startup-id %s" key cmd))))
                             "\n")))
              mark-classes
              "\n\n"))
 #+end_src
 
-(read: ~m-x info-display-manual org~ chapter: "16 working with source code", if you don't know what kind magic is going on there)
+(read: ~M-x info-display-manual org~ chapter: "16 working with source code", if you don't know what kind magic is going on there)
 #+begin_src conf
 <<mark-classes()>>
 #+end_src
@@ -237,7 +267,7 @@ client.background       $BG
 bar {
         mode hide
         hidden_state hide
-        workspace_buttons no
+        workspace_buttons yes
         binding_mode_indicator yes
         modifier none
         tray_output primary
