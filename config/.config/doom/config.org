@@ -496,7 +496,8 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 
 #+begin_src elisp
 (after! dired
-  (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+  ;; make it more visually minimal, toggle all the details if needed explicitly.
+  (add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
 
   ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
@@ -517,15 +518,16 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 ** dired/keybindings
 - filemanagers :: avoid using integrated filemanagers (such as dired / ranger / lf) whenever possible replace them with shell commands and fuzzy-finding (in project/root/recentfiles)
 - in most cases it is more extensible and faster using tools such as emacs find-file in combination with fuzzy finding and using global bookmarks for frequently used projects/files.
-- create new files/dir's using ~find-file~ (inserts filetemplate properly)
+- create new files/dir's using ~find-file~ instead of ~dired-create-empty-file~ (inserts filetemplate properly)
 #+begin_src elisp
 (map! :map dired-mode-map :after dired
       :m "h" #'dired-up-directory ;; navigate using hjkl
       :m "l" #'dired-open-file)
 
-(map! :map dired-mode-map :localleader :after dired
-      :m "d" #'dired-hide-details-mode
-      :m "a" #'dired-archive)
+(map! :map dired-mode-map :localleader :after dired-x
+      "h" (cmd! (call-interactively #'dired-omit-mode)
+                (call-interactively #'dired-hide-details-mode))
+      "a" #'dired-archive)
 #+end_src
 
 ** archive file

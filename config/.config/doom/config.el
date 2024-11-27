@@ -331,7 +331,8 @@
 
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
-  (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+  ;; make it more visually minimal, toggle all the details if needed explicitly.
+  (add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
 
   ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
@@ -354,9 +355,10 @@
       :m "h" #'dired-up-directory ;; navigate using hjkl
       :m "l" #'dired-open-file)
 
-(map! :map dired-mode-map :localleader :after dired
-      :m "d" #'dired-hide-details-mode
-      :m "a" #'dired-archive)
+(map! :map dired-mode-map :localleader :after dired-x
+      "h" (cmd! (call-interactively #'dired-omit-mode)
+                (call-interactively #'dired-hide-details-mode))
+      "a" #'dired-archive)
 ;; dired/keybindings:1 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
