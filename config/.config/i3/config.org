@@ -72,6 +72,7 @@ for_window [all] focus, title_window_icon no, floating disable
   - coding: typically one statement per line
 - line wrap :: command outputs or browser webpages are often not fixed to some width, instead displayed across the entire available width, thus making it very hard to not loose focus of the current line.  using gaps, it makes the text easier to read.
 - gapsize :: since we aren't in a position to presume what content a window will display, we use a compromise that will work for the majority of programs & websites (making enough space for a small index colum and a text column, as found on eg. wikipedia).  if it is insufficient, the user can just toggle fullscreen.
+
 #+begin_src conf
 # 1920x1080 display (adjust ifdifferent screenresolution)
 set $GAPSIZE 450

@@ -9,21 +9,20 @@
 - if you use a different packagemanager you must ensure to install these programs on your own in order to get my workflow to work.
 - run this script as root -> get no prompts
 
-* link neccessary config files
-- some programs don't adhere to ~XDG_CONFIG_DIR~ standards, hence we symlink to the right location.
-#+begin_src sh
-ln --symbolic inputrc $HOME/.inputrc
-ln --symbolic clang-format $HOME/.clang-format
-ln --symbolic ./mimeapps/emacsclient.desktop $HOME/.local/share/applicatios/emacsclient.desktop
-#+end_src
-
-#+RESULTS:
-
-
 * setup
 #+begin_src sh
 sudo pacman -Syyu
 #+end_src
+
+* link neccessary config files
+- some programs don't adhere to ~XDG_CONFIG_DIR~ standards, hence we use GNU stow and symlink the important config files.
+- backup your own config directory if neccessary since this will override any previous configuration.
+#+begin_src sh
+yay --noconfirm --sync stow
+stow --adopt home config
+git revert . # neccessary for override
+#+end_src
+
 
 * core tools
 ** terminal, shell, scripting
@@ -70,12 +69,11 @@ $HOME/.config/emacs/bin/doom install
 
 * gui apps & packages
 #+begin_src sh
-yay --noconfirm --sync i3-wm zathura zathura-pdf-mupdf arandr mpv yt-dlp brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst nsxiv maim xorg-xset xorg-xsetroot batsignal pamixer rofi tlp
+yay --noconfirm --sync i3-wm arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst feh maim xorg-xset xorg-xsetroot batsignal pamixer rofi
 #+end_src
 
 ** enable daemons
 #+begin_src sh
 sudo systemctl enable sshd
 sudo systemctl enable mpd
-sudo systemctl enable bluetooth
 #+end_src

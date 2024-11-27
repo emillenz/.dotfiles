@@ -332,6 +332,7 @@
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
   (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+
   ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
                                         (let ((extensions (car pair))
@@ -340,7 +341,7 @@
                                                     (cons ext app))
                                                   extensions)))
                                       '((("mkv" "webm" "mp4" "mp3") . "mpv")
-                                        (("gif" "jpeg" "jpg" "png") . "nsxiv")
+                                        (("gif" "jpeg" "jpg" "png") . "feh")
                                         (("docx" "odt" "odf")       . "libreoffice")))
         dired-recursive-copies 'always
         dired-recursive-deletes 'always

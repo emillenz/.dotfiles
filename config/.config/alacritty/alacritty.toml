@@ -8,8 +8,6 @@
 # - all i need from a terminal is to be blazingly fast
 # ---
 
-live_config_reload = true
-
 [cursor]
 unfocused_hollow = false
 
@@ -22,10 +20,6 @@ size = 10
 
 [mouse]
 hide_when_typing = true
-
-[shell]
-program = "/usr/bin/fish"
-args = ["--login"]
 
 [window]
 decorations = "full"

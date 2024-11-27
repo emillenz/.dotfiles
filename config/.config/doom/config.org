@@ -497,6 +497,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 #+begin_src elisp
 (after! dired
   (add-hook! 'dired-mode-hook #'dired-hide-details-mode) ;; less clutter (enable manually if needed)
+
   ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
                                         (let ((extensions (car pair))
@@ -505,7 +506,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
                                                     (cons ext app))
                                                   extensions)))
                                       '((("mkv" "webm" "mp4" "mp3") . "mpv")
-                                        (("gif" "jpeg" "jpg" "png") . "nsxiv")
+                                        (("gif" "jpeg" "jpg" "png") . "feh")
                                         (("docx" "odt" "odf")       . "libreoffice")))
         dired-recursive-copies 'always
         dired-recursive-deletes 'always

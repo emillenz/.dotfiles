@@ -1,16 +1,16 @@
 #!/bin/bash
-# [[file:setup.org::*link neccessary config files][link neccessary config files:1]]
-ln --symbolic inputrc $HOME/.inputrc
-ln --symbolic clang-format $HOME/.clang-format
-ln --symbolic ./mimeapps/emacsclient.desktop $HOME/.local/share/applicatios/emacsclient.desktop
-# link neccessary config files:1 ends here
-
 # [[file:setup.org::*setup][setup:1]]
 sudo pacman -Syyu
 # setup:1 ends here
 
+# [[file:setup.org::*link neccessary config files][link neccessary config files:1]]
+yay --noconfirm --sync stow
+stow --adopt home config
+git revert . # neccessary for override
+# link neccessary config files:1 ends here
+
 # [[file:setup.org::*terminal, shell, scripting][terminal, shell, scripting:1]]
-yay --noconfirm --sync alacritty curl libtool fzf fd ripgrep xclip xdg-utils cmake bat git gcc make xdotool htop-vim ttf-iosevka-comfy tmux tldr
+yay --noconfirm --sync alacritty curl libtool fzf fd ripgrep xclip xdg-utils cmake bat git gcc make xdotool ttf-iosevka-comfy tmux tldr
 # terminal, shell, scripting:1 ends here
 
 # [[file:setup.org::*interactive shell: fish][interactive shell: fish:1]]
@@ -43,11 +43,10 @@ $HOME/.config/emacs/bin/doom install
 # editor: doom emacs:1 ends here
 
 # [[file:setup.org::*gui apps & packages][gui apps & packages:1]]
-yay --noconfirm --sync i3-wm zathura zathura-pdf-mupdf arandr mpv yt-dlp brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst nsxiv maim xorg-xset xorg-xsetroot batsignal pamixer rofi tlp
+yay --noconfirm --sync i3-wm arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst feh maim xorg-xset xorg-xsetroot batsignal pamixer rofi
 # gui apps & packages:1 ends here
 
 # [[file:setup.org::*enable daemons][enable daemons:1]]
 sudo systemctl enable sshd
 sudo systemctl enable mpd
-sudo systemctl enable bluetooth
 # enable daemons:1 ends here
