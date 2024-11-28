@@ -83,18 +83,19 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 
 # [[file:config.org::*gaps][gaps:1]]
 # 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
-set $GAPSIZE 400
-gaps horizontal $GAPSIZE
+set $GAPSIZE 500
 bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 # gaps:1 ends here
 
 # [[file:config.org::*workspaces][workspaces:2]]
 # WORKSPACE: TERM
+workspace term gaps horizontal $GAPSIZE
 for_window [class="Alacritty"] move container to workspace term
 bindsym $MOD+t workspace term
 bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -n term -A -s main
 
 # WORKSPACE: EDITOR
+workspace editor gaps horizontal $GAPSIZE
 for_window [class="Emacs"] move container to workspace editor
 bindsym $MOD+e workspace editor
 bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
