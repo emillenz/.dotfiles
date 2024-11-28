@@ -141,8 +141,7 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 
 * workspaces
 - the idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remain the same.  (eg: vim instead of emacs).
-- each workspace has it's own optimal gap size for a focused & ergonomic view (browser's fullscreen, text-based programs width constrained).
-- if you are forced to work with a desktop environment, you can easily replicate this config by manually puttin clients on separate workspaces and using Alt+<number> to swtich.
+- if you are forced to work with a desktop environment, you can easily replicate this config by manually putting clients on separate workspaces and using [[kbd:][MOD+<number>]] to switch.
 - workspace assigned programs are started automatically by the ~autostart~ script and a binding to open them client-server style when it makes sense (if accidentally closed), all other apps are to be opened via rofi desktop laucher.  ensuring these programs are always running just reduces mental overhead and startup time.
 - the parenthesis around the commands are required, otherwise undefined behaviour.
 - get window title & class information using: ~xprop~

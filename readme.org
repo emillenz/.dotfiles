@@ -124,14 +124,17 @@ i'm very opinionated and have high standards regarding design process and the ph
 - using a single monitor only not only makes you faster, but it also aligns with the focused singletasking fullscreen workflow.
 
 * keybindings
-** general notes
-- [[kbd:][ctrl]] :: mapped to [[kbd:][capslock]].  additionally we use [[kbd:][C-[]] instead of [[kbd:][esc]].  this greatly increases ergonomics and speed for all ctrl-bindings.
-  - when bill-joy orignially developed VI, the terminal's keyboard, had [[kbd:][esc]] on todays [[kbd:][tab]] and [[kbd:][ctrl]] on [[kbd:][caps.]]  this is where [[kbd:][ctrl]] should have always stayed at.  it is more ergonomic and faster than using the incredibly unergonomic and hard to reach [[kbd:][backspace.]]  hence we implement these bindings in all apps.
-- deleting characters :: instead of spamming unergonomic [[kbd:][backspace]], get in the habit of always directly using [[kbd:][C-h/w/u]] instead. - typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
+- typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
 - ctrl-map :: bindings found on this layer are related to navigation (~switch-to-buffer~, ~find-file~, ~jump-backwards~, etc..)
-- key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][c-u/d]]  not spamming delete, instead using [[kbd:][d-motion]]
+- key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][C-u/d]]  not spamming delete, instead using [[kbd:][d-motion]]
+- remaps :: [[file:config/.config/xremap/config.org][remapping tool (xremap) configuration file]]
 
 ** navigational standard
+- condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.
+  - [[kbd:][ctrl]] :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
+- inter program keyboard shortcuts consistency is important because they make the keys easier to remember and you will not have to learn multiple paradigms of keymaps.  the here defined set of keybindings are shared across applications (webbrowser, emacs, terminal, etc)
+- windowmanager :: the set of program-names during runtime is known and consistent (unlike tabs in applications, where we cannot make presumtions about the contents of the tabs, hence we use numbers), we use specific-chars for switching to the tabs.
+
 | mod+key | action                   | consistency                                              |
 |---------+--------------------------+----------------------------------------------------------|
 | [[kbd:][b]]       | buffer/window, prompt    | vim: :b <name>                                           |
@@ -140,11 +143,6 @@ i'm very opinionated and have high standards regarding design process and the ph
 | [[kbd:][tab]]     | alterate buffer/tab      | standard convention (apps & other oss)                   |
 | [[kbd:][1-4]]     | switch to buffer/tab 1-4 | emacs (harpoon) / tmux (windows) / browser (pinned tabs) |
 | [[kbd:][space]]   | leader-key               | vim                                                      |
-
-- condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.
-  - [[kbd:][ctrl]] :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
-- inter program keyboard shortcuts consistency is important because they make the keys easier to remember and you will not have to learn multiple paradigms of keymaps.  the here defined set of keybindings are shared across applications (webbrowser, emacs, terminal, etc)
-- windowmanager :: the set of program-names during runtime is known and consistent (unlike tabs in applications, where we cannot make presumtions about the contents of the tabs, hence we use numbers), we use specific-chars for switching to the tabs.
 
 ***  workflow
 when you need to navigate to a different file/tab, this should be your order of modus-operandi ::
