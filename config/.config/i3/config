@@ -1,6 +1,6 @@
 # [[file:config.org::*macros][macros:1]]
 set $ESC mode "default"
-set $BIN ~/.config/bin
+set $BIN ~/Dotfiles/bin
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $ROFI rofi -dmenu -no-custom -i -p find-file
@@ -24,7 +24,7 @@ workspace_auto_back_and_forth no
 workspace_layout tabbed
 force_focus_wrapping no
 default_orientation horizontal
-# <pixel> hides titlebars when only window on the workspace
+# <pixel> hides titlebars when it's only window on the workspace
 default_border pixel 1
 hide_edge_borders smart_no_gaps
 title_align left
