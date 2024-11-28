@@ -100,9 +100,6 @@ bindsym $MOD+equal        $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
 bindsym $MOD+bracketleft  $SHCMD playerctl previous
 bindsym $MOD+backslash    $SHCMD playerctl play-pause
-
-# in case you must display workspace temporarily without gaps.
-bindsym $MOD+z fullscreen toggle
 #+end_src
 
 * navigational bindings
@@ -123,6 +120,25 @@ bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
 bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 #+end_src
 
+* gaps
+we only ever use a single window (no splits) in our editor/terminal, thus for text-based programs (editor/terminal...) ::
+- constrain window-width and center windows to the middle of the screen.  whereas normally they are offset to the left edge of the screen.  whereas other windows contents (like the browser) are already ergonomically centered and constrained, which causes you to refocus the fov from the edge to the center of the window (& vice versa).
+- this makes our single-focus workflow more ergonomic and focused.
+- no long lines ::
+  - improved readability & focus of textparagraphs, especially if you stare at the computer for 8+ hours a day.
+  - the displayed data is more compact and coherent
+  - reading code/data/formulas, and vertical vim navigation, is easier top to bottom vs horizontally.
+    - take math as example, its easier to read equations if they are short, concise and aligned on a newline, rather than in one long equation.
+    - coding: typically one (short) statement per line.
+- line wrap :: command outputs or browser webpages are often not fixed to some width, instead displayed across the entire available width, thus making it very hard to not loose focus of the current line.  using gaps, it makes the text easier to read.
+- no manual adjustment :: you should never manually resize gaps, find an optimal setting for your setup (hence the lack of bindings).  in special cases you may toggle fullscreen to get rid of gaps.
+
+#+begin_src conf
+# 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
+set $GAPSIZE 500
+bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
+#+end_src
+
 * workspaces
 - the idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remain the same.  (eg: vim instead of emacs).
 - each workspace has it's own optimal gap size for a focused & ergonomic view (browser's fullscreen, text-based programs width constrained).
@@ -133,23 +149,9 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 - for windows that are not assigned to workspaces it is most efficient to use the rofi find-window menu.
 - workspaces are powerful, since they allow multiple windows of the same class to be opened on the same workspace (eg. multiple instances of zathura).  and they allow per window gaps/fulscreen configuration.
 
-** gaps
-- constrain window-width and centering windows to the middle of the screen.
-- this make the single-focus workflow more ergonomic and focused.
-- terminal, editor, etc. uncomfortably align to the left edge of the screen.  whereas other windows contents (like the browser) are already ergonomically centered and constrained, which causes you to refocus the fov from the edge to the center of the window (& vice versa).
-- narrowed fov yields improved readability & focus of textparagraphs, especially if you stare at the computer for 8+ hours a day.
-- the data is compact and coherent
-- vertical navigation is easier than horizontal
-- reading code/data/formulas is easiest sequentially = top to bottom // vs horizontally
-  - take math as example, its easier to read equations if they are short and concise on newline, rather than in one big equation
-  - coding: typically one statement per line
-- line wrap :: command outputs or browser webpages are often not fixed to some width, instead displayed across the entire available width, thus making it very hard to not loose focus of the current line.  using gaps, it makes the text easier to read.
-- gapsize :: 1920x1080 display (adjust ifdifferent screenresolution)
-
 #+name: mark-classes
 #+begin_src elisp
-(let ((gapsize 500)
-      (mark-classes '(;; ("name" "key" "wmclass" "startcmd" "gaps")
+(let ((mark-classes '(;; ("name" "key" "wmclass" "startcmd" "gaps")
                       ("term"
                        "t"
                        "Alacritty"
@@ -186,9 +188,8 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
                             (remove nil (list (format "# WORKSPACE: %s" (upcase name))
 
                                               (when gaps-flag
-                                                (format "workspace %s gaps horizontal %s"
-                                                        name
-                                                        gapsize))
+                                                (format "workspace %s gaps horizontal $GAPSIZE"
+                                                        name))
 
                                               (format "for_window [class=\"%s\"] move container to workspace %s"
                                                       class
@@ -210,7 +211,7 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 #+end_src
 
 * leader
-- bind infrequently used commands and menus.
+- bind infrequently used commands and menus
 #+begin_src conf
 bindsym $MOD+space mode "leader"
 mode "leader" {

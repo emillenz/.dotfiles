@@ -65,9 +65,6 @@ bindsym $MOD+equal        $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
 bindsym $MOD+bracketleft  $SHCMD playerctl previous
 bindsym $MOD+backslash    $SHCMD playerctl play-pause
-
-# in case you must display workspace temporarily without gaps.
-bindsym $MOD+z fullscreen toggle
 # keybindings:1 ends here
 
 # [[file:config.org::*navigational bindings][navigational bindings:1]]
@@ -84,15 +81,21 @@ bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
 bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 # navigational bindings:1 ends here
 
-# [[file:config.org::*gaps][gaps:2]]
+# [[file:config.org::*gaps][gaps:1]]
+# 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
+set $GAPSIZE 500
+bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
+# gaps:1 ends here
+
+# [[file:config.org::*workspaces][workspaces:2]]
 # WORKSPACE: TERM
-workspace term gaps horizontal 500
+workspace term gaps horizontal $GAPSIZE
 for_window [class="Alacritty"] move container to workspace term
 bindsym $MOD+t workspace term
 bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -n term -A -s main
 
 # WORKSPACE: EDITOR
-workspace editor gaps horizontal 500
+workspace editor gaps horizontal $GAPSIZE
 for_window [class="Emacs"] move container to workspace editor
 bindsym $MOD+e workspace editor
 bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
@@ -109,7 +112,7 @@ bindsym $MOD+v workspace vid
 # WORKSPACE: IMG
 for_window [class="Nsxiv"] move container to workspace img
 bindsym $MOD+i workspace img
-# gaps:2 ends here
+# workspaces:2 ends here
 
 # [[file:config.org::*leader][leader:1]]
 bindsym $MOD+space mode "leader"
