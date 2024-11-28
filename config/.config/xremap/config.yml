@@ -7,34 +7,26 @@
 
 # gtk :: gtk apps are configured to use readline bindings already
 # (gtk-emacs-keytheme) if you are on a different linux machine, use
-# gnome-tweak-tools and: `setxkbmap -option ctrl:nocaps` to get basically the
-# same effect.
-
-# no symbol layers or homerow mods :: they are a gimics and introduce
-# unneccessary complexity into the system.  you are slowing yourself down using
-# them, since the always require a modifier, and waiting for that modifier to be
-# released makes you need to wait before continuing to hammer on in typing.
-# using a symbol top layer layout: programmer-dvorak is far superior, more
-# ergonomic and allows you to bang out symbols as fast as if you were writing
-# prose.
+# gnome-tweak-tools and: `setxkbmap -option ctrl:nocaps`.  for windows use
+# `power-toys` same effect.
 
 # we want to reduce the depth of layering in our system.  layers always bring an
 # increase in complexity and introduce mental overhead which is our aim to
 # reduce as much as possible without limiting functionality.
+
+# no homerowmods / layers :: they greatly increase the complexity of the keybinding layer's and introduce unneccessary mental overhead.  additionally and most importantly they cause a delay in typing the actual character which is absolutely inacceptable.  (slow's you down, bottlenecking your typing speed)
+
+# this config is kept simple, fast and overheadfree (no double functionality like hold down and single-press), since this is not easily achieveable on another system (which means you'll loose all your muscle memory).
+
+# no vim layer :: we purposefully do not implement a vim-navigation layer globally, since if you are doing more than just typing something into a prompt, you should just use ~emacs-everywhere~ instead.
 
 # ---
 
 modmap:
   - name: global
     remap:
-      capslock:
-        held: ctrl_l
-        alone: esc
-        one_timeout_milis: 100
-      ctrl_l: # hack :: support physical ctrl -> caps remaps
-        held: ctrl_l
-        alone: esc
-        one_timeout_milis: 100
+      capslock: ctrl_l
+      C-leftbracket: escape # used in emacs/terminal => make it consistent systemwide.
 
 keymap:
   - name: browser

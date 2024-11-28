@@ -125,15 +125,11 @@ i'm very opinionated and have high standards regarding design process and the ph
 
 * keybindings
 ** general notes
-- [[kbd:][<ctrl>, <esc>]] :: mapped to [[kbd:][<capslock>]] this greatly increases ergonomics and speed for all ctrl-bindings (even though we don't use emacs, vim still makes use of them all the time too (and other apps like the shell also)).  hold down for [[kbd:][<ctrl>]], single press for [[kbd:][<esc>]].
-  - when bill-joy orignially developed VI, the terminal's keyboard, had [[kbd:][<esc>]] on todays [[kbd:][<tab>]] and [[kbd:][<ctrl>]] on [[kbd:][<caps>.]]  this is where [[kbd:][<ctrl>]] should have always stayed at.
-- deleting characters :: make using [[kbd:][<c-{h, w, u}>]] instead of [[kbd:][<backspace>]] a habit.  it is more ergonomic and faster than using the incredibly unergonomic and hard to reach [[kbd:][<backspace>.]]  hence we implement these bindings in all apps.
-- no vim layer :: we purposefully do not implement a vim-navigation layer globally, since if you are doing more than just typing something into a prompt, you should just use ~emacs-everywhere~ instead.  the implemented keybinds are consistent with vim's insert state and provide the most useful deletion commands when typing into a prompt.
-- no homerowmods / layers :: they greatly increase the complexity of the keybinding layer's and introduce unneccessary mental overhead.  additionally and most importantly they cause a delay in typing the actual character which is absolutely inacceptable.  (slow's you down, bottlenecking your typing speed)
-  - this config is kept simple, fast and overheadfree (no double functionality: hold down and single-press)
-- typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
+- [[kbd:][ctrl]] :: mapped to [[kbd:][capslock]].  additionally we use [[kbd:][C-[]] instead of [[kbd:][esc]].  this greatly increases ergonomics and speed for all ctrl-bindings.
+  - when bill-joy orignially developed VI, the terminal's keyboard, had [[kbd:][esc]] on todays [[kbd:][tab]] and [[kbd:][ctrl]] on [[kbd:][caps.]]  this is where [[kbd:][ctrl]] should have always stayed at.  it is more ergonomic and faster than using the incredibly unergonomic and hard to reach [[kbd:][backspace.]]  hence we implement these bindings in all apps.
+- deleting characters :: instead of spamming unergonomic [[kbd:][backspace]], get in the habit of always directly using [[kbd:][C-h/w/u]] instead. - typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
 - ctrl-map :: bindings found on this layer are related to navigation (~switch-to-buffer~, ~find-file~, ~jump-backwards~, etc..)
-- key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][<c-{u, d}>]]  not spamming delete, instead using [[kbd:][d-<motion>]]
+- key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][c-u/d]]  not spamming delete, instead using [[kbd:][d-motion]]
 
 ** navigational standard
 | mod+key | action                   | consistency                                              |
@@ -141,19 +137,19 @@ i'm very opinionated and have high standards regarding design process and the ph
 | [[kbd:][b]]       | buffer/window, prompt    | vim: :b <name>                                           |
 | [[kbd:][q]]       | [q]uit (buffer/window)   | vim: :q                                                  |
 | [[kbd:][f]]       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file                    |
-| [[kbd:][<tab>]]   | alterate buffer/tab      | standard convention (apps & other oss)                   |
+| [[kbd:][tab]]     | alterate buffer/tab      | standard convention (apps & other oss)                   |
 | [[kbd:][1-4]]     | switch to buffer/tab 1-4 | emacs (harpoon) / tmux (windows) / browser (pinned tabs) |
-| [[kbd:][<space>]] | leader-key               | vim                                                      |
+| [[kbd:][space]]   | leader-key               | vim                                                      |
 
 - condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.
-  - [[kbd:][<ctrl>]] :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
+  - [[kbd:][ctrl]] :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
 - inter program keyboard shortcuts consistency is important because they make the keys easier to remember and you will not have to learn multiple paradigms of keymaps.  the here defined set of keybindings are shared across applications (webbrowser, emacs, terminal, etc)
 - windowmanager :: the set of program-names during runtime is known and consistent (unlike tabs in applications, where we cannot make presumtions about the contents of the tabs, hence we use numbers), we use specific-chars for switching to the tabs.
 
 ***  workflow
 when you need to navigate to a different file/tab, this should be your order of modus-operandi ::
 1. alternate buffer :: when you are alternating between 2 files/tabs or need to just goto back to the last visited buffer.  this takes the least amount of overhead and is the fastest.
-2. hotswitch tab [[kbd:][1-4]] :: use each of them for a file/tmux window/page within the project you are working on (ex: tmux: [1]repl, [2] compilation, [3] manpages, emacs: [1] main.c, [2] srcfile.c, [3] makefile).  you can then navigate between these files instantly without mental overhead.  we purposefully do not allow more than 4 tabs, since that is usually all that is neede within a project.  we want to ensure that it really is frequently visited files and thus keep the overhead low.  avoid manual tab creation if possible => auto-create a tab if it doesn't exist upon focusing it.  we never want visual indication for tabs.   instead switching to other buffer's should be muscle memory => eliminate bad habit and mental overhead of looking at tab-bar to find the tab you want, and instead hotkey to the file instantly.  no tablines, no statusbars.
+2. hotswitch tab 1-4 :: use each of them for a file/tmux window/page within the project you are working on (ex: tmux: [1]repl, [2] compilation, [3] manpages, emacs: [1] main.c, [2] srcfile.c, [3] makefile).  you can then navigate between these files instantly without mental overhead.  we purposefully do not allow more than 4 tabs, since that is usually all that is neede within a project.  we want to ensure that it really is frequently visited files and thus keep the overhead low.  avoid manual tab creation if possible => auto-create a tab if it doesn't exist upon focusing it.  we never want visual indication for tabs.   instead switching to other buffer's should be muscle memory => eliminate bad habit and mental overhead of looking at tab-bar to find the tab you want, and instead hotkey to the file instantly.  no tablines, no statusbars.
 3. find buffer/tab :: search through the list of open buffers/tabs to switch to the one you need.
 
 * principles
