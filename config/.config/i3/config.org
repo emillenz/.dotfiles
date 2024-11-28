@@ -135,7 +135,8 @@ we only ever use a single window (no splits) in our editor/terminal, thus for te
 
 #+begin_src conf
 # 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
-set $GAPSIZE 500
+set $GAPSIZE 400
+gaps horizontal $GAPSIZE
 bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 #+end_src
 
@@ -151,18 +152,16 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 
 #+name: mark-classes
 #+begin_src elisp
-(let ((mark-classes '(;; ("name" "key" "wmclass" "startcmd" "gaps")
+(let ((mark-classes '(;; ("name" "key" "wmclass" "startcmd")
                       ("term"
                        "t"
                        "Alacritty"
-                       "alacritty --title term --command tmux new-session -n term -A -s main"
-                       t)
+                       "alacritty --title term --command tmux new-session -n term -A -s main")
 
                       ("editor"
                        "e"
                        "Emacs"
-                       "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"
-                       t)
+                       "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)")
 
                       ("web"
                        "w"
@@ -181,15 +180,10 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
                (let* ((name (nth 0 tuple))
                       (key (nth 1 tuple))
                       (class (nth 2 tuple))
-                      (cmd (nth 3 tuple))
-                      (gaps-flag (nth 4 tuple)))
+                      (cmd (nth 3 tuple)))
 
                  (mapconcat #'identity
                             (remove nil (list (format "# WORKSPACE: %s" (upcase name))
-
-                                              (when gaps-flag
-                                                (format "workspace %s gaps horizontal $GAPSIZE"
-                                                        name))
 
                                               (format "for_window [class=\"%s\"] move container to workspace %s"
                                                       class
