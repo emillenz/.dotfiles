@@ -9,6 +9,7 @@ set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pami
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
+set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep 0.5 && playerctl status)"
 
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
@@ -30,7 +31,6 @@ hide_edge_borders smart_no_gaps
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
-for_window [all] focus, title_window_icon no, floating disable
 smart_gaps inverse_outer
 # opts:1 ends here
 
@@ -49,8 +49,8 @@ bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
 bindsym XF86Display           $SHCMD xrandr --auto
 bindsym XF86ScreenSaver       $SHCMD $SYS_SCREENOFF
 bindsym XF86Sleep             $SHCMD $SYS_SLEEP
-bindsym XF86AudioPlay         $SHCMD playerctl play-pause
-bindsym XF86AudioPause        $SHCMD playerctl play-pause
+bindsym XF86AudioPlay         $SHCMD $PLAYERCTL_PLAY_PAUSE
+bindsym XF86AudioPause        $SHCMD $PLAYERCTL_PLAY_PAUSE
 bindsym XF86AudioNext         $SHCMD playerctl next
 bindsym XF86AudioPrev         $SHCMD playerctl previous
 bindsym XF86AudioLowerVolume  $SHCMD $VOL_DEC
@@ -64,7 +64,7 @@ bindsym $MOD+minus        $SHCMD $VOL_DEC
 bindsym $MOD+equal        $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
 bindsym $MOD+bracketleft  $SHCMD playerctl previous
-bindsym $MOD+backslash    $SHCMD playerctl play-pause
+bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 # keybindings:1 ends here
 
 # [[file:config.org::*navigational bindings][navigational bindings:1]]
@@ -83,16 +83,20 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 
 # [[file:config.org::*gaps][gaps:1]]
 # 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
-set $GAPSIZE 500
+set $GAPSIZE 400
 bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 # gaps:1 ends here
 
 # [[file:config.org::*workspaces][workspaces:2]]
+# WORKSPACE: ALL
+for_window [class=".*"] move container to workspace all
+bindsym $MOD+a workspace all
+
 # WORKSPACE: TERM
 workspace term gaps horizontal $GAPSIZE
 for_window [class="Alacritty"] move container to workspace term
 bindsym $MOD+t workspace term
-bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -n term -A -s main
+bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -A -s main
 
 # WORKSPACE: EDITOR
 workspace editor gaps horizontal $GAPSIZE
@@ -100,18 +104,17 @@ for_window [class="Emacs"] move container to workspace editor
 bindsym $MOD+e workspace editor
 bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 
+# WORKSPACE: READER
+for_window [class="Zathura"] move container to workspace reader
+bindsym $MOD+r workspace reader
+
 # WORKSPACE: WEB
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w exec --no-startup-id firefox
 
-# WORKSPACE: VID
-for_window [class="mpv"] move container to workspace vid
-bindsym $MOD+v workspace vid
-
-# WORKSPACE: IMG
-for_window [class="Nsxiv"] move container to workspace img
-bindsym $MOD+i workspace img
+# HACK :: must come last to apply to all workspaces
+for_window [all] focus, title_window_icon no, floating disable
 # workspaces:2 ends here
 
 # [[file:config.org::*leader][leader:1]]

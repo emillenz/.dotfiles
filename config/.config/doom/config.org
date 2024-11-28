@@ -52,7 +52,6 @@ emacs is one of the most incredible piece of software ever made:
   - todo-management :: org mode
   - filemanager :: dired fast interactive text-based file manger
   - manpager
-  - pdfviewer :: vim navigation (marks, goto etc), annotations, occur.
   - file/dir navigation & management: find-file, fuzzy-find, (book)marks, dired
     - the most efficient workflow for finding, opening and editing files on the os that i have ever developed.
 
@@ -65,6 +64,9 @@ emacs is one of the most incredible piece of software ever made:
 
 *** emacs everywhere
 use emacs everywhere for anytime you are using a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
+
+*** downsides
+emacs sucks at graphical stuff, hence we use external programs to display pdfs and media.
 
 ** terminal vs emacs
 - the terminal is used to run their own terminal-based programs and system related commands (mainly tuis and long async-processes) and commands: htop, nmtui, git, metasploit, transmission-cli, ssh.
@@ -95,7 +97,8 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       which-key-idle-delay 0.5
-      shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
+      explicit-shell-file-name (executable-find "fish") ;; we use fish-shell for interactive use
+      shell-file-name (executable-find "bash")) ;; emacs packages expect bash
 
 (save-place-mode)
 (global-subword-mode)
@@ -108,8 +111,7 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
         visual-fill-column-width width)
   (global-visual-fill-column-mode)
   (global-visual-line-mode))
-(add-hook! '(prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
-             pdf-view-mode-hook) ;; using it's own centering mechanism
+(add-hook! 'prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
   (visual-fill-column-mode -1))
 
 (setq global-auto-revert-non-file-buffers t)
@@ -166,15 +168,14 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 - only horizontal split :: since emacs sometimes creates splits in special views (eg. magit, ediff) or for displaying additional information (lsp-help...), and thus we must handle them to consistently split below and never side-by-side, since due to the wm, our emacs window is in full height but has a constrained width, perfectly sized for displaying source-code / technical documents.
 
 #+begin_src elisp
-(setq split-window-preferred-function nil) ;; forces display buffer to use an existing window (never create new one).
-
 (setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc
                              (,(rx (seq "*" (or "transient"
                                                 (seq "Org " (or "Select" "todo"))
                                                 "Agenda Commands"
                                                 "doom eval"
                                                 "Backtrace"
-                                                "lsp-help")))
+                                                "lsp-help"
+                                                "Async Shell Command")))
                               (display-buffer-in-side-window)
                               (side . bottom)
                               (slot . 0)) ;; reuse bottom window if exists
@@ -389,7 +390,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
   (map! :leader "m" #'harpoon-toggle-file) ;; manage harpoon candidates
 
   (map! :map harpoon-mode-map :after harpoon
-        :nm "q" #'kill-current-buffer) ;; exit like in pdf-view, help, magit, dired...
+        :nm "q" #'kill-current-buffer) ;; exit like in help, magit, dired...
 
   (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
 #+end_src
@@ -469,7 +470,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 - occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
 #+begin_src elisp
 (map! :map occur-mode-map :after replace
-      :n "q" #'quit-window) ;; consistent with other read-only modes (magit, dired, docs, pdf...)
+      :n "q" #'quit-window) ;; consistent with other read-only modes (magit, dired, docs...)
 
 (map! :after evil
       :nm "g/"  #'occur)
@@ -504,6 +505,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
                                                     (cons ext app))
                                                   extensions)))
                                       '((("mkv" "webm" "mp4" "mp3") . "mpv")
+                                        (("pdf")                    . "zathura")
                                         (("gif" "jpeg" "jpg" "png") . "feh")
                                         (("docx" "odt" "odf")       . "libreoffice")))
         dired-recursive-copies 'always
@@ -518,8 +520,9 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 - create new files/dir's using ~find-file~ instead of ~dired-create-empty-file~ (inserts filetemplate properly)
 #+begin_src elisp
 (map! :map dired-mode-map :after dired
-      :m "h" #'dired-up-directory ;; navigate using hjkl
-      :m "l" #'dired-open-file)
+      :m "h" #'dired-up-directory) ;; navigate using hjkl
+
+(define-key! [remap dired-find-file] #'dired-open-file) ;; open file externally if specified
 
 (map! :map dired-mode-map :localleader :after dired-x
       "h" :desc "dired-hide-details" (cmd! (call-interactively #'dired-omit-mode)
@@ -1085,12 +1088,14 @@ PARENT-PATH :: nil (used for recursion) "
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
 (setq org-archive-location (file-name-concat u-archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
-      org-agenda-files (append (directory-files-recursively org-directory
-                                                            org-agenda-file-regexp
-                                                            t)
-                               (list (doct-journal-file)
-                                     (doct-journal-file (time-subtract (current-time)
-                                                                         (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-files (append
+                        (when (file-exists-p org-directory)
+                          (directory-files-recursively org-directory
+                                                       org-agenda-file-regexp
+                                                       t))
+                        (list (doct-journal-file)
+                              (doct-journal-file (time-subtract (current-time)
+                                                                (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
       org-agenda-skip-scheduled-if-done t
       ;; org-agenda-sticky t
       org-agenda-skip-deadline-if-done t
@@ -1214,7 +1219,6 @@ legibility."
         "SPC" nil                     ;; never override leader-mode
         "S-SPC" nil                   ;; never override leader-mode
         :n "q" #'kill-current-buffer  ;; consistent with other read-only modes (magit, dired, docs...)
-        :n "o" #'nov-goto-toc         ;; o => outline, which is more mnemonic (consistent with pdf-view-mode, info-mode, evil: 'imenu' outline when in code)
 
         ;; next/previous page
         :n "<next>" #'nov-scroll-up
@@ -1229,21 +1233,6 @@ legibility."
 
     (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
     (hl-line-mode -1)))
-#+end_src
-
-* pdf view
-- annotations/selections :: use the mouse.
-#+begin_src elisp
-(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; don't zoom out more than neccessay
-
-;; HACK :: must use a hook in order to override 'pdf-view' bindings ('map!' doesn't work)
-(add-hook! 'pdf-view-mode-hook
-  (map! :map pdf-view-mode-map
-        :n "r" #'revert-buffer
-
-         ;; ergonomics when reading onehanded
-        :n "<prior>" #'pdf-view-scroll-down-or-previous-page
-        :n "<next>" #'pdf-view-scroll-up-or-next-page))
 #+end_src
 
 * yas: snippets

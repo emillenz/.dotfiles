@@ -37,14 +37,15 @@ CMDS = [
 ].freeze
 
 PROCESSES = [
-        'tmux new-session -d -s main',
-        'alacritty --command tmux new-session -n term -A -s main',
+        'alacritty --title term --command tmux new-session -A -s main',
         'emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)',
+        'firefox',
         "xremap --watch=device --watch=config #{ENV['HOME']}/.config/xremap/config.yml & disown",
         'keepassxc',
         'playerctld',
         'unclutter',
         'batsignal -bpe -w 50 -c 20 -d 5',
+        'nm-applet',
 ].freeze
 
 main

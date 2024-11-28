@@ -15,7 +15,8 @@
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       which-key-idle-delay 0.5
-      shell-file-name (executable-find "fish")) ;; we use fish-shell os-wide!
+      explicit-shell-file-name (executable-find "fish") ;; we use fish-shell for interactive use
+      shell-file-name (executable-find "bash")) ;; emacs packages expect bash
 
 (save-place-mode)
 (global-subword-mode)
@@ -28,8 +29,7 @@
         visual-fill-column-width width)
   (global-visual-fill-column-mode)
   (global-visual-line-mode))
-(add-hook! '(prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
-             pdf-view-mode-hook) ;; using it's own centering mechanism
+(add-hook! 'prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
   (visual-fill-column-mode -1))
 
 (setq global-auto-revert-non-file-buffers t)
@@ -72,15 +72,14 @@
 ;; modeline:1 ends here
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
-(setq split-window-preferred-function nil) ;; forces display buffer to use an existing window (never create new one).
-
 (setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc
                              (,(rx (seq "*" (or "transient"
                                                 (seq "Org " (or "Select" "todo"))
                                                 "Agenda Commands"
                                                 "doom eval"
                                                 "Backtrace"
-                                                "lsp-help")))
+                                                "lsp-help"
+                                                "Async Shell Command")))
                               (display-buffer-in-side-window)
                               (side . bottom)
                               (slot . 0)) ;; reuse bottom window if exists
@@ -238,7 +237,7 @@
   (map! :leader "m" #'harpoon-toggle-file) ;; manage harpoon candidates
 
   (map! :map harpoon-mode-map :after harpoon
-        :nm "q" #'kill-current-buffer) ;; exit like in pdf-view, help, magit, dired...
+        :nm "q" #'kill-current-buffer) ;; exit like in help, magit, dired...
 
   (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
 ;; harpoon:1 ends here
@@ -313,7 +312,7 @@
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
 (map! :map occur-mode-map :after replace
-      :n "q" #'quit-window) ;; consistent with other read-only modes (magit, dired, docs, pdf...)
+      :n "q" #'quit-window) ;; consistent with other read-only modes (magit, dired, docs...)
 
 (map! :after evil
       :nm "g/"  #'occur)
@@ -339,6 +338,7 @@
                                                     (cons ext app))
                                                   extensions)))
                                       '((("mkv" "webm" "mp4" "mp3") . "mpv")
+                                        (("pdf")                    . "zathura")
                                         (("gif" "jpeg" "jpg" "png") . "feh")
                                         (("docx" "odt" "odf")       . "libreoffice")))
         dired-recursive-copies 'always
@@ -349,8 +349,9 @@
 
 ;; [[file:config.org::*dired/keybindings][dired/keybindings:1]]
 (map! :map dired-mode-map :after dired
-      :m "h" #'dired-up-directory ;; navigate using hjkl
-      :m "l" #'dired-open-file)
+      :m "h" #'dired-up-directory) ;; navigate using hjkl
+
+(define-key! [remap dired-find-file] #'dired-open-file) ;; open file externally if specified
 
 (map! :map dired-mode-map :localleader :after dired-x
       "h" :desc "dired-hide-details" (cmd! (call-interactively #'dired-omit-mode)
@@ -812,12 +813,14 @@ PARENT-PATH :: nil (used for recursion) "
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
 (setq org-archive-location (file-name-concat u-archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
-      org-agenda-files (append (directory-files-recursively org-directory
-                                                            org-agenda-file-regexp
-                                                            t)
-                               (list (doct-journal-file)
-                                     (doct-journal-file (time-subtract (current-time)
-                                                                         (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
+      org-agenda-files (append
+                        (when (file-exists-p org-directory)
+                          (directory-files-recursively org-directory
+                                                       org-agenda-file-regexp
+                                                       t))
+                        (list (doct-journal-file)
+                              (doct-journal-file (time-subtract (current-time)
+                                                                (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
       org-agenda-skip-scheduled-if-done t
       ;; org-agenda-sticky t
       org-agenda-skip-deadline-if-done t
@@ -916,7 +919,6 @@ legibility."
         "SPC" nil                     ;; never override leader-mode
         "S-SPC" nil                   ;; never override leader-mode
         :n "q" #'kill-current-buffer  ;; consistent with other read-only modes (magit, dired, docs...)
-        :n "o" #'nov-goto-toc         ;; o => outline, which is more mnemonic (consistent with pdf-view-mode, info-mode, evil: 'imenu' outline when in code)
 
         ;; next/previous page
         :n "<next>" #'nov-scroll-up
@@ -932,19 +934,6 @@ legibility."
     (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
     (hl-line-mode -1)))
 ;; nov: ebooks:1 ends here
-
-;; [[file:config.org::*pdf view][pdf view:1]]
-(define-key! [remap pdf-view-scale-reset] #'pdf-view-fit-page-to-window) ;; don't zoom out more than neccessay
-
-;; HACK :: must use a hook in order to override 'pdf-view' bindings ('map!' doesn't work)
-(add-hook! 'pdf-view-mode-hook
-  (map! :map pdf-view-mode-map
-        :n "r" #'revert-buffer
-
-         ;; ergonomics when reading onehanded
-        :n "<prior>" #'pdf-view-scroll-down-or-previous-page
-        :n "<next>" #'pdf-view-scroll-up-or-next-page))
-;; pdf view:1 ends here
 
 ;; [[file:config.org::*yas: snippets][yas: snippets:1]]
 (setq yas-triggers-in-field t)

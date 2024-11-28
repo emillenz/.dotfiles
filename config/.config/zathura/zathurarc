@@ -19,10 +19,6 @@ set render-loading true
 set recolor-keephue true
 
 # KEYBINDINGS :: more sensible, ergnomic (u/d, i/o without ctrl needed)
-map u scroll half-up
-map d scroll half-down
-map o jumplist backward
-map i jumplist forward
 map z snap_to_page # vim
 map = zoom in
 map - zoom out

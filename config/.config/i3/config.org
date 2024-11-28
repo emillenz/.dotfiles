@@ -33,6 +33,7 @@ set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pami
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
+set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep 0.1 && playerctl status)"
 
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
@@ -60,7 +61,6 @@ hide_edge_borders smart_no_gaps
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
-for_window [all] focus, title_window_icon no, floating disable
 smart_gaps inverse_outer
 #+end_src
 
@@ -84,8 +84,8 @@ bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
 bindsym XF86Display           $SHCMD xrandr --auto
 bindsym XF86ScreenSaver       $SHCMD $SYS_SCREENOFF
 bindsym XF86Sleep             $SHCMD $SYS_SLEEP
-bindsym XF86AudioPlay         $SHCMD playerctl play-pause
-bindsym XF86AudioPause        $SHCMD playerctl play-pause
+bindsym XF86AudioPlay         $SHCMD $PLAYERCTL_PLAY_PAUSE
+bindsym XF86AudioPause        $SHCMD $PLAYERCTL_PLAY_PAUSE
 bindsym XF86AudioNext         $SHCMD playerctl next
 bindsym XF86AudioPrev         $SHCMD playerctl previous
 bindsym XF86AudioLowerVolume  $SHCMD $VOL_DEC
@@ -99,7 +99,7 @@ bindsym $MOD+minus        $SHCMD $VOL_DEC
 bindsym $MOD+equal        $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
 bindsym $MOD+bracketleft  $SHCMD playerctl previous
-bindsym $MOD+backslash    $SHCMD playerctl play-pause
+bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 #+end_src
 
 * navigational bindings
@@ -135,7 +135,7 @@ we only ever use a single window (no splits) in our editor/terminal, thus for te
 
 #+begin_src conf
 # 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
-set $GAPSIZE 500
+set $GAPSIZE 400
 bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 #+end_src
 
@@ -146,35 +146,38 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 - the parenthesis around the commands are required, otherwise undefined behaviour.
 - get window title & class information using: ~xprop~
 - for windows that are not assigned to workspaces it is most efficient to use the rofi find-window menu.
-- workspaces are powerful, since they allow multiple windows of the same class to be opened on the same workspace (eg. multiple instances of zathura).  and they allow per window gaps/fulscreen configuration.
+- workspaces are powerful, since they allow multiple windows of the same class to be opened on the same workspace (eg. multiple instances of zathura).  and they allow per window gaps/fullscreen configuration.
 
-#+name: mark-classes
+#+name: workspaces
 #+begin_src elisp
-(let ((mark-classes '(;; ("name" "key" "wmclass" "startcmd" "gaps")
-                      ("term"
-                       "t"
-                       "Alacritty"
-                       "alacritty --title term --command tmux new-session -n term -A -s main"
-                       t)
+(let ((workspaces '(;; ("name" "key" "wmclass" "startcmd" "gaps")
 
-                      ("editor"
-                       "e"
-                       "Emacs"
-                       "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"
-                       t)
+                    ;; all other go here
+                    ("all"
+                     "a"
+                     ".*")
 
-                      ("web"
-                       "w"
-                       "firefox"
-                       "firefox")
+                    ("term"
+                     "t"
+                     "Alacritty"
+                     "alacritty --title term --command tmux new-session -A -s main"
+                     t)
 
-                      ("vid"
-                       "v"
-                       "mpv")
+                    ("editor"
+                     "e"
+                     "Emacs"
+                     "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"
+                     t)
 
-                      ("img"
-                       "i"
-                       "Nsxiv"))))
+                    ("reader"
+                     "r"
+                     "Zathura"
+                     nil)
+
+                    ("web"
+                     "w"
+                     "firefox"
+                     "firefox"))))
 
   (mapconcat (lambda (tuple)
                (let* ((name (nth 0 tuple))
@@ -200,18 +203,22 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 
                                               (when cmd (format "bindsym $MOD+shift+%s exec --no-startup-id %s" key cmd))))
                             "\n")))
-             mark-classes
+             workspaces
              "\n\n"))
 #+end_src
 
 (read: ~M-x info-display-manual org~ chapter: "16 working with source code", if you don't know what kind magic is going on there)
 #+begin_src conf
-<<mark-classes()>>
+<<workspaces()>>
+
+# HACK :: must come last to apply to all workspaces
+for_window [all] focus, title_window_icon no, floating disable
 #+end_src
 
 * leader
 - bind infrequently used commands and menus
 #+begin_src conf
+
 bindsym $MOD+space mode "leader"
 mode "leader" {
         bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
