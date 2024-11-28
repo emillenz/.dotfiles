@@ -72,9 +72,7 @@
 ;; modeline:1 ends here
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
-(setq evil-split-window-below t
-      window-combination-resize t
-      split-width-threshold nil) ;; force horizontal splits, always
+(setq split-window-preferred-function nil) ;; forces display buffer to use an existing window (never create new one).
 
 (setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc
                              (,(rx (seq "*" (or "transient"
@@ -147,9 +145,7 @@
                "k" #'devdocs-lookup
                "t" #'dictionary-search)
       (:prefix "f"
-               "f" #'+vertico/consult-fd-or-find
-               "F" (cmd! (call-interactively #'find-file)
-                         (+vertico/consult-fd-or-find)))
+               "f" #'+vertico/consult-fd-or-find)
       (:prefix "c"
                "r" #'lsp-rename
                (:prefix "'"
@@ -357,8 +353,8 @@
       :m "l" #'dired-open-file)
 
 (map! :map dired-mode-map :localleader :after dired-x
-      "h" (cmd! (call-interactively #'dired-omit-mode)
-                (call-interactively #'dired-hide-details-mode))
+      "h" :desc "dired-hide-details" (cmd! (call-interactively #'dired-omit-mode)
+                                           (call-interactively #'dired-hide-details-mode))
       "a" #'dired-archive)
 ;; dired/keybindings:1 ends here
 

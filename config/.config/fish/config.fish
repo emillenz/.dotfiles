@@ -28,7 +28,7 @@ set -gx MANPAGER bat --paging=always
 set -gx MANWIDTH 100
 
 # ALIASES :: better defaults
-alias ls 'ls -lv --human-readable --group-directories-first --color=auto'
+alias ls 'ls -v --human-readable --group-directories-first --color=auto'
 alias rm 'rm --recursive --verbose'
 alias du 'du --human-readable'
 alias mv 'mv --verbose'
@@ -36,9 +36,6 @@ alias cp 'cp --recursive --verbose'
 alias yay 'yay --noconfirm'
 alias curl 'curl --silent'
 alias echo 'echo -e'
-alias mkdir u_mkdir
-alias mv u_mv
-alias cp u_cp
 alias e u_editor
 
 # FZF

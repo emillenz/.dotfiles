@@ -166,9 +166,7 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 - only horizontal split :: since emacs sometimes creates splits in special views (eg. magit, ediff) or for displaying additional information (lsp-help...), and thus we must handle them to consistently split below and never side-by-side, since due to the wm, our emacs window is in full height but has a constrained width, perfectly sized for displaying source-code / technical documents.
 
 #+begin_src elisp
-(setq evil-split-window-below t
-      window-combination-resize t
-      split-width-threshold nil) ;; force horizontal splits, always
+(setq split-window-preferred-function nil) ;; forces display buffer to use an existing window (never create new one).
 
 (setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc
                              (,(rx (seq "*" (or "transient"
@@ -269,9 +267,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
                "k" #'devdocs-lookup
                "t" #'dictionary-search)
       (:prefix "f"
-               "f" #'+vertico/consult-fd-or-find
-               "F" (cmd! (call-interactively #'find-file)
-                         (+vertico/consult-fd-or-find)))
+               "f" #'+vertico/consult-fd-or-find)
       (:prefix "c"
                "r" #'lsp-rename
                (:prefix "'"
@@ -526,8 +522,8 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :m "l" #'dired-open-file)
 
 (map! :map dired-mode-map :localleader :after dired-x
-      "h" (cmd! (call-interactively #'dired-omit-mode)
-                (call-interactively #'dired-hide-details-mode))
+      "h" :desc "dired-hide-details" (cmd! (call-interactively #'dired-omit-mode)
+                                           (call-interactively #'dired-hide-details-mode))
       "a" #'dired-archive)
 #+end_src
 

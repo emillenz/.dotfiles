@@ -1,13 +1,4 @@
 [Default Applications]
-image/jpeg=nsxiv.desktop
-application/octet-stream=emacsclient.desktop;emacs.desktop;
-application/pdf=emacsclient.desktop;emacs.desktop;
-application/mp4=mpv.desktop
-application/octet-stream=emacsclient.desktop;emacs.desktop;
-video/x-matroska=mpv.desktop
-audio/mpeg=mpv.desktop
-text/org=emacsclient.desktop;emacs.desktop;
-application/epub+zip=emacsclient.desktop;emacs.desktop;
 x-scheme-handler/http=firefox.desktop
 x-scheme-handler/https=firefox.desktop
 x-scheme-handler/chrome=firefox.desktop
@@ -18,19 +9,8 @@ application/x-extension-shtml=firefox.desktop
 application/xhtml+xml=firefox.desktop
 application/x-extension-xhtml=firefox.desktop
 application/x-extension-xht=firefox.desktop
-text/plain=emacsclient.desktop;emacs.desktop;
 
 [Added Associations]
-video/x-matroska=mpv.desktop;
-text/x-java=emacsclient.desktop;emacs.desktop;
-text/org=emacsclient.desktop;emacs.desktop;
-text/markdown=nvim.desktop;
-application/rtf=libreoffice-writer.desktop;emacsclient.desktop;emacs.desktop;
-text/plain=emacsclient.desktop;emacs.desktop;
-application/epub+zip=emacsclient.desktop;emacs.desktop;
-image/png=nsxiv.desktop;
-image/jpeg=feh.desktop;
-application/pdf=chromium.desktop;firefox.desktop;
 x-scheme-handler/http=firefox.desktop;
 x-scheme-handler/https=firefox.desktop;
 x-scheme-handler/chrome=firefox.desktop;
@@ -41,4 +21,3 @@ application/x-extension-shtml=firefox.desktop;
 application/xhtml+xml=firefox.desktop;
 application/x-extension-xhtml=firefox.desktop;
 application/x-extension-xht=firefox.desktop;
-application/vnd.adobe.adept+xml=calibre-gui.desktop;

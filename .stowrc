@@ -1,1 +1,2 @@
+# run the command `stow --adopt home config` symlink all required files, then use `git revert .` to override already existing configs.
 --ignore="^\.git"
