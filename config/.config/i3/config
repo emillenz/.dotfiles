@@ -24,7 +24,7 @@ workspace_auto_back_and_forth no
 workspace_layout tabbed
 force_focus_wrapping no
 default_orientation horizontal
-# <pixel> hides titlebars when it's only window on the workspace
+# <pixel> hides titlebars when it's the only window on the workspace
 default_border pixel 1
 hide_edge_borders smart_no_gaps
 title_align left

@@ -40,7 +40,7 @@ PROCESSES = [
         'tmux new-session -d -s main',
         'alacritty --command tmux new-session -n term -A -s main',
         'emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)',
-        "sudo xremap --watch device #{ENV['HOME']}/.config/xremap/config.yml & disown",
+        "xremap --watch=device --watch=config #{ENV['HOME']}/.config/xremap/config.yml & disown",
         'keepassxc',
         'playerctld',
         'unclutter',

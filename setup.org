@@ -67,9 +67,18 @@ git clone --depth 1 https://github.com/doomemacs/doomemacs $HOME/.config/emacs
 $HOME/.config/emacs/bin/doom install
 #+end_src
 
+* keybindings
+[[https://github.com/xremap/xremap][xremap]]
+#+begin_src sh
+yay --noconfirm xremap-x11-bin
+
+# HACK :: be able to run it without sudo (reboot neccessary)
+echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rules.d/99-input.rules
+#+end_src
+
 * gui apps & packages
 #+begin_src sh
-yay --noconfirm --sync i3-wm arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop xremap-x11-bin mpd dunst feh maim xorg-xset xorg-xsetroot batsignal pamixer rofi
+yay --noconfirm --sync i3-wm arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl xorg-xprop mpd dunst feh maim xorg-xset xorg-xsetroot batsignal pamixer rofi
 #+end_src
 
 ** enable daemons
