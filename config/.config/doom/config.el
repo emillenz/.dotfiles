@@ -111,24 +111,25 @@
 ;; [[file:config.org::*indentation][indentation:1]]
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
 
-(let ((indent-width 8))
- (setq-default standard-indent indent-width
-               evil-shift-width indent-width
-               tab-width indent-width
-               org-indent-indentation-per-level indent-width
-               evil-indent-convert-tabs t
-               indent-tabs-mode nil)
+(defvar u-global-indent-width 8)
 
- (setq-hook! '(c++-mode-hook
-               c-mode-hook
-               java-mode-hook)
-   tab-width indent-width
-   c-basic-offset indent-width
-   evil-shift-width indent-width)
+(setq-default standard-indent u-global-indent-width
+              evil-shift-width u-global-indent-width
+              tab-width u-global-indent-width
+              org-indent-indentation-per-level u-global-indent-width
+              evil-indent-convert-tabs t
+              indent-tabs-mode nil)
 
- (setq-hook! 'ruby-mode-hook
-   evil-shift-width indent-width
-   ruby-indent-level indent-width))
+(setq-hook! '(c++-mode-hook
+              c-mode-hook
+              java-mode-hook)
+  tab-width u-global-indent-width
+  c-basic-offset u-global-indent-width
+  evil-shift-width u-global-indent-width)
+
+(setq-hook! 'ruby-mode-hook
+  evil-shift-width u-global-indent-width
+  ruby-indent-level u-global-indent-width)
 ;; indentation:1 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
