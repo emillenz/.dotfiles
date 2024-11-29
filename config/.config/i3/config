@@ -9,7 +9,7 @@ set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pami
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
-set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep 0.5 && playerctl status)"
+set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep 0.1 && playerctl status)"
 
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off

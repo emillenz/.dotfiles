@@ -175,10 +175,10 @@ emacs sucks at graphical stuff, hence we use external programs to display pdfs a
                                                 "doom eval"
                                                 "Backtrace"
                                                 "lsp-help"
-                                                "Async Shell Command")))
-                              (display-buffer-in-side-window)
-                              (side . bottom)
-                              (slot . 0)) ;; reuse bottom window if exists
+                                                "Async Shell Command"
+                                                "compilation")))
+                              display-buffer-in-side-window
+                              (side . bottom))
 
                              ;; default (all buffer's) :: replace existing window (side window is never used by this)
                              ("." (display-buffer-same-window
@@ -505,7 +505,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
                                                     (cons ext app))
                                                   extensions)))
                                       '((("mkv" "webm" "mp4" "mp3") . "mpv")
-                                        (("pdf")                    . "zathura")
+                                        (("pdf" "epub")             . "zathura")
                                         (("gif" "jpeg" "jpg" "png") . "feh")
                                         (("docx" "odt" "odf")       . "libreoffice")))
         dired-recursive-copies 'always
@@ -1203,36 +1203,6 @@ legibility."
                                eshell-mode
                                org-mode
                                vterm-mode)))
-#+end_src
-
-* nov: ebooks
-- uses variable pitch mode
-#+begin_src elisp
-(use-package! nov
-  :mode ("\\.epub\\'" . nov-mode)
-  :config
-  (setq nov-variable-pitch t ;; serif for prose reading
-        nov-text-width t) ;; used visual-line-mode and visual-fill-column mode to visually wrap line.
-  (advice-add 'nov-render-title :override #'ignore) ;; using modeline...
-
-  (map! :map (nov-mode-map nov-button-map)
-        "SPC" nil                     ;; never override leader-mode
-        "S-SPC" nil                   ;; never override leader-mode
-        :n "q" #'kill-current-buffer  ;; consistent with other read-only modes (magit, dired, docs...)
-
-        ;; next/previous page
-        :n "<next>" #'nov-scroll-up
-        :n "<prior>" #'nov-scroll-down)
-
-  (add-hook! 'nov-mode-hook
-    (visual-fill-column-mode)
-    (visual-line-mode)
-
-    (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
-                line-spacing 2) ;; padding increases focus on current line for long prose text.
-
-    (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
-    (hl-line-mode -1)))
 #+end_src
 
 * yas: snippets
