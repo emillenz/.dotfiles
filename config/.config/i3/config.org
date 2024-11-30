@@ -20,11 +20,19 @@
 - strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
 - if at work and forced to use a desktop environment, just use [[kbd:][M-<tab>]] to switch windows and resize your emacs/webbrowser in a similar fashion to get 90% of the benefits of i3.
 
+** single monitor only
+:PROPERTIES:
+:created: [2024-05-21 Tue 11:38]
+:END:
+- we don't have/use multiple monitors.  instead just get used to the efficient & fast navigation- to navigate within virtual workspaces (using a window manager) which is faster (than physically reorienting your FOV) more extensible (have as many as you need), and more consistent (always available, even when on laptop).
+- this is consistent with the navigational workflow inside emacs, where we also never use splits and instead use the current window.
+- managing windows over multiple monitors becomes increasingly complex and produces overhead.  it's faster to switch to the window you need instantaneously with a keyboard shortcut, instead of physically tilting the head (which is also unergonomic).  additionally we want consistency in the workflow inbetween using the laptop and desktop setup (if you even have that).
+- using a single monitor only not only makes you faster, but it also aligns with the focused singletasking fullscreen workflow.
+
 * macros
 - no statusbar => using notifications to display volume change
 #+begin_src conf
 set $ESC mode "default"
-set $BIN ~/Dotfiles/bin
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $ROFI rofi -dmenu -no-custom -i -p find-file
@@ -43,7 +51,7 @@ set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 
 * autostart
 start daemons (emacs, tmux), run startup commands, etc.
 #+begin_src conf
-exec_always --no-startup-id $BIN/autostart &
+exec_always --no-startup-id autostart &
 #+end_src
 
 * opts
@@ -65,7 +73,7 @@ smart_gaps inverse_outer
 #+end_src
 
 * keybindings
-- mod1 = alt (ergonomic)
+- MOD = [[kbd:][alt]] :: this is ergnomic for laptops and custom keyboards alike.  we otherwise don't need [[kbd:][alt]], since we only use [[kbd:][ctrl]] within applications (and don't use emacs keys).
 - disable mousewheel functionality :: no accidental window switching wheen mouse is still on titlebar
 - accessibility :: we map XF86 keys for large keyboards & laptops, but most functions also available without taking the hands off the keyboards (or if minimalist keyboard without XFkeys)
 
@@ -81,6 +89,7 @@ bindsym button5 nop
 
 bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
 bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
+# to reset screenlayouts when disconnecting laptop from external output
 bindsym XF86Display           $SHCMD xrandr --auto
 bindsym XF86ScreenSaver       $SHCMD $SYS_SCREENOFF
 bindsym XF86Sleep             $SHCMD $SYS_SLEEP
@@ -103,21 +112,19 @@ bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 #+end_src
 
 * navigational bindings
-- use MOD+shift+{h/l} to vsplit a window when needing to view things side-by-side.
+- use [[kbd:][MOD+shift+h/l]] to vsplit a window when needing to view things side-by-side.
+- i3 as rofi fallback :: incase rofi not installed yet or broken-config.
+  - tipp :: in ~rofi~ you can use [[kbd:][C-<return>]] to execute your input as a shell command.
 #+begin_src conf
-bindsym $MOD+h          focus left
-bindsym $MOD+shift+h    move left
-bindsym $MOD+l          focus right
-bindsym $MOD+shift+l    move right
-bindsym $MOD+q          kill
-bindsym $MOD+b          $SHCMD rofi -show window
-bindsym $MOD+semicolon  $SHCMD rofi -show drun
-bindsym $MOD+Return     move workspace to output next
-bindsym $MOD+Tab        workspace back_and_forth
-
-# not really used, but just for vim compatibility.
-bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
-bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
+bindsym $MOD+h            focus left
+bindsym $MOD+shift+h      move left
+bindsym $MOD+l            focus right
+bindsym $MOD+shift+l      move right #
+bindsym $MOD+q            kill
+bindsym $MOD+b            $SHCMD rofi -show window
+bindsym $MOD+Return       $SHCMD rofi -show drun || i3-dmenu-desktop
+bindsym $MOD+shift+Return $SHCMD rofi -show run
+bindsym $MOD+Tab          workspace back_and_forth
 #+end_src
 
 * gaps
@@ -155,11 +162,6 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
                     ;; windows not assigned to their own workspaces
                     ("all"
                      ".")
-
-                    ("term"
-                     "Alacritty"
-                     "alacritty --title term --command tmux new-session -A -s main"
-                     t)
 
                     ("edit"
                      "Emacs"
@@ -202,34 +204,6 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
              "\n\n"))
 #+end_src
 
-#+RESULTS[3ce1064a1beacc21856743d63ee482ba4fafae3a]: workspaces
-#+begin_example
-# WORKSPACE: ALL
-for_window [class="."] move container to workspace all
-bindsym $MOD+a workspace all
-
-# WORKSPACE: TERM
-workspace term gaps horizontal $GAPSIZE
-for_window [class="Alacritty"] move container to workspace term
-bindsym $MOD+t workspace term
-bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -A -s main
-
-# WORKSPACE: EDIT
-workspace edit gaps horizontal $GAPSIZE
-for_window [class="Emacs"] move container to workspace edit
-bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
-
-# WORKSPACE: READ
-for_window [class="Zathura"] move container to workspace read
-bindsym $MOD+r workspace read
-
-# WORKSPACE: WEB
-for_window [class="firefox"] move container to workspace web
-bindsym $MOD+w workspace web
-bindsym $MOD+shift+w exec --no-startup-id firefox
-#+end_example
-
 (read: ~M-x info-display-manual org~ chapter: =16 working with source code=, if you don't know what this magic is doing)
 #+begin_src conf
 <<workspaces()>>
@@ -241,12 +215,12 @@ for_window [all] focus, title_window_icon no, floating disable
 * leader
 - bind infrequently used commands and menus
 #+begin_src conf
-
 bindsym $MOD+space mode "leader"
+
 mode "leader" {
-        bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
-        bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
-        bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
+        bindsym $MOD+a $SHCMD audio-output-menu; $ESC
+        bindsym $MOD+b $SHCMD bluetooth-menu; $ESC
+        bindsym $MOD+k $SHCMD killprocess-menu; $ESC
         bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | $ROFI); $ESC
 
         bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC

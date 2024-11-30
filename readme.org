@@ -12,17 +12,17 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
 #+end_quote
 
 * philosophy
-- i am of the strong opinion that you should minimize things you do repeatedly.  thus when closing the terminal by accident => can be restored instead of redoing everything.  launching emacs on every startup? => just run the daemon in the background => always accessible & no waiting time.
+- i am of the strong opinion that you should minimize things you do repeatedly.  thus when closing the editor by accident => can be restored instead of redoing everything.  launching emacs on every startup? => just run the daemon in the background => always accessible & no waiting time.
 - this config aims at making the workflow the most effective, while being as bare metal and lightweight as possible, avoiding bloat and focusing on speed and amount of computational steps.  (no headaches, no unexpected behavior, minimal mental overhead).
-- this system is 100% centered at keyboard usage and aims to unify all navigational commands across the terminal, editor, webbrowser, window manager and other possible applications using vim-bindings in combination with a custom global navigation keybinding-scheme which is used & consistent cross-application.  (bindings should be minimalistic and lightweight, because light goes fast and far)
+- this system is 100% centered at keyboard usage and provides coherent, consistent and but minimalist navigational commands across the editor (+inbuilt terminal), webbrowser, window manager and other possible applications.  as a base we use vim-bindings in combination with a custom global navigation keybinding-scheme which is used & consistent cross-program.  (bindings should be minimalistic and lightweight, because light goes fast and far)
 - using the mouse for non creative, non graphical usages is inefficient and creates mental overhead.  having to take the focus off the project just in order to click some ui takes way more mental capacity and computational steps than neccessary and can be negated by using the keyboard and having the same actions always on the same keys.
 - this system is designed to be a workstation.  it is the opposite of a beautiful gui experience that aims to be visually pleasing.
   - no effects (transparency etc), no fancy animations, no window decorations / logos.
   - uses colorcoding whenever possible since this enhances readability.
   - no icons :: fancy visual sugar.  keep it simple, minimalist and extensible (they are only a distraction), instead use colorcoding and font faces for visually separating displayed options.  we care about the functionality of a program, and not what cool logo it has.
-  - this system puts emphasis on a text & data driven evironment wherever possible this will reduce complexity and increase extensibility and interchangeablilty.  you will also benefit from a more unified and consistent interface across applications.
+  - this system puts emphasis on a text & data driven evironment wherever possible this will reduce complexity and increase extensibility and interchangeablilty.  you will also benefit from a more unified and consistent interface across programs.
 - consistency :: this config aims to be globally consistent in its design, behaviour and control.
-  - which means things like (colorscheme, font, workflow, keybindings, ui..) were once carefully analyzed, choosen and designed and then implemented as consistent as possible across tools (terminal, editor, webbrowser, wm, reader..)
+  - which means things like (colorscheme, font, workflow, keybindings, ui..) were once carefully analyzed, choosen and designed and then implemented as consistent as possible across tools (editor, webbrowser, wm, reader..)
 - single focused window :: avoid using splits in your programs and prefer the maximized buffer tabs-only workflow.  (hence we don't include split management bindings in the wm)  i have found it less intrusive and faster to just switch to the tab instead.
   - humans are not designed and not good at multitasking, they excel at linear singular focus processing.
   - splits are mostly useless and take up screenspace, cluttering it with information you are not processing, and that will distract your focus.
@@ -36,19 +36,19 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
   - prompts & statusbars on bottom (if neccessary?)
   - completion-menu's / promts are an extensions of the statusbar
     - do not block view
-    - consistently on the same spot across all apps (terminal, emacs, dmenu)
+    - consistently on the same spot across all apps (emacs, rofi)
     - they should not distract => use flat mode (dmenu style)
   - use thin/lightweight/sharp over thick/heavy/rounded (box drawings / terminal characters / symbols)
     - 1px lines, borders with hard corners & sharp edges have their own beautiful, highly functional aestetic.
     - thin and sharp will create less obstruction (having more complex and voluminous symbols/ui than actually neccessary for visual distinction is bloat and visual sugar)
     - minimal and thin feels more soulless and is more ergonomic with screenspace
-  - prompts :: using ~>~ globally (shell, dmenu,..) for prompt indicator symbol
+  - prompts :: using ~>~ globally (shell, rofi,..) for prompt indicator symbol
 - thinking fast & slow :: rely on fast, instinctive thinking for non repeating tasks and for repeating patterns / actions on the slow, precise, analytical thinking.
   - this is the definition of dry, or not repeating yourself / taking the minimal required no.  of actions to get to the disired output/position.
   - ex: use vims search replace with patterns instead of manually going through and changing each instance
   - ex: relative line jumping over spamming =j=
   - ex: tab switching => thinking fast & instinctive, develop muscle memory (when there are too many => use analytical brain by searching through the list)
-- its all about preserving the working state between sessions to achieve consistency and minimize time needed to get working.  this is why we run emacs as a background daemon and the shell in tmux.  why we don't close tmux windows or as we don't jump in and out of emacs on the commandline (like vim users do).  why we don't poweroff a computer and instead just hibernate/sleep it.
+- its all about preserving the working state between sessions to achieve consistency and minimize time needed to get working.  this is why we run emacs as a background daemon.  why we don't poweroff a computer and instead just hibernate/sleep it.
 
 ** The mouse
 #+begin_quote
@@ -73,10 +73,9 @@ you should never use the computer with no ambient light sources in the room anyw
 one may object that dark themes "look cooler", which we can ignore, since we use our computer's as a productive tool and not to impress anyone over the internet.
 
 * font: iosevka comfy
- it is incredibly compact in width to allow a lot of code on screen, especially when viewing content side by side.
- designed for writing code, using in terminals, and preparing technical documents.
+ it is incredibly compact in width to allow a lot of code on screen, especially when viewing content side by side. designed for writing code, using in terminals, and preparing technical documents.
   - the intent is to make everything feel part of the same aesthetic, hence setting the font system-wide.
- it was specifically designed for long terminal / editor sessions (8- hours).  it aims to reduce eye strain and help readability in the long term.  (try a light theme with a bitmap font like terminus for 8 hours.  it will be a tormenting experience! to maximamise the difficulty, do it in a dark room with the monitor’s brightness set to its maximum value.)
+ it was specifically designed for long editor sessions (8- hours).  it aims to reduce eye strain and help readability in the long term.  (try a light theme with a bitmap font like terminus for 8 hours.  it will be a tormenting experience! to maximamise the difficulty, do it in a dark room with the monitor’s brightness set to its maximum value.)
  keep the fontsize as small as you can manage while the font is not blurry (for 1920x1080 that corresponds to size: 10).
   - working with big fontsizes, encourages bad eyesight and neckposture.
   - makes you faster
@@ -98,13 +97,13 @@ learning a tool is an investment and you wouldn't want to sink your time into so
 this is why secure and fast languages such as rust and go are preferred over inconsistent and hacky languages such as perl or python, that require constant maintaining.
 i'm very opinionated and have high standards regarding design process and the philosophy behind the tools focused on, hence the selection undergoes a rigorous coparison and selection process.
 
-** webbrowser: firefox
-*** install & configure extensions manually
+* webbrowser: firefox
+** install & configure extensions manually
 - password manager
 - theming (light)
 - font set all font choices to the system wide font: iosevka comfy 10 and set: don't allow webpages to custom fonts.  that way it will always look uniform.
 
-*** useage
+** useage
 - pin tabs that you want to assign to fixed hotkeys ([[kbd:][M-<number>]]), such as [[https://chatgpt.com]] or [[https://spotify.com]].  they will automatically open and you cant't accidentally close them with [[kbd:][C-w]].
 - bookmarks: name them hierarchically w keywords (syntax like ~org-mode-tags~), ex: ~cs:math:exercises~
   - quickly open website using bookmark searching
@@ -113,15 +112,22 @@ i'm very opinionated and have high standards regarding design process and the ph
 - make use of google search operators (~site:~, quoting, ~-~)
 - use inbuilt shortcuts...
 
-* hardware
-** single monitor only
-:PROPERTIES:
-:created: [2024-05-21 Tue 11:38]
-:END:
-- don't use multiple monitors, instead just get used to the efficient & fast navigation- to navigate within virtual workspaces (using a window manager) which is faster (than physically reorienting your FOV) more extensible (have as many as you need), and more consistent (always available, even when on laptop).
-- this is consistent with the navigational workflow inside emacs, where we also never use splits and instead use the current window.
-- managing windows over multiple monitors becomes increasingly complex and produces overhead.  it's faster to switch to the window you need instantaneously with a keyboard shortcut, instead of physically tilting the head (which is also unergonomic).  additionally we want consistency in the workflow inbetween using the laptop and desktop setup (if you even have that).
-- using a single monitor only not only makes you faster, but it also aligns with the focused singletasking fullscreen workflow.
+* scripting: using ruby
+we never script using the POSIX-shell.  the shell is only meant to be used to run simple shell commands.  if we need to do more than that (eg. programming constructs such as loops, functions, variables, using ~sed/awk/cut...~) then we simply switch over to using the proper scripting language ~ruby~ (alternatively ~python~ if the script must be portable).
+
+bash is coherent with respect to the mind of certain benevolent dictator.  bash is a steaming pile of inconsistent user-unfrienly shit.
+
+on the command line, i don't really need a full language with a repl-like interface.  i want a fast and quick way to interface with the os.  anything beyond that should be written in a proper language (~ruby~) that will inherently bring more benefits.
+
+- long-flags :: when writing shell commands in scripts one should always favor ~--long-flags~ over ~-l~ in order to increase code readability  and maintaineability.  this makes understanding the script for people who may not be familiar with the programs easier to understand and modify (reduce elitism in free software).
+
+*** ruby scripting rationale
+a shell only exists for interactive use and running commands: launching processes/commands, interaction with the filesystem and programs (mv, cp, find, grep..).
+for scripting however, anything that cannot be done in a oneliner (using && || etc.).  for example: data manipulation (JSON, etc.), conditional execution (if else), functions or the usage of variables/datastructures, you should always opt towards a proper scripting language such as ruby.  since it offer's full library support, is more extensible and maintaineable.
+
+even though it may have a steeper learning curve and requires a more structured and less hacky approach to scripting.  but once fluent in it, it smoothly bridges the gap between compiled highly efficient languages such as rust or c and the interactive nature of a shell.
+
+choosen over python since it is well designed, has a very minimal, clean, consistent syntax.  close interconnectedness with ~sh~ by running ~sh~-commands with ~``~.  i love the fact that everything is a expression (has a value).  This means, it's a extreme joy for functional programers.  Python is pretty badly designed, lots inconsistencies in syntax as well as semantics.  ruby follows the MIT philosophy of making the userinterface consistent and a joy to use.
 
 * keybindings
 - typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
@@ -130,9 +136,9 @@ i'm very opinionated and have high standards regarding design process and the ph
 - remaps :: [[file:config/.config/xremap/config.org][remapping tool (xremap) configuration file]]
 
 ** navigational standard
-- condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser, terminal,..).  they will suffice 90% of all your navigational needs.
+- condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser..).  they will suffice 90% of all your navigational needs.
   - [[kbd:][ctrl]] :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
-- inter program keyboard shortcuts consistency is important because they make the keys easier to remember and you will not have to learn multiple paradigms of keymaps.  the here defined set of keybindings are shared across applications (webbrowser, emacs, terminal, etc)
+- inter program keyboard shortcuts consistency is important because they make the keys easier to remember and you will not have to learn multiple paradigms of keymaps.  the here defined set of keybindings are shared across applications (webbrowser, emacs, etc)
 - windowmanager :: the set of program-names during runtime is known and consistent (unlike tabs in applications, where we cannot make presumtions about the contents of the tabs, hence we use numbers), we use specific-chars for switching to the tabs.
 
 | mod+key | action                   | consistency                                              |
@@ -160,7 +166,6 @@ when you find yourself doing the same things repetitively or you get annoyed it 
 
 ** save state & progress
 - ex: do not shut down the computer.  instead: hibernate // shuts it down, but preserves the working state & restores it => resume where left off
-- have undo - redo in software: use terminal sessionizers (tmux) => when accidentally closing terminal => reattach to the session, to restore
 
 ** the mit-approach
 - simplicity :: the design must be simple, both in implementation and interface.  it is more important for the interface to be simple than the implementation.

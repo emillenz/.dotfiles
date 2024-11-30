@@ -13,10 +13,7 @@
       scroll-margin 0
       enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
       display-line-numbers-type 'visual
-      shell-command-prompt-show-cwd t
-      which-key-idle-delay 0.5
-      explicit-shell-file-name (executable-find "fish") ;; we use fish-shell for interactive use
-      shell-file-name (executable-find "bash")) ;; emacs packages expect bash
+      shell-command-prompt-show-cwd t)
 
 (save-place-mode)
 (global-subword-mode)
@@ -24,16 +21,21 @@
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
 (let ((width 100))
+
   (setq fill-column width
         async-shell-command-width width
-        visual-fill-column-width width)
-  (global-visual-fill-column-mode)
-  (global-visual-line-mode))
+        visual-fill-column-width width))
+
+(global-visual-fill-column-mode)
+(global-visual-line-mode)
+
 (add-hook! 'prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
   (visual-fill-column-mode -1))
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
+
+(advice-add '+default/man-or-woman :override #'man) ;; HACK :: we don't use macos, and +default/man-or-woman doesn't invoke `man' correctly
 ;; global options:1 ends here
 
 ;; [[file:config.org::*modus-theme][modus-theme:1]]
@@ -49,7 +51,9 @@
   (custom-set-faces!
     '(org-list-dt :inherit modus-themes-heading-1)
     `(org-block-begin-line :foreground ,(modus-themes-get-color-value 'prose-metadata))
-    '(org-quote :slant italic))
+    '(org-quote :slant italic)
+
+    '(comint-highlight-prompt :weight bold))
 
   (setq doom-theme 'modus-operandi))
 ;; modus-theme:1 ends here
@@ -78,17 +82,16 @@
                                                 "Agenda Commands"
                                                 "doom eval"
                                                 "Backtrace"
-                                                "lsp-help"
-                                                "Async Shell Command")))
+                                                "lsp-help")))
                               display-buffer-in-side-window
                               (window-parameters . ((mode-line-format . none)))
+                              (window-height . fit-window-to-buffer)
                               (side . bottom))
 
                              ;; default (all buffer's) :: replace existing window (side window is never used by this)
-                             ("." (display-buffer-same-window
-                                   display-buffer-use-least-recent-window)))
+                             ("."
+                              display-buffer-same-window))
 
-      fit-window-to-buffer-horizontally 'any
       switch-to-buffer-obey-display-actions t)
 
 ;; close popup window (eg. '*lsp-help*') from the main window with '<escape>' in normal mode
@@ -168,7 +171,7 @@
 (map! :map minibuffer-mode-map
       :i "C-n" #'completion-at-point
       :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer) ;; sane default
+      :n "RET" #'exit-minibuffer) ;;
 
 (map! :map evil-ex-search-keymap :after evil
       "M-n" #'next-line-or-history-element
@@ -177,7 +180,9 @@
       :n "RET" #'exit-minibuffer)
 
 (map! :map vertico-flat-map :after vertico
-      :n "RET" #'vertico-exit ;; sane default
+      :i "C-n" #'next-line-or-history-element
+      :i "C-p" #'previous-line-or-history-element
+      :n "RET" #'vertico-exit
       :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
@@ -327,6 +332,7 @@
 (after! dired
   ;; make it more visually minimal, toggle all the details if needed explicitly.
   (add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
+  (add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
 
   ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
@@ -354,23 +360,29 @@
 (map! :map dired-mode-map :localleader :after dired-x
       :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
                                            (call-interactively #'dired-hide-details-mode))
-      "a" #'dired-archive)
+      "a" #'u-dired-archive)
 ;; dired/keybindings:1 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
 (defvar u-archive-dir "~/Archive/")
 
-(defun dired-archive ()
+(defun u-dired-archive ()
   "`mv' marked file/s to: `u-archive-dir'/{relative-filepath-to-HOME}/{filename}"
   (interactive)
+
   (mapc (lambda (file)
           (let* ((dest (file-name-concat u-archive-dir
-                                         (file-relative-name file "~/")))
+                                         (format "%s__archived_%s.%s"
+                                                 (file-name-base (file-relative-name file "~/"))
+                                                 (format-time-string "%F-T%H%M-%S")
+                                                 (file-name-extension file))))
                  (dir (file-name-directory dest)))
+
             (unless (file-exists-p dir)
               (make-directory dir t))
             (rename-file file dest 1)))
         (dired-get-marked-files nil nil))
+
   (revert-buffer))
 ;; archive file:1 ends here
 
@@ -580,7 +592,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
 ':templates' is inherited by the parent-group and if present in a childgroup it appends the
    additionally defined templates.")
 
-(defun doct-journal-file (&optional time)
+(defun u-doct-journal-file (&optional time)
   "returns a structured filename based on the current date.
 eg: journal_2024-11-03.org
 TIME :: time in day of note to return. (default: today)"
@@ -686,7 +698,7 @@ PARENT-PATH :: nil (used for recursion) "
               ;; NON-PROJECT TEMPLATES
               ("journal"
                :keys "j"
-               :file (lambda () (doct-journal-file))
+               :file (lambda () (u-doct-journal-file))
                :title (lambda ()
                         (downcase (format-time-string "journal: %A, %e. %B %Y")))
 
@@ -722,7 +734,7 @@ PARENT-PATH :: nil (used for recursion) "
                            :keys "y"
                            :unnarrowed t
                            :file (lambda ()
-                                   (doct-journal-file (time-subtract (current-time)
+                                   (u-doct-journal-file (time-subtract (current-time)
                                                                      (days-to-time 1))))
                            :template ("* gratitude"
                                       "- %?"
@@ -816,8 +828,8 @@ PARENT-PATH :: nil (used for recursion) "
                           (directory-files-recursively org-directory
                                                        org-agenda-file-regexp
                                                        t))
-                        (list (doct-journal-file)
-                              (doct-journal-file (time-subtract (current-time)
+                        (list (u-doct-journal-file)
+                              (u-doct-journal-file (time-subtract (current-time)
                                                                 (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
       org-agenda-skip-scheduled-if-done t
       ;; org-agenda-sticky t
@@ -884,7 +896,7 @@ legibility."
       (downcase-region beg end)
       (repunctuate-sentences t beg end)))
 
-(add-hook! 'whisper-after-transcription-hook (reformat-prose (point-min) (point-max)))
+(add-hook! 'whisper-after-transcription-hook (u-reformat-prose (point-min) (point-max)))
 
 (map! :leader "X" #'whisper-run)
 ;; whisper: transcription:1 ends here
@@ -926,12 +938,7 @@ legibility."
 (after! company
   (setq company-minimum-prefix-length 0
         company-idle-delay nil ;; only show menu when explicitly activated
-        company-show-quick-access t
-        company-global-modes '(not
-                               help-mode
-                               eshell-mode
-                               org-mode
-                               vterm-mode)))
+        company-show-quick-access t))
 ;; company: code completion:1 ends here
 
 ;; [[file:config.org::*yas: snippets][yas: snippets:1]]
@@ -962,3 +969,13 @@ legibility."
                               (atom-movement t)
                               additional-insert)))
 ;; lispy(ville): editing lisp in vim:1 ends here
+
+;; [[file:config.org::*shell][shell:1]]
+(after! shell
+  (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
+
+(map! :map comint-mode-map :after comint
+      :i "C-r" #'comint-history-isearch-backward-regexp)
+
+(define-key! [remap +shell/toggle] #'+shell/here) ;; we never use popupterminals (use async-shell command for one-off's)
+;; shell:1 ends here

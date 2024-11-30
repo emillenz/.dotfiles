@@ -1,6 +1,5 @@
 # [[file:config.org::*macros][macros:1]]
 set $ESC mode "default"
-set $BIN ~/Dotfiles/bin
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $ROFI rofi -dmenu -no-custom -i -p find-file
@@ -17,7 +16,7 @@ set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 
 # macros:1 ends here
 
 # [[file:config.org::*autostart][autostart:1]]
-exec_always --no-startup-id $BIN/autostart &
+exec_always --no-startup-id autostart &
 # autostart:1 ends here
 
 # [[file:config.org::*opts][opts:1]]
@@ -46,6 +45,7 @@ bindsym button5 nop
 
 bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
 bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
+# to reset screenlayouts when disconnecting laptop from external output
 bindsym XF86Display           $SHCMD xrandr --auto
 bindsym XF86ScreenSaver       $SHCMD $SYS_SCREENOFF
 bindsym XF86Sleep             $SHCMD $SYS_SLEEP
@@ -68,17 +68,15 @@ bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 # keybindings:1 ends here
 
 # [[file:config.org::*navigational bindings][navigational bindings:1]]
-bindsym $MOD+h          focus left
-bindsym $MOD+shift+h    move left
-bindsym $MOD+l          focus right
-bindsym $MOD+shift+l    move right
-bindsym $MOD+q          kill
-bindsym $MOD+b          $SHCMD rofi -show window
-bindsym $MOD+semicolon  $SHCMD rofi -show drun
-bindsym $MOD+Return     move workspace to output next
-bindsym $MOD+Tab        workspace back_and_forth
-bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
-bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
+bindsym $MOD+h            focus left
+bindsym $MOD+shift+h      move left
+bindsym $MOD+l            focus right
+bindsym $MOD+shift+l      move right
+bindsym $MOD+q            kill
+bindsym $MOD+b            $SHCMD rofi -show window
+bindsym $MOD+Return       $SHCMD rofi -show drun || i3-dmenu-desktop
+bindsym $MOD+shift+Return $SHCMD rofi -show run
+bindsym $MOD+Tab          workspace back_and_forth
 # navigational bindings:1 ends here
 
 # [[file:config.org::*gaps][gaps:1]]
@@ -91,12 +89,6 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 # WORKSPACE: ALL
 for_window [class="."] move container to workspace all
 bindsym $MOD+a workspace all
-
-# WORKSPACE: TERM
-workspace term gaps horizontal $GAPSIZE
-for_window [class="Alacritty"] move container to workspace term
-bindsym $MOD+t workspace term
-bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -A -s main
 
 # WORKSPACE: EDIT
 workspace edit gaps horizontal $GAPSIZE
@@ -119,10 +111,11 @@ for_window [all] focus, title_window_icon no, floating disable
 
 # [[file:config.org::*leader][leader:1]]
 bindsym $MOD+space mode "leader"
+
 mode "leader" {
-        bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
-        bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
-        bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
+        bindsym $MOD+a $SHCMD audio-output-menu; $ESC
+        bindsym $MOD+b $SHCMD bluetooth-menu; $ESC
+        bindsym $MOD+k $SHCMD killprocess-menu; $ESC
         bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | $ROFI); $ESC
 
         bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC

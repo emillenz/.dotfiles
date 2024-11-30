@@ -67,9 +67,9 @@
 
        :term
        ;;eshell                     ; the elisp shell that works everywhere
-       ;;shell                      ; simple shell REPL for Emacs
+       shell                      ; simple shell REPL for Emacs NOTE :: use this over vterm (better emacs integration).
        ;;term                       ; basic terminal emulator for Emacs
-       ;;vterm                      ; the best terminal emulation in Emacs NOTE :: turn off vi-mode in the shell in order for it to work properly
+       ;; vterm                      ; the best terminal emulation in Emacs
 
        :checkers
        syntax                     ; (+childframe)
@@ -97,7 +97,7 @@
         +forge)
        ;;make                       ; run make tasks from Emacs
        ;;pass                       ; (+auth) password manager for nerds
-       pdf                          ; pdf enhancements
+       ;; pdf                          ; pdf enhancements; emacs sucks donkey ass for anything graphical => use external pdf viewer
        ;;prodigy                    ; FIXME managing external services & code builders
        ;;rgb                        ; creating color strings
        ;;taskrunner                 ; taskrunner for all your projects
@@ -176,11 +176,14 @@
        ;;raku                       ; the artist formerly known as perl6
        ;;rest                       ; Emacs as a REST client
        ;;rst                        ; ReST in peace
-       (ruby +lsp +tree-sitter)     ; +rails 1.step {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
+       (ruby +lsp
+             +tree-sitter
+             +rbenv)     ; +rails 1.step {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
        ;;(rust +lsp)                ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
        ;;scala                      ; java, but good
        ;;(scheme +guile)            ; a fully conniving family of lisps
-       (sh +fish +lsp +tree-sitter) ; she sells {ba,z,fi}sh shells on the C xor
+       (sh +lsp
+           +tree-sitter) ; she sells {ba,z,fi}sh shells on the C xor
        ;;sml
        ;;solidity                   ; do you need a blockchain? No.
        ;;(swift +lsp)               ; who asked for emoji variables?

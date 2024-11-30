@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+
+# ---
+# title:  autostart
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   2023-05-07
+# info:
+# - starting daemons (emacs, tmux) and background processes (if not running)
+# - running commands (to set some behaviour)
+# ---
+
+def main
+        spawn_processes
+        CMDS.each { |cmd| system(cmd) }
+end
+
+def spawn_processes
+        processes = `ps -e -o comm`.lines.drop(1).map(&:chomp)
+
+        PROCESSES.each do |ps|
+                # use hash if commandname is not first arg
+                name, cmd = if ps.is_a?(Hash)
+                                    [ps[:name], ps[:cmd]]
+                            else
+                                    [ps.split[0], ps]
+                            end
+
+                unless processes.include?(name)
+                        Process.detach(Process.spawn(cmd, %i[out err] => File::NULL))
+                        puts "> started: '#{name}'\n\t'#{cmd}'"
+                end
+        end
+end
+
+CMDS = [
+        'xsetroot -solid "#ffffff"', # minimalist modus-vivendi bg color
+        'xset dpms 0 0 0', # no auto screensaving
+        'xset s off',
+        'xset r off', # disable key repeat (efficiency!)
+].freeze
+
+PROCESSES = [
+        { cmd: "nohup sudo xremap --watch=device --watch=config #{ENV['HOME']}/.config/xremap/config.yml",
+          name: 'xremap' },
+        'emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)',
+        'firefox',
+        'keepassxc',
+        'playerctld',
+        'unclutter',
+        'batsignal -bpe -w 50 -c 20 -d 5',
+        'nm-applet',
+].freeze
+
+main

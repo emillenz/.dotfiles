@@ -72,14 +72,22 @@ use emacs everywhere for anytime you are using a prompt that requires more than 
 *** downsides
 emacs sucks at graphical stuff, hence we use external programs to display pdfs and media.
 
-** terminal vs emacs
-- the terminal is used to run their own terminal-based programs and system related commands (mainly tuis and long async-processes) and commands: htop, nmtui, git, metasploit, transmission-cli, ssh.
-- use simple minbuffer-shell-commands in emacs whenever possible (don't juggle a external terminal and emacs at the same time).  especially when programming, start REPL's and interactive environments from within emacs (terminal emulation) in order to have a seamless integration and navigation between running commands in the shell and programmning.  this has the benefit that you can navigate command output like a normal buffer and use the full power of emacs for the prompt editing.
+** emacs as your computing evironment (and your repl/terminal)
 - extend emacs by writing custom functions for things that you do repetitivly (moving files, manipulating text...) instead of writing shell aliases / shellscripts
   + more extensible and in a proper language
   + write shell-scripts (purely) for launching programs & processes.
-- all coding, writing, fileopening, viewing, navigating is done inside emacs (do not leaving the environment), because this makes for a consistent and coherent workflow.
+- all coding, writing, fileopening, viewing, navigating is done inside emacs (do not leave the environment), because this makes for a consistent and coherent workflow.  don't jump in and out of the commandline, lauching emacs instances, cd'ing around.
   - use inbuilt programs like magit & diff for more speed interactivity and ergonomics than doing it with git command aliases on the command-line.
+
+** shell: using emacs instead of dedicated terminal
+you might be tempted to use a terminal with tmux, zsh/fish, fzf, fancy prompts, bat, exa, and pages filled with git aliases configured.  this results in great complexities and inconsistencies (trying to get the same keybindings, theme etc.) in your shell and editor.  instead you should shun all these features and focus on emacs.  using emacs you have consistency in bindings between the shell and your editor.  no more juggling tmux and the system clipboard when trying to yank/paste text.  no installing tons of shell-plugins to get better vim emulation in the shell (looking at you *zsh*).  you can seamlessly open and switch between man/help/tldr pages while using the shell.  you can navigate & filter (~occur~, etc...) the shell output (instead of using some hacked up, incomplete and inconsistent vim emulation like tmux).  instead of using cd etc. you can freely use all of emacs navigational capabilities (projectile, recentfiles...) (instead of having to install fzf and other crutches).
+your syntax highlighting (including help output etc) is directly inherited from your emacs-theme.
+using emacs for shells also has the benefit that you can seamlessly create a buffer to script in as soon as you are doing more than a simple oneliner, then either evaluating that buffer or regions to the shell.
+
+*** workflow
+use simple minbuffer based ~async-shell-command~'s in emacs, if that doesn't suffice, open: ~shell~.  especially when programming, start REPL's and interactive environments from within emacs (terminal emulation) in order to have a seamless integration and navigation between running commands in the shell and programmning.  this has the benefit that you can navigate command output like a normal buffer and use the full power of emacs for the prompt editing.
+
+the only reason for you to ever use a terminal is if you need to use a TUI or a completely detached background process (eg. a server).
 
 * user
 #+begin_src elisp
@@ -98,10 +106,7 @@ emacs sucks at graphical stuff, hence we use external programs to display pdfs a
       scroll-margin 0
       enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
       display-line-numbers-type 'visual
-      shell-command-prompt-show-cwd t
-      which-key-idle-delay 0.5
-      explicit-shell-file-name (executable-find "fish") ;; we use fish-shell for interactive use
-      shell-file-name (executable-find "bash")) ;; emacs packages expect bash
+      shell-command-prompt-show-cwd t)
 
 (save-place-mode)
 (global-subword-mode)
@@ -109,16 +114,21 @@ emacs sucks at graphical stuff, hence we use external programs to display pdfs a
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
 (let ((width 100))
+
   (setq fill-column width
         async-shell-command-width width
-        visual-fill-column-width width)
-  (global-visual-fill-column-mode)
-  (global-visual-line-mode))
+        visual-fill-column-width width))
+
+(global-visual-fill-column-mode)
+(global-visual-line-mode)
+
 (add-hook! 'prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
   (visual-fill-column-mode -1))
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
+
+(advice-add '+default/man-or-woman :override #'man) ;; HACK :: we don't use macos, and +default/man-or-woman doesn't invoke `man' correctly
 #+end_src
 
 * ui
@@ -136,7 +146,9 @@ emacs sucks at graphical stuff, hence we use external programs to display pdfs a
   (custom-set-faces!
     '(org-list-dt :inherit modus-themes-heading-1)
     `(org-block-begin-line :foreground ,(modus-themes-get-color-value 'prose-metadata))
-    '(org-quote :slant italic))
+    '(org-quote :slant italic)
+
+    '(comint-highlight-prompt :weight bold))
 
   (setq doom-theme 'modus-operandi))
 #+end_src
@@ -177,17 +189,16 @@ emacs sucks at graphical stuff, hence we use external programs to display pdfs a
                                                 "Agenda Commands"
                                                 "doom eval"
                                                 "Backtrace"
-                                                "lsp-help"
-                                                "Async Shell Command")))
+                                                "lsp-help")))
                               display-buffer-in-side-window
                               (window-parameters . ((mode-line-format . none)))
+                              (window-height . fit-window-to-buffer)
                               (side . bottom))
 
                              ;; default (all buffer's) :: replace existing window (side window is never used by this)
-                             ("." (display-buffer-same-window
-                                   display-buffer-use-least-recent-window)))
+                             ("."
+                              display-buffer-same-window))
 
-      fit-window-to-buffer-horizontally 'any
       switch-to-buffer-obey-display-actions t)
 
 ;; close popup window (eg. '*lsp-help*') from the main window with '<escape>' in normal mode
@@ -230,6 +241,7 @@ emacs sucks at graphical stuff, hence we use external programs to display pdfs a
 (setq-hook! 'ruby-mode-hook
   evil-shift-width u-global-indent-width
   ruby-indent-level u-global-indent-width)
+
 #+end_src
 
 *** rationale
@@ -297,15 +309,16 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 #+end_src
 
 ** completion & minibuffer
-- bindings :: use [[kbd:C-n][C-n]] for code completion, If you want evil's dabbrev based completion, use [[kbd:C-p][C-p]], which is more logical anyway, since the expansion is more likely to be above the current code position.  finally, if you want to expand a snippet/move through completion fields, use [[kbd:tab][tab]].
-- minibuffer completion :: less distracting and more focused we use ~vertico-flat-mode~ (it promotes finding items not by navigating via scrolling through candidates, but instead by searching).  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (inspired by dmenu)  we use the same bindings as for completion for consistency: [[kbd:C-n/p][C-n/p]]
-- minibuffer history :: [[kbd:][M-n/p]] is what emacs uses by default, it is a good default, we must now only additionally make it work in ~evil-ex-search-keymap~.
+- completion keybindings :: use [[kbd:C-n][C-n]] for code autocompletion.  use [[kbd:C-p][C-p]] for abbreviations (which is logical since the expansion is most likely to be above the current code position)  finally, if you want to expand a snippet, or move through completion fields, use [[kbd:tab][tab]].  once autocompletion is activated, we use [[kbd:][C-n/p]] to navigate candidates.
+- vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu/rofi's appearance).   we use the same bindings for navigating the candidates as for completion (consistency!): [[kbd:C-n/p][C-n/p]]
+- history :: [[kbd:][M-n/p]] is what emacs uses by default, it is a good default.  but we must additionally enable it in ~evil-ex-search-keymap~ (which expects you to use unergonomic [[kbd:][up/down]] by default)
+- normal mode :: we make evil-integration more sane: ~/~, ~RET~
 
 #+begin_src elisp
 (map! :map minibuffer-mode-map
       :i "C-n" #'completion-at-point
       :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer) ;; sane default
+      :n "RET" #'exit-minibuffer) ;;
 
 (map! :map evil-ex-search-keymap :after evil
       "M-n" #'next-line-or-history-element
@@ -314,7 +327,9 @@ in short, 8-char indents make things easier to read, and have the added benefit 
       :n "RET" #'exit-minibuffer)
 
 (map! :map vertico-flat-map :after vertico
-      :n "RET" #'vertico-exit ;; sane default
+      :i "C-n" #'next-line-or-history-element
+      :i "C-p" #'previous-line-or-history-element
+      :n "RET" #'vertico-exit
       :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
@@ -465,7 +480,6 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
                evil-forward-paragraph
                evil-forward-section-end))
   (evil-remove-command-properties cmd :jump))
-
 #+end_src
 
 * occur: emacs interactive grep
@@ -498,6 +512,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (after! dired
   ;; make it more visually minimal, toggle all the details if needed explicitly.
   (add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
+  (add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
 
   ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
@@ -529,7 +544,7 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (map! :map dired-mode-map :localleader :after dired-x
       :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
                                            (call-interactively #'dired-hide-details-mode))
-      "a" #'dired-archive)
+      "a" #'u-dired-archive)
 #+end_src
 
 ** archive file
@@ -538,17 +553,23 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 #+begin_src elisp
 (defvar u-archive-dir "~/Archive/")
 
-(defun dired-archive ()
+(defun u-dired-archive ()
   "`mv' marked file/s to: `u-archive-dir'/{relative-filepath-to-HOME}/{filename}"
   (interactive)
+
   (mapc (lambda (file)
           (let* ((dest (file-name-concat u-archive-dir
-                                         (file-relative-name file "~/")))
+                                         (format "%s__archived_%s.%s"
+                                                 (file-name-base (file-relative-name file "~/"))
+                                                 (format-time-string "%F-T%H%M-%S")
+                                                 (file-name-extension file))))
                  (dir (file-name-directory dest)))
+
             (unless (file-exists-p dir)
               (make-directory dir t))
             (rename-file file dest 1)))
         (dired-get-marked-files nil nil))
+
   (revert-buffer))
 #+end_src
 
@@ -855,7 +876,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
 ':templates' is inherited by the parent-group and if present in a childgroup it appends the
    additionally defined templates.")
 
-(defun doct-journal-file (&optional time)
+(defun u-doct-journal-file (&optional time)
   "returns a structured filename based on the current date.
 eg: journal_2024-11-03.org
 TIME :: time in day of note to return. (default: today)"
@@ -961,7 +982,7 @@ PARENT-PATH :: nil (used for recursion) "
               ;; NON-PROJECT TEMPLATES
               ("journal"
                :keys "j"
-               :file (lambda () (doct-journal-file))
+               :file (lambda () (u-doct-journal-file))
                :title (lambda ()
                         (downcase (format-time-string "journal: %A, %e. %B %Y")))
 
@@ -997,7 +1018,7 @@ PARENT-PATH :: nil (used for recursion) "
                            :keys "y"
                            :unnarrowed t
                            :file (lambda ()
-                                   (doct-journal-file (time-subtract (current-time)
+                                   (u-doct-journal-file (time-subtract (current-time)
                                                                      (days-to-time 1))))
                            :template ("* gratitude"
                                       "- %?"
@@ -1095,8 +1116,8 @@ PARENT-PATH :: nil (used for recursion) "
                           (directory-files-recursively org-directory
                                                        org-agenda-file-regexp
                                                        t))
-                        (list (doct-journal-file)
-                              (doct-journal-file (time-subtract (current-time)
+                        (list (u-doct-journal-file)
+                              (u-doct-journal-file (time-subtract (current-time)
                                                                 (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
       org-agenda-skip-scheduled-if-done t
       ;; org-agenda-sticky t
@@ -1176,7 +1197,7 @@ legibility."
       (downcase-region beg end)
       (repunctuate-sentences t beg end)))
 
-(add-hook! 'whisper-after-transcription-hook (reformat-prose (point-min) (point-max)))
+(add-hook! 'whisper-after-transcription-hook (u-reformat-prose (point-min) (point-max)))
 
 (map! :leader "X" #'whisper-run)
 #+end_src
@@ -1230,12 +1251,7 @@ legibility."
 (after! company
   (setq company-minimum-prefix-length 0
         company-idle-delay nil ;; only show menu when explicitly activated
-        company-show-quick-access t
-        company-global-modes '(not
-                               help-mode
-                               eshell-mode
-                               org-mode
-                               vterm-mode)))
+        company-show-quick-access t))
 #+end_src
 
 * yas: snippets
@@ -1293,3 +1309,16 @@ we automate this repetetive task using a snippets.
                               (atom-movement t)
                               additional-insert)))
 #+end_src
+
+* shell
+to start a emacs/shell-buffer independent process, use ~nohup CMD &>/dev/null &~.
+#+begin_src elisp
+(after! shell
+  (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
+
+(map! :map comint-mode-map :after comint
+      :i "C-r" #'comint-history-isearch-backward-regexp)
+
+(define-key! [remap +shell/toggle] #'+shell/here) ;; we never use popupterminals (use async-shell command for one-off's)
+#+end_src
+
