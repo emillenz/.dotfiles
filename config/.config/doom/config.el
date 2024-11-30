@@ -6,12 +6,12 @@
 ;; [[file:config.org::*global options][global options:1]]
 (setq initial-scratch-message ""
       delete-by-moving-to-trash t
-      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (preserve for newinstalls)
+      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
       auto-save-default t
       confirm-kill-emacs nil
       hscroll-margin 0
       scroll-margin 0
-      enable-recursive-minibuffers nil
+      enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
       display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t
       which-key-idle-delay 0.5
@@ -164,30 +164,24 @@
       :nm "C-<tab>" #'evil-switch-to-windows-last-buffer)
 ;; global navigation:1 ends here
 
-;; [[file:config.org::*minibuffer][minibuffer:1]]
+;; [[file:config.org::*completion & minibuffer][completion & minibuffer:1]]
 (map! :map minibuffer-mode-map
       :i "C-n" #'completion-at-point
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
       :n "/"   #'previous-matching-history-element
       :n "RET" #'exit-minibuffer) ;; sane default
 
 (map! :map evil-ex-search-keymap :after evil
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
+      "M-n" #'next-line-or-history-element
+      "M-p" #'previous-line-or-history-element
       :n "/" #'previous-matching-history-element
       :n "RET" #'exit-minibuffer)
 
 (map! :map vertico-flat-map :after vertico
-      :i "C-n" #'next-line-or-history-element  ;; navigate elements like vim completion (and consistent with the os)
-      :i "C-p" #'previous-line-or-history-element
-      :n "k"   #'previous-line-or-history-element ;; navigate history in normal mode
-      :n "j"   #'next-line-or-history-element
       :n "RET" #'vertico-exit ;; sane default
       :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word
+      :im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
       :im "C-d" #'consult-dir
       :im "C-f" #'consult-dir-jump-file)
 
@@ -195,8 +189,10 @@
       :i "C-n" #'company-complete)
 
 ;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
-(setq evil-complete-previous-minibuffer-func #'(lambda () (apply evil-complete-previous-func '(1))))
-;; minibuffer:1 ends here
+(setq evil-complete-previous-minibuffer-func
+      #'(lambda () (apply evil-complete-previous-func
+                          '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
+;; completion & minibuffer:1 ends here
 
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
@@ -210,7 +206,7 @@
       :nv "g<"   #'evil-lion-left
       :nv "g>"   #'evil-lion-right
 
-      :nv "&"    #'query-replace-regexp
+      :nv "Q"    #'query-replace-regexp
       :nv "s"    #'evil-surround-region
       :nv "S"    #'evil-Surround-region)
 
@@ -220,7 +216,7 @@
 (define-key! [remap evil-previous-visual-line] #'evil-previous-line)
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
-(define-key! [remap evil-ex] #'execute-extended-command) ;; burn vim's bridges and harness power of emacs
+(define-key! [remap evil-ex] #'execute-extended-command) ;; harness power of emacs!
 
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; editing:1 ends here
@@ -247,6 +243,7 @@
 (evil-surround-mode)
 (after! evil
   (setq evil-want-fine-undo nil
+        evil-magic nil
         evil-ex-substitute-global t
         evil-want-C-i-jump t
         evil-want-C-h-delete t

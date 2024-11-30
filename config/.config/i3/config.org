@@ -103,19 +103,19 @@ bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 #+end_src
 
 * navigational bindings
-- n/p consistent with vim, rofi, shell, emacs completion menu bindings.  (we don't use j/k, since navigating windows is not always up/down.  n/p is more universal).
-- use MOD+shift+{n/p} to vsplit a window when needing to view things side-by-side.
-- using [[https://github.com/Cretezy/i3-back][i3-back]] as daemon (in autostart)
+- use MOD+shift+{h/l} to vsplit a window when needing to view things side-by-side.
 #+begin_src conf
-bindsym $MOD+p          focus left
-bindsym $MOD+shift+p    move left
-bindsym $MOD+n          focus right
-bindsym $MOD+shift+n    move right
+bindsym $MOD+h          focus left
+bindsym $MOD+shift+h    move left
+bindsym $MOD+l          focus right
+bindsym $MOD+shift+l    move right
 bindsym $MOD+q          kill
 bindsym $MOD+b          $SHCMD rofi -show window
 bindsym $MOD+semicolon  $SHCMD rofi -show drun
 bindsym $MOD+Return     move workspace to output next
 bindsym $MOD+Tab        workspace back_and_forth
+
+# not really used, but just for vim compatibility.
 bindsym $MOD+m          $SHCMD i3-input -l 1 -F 'mark %s'
 bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 #+end_src

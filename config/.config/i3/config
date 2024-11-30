@@ -68,10 +68,10 @@ bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 # keybindings:1 ends here
 
 # [[file:config.org::*navigational bindings][navigational bindings:1]]
-bindsym $MOD+p          focus left
-bindsym $MOD+shift+p    move left
-bindsym $MOD+n          focus right
-bindsym $MOD+shift+n    move right
+bindsym $MOD+h          focus left
+bindsym $MOD+shift+h    move left
+bindsym $MOD+l          focus right
+bindsym $MOD+shift+l    move right
 bindsym $MOD+q          kill
 bindsym $MOD+b          $SHCMD rofi -show window
 bindsym $MOD+semicolon  $SHCMD rofi -show drun
