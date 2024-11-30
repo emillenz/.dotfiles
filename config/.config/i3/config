@@ -83,13 +83,13 @@ bindsym $MOD+apostrophe $SHCMD i3-input -l 1 -F '[con_mark="%s"] focus'
 
 # [[file:config.org::*gaps][gaps:1]]
 # 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
-set $GAPSIZE 400
+set $GAPSIZE 500
 bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 # gaps:1 ends here
 
 # [[file:config.org::*workspaces][workspaces:2]]
 # WORKSPACE: ALL
-for_window [class=".*"] move container to workspace all
+for_window [class="."] move container to workspace all
 bindsym $MOD+a workspace all
 
 # WORKSPACE: TERM
@@ -98,22 +98,22 @@ for_window [class="Alacritty"] move container to workspace term
 bindsym $MOD+t workspace term
 bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -A -s main
 
-# WORKSPACE: EDITOR
-workspace editor gaps horizontal $GAPSIZE
-for_window [class="Emacs"] move container to workspace editor
-bindsym $MOD+e workspace editor
+# WORKSPACE: EDIT
+workspace edit gaps horizontal $GAPSIZE
+for_window [class="Emacs"] move container to workspace edit
+bindsym $MOD+e workspace edit
 bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 
-# WORKSPACE: READER
-for_window [class="Zathura"] move container to workspace reader
-bindsym $MOD+r workspace reader
+# WORKSPACE: READ
+for_window [class="Zathura"] move container to workspace read
+bindsym $MOD+r workspace read
 
 # WORKSPACE: WEB
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w exec --no-startup-id firefox
 
-# HACK :: must come last to apply to all workspaces
+# HACK :: must come last to apply to all workspaces.
 for_window [all] focus, title_window_icon no, floating disable
 # workspaces:2 ends here
 
@@ -158,13 +158,13 @@ client.background       $BG
 # [[file:config.org::*modeline / tabbar][modeline / tabbar:1]]
 bar {
         mode hide
-        hidden_state hide
         workspace_buttons yes
         binding_mode_indicator yes
         modifier none
         tray_output primary
         status_command i3status
         separator_symbol " | "
+        workspace_min_width 40
 
         colors {
                 background $MODELINE_BG

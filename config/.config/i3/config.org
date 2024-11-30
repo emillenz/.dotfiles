@@ -1,8 +1,8 @@
 #+title:  i3 literate configuration file
 #+author: emil lenz
 #+email:  emillenz@protonmail.com
-#+date:   [2023-05-15]
-#+info: creation: [2023-05-15], using marks & literate style: [2024-11-15]
+#+date:   2023-05-15
+#+info: creation: 2023-05-15, using marks & literate style: 2024-11-15
 #+property: header-args:conf :tangle config
 
 * preface
@@ -135,7 +135,7 @@ we only ever use a single window (no splits) in our editor/terminal, thus for te
 
 #+begin_src conf
 # 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
-set $GAPSIZE 400
+set $GAPSIZE 500
 bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 #+end_src
 
@@ -150,41 +150,36 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 
 #+name: workspaces
 #+begin_src elisp
-(let ((workspaces '(;; ("name" "key" "wmclass" "startcmd" "gaps")
+(let ((workspaces '(;; ("name" "wmclass" "startcmd" "use-gaps?")
 
-                    ;; all other go here
+                    ;; windows not assigned to their own workspaces
                     ("all"
-                     "a"
-                     ".*")
+                     ".")
 
                     ("term"
-                     "t"
                      "Alacritty"
                      "alacritty --title term --command tmux new-session -A -s main"
                      t)
 
-                    ("editor"
-                     "e"
+                    ("edit"
                      "Emacs"
                      "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"
                      t)
 
-                    ("reader"
-                     "r"
+                    ("read"
                      "Zathura"
                      nil)
 
                     ("web"
-                     "w"
                      "firefox"
                      "firefox"))))
 
   (mapconcat (lambda (tuple)
                (let* ((name (nth 0 tuple))
-                      (key (nth 1 tuple))
-                      (class (nth 2 tuple))
-                      (cmd (nth 3 tuple))
-                      (gaps-flag (nth 4 tuple)))
+                      (key (char-to-string (aref name 0)))
+                      (class (nth 1 tuple))
+                      (cmd (nth 2 tuple))
+                      (gaps-flag (nth 3 tuple)))
 
                  (mapconcat #'identity
                             (remove nil (list (format "# WORKSPACE: %s" (upcase name))
@@ -207,11 +202,39 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
              "\n\n"))
 #+end_src
 
-(read: ~M-x info-display-manual org~ chapter: "16 working with source code", if you don't know what kind magic is going on there)
+#+RESULTS[3ce1064a1beacc21856743d63ee482ba4fafae3a]: workspaces
+#+begin_example
+# WORKSPACE: ALL
+for_window [class="."] move container to workspace all
+bindsym $MOD+a workspace all
+
+# WORKSPACE: TERM
+workspace term gaps horizontal $GAPSIZE
+for_window [class="Alacritty"] move container to workspace term
+bindsym $MOD+t workspace term
+bindsym $MOD+shift+t exec --no-startup-id alacritty --title term --command tmux new-session -A -s main
+
+# WORKSPACE: EDIT
+workspace edit gaps horizontal $GAPSIZE
+for_window [class="Emacs"] move container to workspace edit
+bindsym $MOD+e workspace edit
+bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
+
+# WORKSPACE: READ
+for_window [class="Zathura"] move container to workspace read
+bindsym $MOD+r workspace read
+
+# WORKSPACE: WEB
+for_window [class="firefox"] move container to workspace web
+bindsym $MOD+w workspace web
+bindsym $MOD+shift+w exec --no-startup-id firefox
+#+end_example
+
+(read: ~M-x info-display-manual org~ chapter: =16 working with source code=, if you don't know what this magic is doing)
 #+begin_src conf
 <<workspaces()>>
 
-# HACK :: must come last to apply to all workspaces
+# HACK :: must come last to apply to all workspaces.
 for_window [all] focus, title_window_icon no, floating disable
 #+end_src
 
@@ -269,17 +292,17 @@ client.background       $BG
 - the theory is to make switching so ergonomic and instantaneous, engrained into muscle memory, that you are faster that people using, say 2 monitors.
 - (modelines are useful (browser / emacs) as they indicate in which mode/context we are in.)
 
-- acts as the indicator as to when leader mode is active.
+- modline only shown when explicitly toggled and used as a leadermode indicator.
 #+begin_src conf
 bar {
         mode hide
-        hidden_state hide
         workspace_buttons yes
         binding_mode_indicator yes
         modifier none
         tray_output primary
         status_command i3status
         separator_symbol " | "
+        workspace_min_width 40
 
         colors {
                 background $MODELINE_BG

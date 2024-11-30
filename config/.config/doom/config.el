@@ -72,22 +72,23 @@
 ;; modeline:1 ends here
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
-(setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc
+(setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc.  use `doom/window-enlargen' if you need to scroll its contents.
                              (,(rx (seq "*" (or "transient"
                                                 (seq "Org " (or "Select" "todo"))
                                                 "Agenda Commands"
                                                 "doom eval"
                                                 "Backtrace"
                                                 "lsp-help"
-                                                "Async Shell Command"
-                                                "compilation")))
+                                                "Async Shell Command")))
                               display-buffer-in-side-window
+                              (window-parameters . ((mode-line-format . none)))
                               (side . bottom))
 
                              ;; default (all buffer's) :: replace existing window (side window is never used by this)
                              ("." (display-buffer-same-window
                                    display-buffer-use-least-recent-window)))
 
+      fit-window-to-buffer-horizontally 'any
       switch-to-buffer-obey-display-actions t)
 
 ;; close popup window (eg. '*lsp-help*') from the main window with '<escape>' in normal mode
@@ -102,7 +103,7 @@
         +magit-open-windows-in-direction 'down)) ;; for when commiting, let magit use it's own window layout.
 
 (after! man
-  (setq Man-notify-method 'pushy)) ;; use curr window
+  (setq Man-notify-method 'pushy)) ;; does not obey `display-buffer-alist'
 ;; window layout & behavior :: single maximized buffer workflow:1 ends here
 
 ;; [[file:config.org::*indentation][indentation:1]]
@@ -338,23 +339,23 @@
                                                     (cons ext app))
                                                   extensions)))
                                       '((("mkv" "webm" "mp4" "mp3") . "mpv")
-                                        (("pdf" "epub")             . "zathura")
-                                        (("gif" "jpeg" "jpg" "png") . "feh")
+                                        (("pdf")                    . "zathura")
+                                        (("gif" "jpg" "png")        . "feh")
                                         (("docx" "odt" "odf")       . "libreoffice")))
         dired-recursive-copies 'always
         dired-recursive-deletes 'always
         dired-no-confirm '(uncompress move copy)
-        dired-omit-files "^\\..*$"))
+        dired-omit-files "^\\..*$")
+
+  (define-key! [remap dired-find-file] #'dired-open-file)) ;; try dired-open fn's (no success => call: `dired-find-file')
 ;; dired:1 ends here
 
 ;; [[file:config.org::*dired/keybindings][dired/keybindings:1]]
 (map! :map dired-mode-map :after dired
       :m "h" #'dired-up-directory) ;; navigate using hjkl
 
-(define-key! [remap dired-find-file] #'dired-open-file) ;; open file externally if specified
-
 (map! :map dired-mode-map :localleader :after dired-x
-      "h" :desc "dired-hide-details" (cmd! (call-interactively #'dired-omit-mode)
+      :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
                                            (call-interactively #'dired-hide-details-mode))
       "a" #'dired-archive)
 ;; dired/keybindings:1 ends here
@@ -475,7 +476,7 @@
       "\\" #'org-latex-preview
       ","  #'org-ctrl-c-ctrl-c
       "z"  #'org-add-note
-      "["  :desc "toggle-checkbox" (cmd! (let ((current-prefix-arg 4))
+      :desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
 ;; org/keybindings:1 ends here
 
@@ -483,7 +484,7 @@
 (setq org-babel-default-header-args '((:session  . "none")
                                       (:results  . "replace")
                                       (:exports  . "code")
-                                      (:cache    . "yes")
+                                      (:cache    . "no")
                                       (:noweb    . "yes")
                                       (:hlines   . "no")
                                       (:tangle   . "no")
@@ -507,7 +508,7 @@
                            "[-](-@)"
                            "[>](>@)"
                            "[=](=@)"
-                           "[&](&!)"
+                           "[&](&@)"
                            "|"
                            "[x](x!)"
                            "[\\](\\!)")))
@@ -894,6 +895,35 @@ legibility."
 ;; [[file:config.org::*vertico: minibuffer completion][vertico: minibuffer completion:1]]
 (vertico-flat-mode)
 ;; vertico: minibuffer completion:1 ends here
+
+;; [[file:config.org::*nov: ebooks][nov: ebooks:1]]
+(use-package! nov
+  :mode ("\\.epub\\'" . nov-mode)
+  :config
+  (setq nov-variable-pitch t ;; serif for prose reading
+        nov-text-width t) ;; used visual-line-mode and visual-fill-column mode to visually wrap line.
+  (advice-add 'nov-render-title :override #'ignore) ;; using modeline...
+
+  (map! :map (nov-mode-map nov-button-map)
+        "SPC" nil                     ;; never override leader-mode
+        "C-SPC" nil                   ;; never override leader-mode
+        :n "q" #'kill-current-buffer  ;; consistent with other read-only modes (magit, dired, docs...)
+        :n "o" #'nov-goto-toc         ;; o => outline, which is more mnemonic (consistent with pdf-view-mode, info-mode, evil: 'imenu' outline when in code)
+
+        ;; next/previous page
+        :n "<next>" #'nov-scroll-up
+        :n "<prior>" #'nov-scroll-down)
+
+  (add-hook! 'nov-mode-hook
+    (visual-fill-column-mode)
+    (visual-line-mode)
+
+    (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
+                line-spacing 2) ;; padding increases focus on current line for long prose text.
+
+    (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
+    (hl-line-mode -1)))
+;; nov: ebooks:1 ends here
 
 ;; [[file:config.org::*company: code completion][company: code completion:1]]
 (after! company
