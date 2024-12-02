@@ -14,6 +14,7 @@
 git clone --depth=1 https://github.com/emillenz/config ~/Dotfiles
 #+end_src
 
+alias
 #+begin_src sh
 dnf="sudo dnf --assumeyes"
 #+end_src
@@ -36,16 +37,21 @@ git revert .
 #+end_src
 
 * systemwide font
+- @readme
 #+begin_src sh
 git clone --depth 1 https://github.com/protesilaos/iosevka-comfy $HOME/.local/share/fonts
 #+end_src
 
 * terminal & tools
+- fd + rg :: better defaults than ~find, grep~.  utilized in emacs.
+- tldr :: cheatsheet style documentation
+- alacritty :: terminal
+- rest :: dependecies for emacs/terminal tools
 #+begin_src sh
-$dnf install alacritty curl libtool fzf fd-find ripgrep xclip xdg-utils cmake git gcc make xdotool tldr nodejs-npm
+$dnf install alacritty fd-find ripgrep cmake gcc make tldr curl
 #+end_src
 
-* scripts: ruby
+* scripting & menu-scripts: ruby
 #+begin_src sh
 $dnf install ruby ruby-devel
 gem install solargraph
@@ -53,7 +59,7 @@ gem install solargraph
 
 * make system-scripts executeable
 #+begin_src sh
-fd . ~/Dotfiles/bin/.local/bin --type file --exec chmod +x {}
+find ~/Dotfiles/bin/.local/bin -type f -exec chmod +x {}\;
 #+end_src
 
 * never sudo-password-prompt
@@ -87,15 +93,34 @@ sudo gpasswd -a $(whoami) input
 echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rules.d/input.rules
 #+end_src
 
-* gui apps & packages
+* wm workflow packages
+- i3 :: wm
+- mpv :: minimalist video player
+- feh :: image viewer
+- arandr :: output configurations
+- unclutter :: hide mouse cursor after inactivity  @autostart script
+- firefox :: browser
+- playerctl :: used to control media via keybindings
+- bluetoothctl :: setup/manage bluetooth devices
+- dunst :: desktop notifications
+- feh :: images
+- xset :: keyboard settings (repeat off, etc.) @autostart script
+- xsetroot :: set wm background to fixed color (modus operandi theme)
+- pamixer :: configure audio
+- keepassxc :: passwordmanager
+- scro :: screenshots (via keybindings).
 #+begin_src sh
-$dnf install i3 arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot pamixer keepassxc scrot
+$dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot pamixer keepassxc scrot
+
+# dependency for pavucontrol
+$dnf install mesa-libEGL-devel
 
 # create i3-screenshot directory
 mkdir --verbose --parents ~/Pictures/screenshots
 #+end_src
 
 * batsignal
+- battery notifications (since we have statusbar turned off) @autostart script
 #+begin_src sh
 # dependency
 $dnf install libnotify-devel
@@ -105,7 +130,7 @@ make
 sudo make install
 #+end_src
 
-* enable daemons
+* sshd: for github, sycnthing...
 #+begin_src sh
 sudo systemctl enable sshd
 #+end_src
