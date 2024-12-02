@@ -28,7 +28,7 @@ def spawn_processes
 
                 unless processes.include?(name)
                         Process.detach(Process.spawn(cmd, %i[out err] => File::NULL))
-                        puts "> started: '#{name}'\n\t'#{cmd}'"
+                        puts "> started: '#{cmd}'"
                 end
         end
 end

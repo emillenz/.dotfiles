@@ -148,7 +148,6 @@
 (evil-surround-mode)
   (setq evil-want-fine-undo nil
         evil-magic nil
-        evil-respect-visual-line-mode t
         evil-ex-substitute-global t
         evil-want-C-i-jump t
         evil-want-C-h-delete t
@@ -306,23 +305,28 @@
       :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
 
       ;; more sensible than `C-x/C-a', `+-' in vim is useless
-      :nv "+"    #'evil-numbers/inc-at-pt
-      :nv "-"    #'evil-numbers/dec-at-pt
-      :nv "g+"   #'evil-numbers/inc-at-pt-incremental
-      :nv "g-"   #'evil-numbers/dec-at-pt-incremental
+      :n "+"    #'evil-numbers/inc-at-pt
+      :n "-"    #'evil-numbers/dec-at-pt
+      :n "g+"   #'evil-numbers/inc-at-pt-incremental
+      :n "g-"   #'evil-numbers/dec-at-pt-incremental
 
-      :nv "g<"   #'evil-lion-left
-      :nv "g>"   #'evil-lion-right)
+      :n "g<"   #'evil-lion-left
+      :n "g>"   #'evil-lion-right)
 
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; editing:1 ends here
 
+;; [[file:config.org::*editing][editing:2]]
+(define-key! [remap evil-next-line] #'evil-next-visual-line)
+(define-key! [remap evil-previous-line] #'evil-previous-visual-line)
+;; editing:2 ends here
+
 ;; [[file:config.org::*surround][surround:1]]
 (map! :after evil
-      :nv "s"    #'evil-surround-region
-      :nv "S"    #'evil-Surround-region)
+      :n "s"    #'evil-surround-region
+      :n "S"    #'evil-Surround-region)
 
 (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
 ;; surround:1 ends here
@@ -331,22 +335,18 @@
 (define-key! [remap evil-ex] #'execute-extended-command)
 
 (map! :after evil
-      :nv "Q" #'u-query-replace-regexp-op)
-
-(evil-define-operator u-query-replace-regexp-op (beg end)
-  "integrate the more powerful query-replace-regexp into evil.  this allows you
-to quickly define the region you want to act on  through a `motion' and then
-replace all matches in that region with `!' (since we don't use visual mode)."
-  :restore-point t
-  (set-mark beg)
-  (goto-char end)
-  (activate-mark)
-  (call-interactively #'query-replace-regexp))
+      :n "Q" #'query-replace-regexp)
 ;; embrace emacs:1 ends here
 
+;; [[file:config.org::*embrace emacs][embrace emacs:2]]
+(global-anzu-mode)
+(define-key! [remap query-replace] #'anzu-query-replace)
+(define-key! [remap query-replace-regexp] #'anzu-query-replace-regexp)
+;; embrace emacs:2 ends here
+
 ;; [[file:config.org::*no visual modes][no visual modes:1]]
-(advice-add #'evil-visual-char :override #'ignore)
-(advice-add #'evil-visual-line :override #'ignore)
+(define-key! [remap evil-visual-char] #'ignore)
+(define-key! [remap evil-visual-line] #'ignore)
 ;; no visual modes:1 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:1]]
@@ -374,13 +374,6 @@ replace all matches in that region with `!' (since we don't use visual mode)."
 (map! :after evil
       :nm "g/"  #'occur)
 ;; occur: emacs interactive grep:1 ends here
-
-;; [[file:config.org::*anzu][anzu:1]]
-(after! anzu
-  (global-anzu-mode)
-  (define-key! [remap query-replace] #'anzu-query-replace)
-  (define-key! [remap query-replace-regexp] #'anzu-query-replace-regexp))
-;; anzu:1 ends here
 
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
