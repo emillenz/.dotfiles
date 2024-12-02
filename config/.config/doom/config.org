@@ -4,8 +4,9 @@
 #+date:   2022-11-01
 #+info:   heavily opinionated config, with a principle-focused approach on: consistency, quality, efficiency & extensibility.
 
-#+macro: src-len (eval (save-excursion (find-file doom-module-config-file) (count-lines (point-min) (point-max))))
 #+property: header-args:elisp tangle config.el :comments link :results silent
+#+macro: src-len (eval (save-excursion (find-file doom-module-config-file) (count-lines (point-min) (point-max))))
+
 * about this config
 - a total of {{{src-len}}} LOC.
 - for debugging your configuration, start emacs with: ~emacs --debug-init~ to get a backtrace.  when debuggin lisp code, enable ~toggle-debug-on-error~ and eval the code.
@@ -109,8 +110,11 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
       shell-command-prompt-show-cwd t)
 
 (save-place-mode)
+
 (global-subword-mode)
+
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
 (let ((width 100))
@@ -201,19 +205,24 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 
       switch-to-buffer-obey-display-actions t)
 
-;; close popup window (eg. '*lsp-help*') from the main window with '<escape>' in normal mode
-(add-hook! 'doom-escape-hook #'delete-other-windows)
-
+ ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
 (after! org
-  (setq org-src-window-setup 'current-window ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
+  (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
+ ;; for when commiting, let magit use it's own window layout.
 (after! magit
   (setq magit-commit-diff-inhibit-same-window t
-        +magit-open-windows-in-direction 'down)) ;; for when commiting, let magit use it's own window layout.
+        +magit-open-windows-in-direction 'down))
 
+ ;; does not obey `display-buffer-alist'
 (after! man
-  (setq Man-notify-method 'pushy)) ;; does not obey `display-buffer-alist'
+  (setq Man-notify-method 'pushy))
+#+end_src
+
+close popup window (eg. ~*lsp-help*~) from the main window with [[kbd:][escape]] in normal mode.
+#+begin_src elisp
+(add-hook! 'doom-escape-hook #'delete-other-windows)
 #+end_src
 
 ** indentation
@@ -261,6 +270,98 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
 - consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
 - using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
+
+* evil-mode
+- evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize yourself with them and harness their power.
+- evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if you need it use ~\m~ in search string to enable regex.
+
+~after! evil~ begin
+#+begin_src elisp
+(after! evil
+#+end_src
+
+#+begin_src elisp
+(evil-surround-mode)
+  (setq evil-want-fine-undo nil
+        evil-magic nil
+        evil-respect-visual-line-mode t
+        evil-ex-substitute-global t
+        evil-want-C-i-jump t
+        evil-want-C-h-delete t
+        evil-want-minibuffer t ;; don't loose your powers in the minibuffer
+        evil-org-use-additional-insert nil)
+
+(defadvice! u-preserve-point (fn &rest args)
+  :around '(anzu-query-replace-regexp
+            query-replace-regexp
+            +format:region)
+  (save-excursion
+    (apply fn args)))
+
+ ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
+(advice-add '+fold/previous :override #'ignore)
+
+ ;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
+(setq-hook! 'minibuffer-setup-hook cursor-type 'bar)
+#+end_src
+
+- jumplist is for functions that jump out of screen
+- don't populate jumplist with fuctions that are executed repeatedly (ex: forward-paragraph)
+#+begin_src elisp
+(dolist (cmd '(flycheck-next-error
+               flycheck-previous-error
+               +lookup/definition
+               +lookup/references
+               +lookup/implementations
+               +default/search-buffer
+               consult-imenu))
+  (evil-add-command-properties cmd :jump t))
+
+(dolist (cmd '(evil-backward-section-begin
+               evil-forward-section-begin
+               evil-jump-item
+               evil-backward-paragraph
+               evil-forward-paragraph
+               evil-forward-section-end))
+  (evil-remove-command-properties cmd :jump))
+#+end_src
+
+#+begin_src elisp
+(defadvice! u-update-last-macro-register (fn &rest args)
+  "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
+    set it to the just recorded macro.
+
+  this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
+  immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
+  '@q' (the exact key) for the first time and then only after that you may call '@@'."
+  :after #'evil-record-macro
+  (when (not evil-last-register)
+    (setq evil-last-register evil-last-recorded-register)))
+
+#+end_src
+
+- make evil's global markers persist across sessions (save state => reduce repetition, increase consistency).  this is default behaviour in vim.
+#+begin_src elisp
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (markerp (cdr entry))
+        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
+                            (marker-position (cdr entry)))))))
+
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+#+end_src
+
+~after! evil~ end
+#+begin_src elisp
+)
+#+end_src
 
 * global keybindings
 - ~helpful-key~ and are crucial to understanding what your tools can do for you (ex: magit, dired, org-mode)
@@ -350,11 +451,13 @@ in short, 8-char indents make things easier to read, and have the added benefit 
         :n "C-n" #'evil-paste-pop
         :n "C-p" #'evil-paste-pop-next
 	:n "C-/" #'comint-history-isearch-backward-regexp)
+#+end_src
 
-  ;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
-  (setq evil-complete-previous-minibuffer-func
-	#'(lambda () (apply evil-complete-previous-func
-			    '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
+in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
+#+begin_src elisp
+(setq evil-complete-previous-minibuffer-func
+      #'(lambda () (apply evil-complete-previous-func
+			  '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
 #+end_src
 
 ** editing
@@ -362,40 +465,42 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
 - C-j :: inverse of: ~J~, ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
-
 #+begin_src elisp
 (map! :after evil
       :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
 
-      :nv "+"    #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
+      ;; more sensible than `C-x/C-a', `+-' in vim is useless
+      :nv "+"    #'evil-numbers/inc-at-pt
       :nv "-"    #'evil-numbers/dec-at-pt
       :nv "g+"   #'evil-numbers/inc-at-pt-incremental
       :nv "g-"   #'evil-numbers/dec-at-pt-incremental
 
       :nv "g<"   #'evil-lion-left
-      :nv "g>"   #'evil-lion-right
+      :nv "g>"   #'evil-lion-right)
 
-      :nv "s"    #'evil-surround-region
-      :nv "S"    #'evil-Surround-region)
-
-(define-key! [remap evil-next-line] #'evil-next-visual-line)
-(define-key! [remap evil-next-visual-line] #'evil-next-line)
-(define-key! [remap evil-previous-line] #'evil-previous-visual-line)
-(define-key! [remap evil-previous-visual-line] #'evil-previous-line)
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 #+end_src
 
-*embrace emacs*
+*** surround
+- s/S :: vim's ~s, S~ is useless, since they are duplicates of: ~x, C~.  we introduce a powerful operator: ~evil-surround~.
+  - readme: https://github.com/emacs-evil/evil-surround
+#+begin_src elisp
+(map! :after evil
+      :nv "s"    #'evil-surround-region
+      :nv "S"    #'evil-Surround-region)
+
+(add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
+#+end_src
+
+*** embrace emacs
 - don't use vim's commandline: ~evil-ex~, instead just use emacs ~M-x~.  this introduces and additional layer of unneccessary complexity.  we use only the vim-motions, for all other things, emacs tools are more powerful.
   - :%s/ :: use emacs-native ~query-replace-regex~ instead, which is more interactive, powerful and flexible than vim's replacement.  it has undo, navigating matches, and can even transfor the match using arbitrary lisp code (see help: ~query-replace-regex~).
     - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
   - :g :: use emacs ~reverse-region~, ~delete-lines~, ~+evil:apply-macro~ in visual-line-mode
   - other commands such as ~:w~, ~:q~, ~:b~, ~:e~ etc. should be executed more ergonomically/efficiently by top-level keybindings (using [[kbd:][ctrl]]) anyways.
 - Q ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.  (same as in ~viper-mode~)
-- s/S :: vim's ~s, S~ is useless, since they are duplicates of: ~x, C~.  we introduce a powerful operator: ~evil-surround~.
-  - readme: https://github.com/emacs-evil/evil-surround
 - [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 
 #+begin_src elisp
@@ -416,7 +521,7 @@ replace all matches in that region with `!' (since we don't use visual mode)."
 #+end_src
 
 
-*no visual modes*
+*** no visual modes
 - after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual mode), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even thoug a motion would have been more efficient).
 - you are faster & more efficient enforcing the usage of motions and prefix-number commands.  instead of visual line mode, use a number prefix argument for ~dd, yy, cc~.  if you can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that you want.  (eg: ~d /~)
 - this enforces you to use vim more efficiently.  additionally it comes with the benefit of making your workflow more compatible if you are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
@@ -446,78 +551,6 @@ replace all matches in that region with `!' (since we don't use visual mode)."
         :nm "q" #'kill-current-buffer) ;; exit like in help, magit, dired...
 
   (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
-#+end_src
-
-* evil-mode
-- evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize yourself with them and harness their power.
-- evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if you need it use ~\m~ in search string to enable regex.
-#+begin_src elisp
-(evil-surround-mode)
-(after! evil
-  (setq evil-want-fine-undo nil
-        evil-magic nil
-        evil-ex-substitute-global t
-        evil-want-C-i-jump t
-        evil-want-C-h-delete t
-        evil-want-minibuffer t ;; don't loose your powers in the minibuffer
-        evil-org-use-additional-insert nil)
-  (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
-  (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
-
-  (defadvice! u-update-last-macro-register (fn &rest args)
-    "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
-    set it to the just recorded macro.
-
-  this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
-  immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
-  '@q' (the exact key) for the first time and then only after that you may call '@@'."
-    :after #'evil-record-macro
-    (when (not evil-last-register)
-      (setq evil-last-register evil-last-recorded-register))))
-
-(defadvice! u-preserve-point (fn &rest args)
-  :around '(anzu-query-replace-regexp
-            query-replace-regexp
-            +format:region)
-  (save-excursion
-    (apply fn args)))
-
-(advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
-
-(setq-hook! 'minibuffer-setup-hook cursor-type 'bar) ;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
-
-;; HACK :: make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
-(after! savehist
-  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-  (add-hook! 'savehist-save-hook
-    (kill-local-variable 'evil-markers-alist)
-    (dolist (entry evil-markers-alist)
-      (when (markerp (cdr entry))
-        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
-                            (marker-position (cdr entry)))))))
-  (add-hook! 'savehist-mode-hook
-    (setq-default evil-markers-alist evil-markers-alist)
-    (kill-local-variable 'evil-markers-alist)
-    (make-local-variable 'evil-markers-alist)))
-
-;; jumplist is for functions that jump out of screen
-;; don't populate jumplist with fuctions that are executed repeatedly (ex: forward-paragraph)
-(dolist (cmd '(flycheck-next-error
-               flycheck-previous-error
-               +lookup/definition
-               +lookup/references
-               +lookup/implementations
-               +default/search-buffer
-               consult-imenu))
-  (evil-add-command-properties cmd :jump t))
-
-(dolist (cmd '(evil-backward-section-begin
-               evil-forward-section-begin
-               evil-jump-item
-               evil-backward-paragraph
-               evil-forward-paragraph
-               evil-forward-section-end))
-  (evil-remove-command-properties cmd :jump))
 #+end_src
 
 * occur: emacs interactive grep
@@ -616,14 +649,12 @@ replace all matches in that region with `!' (since we don't use visual mode)."
 (after! org
 #+end_src
 
-** syntax
-for lists, be consistent and only use: ~-~ for unordered lists (never ~*, +~), and for ordered lists, use ~1.~, ~a.~ (never ~1)~ or ~a)~)
-
-** on ui
-- ensure all headings and faces have the same heigth => better overview & less overhead
-- visually distinctualize headings & keywods from the rest of the text with coloring and bold
-- like in code, everything is code/data => also org mode / latex documents.
-- its not about some fancy looking thing, its about the internals, the quality of the data, not the presentation.
+ - syntax :: for lists, be consistent and only use: ~-~ for unordered lists (never ~*, +~), and for ordered lists, use ~1.~, ~a.~ (never ~1)~ or ~a)~)
+ - ui ::
+   - ensure all headings and faces have the same heigth => better overview & less overhead
+   - visually distinctualize headings & keywods from the rest of the text with coloring and bold
+   - like in code, everything is code/data => also org mode / latex documents.
+   - its not about some fancy looking thing, its about the internals, the quality of the data, not the presentation.
 
 ** tags
 - Always use tags to specify what a todo-item belongs to & never write it in the todo-name | not: ~TODO uni math assignment [2]~ => instead: ~TODO assignment [2] :uni:math:assignments:~
@@ -652,7 +683,7 @@ for lists, be consistent and only use: ~-~ for unordered lists (never ~*, +~), a
                             org-appear-mode))
 
 (add-hook! 'org-mode-hook :local
-  (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`"))))
+  (add-to-list 'evil-surround-pairs-alist '(?~ . ("~" . "~"))))
 
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
@@ -691,7 +722,9 @@ for lists, be consistent and only use: ~-~ for unordered lists (never ~*, +~), a
       org-src-ask-before-returning-to-edit-buffer nil)
 
 (add-hook! 'org-src-mode-hook (flycheck-mode -1)) ;; flycheck full of error's, since it only reads partial buffer.
+#+end_src
 
+#+begin_src elisp
 (defadvice! u-insert-newline-above (fn &rest args)
   "pad newly inserted heading with newline unless is todo-item.
 
@@ -1169,7 +1202,9 @@ PARENT-PATH :: nil (used for recursion) "
       org-deadline-warning-days 3
       org-agenda-time-grid nil
       org-capture-use-agenda-date t)
+#+end_src
 
+#+begin_src elisp
 (defadvice! u-add-newline (fn &rest args)
   "Separate dates in 'org-agenda' with newline."
   :around #'org-agenda-format-date-aligned
@@ -1349,11 +1384,16 @@ we automate this repetetive task using a snippets.
 #+end_src
 
 * shell
-to start a emacs/shell-buffer independent process, use ~nohup CMD &>/dev/null &~.
+- to start a emacs/shell-buffer independent process, use ~nohup CMD &>/dev/null &~.
+- we never use popupterminals (use async-shell command for one-off's)
 #+begin_src elisp
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
 
-(define-key! [remap +shell/toggle] #'+shell/here) ;; we never use popupterminals (use async-shell command for one-off's)
+(define-key! [remap +shell/toggle] #'+shell/here)
 #+end_src
 
+ normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
+#+begin_src elisp
+(add-to-list 'evil-normal-state-modes 'shell-mode)
+#+end_src

@@ -16,8 +16,11 @@
       shell-command-prompt-show-cwd t)
 
 (save-place-mode)
+
 (global-subword-mode)
+
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
 (let ((width 100))
@@ -94,20 +97,24 @@
 
       switch-to-buffer-obey-display-actions t)
 
-;; close popup window (eg. '*lsp-help*') from the main window with '<escape>' in normal mode
-(add-hook! 'doom-escape-hook #'delete-other-windows)
-
+ ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
 (after! org
-  (setq org-src-window-setup 'current-window ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
+  (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
+ ;; for when commiting, let magit use it's own window layout.
 (after! magit
   (setq magit-commit-diff-inhibit-same-window t
-        +magit-open-windows-in-direction 'down)) ;; for when commiting, let magit use it's own window layout.
+        +magit-open-windows-in-direction 'down))
 
+ ;; does not obey `display-buffer-alist'
 (after! man
-  (setq Man-notify-method 'pushy)) ;; does not obey `display-buffer-alist'
+  (setq Man-notify-method 'pushy))
 ;; window layout & behavior :: single maximized buffer workflow:1 ends here
+
+;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:2]]
+(add-hook! 'doom-escape-hook #'delete-other-windows)
+;; window layout & behavior :: single maximized buffer workflow:2 ends here
 
 ;; [[file:config.org::*indentation][indentation:1]]
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
@@ -132,6 +139,88 @@
   evil-shift-width u-global-indent-width
   ruby-indent-level u-global-indent-width)
 ;; indentation:1 ends here
+
+;; [[file:config.org::*evil-mode][evil-mode:1]]
+(after! evil
+;; evil-mode:1 ends here
+
+;; [[file:config.org::*evil-mode][evil-mode:2]]
+(evil-surround-mode)
+  (setq evil-want-fine-undo nil
+        evil-magic nil
+        evil-respect-visual-line-mode t
+        evil-ex-substitute-global t
+        evil-want-C-i-jump t
+        evil-want-C-h-delete t
+        evil-want-minibuffer t ;; don't loose your powers in the minibuffer
+        evil-org-use-additional-insert nil)
+
+(defadvice! u-preserve-point (fn &rest args)
+  :around '(anzu-query-replace-regexp
+            query-replace-regexp
+            +format:region)
+  (save-excursion
+    (apply fn args)))
+
+ ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
+(advice-add '+fold/previous :override #'ignore)
+
+ ;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
+(setq-hook! 'minibuffer-setup-hook cursor-type 'bar)
+;; evil-mode:2 ends here
+
+;; [[file:config.org::*evil-mode][evil-mode:3]]
+(dolist (cmd '(flycheck-next-error
+               flycheck-previous-error
+               +lookup/definition
+               +lookup/references
+               +lookup/implementations
+               +default/search-buffer
+               consult-imenu))
+  (evil-add-command-properties cmd :jump t))
+
+(dolist (cmd '(evil-backward-section-begin
+               evil-forward-section-begin
+               evil-jump-item
+               evil-backward-paragraph
+               evil-forward-paragraph
+               evil-forward-section-end))
+  (evil-remove-command-properties cmd :jump))
+;; evil-mode:3 ends here
+
+;; [[file:config.org::*evil-mode][evil-mode:4]]
+(defadvice! u-update-last-macro-register (fn &rest args)
+  "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
+    set it to the just recorded macro.
+
+  this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
+  immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
+  '@q' (the exact key) for the first time and then only after that you may call '@@'."
+  :after #'evil-record-macro
+  (when (not evil-last-register)
+    (setq evil-last-register evil-last-recorded-register)))
+;; evil-mode:4 ends here
+
+;; [[file:config.org::*evil-mode][evil-mode:5]]
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (markerp (cdr entry))
+        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
+                            (marker-position (cdr entry)))))))
+
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+;; evil-mode:5 ends here
+
+;; [[file:config.org::*evil-mode][evil-mode:6]]
+)
+;; evil-mode:6 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
@@ -204,38 +293,41 @@
       :n "C-n" #'evil-paste-pop
       :n "C-p" #'evil-paste-pop-next
 	:n "C-/" #'comint-history-isearch-backward-regexp)
-
-;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
-(setq evil-complete-previous-minibuffer-func
-	#'(lambda () (apply evil-complete-previous-func
-			    '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
 ;; completion & minibuffer:1 ends here
+
+;; [[file:config.org::*completion & minibuffer][completion & minibuffer:2]]
+(setq evil-complete-previous-minibuffer-func
+      #'(lambda () (apply evil-complete-previous-func
+			  '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
+;; completion & minibuffer:2 ends here
 
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
       :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
 
-      :nv "+"    #'evil-numbers/inc-at-pt ;; more sensible than `C-x/C-a', `+-' in vim is useless
+      ;; more sensible than `C-x/C-a', `+-' in vim is useless
+      :nv "+"    #'evil-numbers/inc-at-pt
       :nv "-"    #'evil-numbers/dec-at-pt
       :nv "g+"   #'evil-numbers/inc-at-pt-incremental
       :nv "g-"   #'evil-numbers/dec-at-pt-incremental
 
       :nv "g<"   #'evil-lion-left
-      :nv "g>"   #'evil-lion-right
+      :nv "g>"   #'evil-lion-right)
 
-      :nv "s"    #'evil-surround-region
-      :nv "S"    #'evil-Surround-region)
-
-(define-key! [remap evil-next-line] #'evil-next-visual-line)
-(define-key! [remap evil-next-visual-line] #'evil-next-line)
-(define-key! [remap evil-previous-line] #'evil-previous-visual-line)
-(define-key! [remap evil-previous-visual-line] #'evil-previous-line)
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; editing:1 ends here
 
-;; [[file:config.org::*editing][editing:2]]
+;; [[file:config.org::*surround][surround:1]]
+(map! :after evil
+      :nv "s"    #'evil-surround-region
+      :nv "S"    #'evil-Surround-region)
+
+(add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
+;; surround:1 ends here
+
+;; [[file:config.org::*embrace emacs][embrace emacs:1]]
 (define-key! [remap evil-ex] #'execute-extended-command)
 
 (map! :after evil
@@ -250,12 +342,12 @@ replace all matches in that region with `!' (since we don't use visual mode)."
   (goto-char end)
   (activate-mark)
   (call-interactively #'query-replace-regexp))
-;; editing:2 ends here
+;; embrace emacs:1 ends here
 
-;; [[file:config.org::*editing][editing:3]]
+;; [[file:config.org::*no visual modes][no visual modes:1]]
 (advice-add #'evil-visual-char :override #'ignore)
 (advice-add #'evil-visual-line :override #'ignore)
-;; editing:3 ends here
+;; no visual modes:1 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon
@@ -274,75 +366,6 @@ replace all matches in that region with `!' (since we don't use visual mode)."
 
   (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
 ;; harpoon:1 ends here
-
-;; [[file:config.org::*evil-mode][evil-mode:1]]
-(evil-surround-mode)
-(after! evil
-  (setq evil-want-fine-undo nil
-        evil-magic nil
-        evil-ex-substitute-global t
-        evil-want-C-i-jump t
-        evil-want-C-h-delete t
-        evil-want-minibuffer t ;; don't loose your powers in the minibuffer
-        evil-org-use-additional-insert nil)
-  (add-to-list 'evil-normal-state-modes 'shell-mode) ;; normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
-  (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
-
-  (defadvice! u-update-last-macro-register (fn &rest args)
-    "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
-    set it to the just recorded macro.
-
-  this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
-  immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
-  '@q' (the exact key) for the first time and then only after that you may call '@@'."
-    :after #'evil-record-macro
-    (when (not evil-last-register)
-      (setq evil-last-register evil-last-recorded-register))))
-
-(defadvice! u-preserve-point (fn &rest args)
-  :around '(anzu-query-replace-regexp
-            query-replace-regexp
-            +format:region)
-  (save-excursion
-    (apply fn args)))
-
-(advice-add '+fold/previous :override #'ignore) ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
-
-(setq-hook! 'minibuffer-setup-hook cursor-type 'bar) ;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
-
-;; HACK :: make evil's global markers persist across sessions (save state => reduce repetition, increase consistency)
-(after! savehist
-  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-  (add-hook! 'savehist-save-hook
-    (kill-local-variable 'evil-markers-alist)
-    (dolist (entry evil-markers-alist)
-      (when (markerp (cdr entry))
-        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
-                            (marker-position (cdr entry)))))))
-  (add-hook! 'savehist-mode-hook
-    (setq-default evil-markers-alist evil-markers-alist)
-    (kill-local-variable 'evil-markers-alist)
-    (make-local-variable 'evil-markers-alist)))
-
-;; jumplist is for functions that jump out of screen
-;; don't populate jumplist with fuctions that are executed repeatedly (ex: forward-paragraph)
-(dolist (cmd '(flycheck-next-error
-               flycheck-previous-error
-               +lookup/definition
-               +lookup/references
-               +lookup/implementations
-               +default/search-buffer
-               consult-imenu))
-  (evil-add-command-properties cmd :jump t))
-
-(dolist (cmd '(evil-backward-section-begin
-               evil-forward-section-begin
-               evil-jump-item
-               evil-backward-paragraph
-               evil-forward-paragraph
-               evil-forward-section-end))
-  (evil-remove-command-properties cmd :jump))
-;; evil-mode:1 ends here
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
 (map! :map occur-mode-map :after replace
@@ -430,7 +453,7 @@ replace all matches in that region with `!' (since we don't use visual mode)."
                             org-appear-mode))
 
 (add-hook! 'org-mode-hook :local
-  (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`"))))
+  (add-to-list 'evil-surround-pairs-alist '(?~ . ("~" . "~"))))
 
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
@@ -469,7 +492,9 @@ replace all matches in that region with `!' (since we don't use visual mode)."
       org-src-ask-before-returning-to-edit-buffer nil)
 
 (add-hook! 'org-src-mode-hook (flycheck-mode -1)) ;; flycheck full of error's, since it only reads partial buffer.
+;; options:1 ends here
 
+;; [[file:config.org::*options][options:2]]
 (defadvice! u-insert-newline-above (fn &rest args)
   "pad newly inserted heading with newline unless is todo-item.
 
@@ -484,7 +509,7 @@ replace all matches in that region with `!' (since we don't use visual mode)."
   (when (and (org-at-heading-p)
              (not (org-entry-is-todo-p)))
     (+evil/insert-newline-below 1)))
-;; options:1 ends here
+;; options:2 ends here
 
 ;; [[file:config.org::*symbols][symbols:1]]
 (add-hook! 'org-mode-hook '(org-superstar-mode
@@ -874,14 +899,16 @@ PARENT-PATH :: nil (used for recursion) "
       org-deadline-warning-days 3
       org-agenda-time-grid nil
       org-capture-use-agenda-date t)
+;; agenda:1 ends here
 
+;; [[file:config.org::*agenda][agenda:2]]
 (defadvice! u-add-newline (fn &rest args)
   "Separate dates in 'org-agenda' with newline."
   :around #'org-agenda-format-date-aligned
   (concat "\n" (apply fn args) ))
-;; agenda:1 ends here
+;; agenda:2 ends here
 
-;; [[file:config.org::*agenda][agenda:2]]
+;; [[file:config.org::*agenda][agenda:3]]
 (setq org-agenda-todo-keyword-format "%-3s"
       org-agenda-scheduled-leaders '(""
                                      "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
@@ -892,7 +919,7 @@ PARENT-PATH :: nil (used for recursion) "
                                  (todo   . "%-20c%-7s%-7t")
                                  (tags   . "%-20c%-7s%-7t")
                                  (search . "%-20c%-7s%-7t")))
-;; agenda:2 ends here
+;; agenda:3 ends here
 
 ;; [[file:config.org::*org roam][org roam:1]]
 (setq org-roam-directory u-wiki-dir)
@@ -1005,5 +1032,9 @@ legibility."
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
 
-(define-key! [remap +shell/toggle] #'+shell/here) ;; we never use popupterminals (use async-shell command for one-off's)
+(define-key! [remap +shell/toggle] #'+shell/here)
 ;; shell:1 ends here
+
+;; [[file:config.org::*shell][shell:2]]
+(add-to-list 'evil-normal-state-modes 'shell-mode)
+;; shell:2 ends here
