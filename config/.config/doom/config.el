@@ -367,6 +367,59 @@
   (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
 ;; harpoon:1 ends here
 
+;; [[file:config.org::*harpoon][harpoon:2]]
+(after! harpoon
+  (defadvice! u-harpoon-go-to (line-number)
+    "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
+    :override #'harpoon-go-to
+    (require 'project)
+
+    (let* ((harpoon-mode-p (eq major-mode 'harpoon-mode))
+
+           (harpoon-file (if harpoon-mode-p
+                             (file-truename (buffer-file-name))
+                           (harpoon--file-name)))
+
+           (file-name (s-replace-regexp "\n" ""
+                                        (with-temp-buffer
+                                          (insert-file-contents-literally harpoon-file)
+                                          (goto-char (point-min))
+                                          (forward-line (- line-number 1))
+                                          (buffer-substring-no-properties (line-beginning-position)
+                                                                          (line-end-position)))))
+
+           (full-file-name (if (and (fboundp 'project-root)
+                                    (harpoon--has-project))
+                               (concat (or harpoon--project-path
+                                           (harpoon-project-root-function))
+                                       file-name)
+
+                             file-name)))
+      (if harpoon-mode-p
+          (harpoon-find-file file-name)
+
+        (if (file-exists-p full-file-name)
+            (find-file full-file-name)
+
+          (message (concat full-file-name " not found."))))))
+
+  (defadvice! u-harpoon-find-file (&optional file-name)
+    "Visit file on `harpoon-mode'."
+    :override #'harpoon-find-file
+    (interactive)
+
+    (let* ((file-name (or file-name
+                          (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
+           (full-file-name (concat harpoon--project-path file-name)))
+
+      (if (file-exists-p full-file-name)
+          (progn (save-buffer)
+                 (kill-buffer)
+                 (find-file full-file-name))
+
+        (message "File %s not found." full-file-name)))))
+;; harpoon:2 ends here
+
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
 (map! :map occur-mode-map :after replace
       :n "q" #'quit-window) ;; consistent with other read-only modes (magit, dired, docs...)
@@ -694,8 +747,14 @@ TIME :: time in day of note to return. (default: today)"
                     "%?")))
 
 (defun u-doct-projects-cc-src-template (path)
-  "for quickly implementing/testing ideas (like a scratchpad, but you have all your experimentations
-  in a single literate document).  choose either c or c++"
+  "for quickly implementing/testing ideas (like a scratchpad, but you have all
+  your experimentations in a single literate document).  choose either c or c++.
+
+`<<header>>' is org-babel's `:noweb' syntax and the named `org-src-block':
+`c_header' (or `cpp_header') which must be present in the targetfile.  depending
+on wether the project uses C or cpp it is different.  and should contains stuff
+like `#include <iostream>' that is basically needed for every single snippet. "
+
   (list "note: src cc"
         :keys "s"
         :file (u-doct-projects-file 'notes path)
@@ -706,7 +765,7 @@ TIME :: time in day of note to return. (default: today)"
                     ":created: %U"
                     ":END:"
                     "#+begin_src %\\2"
-                    "<<%\\2_header>>" ;; <<header>> is org-babel's `:noweb` syntax and the named org-src-block: `c_header` (or cpp_header) (which must be present in the targetfile.  depending on wether the project uses C or cpp it is different) and should contains stuff like `#include <iostream>' that is basically needed for every single snippet.
+                    "<<%\\2_header>>"
                     ""
                     "int main() {"
                     "        %?"
@@ -784,7 +843,7 @@ PARENT-PATH :: nil (used for recursion) "
                            :unnarrowed t
                            :file (lambda ()
                                    (u-doct-journal-file (time-subtract (current-time)
-                                                                     (days-to-time 1))))
+                                                                       (days-to-time 1))))
                            :template ("* gratitude"
                                       "- %?"
                                       ""

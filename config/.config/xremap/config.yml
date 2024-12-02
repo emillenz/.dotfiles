@@ -10,12 +10,4 @@ modmap:
         held: ctrl_l
         alone: esc
         one_timeout_milis: 100
-
-keymap:
-  - name: browser
-    application:
-      only: firefox
-    remap:
-      C-n: down # vim :: navigate completion candidates
-      C-p: up
 # info:1 ends here

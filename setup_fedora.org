@@ -7,7 +7,7 @@
 
 * info
 - if you use a different distro you ensure to install at least these packages for the system config to be able to work. (no guarantees...)
-- run this script as root -> get no prompts
+- run this script with sudo! (for ~dnf~)
 
 * setup
 #+begin_src sh
@@ -16,19 +16,19 @@ git clone --depth=1 https://github.com/emillenz/config ~/Dotfiles
 
 alias
 #+begin_src sh
-dnf="sudo dnf --assumeyes"
+alias dnf="dnf --assumeyes"
 #+end_src
 
 - update all packages before doing anything
 #+begin_src sh
-$dnf upgrade
+dnf upgrade
 #+end_src
 
 * link neccessary config files
 - we use GNU stow and symlink the important config files to keep them all centralized in the same directory and symlink them to the respective places.
 - backup your own config directory if neccessary since this will override any previous configuration.
 #+begin_src sh
-$dnf install git stow
+dnf install git stow
 cd ~/Dotfiles
 stow --adopt home config bin
 
@@ -48,12 +48,12 @@ git clone --depth 1 https://github.com/protesilaos/iosevka-comfy $HOME/.local/sh
 - alacritty :: terminal
 - rest :: dependecies for emacs/terminal tools
 #+begin_src sh
-$dnf install alacritty fd-find ripgrep cmake gcc make tldr curl
+dnf install alacritty fd-find ripgrep cmake gcc make tldr curl
 #+end_src
 
 * scripting & menu-scripts: ruby
 #+begin_src sh
-$dnf install ruby ruby-devel
+dnf install ruby ruby-devel
 gem install solargraph
 #+end_src
 
@@ -69,7 +69,7 @@ echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
 
 * editor: doom emacs
 #+begin_src sh
-$dnf install emacs-gtk+x11
+dnf install emacs-gtk+x11
 
 # HACK :: supress pure emacs-gtk warning (fedora problem)
 sudo alternatives --set emacs /usr/bin/emacs-gtk+x11
@@ -82,8 +82,8 @@ $HOME/.config/emacs/bin/doom install
 - [[https://github.com/xremap/xremap][xremap]]
 - configure it to run without ~sudo~ (works after reboot).
 #+begin_src sh
-$dnf copr enable blakegardner/xremap
-$dnf install xremap-x11
+dnf copr enable blakegardner/xremap
+dnf install xremap-x11
 
 # Make sure uinput is loaded
 /sbin/lsmod | grep uinput || echo uinput | sudo tee /etc/modules-load.d/uinput.conf
@@ -111,12 +111,12 @@ echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rule
 - scrot :: screenshots (via keybindings).
 - zathura :: minmalist pdf viewer (with vim-bindings )
 #+begin_src sh
-$dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot pamixer keepassxc scrot
+dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot pamixer keepassxc scrot
 
-$dnf install zathura zathura-pdf-mupdf
+dnf install zathura zathura-pdf-mupdf
 
 # dependency for pavucontrol
-$dnf install mesa-libEGL-devel
+dnf install mesa-libEGL-devel
 
 # create i3-screenshot directory
 mkdir --verbose --parents ~/Pictures/screenshots
@@ -126,7 +126,7 @@ mkdir --verbose --parents ~/Pictures/screenshots
 - battery notifications (since we have statusbar turned off) @autostart script
 #+begin_src sh
 # dependency
-$dnf install libnotify-devel
+dnf install libnotify-devel
 
 git clone --depth=1 https://github.com/electrickite/batsignal && cd batsignal
 make
@@ -142,12 +142,12 @@ sudo systemctl enable sshd
 - syncthing :: for keeping filesystem in sync across multiple machines (daily usage).  started manually when sync is required.
 - restic :: backup the userfiles (redundency for when harddrive is destroyed / newinstall required / accidental ~rm~).  manually backed up to an external HDD weekly.
 #+begin_src sh
-$dnf install syncthing restic
+dnf install syncthing restic
 #+end_src
 
 - timeshift :: backup & restore system configuration (when system breaks)
 - anacron :: run daily snapshots
 #+Begin_src sh
-$dnf install timeshift
+dnf install timeshift
 echo '1 0 system-backup sudo timeshift --create' | sudo tee --append /etc/anacrontab
 #+end_src

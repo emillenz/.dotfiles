@@ -5,7 +5,7 @@
 #+property: header-args:yaml :tangle config.yml
 
 * info
- - gtk :: gtk apps are configured to use readline bindings already (gtk-emacs-keytheme) if you are on a different linux machine, use gnome-tweak-tools and: ~setxkbmap -option ctrl:nocaps~.  for windows use ~power-toys~ same effect.
+ - gtk :: gtk apps are configured to use readline bindings already (gtk-emacs-keytheme) if you are on a different linux machine, use gnome-tweak-tools and: ~setxkbmap -option ctrl:nocaps~.  you use [[kbd:][C-[]] instead of [[kbd:][esc]].  for windows use ~power-toys~ same effect.
  - we want to reduce the depth of layering in our system.  layers always bring an increase in complexity and introduce mental overhead which is our aim to reduce as much as possible without limiting functionality.
  - no homerowmods / layers :: they greatly increase the complexity of the keybinding layer's and introduce unneccessary mental overhead.  additionally and most importantly they cause a delay in typing the actual character which is absolutely inacceptable.  (slow's you down, bottlenecking your typing speed)
  - no vim layer :: we purposefully do not implement a vim-navigation layer globally, since if you are doing more than just typing something into a prompt, you should just use ~emacs-everywhere~ instead.
@@ -25,5 +25,4 @@ modmap:
         held: ctrl_l
         alone: esc
         one_timeout_milis: 100
-      C-p: up
 #+end_src
