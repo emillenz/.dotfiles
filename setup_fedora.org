@@ -108,9 +108,12 @@ echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rule
 - xsetroot :: set wm background to fixed color (modus operandi theme)
 - pamixer :: configure audio
 - keepassxc :: passwordmanager
-- scro :: screenshots (via keybindings).
+- scrot :: screenshots (via keybindings).
+- zathura :: minmalist pdf viewer (with vim-bindings )
 #+begin_src sh
 $dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot pamixer keepassxc scrot
+
+$dnf install zathura zathura-pdf-mupdf
 
 # dependency for pavucontrol
 $dnf install mesa-libEGL-devel
