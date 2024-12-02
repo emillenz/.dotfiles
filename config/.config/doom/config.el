@@ -198,8 +198,8 @@
 	:i "C-n" #'company-complete)
 
 (map! :map comint-mode-map :after comint
-	:n "C-j" #'comint-previous-input
-	:n "C-k" #'comint-next-input
+	:n "C-k" #'comint-previous-input
+	:n "C-j" #'comint-next-input
 	:n "C-/" #'comint-history-isearch-backward-regexp)
 
 ;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.

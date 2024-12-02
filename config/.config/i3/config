@@ -75,8 +75,8 @@ bindsym $MOD+n            focus right
 bindsym $MOD+shift+n      move right
 bindsym $MOD+q            kill
 bindsym $MOD+b            $SHCMD $BIN/window-menu
-bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu $DMENU_THEME"
-bindsym $MOD+shift+Return $SHCMD dmenu_run $DMENU_THEME
+bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run > ' $DMENU_THEME"
+bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 bindsym $MOD+Tab          workspace back_and_forth
 # navigational bindings:1 ends here
 

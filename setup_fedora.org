@@ -121,5 +121,5 @@ $dnf install syncthing restic
 - anacron :: run daily snapshots
 #+Begin_src sh
 $dnf install timeshift
-echo '1 0 system-backup timeshift --create' | sudo tee --append /etc/anacrontab
+echo '1 0 system-backup sudo timeshift --create' | sudo tee --append /etc/anacrontab
 #+end_src
