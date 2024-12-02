@@ -19,6 +19,7 @@
 - keyboard driven workflow only => vi-mnemonic bindings.  has a leader key system inbuilt that allows a extensible modal keybindingsystem.
 - strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
 - if at work and forced to use a desktop environment, just use [[kbd:][M-<tab>]] to switch windows and resize your emacs/webbrowser in a similar fashion to get 90% of the benefits of i3.
+- we use i3's leadermode in combination with ~dmenu~ to extend our efficient, extensible and fast emacs workflow of using global keybindings in leadermode and minibuffer prompts for interactive commands & input.  dmenu is visually and functionally similar to emacs minibuffer (also in flat mode, same keybindings).
 
 ** single monitor only
 :PROPERTIES:
@@ -35,7 +36,8 @@
 set $ESC mode "default"
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
-set $ROFI rofi -dmenu -no-custom -i -p find-file
+set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
+set $BIN ~/.local/bin
 
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
@@ -51,7 +53,7 @@ set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 
 * autostart
 start daemons (emacs, tmux), run startup commands, etc.
 #+begin_src conf
-exec_always --no-startup-id autostart &
+exec_always --no-startup-id $BIN/autostart &
 #+end_src
 
 * opts
@@ -113,17 +115,15 @@ bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 
 * navigational bindings
 - use [[kbd:][MOD+shift+h/l]] to vsplit a window when needing to view things side-by-side.
-- i3 as rofi fallback :: incase rofi not installed yet or broken-config.
-  - tipp :: in ~rofi~ you can use [[kbd:][C-<return>]] to execute your input as a shell command.
 #+begin_src conf
-bindsym $MOD+h            focus left
-bindsym $MOD+shift+h      move left
-bindsym $MOD+l            focus right
-bindsym $MOD+shift+l      move right #
+bindsym $MOD+p            focus left
+bindsym $MOD+shift+p      move left
+bindsym $MOD+n            focus right
+bindsym $MOD+shift+n      move right
 bindsym $MOD+q            kill
-bindsym $MOD+b            $SHCMD rofi -show window
-bindsym $MOD+Return       $SHCMD rofi -show drun || i3-dmenu-desktop
-bindsym $MOD+shift+Return $SHCMD rofi -show run
+bindsym $MOD+b            $SHCMD $BIN/window-menu
+bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu $DMENU_THEME"
+bindsym $MOD+shift+Return $SHCMD dmenu_run $DMENU_THEME
 bindsym $MOD+Tab          workspace back_and_forth
 #+end_src
 
@@ -149,10 +149,10 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 * workspaces
 - the idea is to bind to the abstract function of the program, and not to the specific instance itself => if a different program is used, the functionality and bindings remain the same.  (eg: vim instead of emacs).
 - if you are forced to work with a desktop environment, you can easily replicate this config by manually putting clients on separate workspaces and using [[kbd:][MOD+<number>]] to switch.
-- workspace assigned programs are started automatically by the ~autostart~ script and a binding to open them client-server style when it makes sense (if accidentally closed), all other apps are to be opened via rofi desktop laucher.  ensuring these programs are always running just reduces mental overhead and startup time.
+- workspace assigned programs are started automatically by the ~autostart~ script and a binding to open them client-server style when it makes sense (if accidentally closed), all other apps are to be opened via dmenu desktop laucher.  ensuring these programs are always running just reduces mental overhead and startup time.
 - the parenthesis around the commands are required, otherwise undefined behaviour.
 - get window title & class information using: ~xprop~
-- for windows that are not assigned to workspaces it is most efficient to use the rofi find-window menu.
+- for windows that are not assigned to workspaces it is most efficient to use the dmenu ~window-menu~.
 - workspaces are powerful, since they allow multiple windows of the same class to be opened on the same workspace (eg. multiple instances of zathura).  and they allow per window gaps/fullscreen configuration.
 
 #+name: workspaces
@@ -214,14 +214,15 @@ for_window [all] focus, title_window_icon no, floating disable
 
 * leader
 - bind infrequently used commands and menus
+- ~killprocess-menu~ :: gives a overview of running processes and allows you to interactively kill one (you don't need htop).
 #+begin_src conf
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-        bindsym $MOD+a $SHCMD audio-output-menu; $ESC
-        bindsym $MOD+b $SHCMD bluetooth-menu; $ESC
-        bindsym $MOD+k $SHCMD killprocess-menu; $ESC
-        bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | $ROFI); $ESC
+        bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
+        bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
+        bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
+        bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME); $ESC
 
         bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC
         bindsym $MOD+shift+s $SHCMD $SCROT; $ESC

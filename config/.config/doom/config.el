@@ -169,34 +169,43 @@
 
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:1]]
 (map! :map minibuffer-mode-map
-      :i "C-n" #'completion-at-point
-      :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer) ;;
+	:n "j" #'next-line-or-history-element
+	:n "k" #'previous-line-or-history-element
+	:i "C-n" #'completion-at-point
+	:n "/"   #'previous-matching-history-element
+	:n "RET" #'exit-minibuffer) ;;
 
 (map! :map evil-ex-search-keymap :after evil
-      "M-n" #'next-line-or-history-element
-      "M-p" #'previous-line-or-history-element
-      :n "/" #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer)
+	:n "j" #'next-line-or-history-element
+	:n "k" #'previous-line-or-history-element
+	:n "/" #'previous-matching-history-element
+	:n "RET" #'exit-minibuffer)
 
 (map! :map vertico-flat-map :after vertico
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element
-      :n "RET" #'vertico-exit
-      :n "/"   #'previous-matching-history-element)
+	:n "j" #'next-line-or-history-element
+	:n "k" #'previous-line-or-history-element
+	:i "C-n" #'next-line-or-history-element
+	:i "C-p" #'previous-line-or-history-element
+	:n "RET" #'vertico-exit
+	:n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
-      :im "C-d" #'consult-dir
-      :im "C-f" #'consult-dir-jump-file)
+	:im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
+	:im "C-d" #'consult-dir
+	:im "C-f" #'consult-dir-jump-file)
 
 (map! :map company-mode-map :after company
-      :i "C-n" #'company-complete)
+	:i "C-n" #'company-complete)
+
+(map! :map comint-mode-map :after comint
+	:n "C-j" #'comint-previous-input
+	:n "C-k" #'comint-next-input
+	:n "C-/" #'comint-history-isearch-backward-regexp)
 
 ;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
 (setq evil-complete-previous-minibuffer-func
-      #'(lambda () (apply evil-complete-previous-func
-                          '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
+	#'(lambda () (apply evil-complete-previous-func
+			    '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
 ;; completion & minibuffer:1 ends here
 
 ;; [[file:config.org::*editing][editing:1]]
@@ -372,9 +381,9 @@
 
   (mapc (lambda (file)
           (let* ((dest (file-name-concat u-archive-dir
-                                         (format "%s__archived_%s.%s"
-                                                 (file-name-base (file-relative-name file "~/"))
-                                                 (format-time-string "%F-T%H%M-%S")
+                                         (format "%s_archived_%s.%s"
+                                                 (file-name-sans-extension (file-relative-name file "~/"))
+                                                 (format-time-string "%F_T%H-%M-%S")
                                                  (file-name-extension file))))
                  (dir (file-name-directory dest)))
 
@@ -973,9 +982,6 @@ legibility."
 ;; [[file:config.org::*shell][shell:1]]
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
-
-(map! :map comint-mode-map :after comint
-      :i "C-r" #'comint-history-isearch-backward-regexp)
 
 (define-key! [remap +shell/toggle] #'+shell/here) ;; we never use popupterminals (use async-shell command for one-off's)
 ;; shell:1 ends here

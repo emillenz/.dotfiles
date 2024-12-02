@@ -1,0 +1,125 @@
+#+title:  fedora system install
+#+author: emil lenz
+#+email:  emillenz@protonmail.com
+#+date:   2024-12-01
+#+info:   moved from arch -> fedora on: 2023-05-28
+#+property:  header-args:sh :tangle yes :shebang #!/bin/bash
+
+* info
+- if you use a different distro you ensure to install at least these packages for the system config to be able to work. (no guarantees...)
+- run this script as root -> get no prompts
+
+* setup
+#+begin_src sh
+git clone --depth=1 https://github.com/emillenz/config ~/Dotfiles
+#+end_src
+
+#+begin_src sh
+dnf="sudo dnf --assumeyes"
+#+end_src
+
+- update all packages before doing anything
+#+begin_src sh
+$dnf upgrade
+#+end_src
+
+* link neccessary config files
+- we use GNU stow and symlink the important config files to keep them all centralized in the same directory and symlink them to the respective places.
+- backup your own config directory if neccessary since this will override any previous configuration.
+#+begin_src sh
+$dnf install git stow
+cd ~/Dotfiles
+stow --adopt home config bin
+
+# override all existing files if you had existing configs
+git revert .
+#+end_src
+
+* systemwide font
+#+begin_src sh
+git clone --depth 1 https://github.com/protesilaos/iosevka-comfy $HOME/.local/share/fonts
+#+end_src
+
+* terminal & tools
+#+begin_src sh
+$dnf install alacritty curl libtool fzf fd-find ripgrep xclip xdg-utils cmake git gcc make xdotool tldr nodejs-npm
+#+end_src
+
+* scripts: ruby
+#+begin_src sh
+$dnf install ruby ruby-devel
+gem install solargraph
+#+end_src
+
+* make system-scripts executeable
+#+begin_src sh
+fd . ~/Dotfiles/bin/.local/bin --type file --exec chmod +x {}
+#+end_src
+
+* never sudo-password-prompt
+#+begin_src sh
+echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
+#+end_src
+
+* editor: doom emacs
+#+begin_src sh
+$dnf install emacs-gtk+x11
+
+# HACK :: supress pure emacs-gtk warning (fedora problem)
+sudo alternatives --set emacs /usr/bin/emacs-gtk+x11
+
+git clone --depth 1 https://github.com/doomemacs/doomemacs $HOME/.config/emacs
+$HOME/.config/emacs/bin/doom install
+#+end_src
+
+* keybindings
+- [[https://github.com/xremap/xremap][xremap]]
+- configure it to run without ~sudo~ (works after reboot).
+#+begin_src sh
+$dnf copr enable blakegardner/xremap
+$dnf install xremap-x11
+
+# Make sure uinput is loaded
+/sbin/lsmod | grep uinput || echo uinput | sudo tee /etc/modules-load.d/uinput.conf
+
+# Add your user to the input group and add udev rule
+sudo gpasswd -a $(whoami) input
+echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rules.d/input.rules
+#+end_src
+
+* gui apps & packages
+#+begin_src sh
+$dnf install i3 arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot pamixer keepassxc scrot
+
+# create i3-screenshot directory
+mkdir --verbose --parents ~/Pictures/screenshots
+#+end_src
+
+* batsignal
+#+begin_src sh
+# dependency
+$dnf install libnotify-devel
+
+git clone --depth=1 https://github.com/electrickite/batsignal && cd batsignal
+make
+sudo make install
+#+end_src
+
+* enable daemons
+#+begin_src sh
+sudo systemctl enable sshd
+#+end_src
+
+* sync tools
+- syncthing :: for keeping filesystem in sync across multiple machines (daily usage).  started manually when sync is required.
+- restic :: backup the userfiles (redundency for when harddrive is destroyed / newinstall required / accidental ~rm~).  manually backed up to an external HDD weekly.
+#+begin_src sh
+$dnf install syncthing restic
+#+end_src
+
+- timeshift :: backup & restore system configuration (when system breaks)
+- anacron :: run daily snapshots
+#+Begin_src sh
+$dnf install timeshift
+echo '1 0 system-backup timeshift --create' | sudo tee --append /etc/anacrontab
+#+end_src

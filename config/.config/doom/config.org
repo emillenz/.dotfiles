@@ -241,7 +241,6 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 (setq-hook! 'ruby-mode-hook
   evil-shift-width u-global-indent-width
   ruby-indent-level u-global-indent-width)
-
 #+end_src
 
 *** rationale
@@ -311,39 +310,48 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 ** completion & minibuffer
 - completion keybindings :: use [[kbd:C-n][C-n]] for code autocompletion.  use [[kbd:C-p][C-p]] for abbreviations (which is logical since the expansion is most likely to be above the current code position)  finally, if you want to expand a snippet, or move through completion fields, use [[kbd:tab][tab]].  once autocompletion is activated, we use [[kbd:][C-n/p]] to navigate candidates.
 - vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu/rofi's appearance).   we use the same bindings for navigating the candidates as for completion (consistency!): [[kbd:C-n/p][C-n/p]]
-- history :: [[kbd:][M-n/p]] is what emacs uses by default, it is a good default.  but we must additionally enable it in ~evil-ex-search-keymap~ (which expects you to use unergonomic [[kbd:][up/down]] by default)
+- history :: [[kbd:][j, k]] is what bash's vi-mode uses by defaults, it is a good and ergonomic default.  ~evil~ expects you to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ must use [[kbd:][ctrl]] modifier, since it is a regular buffer).
 - normal mode :: we make evil-integration more sane: ~/~, ~RET~
 
 #+begin_src elisp
-(map! :map minibuffer-mode-map
-      :i "C-n" #'completion-at-point
-      :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer) ;;
+  (map! :map minibuffer-mode-map
+	:n "j" #'next-line-or-history-element
+	:n "k" #'previous-line-or-history-element
+	:i "C-n" #'completion-at-point
+	:n "/"   #'previous-matching-history-element
+	:n "RET" #'exit-minibuffer) ;;
 
-(map! :map evil-ex-search-keymap :after evil
-      "M-n" #'next-line-or-history-element
-      "M-p" #'previous-line-or-history-element
-      :n "/" #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer)
+  (map! :map evil-ex-search-keymap :after evil
+	:n "j" #'next-line-or-history-element
+	:n "k" #'previous-line-or-history-element
+	:n "/" #'previous-matching-history-element
+	:n "RET" #'exit-minibuffer)
 
-(map! :map vertico-flat-map :after vertico
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element
-      :n "RET" #'vertico-exit
-      :n "/"   #'previous-matching-history-element)
+  (map! :map vertico-flat-map :after vertico
+	:n "j" #'next-line-or-history-element
+	:n "k" #'previous-line-or-history-element
+	:i "C-n" #'next-line-or-history-element
+	:i "C-p" #'previous-line-or-history-element
+	:n "RET" #'vertico-exit
+	:n "/"   #'previous-matching-history-element)
 
-(map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
-      :im "C-d" #'consult-dir
-      :im "C-f" #'consult-dir-jump-file)
+  (map! :map vertico-map
+	:im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
+	:im "C-d" #'consult-dir
+	:im "C-f" #'consult-dir-jump-file)
 
-(map! :map company-mode-map :after company
-      :i "C-n" #'company-complete)
+  (map! :map company-mode-map :after company
+	:i "C-n" #'company-complete)
 
-;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
-(setq evil-complete-previous-minibuffer-func
-      #'(lambda () (apply evil-complete-previous-func
-                          '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
+  (map! :map comint-mode-map :after comint
+	:n "C-j" #'comint-previous-input
+	:n "C-k" #'comint-next-input
+	:n "C-/" #'comint-history-isearch-backward-regexp)
+
+  ;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
+  (setq evil-complete-previous-minibuffer-func
+	#'(lambda () (apply evil-complete-previous-func
+			    '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
 #+end_src
 
 ** editing
@@ -559,9 +567,9 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 
   (mapc (lambda (file)
           (let* ((dest (file-name-concat u-archive-dir
-                                         (format "%s__archived_%s.%s"
-                                                 (file-name-base (file-relative-name file "~/"))
-                                                 (format-time-string "%F-T%H%M-%S")
+                                         (format "%s_archived_%s.%s"
+                                                 (file-name-sans-extension (file-relative-name file "~/"))
+                                                 (format-time-string "%F_T%H-%M-%S")
                                                  (file-name-extension file))))
                  (dir (file-name-directory dest)))
 
@@ -1315,9 +1323,6 @@ to start a emacs/shell-buffer independent process, use ~nohup CMD &>/dev/null &~
 #+begin_src elisp
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
-
-(map! :map comint-mode-map :after comint
-      :i "C-r" #'comint-history-isearch-backward-regexp)
 
 (define-key! [remap +shell/toggle] #'+shell/here) ;; we never use popupterminals (use async-shell command for one-off's)
 #+end_src

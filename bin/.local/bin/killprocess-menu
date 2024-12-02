@@ -8,11 +8,21 @@
 # - rofi
 # ---
 
-require 'notify-send'
 require 'open3'
 require 'English'
 
-ROFI_CMD = %w[rofi -dmenu -no-custom -i -p killprocess].freeze
+DMENU_CMD = [
+        'dmenu',
+        '-b',
+        '-i',
+        '-fn', 'Iosevka Comfy-10',
+        '-nb', '#ffffff',
+        '-nf', '#000000',
+        '-sb', '#c0deff',
+        '-sf', '#000000',
+        '-p',  'killprocess >'
+].freeze
+
 
 def main
         processes = `ps -e -o pid,comm`.lines.drop(1).map do |line|
@@ -22,14 +32,14 @@ def main
                 [name, pid]
         end.to_h
 
-        rofi_stdin = processes.keys.join("\n")
-        select, status = Open3.capture2(*ROFI_CMD, stdin_data: rofi_stdin)
+        stdin = processes.keys.join("\n")
+        select, status = Open3.capture2(*DMENU_CMD, stdin_data: stdin)
         exit 1 unless status.success?
         ps_id = processes[select.chomp]
 
         `sudo kill #{ps_id}`
         exit 1 unless $CHILD_STATUS.success?
-        NotifySend.send('killprocess', select)
+        `dunstify 'killprocess' "#{select}`
 end
 
 main

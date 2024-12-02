@@ -11,6 +11,12 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
 --- Ethan Schonoover
 #+end_quote
 
+
+#+begin_quote
+“An idiot admires complexity, a genius admires simplicity, a physicist tries to make it simple, for an idiot anything the more complicated it is the more he will admire it, if you make something so clusterfucked he can't understand it he's gonna think you're a god cause you made it so complicated nobody can understand it. That's how they write journals in Academics, they try to make it so complicated people think you're a genius”
+― Terry A. Davis
+#+end_quote
+
 * philosophy
 - i am of the strong opinion that you should minimize things you do repeatedly.  thus when closing the editor by accident => can be restored instead of redoing everything.  launching emacs on every startup? => just run the daemon in the background => always accessible & no waiting time.
 - this config aims at making the workflow the most effective, while being as bare metal and lightweight as possible, avoiding bloat and focusing on speed and amount of computational steps.  (no headaches, no unexpected behavior, minimal mental overhead).

@@ -2,7 +2,8 @@
 set $ESC mode "default"
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
-set $ROFI rofi -dmenu -no-custom -i -p find-file
+set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
+set $BIN ~/.local/bin
 
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
@@ -16,7 +17,7 @@ set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 
 # macros:1 ends here
 
 # [[file:config.org::*autostart][autostart:1]]
-exec_always --no-startup-id autostart &
+exec_always --no-startup-id $BIN/autostart &
 # autostart:1 ends here
 
 # [[file:config.org::*opts][opts:1]]
@@ -68,14 +69,14 @@ bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 # keybindings:1 ends here
 
 # [[file:config.org::*navigational bindings][navigational bindings:1]]
-bindsym $MOD+h            focus left
-bindsym $MOD+shift+h      move left
-bindsym $MOD+l            focus right
-bindsym $MOD+shift+l      move right
+bindsym $MOD+p            focus left
+bindsym $MOD+shift+p      move left
+bindsym $MOD+n            focus right
+bindsym $MOD+shift+n      move right
 bindsym $MOD+q            kill
-bindsym $MOD+b            $SHCMD rofi -show window
-bindsym $MOD+Return       $SHCMD rofi -show drun || i3-dmenu-desktop
-bindsym $MOD+shift+Return $SHCMD rofi -show run
+bindsym $MOD+b            $SHCMD $BIN/window-menu
+bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu $DMENU_THEME"
+bindsym $MOD+shift+Return $SHCMD dmenu_run $DMENU_THEME
 bindsym $MOD+Tab          workspace back_and_forth
 # navigational bindings:1 ends here
 
@@ -113,10 +114,10 @@ for_window [all] focus, title_window_icon no, floating disable
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-        bindsym $MOD+a $SHCMD audio-output-menu; $ESC
-        bindsym $MOD+b $SHCMD bluetooth-menu; $ESC
-        bindsym $MOD+k $SHCMD killprocess-menu; $ESC
-        bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | $ROFI); $ESC
+        bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
+        bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
+        bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
+        bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME); $ESC
 
         bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC
         bindsym $MOD+shift+s $SHCMD $SCROT; $ESC
