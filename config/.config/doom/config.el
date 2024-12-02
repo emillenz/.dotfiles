@@ -1081,6 +1081,12 @@ legibility."
 ;; lispy(ville): editing lisp in vim:1 ends here
 
 ;; [[file:config.org::*shell][shell:1]]
+(setq explicit-shell-file-name "/usr/bin/zsh"
+      shell-file-name "zsh"
+      explicit-zsh-args '("--login" "--interactive"))
+
+(setq-hook! 'shell-mode-hook comint-process-echoes t)
+
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
 

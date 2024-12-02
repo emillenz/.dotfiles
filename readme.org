@@ -122,7 +122,7 @@ we favor cli shells, and ~dmenu-scripts~ over GUI applications (eg. using blueto
 * scripting: using ruby
 we never script using the POSIX-shell.  the shell is only meant to be used to run simple shell commands.  if we need to do more than that (eg. programming constructs such as loops, functions, variables, using ~sed/awk/cut...~) then we simply switch over to using the proper scripting language ~ruby~ (alternatively ~python~ if the script must be portable).
 
-bash is coherent with respect to the mind of certain benevolent dictator.  bash is a steaming pile of inconsistent user-unfrienly shit.
+shell is coherent with respect to the mind of certain benevolent dictator.  shell is a steaming pile of inconsistent user-unfrienly shit.
 
 on the command line, i don't really need a full language with a repl-like interface.  i want a fast and quick way to interface with the os.  anything beyond that should be written in a proper language (~ruby~) that will inherently bring more benefits.
 

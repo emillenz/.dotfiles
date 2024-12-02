@@ -42,6 +42,14 @@ git revert .
 git clone --depth 1 https://github.com/protesilaos/iosevka-comfy $HOME/.local/share/fonts
 #+end_src
 
+* shell: zsh
+- we use emacs's ~comint-mode~ for shell-prompts, so we don't have to configure the shell much.  but zsh is more sane than bash, for the rare time we do still need a regular terminal.
+#+begin_src sh
+dnf install zsh
+sudo chsh --shell /bin/zsh
+chsh --shell /usr/bin/zsh
+#+end_src
+
 * terminal & tools
 - fd + rg :: better defaults than ~find, grep~.  utilized in emacs.
 - tldr :: cheatsheet style documentation

@@ -1445,6 +1445,12 @@ we automate this repetetive task using a snippets.
 - to start a emacs/shell-buffer independent process, use ~nohup CMD &>/dev/null &~.
 - we never use popupterminals (use async-shell command for one-off's)
 #+begin_src elisp
+(setq explicit-shell-file-name "/usr/bin/zsh"
+      shell-file-name "zsh"
+      explicit-zsh-args '("--login" "--interactive"))
+
+(setq-hook! 'shell-mode-hook comint-process-echoes t)
+
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
 
