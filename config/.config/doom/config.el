@@ -200,6 +200,9 @@
 (map! :map comint-mode-map :after comint
 	:n "C-k" #'comint-previous-input
 	:n "C-j" #'comint-next-input
+      ;; respect evil's bindings!
+      :n "C-n" #'evil-paste-pop
+      :n "C-p" #'evil-paste-pop-next
 	:n "C-/" #'comint-history-isearch-backward-regexp)
 
 ;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
@@ -220,7 +223,6 @@
       :nv "g<"   #'evil-lion-left
       :nv "g>"   #'evil-lion-right
 
-      :nv "Q"    #'query-replace-regexp
       :nv "s"    #'evil-surround-region
       :nv "S"    #'evil-Surround-region)
 
@@ -230,10 +232,30 @@
 (define-key! [remap evil-previous-visual-line] #'evil-previous-line)
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
-(define-key! [remap evil-ex] #'execute-extended-command) ;; harness power of emacs!
-
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; editing:1 ends here
+
+;; [[file:config.org::*editing][editing:2]]
+(define-key! [remap evil-ex] #'execute-extended-command)
+
+(map! :after evil
+      :nv "Q" #'u-query-replace-regexp-op)
+
+(evil-define-operator u-query-replace-regexp-op (beg end)
+  "integrate the more powerful query-replace-regexp into evil.  this allows you
+to quickly define the region you want to act on  through a `motion' and then
+replace all matches in that region with `!' (since we don't use visual mode)."
+  :restore-point t
+  (set-mark beg)
+  (goto-char end)
+  (activate-mark)
+  (call-interactively #'query-replace-regexp))
+;; editing:2 ends here
+
+;; [[file:config.org::*editing][editing:3]]
+(advice-add #'evil-visual-char :override #'ignore)
+(advice-add #'evil-visual-line :override #'ignore)
+;; editing:3 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon

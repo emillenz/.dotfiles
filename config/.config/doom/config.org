@@ -346,6 +346,9 @@ in short, 8-char indents make things easier to read, and have the added benefit 
   (map! :map comint-mode-map :after comint
 	:n "C-k" #'comint-previous-input
 	:n "C-j" #'comint-next-input
+        ;; respect evil's bindings!
+        :n "C-n" #'evil-paste-pop
+        :n "C-p" #'evil-paste-pop-next
 	:n "C-/" #'comint-history-isearch-backward-regexp)
 
   ;; in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
@@ -358,15 +361,6 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and improve consistency of implementation.
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
-- don't use vim's commandline: ~evil-ex~, instead just use emacs ~M-x~.  this introduces and additional layer of unneccessary complexity.  we use only the vim-motions, for all other things, emacs tools are more powerful.
-  - :%s/ :: use emacs-native ~query-replace-regex~ instead, which is more interactive, powerful and flexible than vim's replacement.  it has undo, navigating matches, and can even transfor the match using arbitrary lisp code (see help: ~query-replace-regex~).
-    - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
-  - :g :: use emacs ~reverse-region~, ~delete-lines~, ~+evil:apply-macro~ in visual-line-mode
-  - other commands such as ~:w~, ~:q~, ~:b~, ~:e~ etc. should be executed more ergonomically/efficiently by top-level keybindings (using [[kbd:][ctrl]]) anyways.
-- Q ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.  (same as in ~viper-mode~)
-- s/S :: vim's ~s, S~ is useless, since they are duplicates of: ~x, C~.  we introduce a powerful operator: ~evil-surround~.
-  - readme: https://github.com/emacs-evil/evil-surround
-- [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 - C-j :: inverse of: ~J~, ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
 
 #+begin_src elisp
@@ -381,7 +375,6 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
       :nv "g<"   #'evil-lion-left
       :nv "g>"   #'evil-lion-right
 
-      :nv "Q"    #'query-replace-regexp
       :nv "s"    #'evil-surround-region
       :nv "S"    #'evil-Surround-region)
 
@@ -391,9 +384,46 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (define-key! [remap evil-previous-visual-line] #'evil-previous-line)
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
-(define-key! [remap evil-ex] #'execute-extended-command) ;; harness power of emacs!
-
 (define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+#+end_src
+
+*embrace emacs*
+- don't use vim's commandline: ~evil-ex~, instead just use emacs ~M-x~.  this introduces and additional layer of unneccessary complexity.  we use only the vim-motions, for all other things, emacs tools are more powerful.
+  - :%s/ :: use emacs-native ~query-replace-regex~ instead, which is more interactive, powerful and flexible than vim's replacement.  it has undo, navigating matches, and can even transfor the match using arbitrary lisp code (see help: ~query-replace-regex~).
+    - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
+  - :g :: use emacs ~reverse-region~, ~delete-lines~, ~+evil:apply-macro~ in visual-line-mode
+  - other commands such as ~:w~, ~:q~, ~:b~, ~:e~ etc. should be executed more ergonomically/efficiently by top-level keybindings (using [[kbd:][ctrl]]) anyways.
+- Q ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.  (same as in ~viper-mode~)
+- s/S :: vim's ~s, S~ is useless, since they are duplicates of: ~x, C~.  we introduce a powerful operator: ~evil-surround~.
+  - readme: https://github.com/emacs-evil/evil-surround
+- [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+
+#+begin_src elisp
+(define-key! [remap evil-ex] #'execute-extended-command)
+
+(map! :after evil
+      :nv "Q" #'u-query-replace-regexp-op)
+
+(evil-define-operator u-query-replace-regexp-op (beg end)
+  "integrate the more powerful query-replace-regexp into evil.  this allows you
+to quickly define the region you want to act on  through a `motion' and then
+replace all matches in that region with `!' (since we don't use visual mode)."
+  :restore-point t
+  (set-mark beg)
+  (goto-char end)
+  (activate-mark)
+  (call-interactively #'query-replace-regexp))
+#+end_src
+
+
+*no visual modes*
+- after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual mode), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even thoug a motion would have been more efficient).
+- you are faster & more efficient enforcing the usage of motions and prefix-number commands.  instead of visual line mode, use a number prefix argument for ~dd, yy, cc~.  if you can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that you want.  (eg: ~d /~)
+- this enforces you to use vim more efficiently.  additionally it comes with the benefit of making your workflow more compatible if you are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
+
+#+begin_src elisp
+(advice-add #'evil-visual-char :override #'ignore)
+(advice-add #'evil-visual-line :override #'ignore)
 #+end_src
 
 ** harpoon
