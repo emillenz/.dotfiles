@@ -9,18 +9,28 @@
 # ---
 
 require 'json'
-require 'notify-send'
 require 'open3'
 require 'English'
 
-ROFI_CMD = %w[rofi -dmenu -no-custom -i -p audio-output].freeze
+
+DMENU_CMD = [
+        'dmenu',
+        '-b',
+        '-i',
+        '-fn', 'Iosevka Comfy-10',
+        '-nb', '#ffffff',
+        '-nf', '#000000',
+        '-sb', '#c0deff',
+        '-sf', '#000000',
+        '-p',  'audio-output >'
+].freeze
 
 def main
         sinks = JSON.parse(`pactl --format json list sinks`)
 
-        rofi_stdin = sinks.map { |sink| sink['description'] }.join("\n")
+        stdin = sinks.map { |sink| sink['description'] }.join("\n")
 
-        read, status = Open3.capture2(*ROFI_CMD, stdin_data: rofi_stdin)
+        read, status = Open3.capture2(*DMENU_CMD, stdin_data: stdin)
         exit(1) unless status.success?
 
         sink_id = sinks.find { |sink| sink['description'] == read.chomp }['index']
@@ -32,7 +42,7 @@ def main
                 `pactl move-sink-input #{sink['index']} #{sink_id}`
         end
 
-        NotifySend.send('audio-output changed', read)
+        `dunstify 'audio-output changed' "#{read}"`
 end
 
 main

@@ -8,11 +8,19 @@
 #  ---
 
 require 'open3'
-require 'notify-send'
 require 'English'
 
-ROFI_CMD = %w[rofi -dmenu -no-custom -i -p bluetooth-connect].freeze
-ROFI_ACTION_CMD = %w[rofi -dmenu -no-custom -i -p action].freeze
+DMENU_CMD = [
+        'dmenu',
+        '-b',
+        '-i',
+        '-fn', 'Iosevka Comfy-10',
+        '-nb', '#ffffff',
+        '-nf', '#000000',
+        '-sb', '#c0deff',
+        '-sf', '#000000',
+        '-p',  'bluetooth-menu >'
+].freeze
 
 def main
         addresses = `bluetoothctl devices`.split("\n").map do |line|
@@ -32,7 +40,7 @@ def main
 end
 
 def menu_select(items)
-        selected, status = Open3.capture2(*ROFI_CMD, stdin_data: items.join("\n"))
+        selected, status = Open3.capture2(*DMENU_CMD, stdin_data: items.join("\n"))
         exit(1) unless status.success?
         selected.chomp
 end
@@ -41,12 +49,12 @@ def connect(device_name, addresses)
         `bluetoothctl power on`
         `bluetoothctl connect #{addresses[device_name]}`
         exit(1) unless $CHILD_STATUS.success?
-        NotifySend.send('bluetooth connected', device_name)
+        `dunstify 'bluetooth connected' "#{device_name}"`
 end
 
 def disconnect
         `bluetoothctl power off`
-        NotifySend.send('bluetooth off')
+        `dunstify 'bluetooth off'`
 end
 
 main
