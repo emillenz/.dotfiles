@@ -74,8 +74,8 @@ bindsym $MOD+shift+p      move left
 bindsym $MOD+n            focus right
 bindsym $MOD+shift+n      move right
 bindsym $MOD+q            kill
-bindsym $MOD+b            $SHCMD $BIN/window-menu
-bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run > ' $DMENU_THEME"
+bindsym $MOD+b            $SHCMD $BIN/window-menu $DMENU_THEME
+bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
 bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 bindsym $MOD+Tab          workspace back_and_forth
 # navigational bindings:1 ends here
@@ -114,17 +114,15 @@ for_window [all] focus, title_window_icon no, floating disable
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-        bindsym $MOD+a $SHCMD $BIN/audio-output-menu; $ESC
-        bindsym $MOD+b $SHCMD $BIN/bluetooth-menu; $ESC
-        bindsym $MOD+k $SHCMD $BIN/killprocess-menu; $ESC
+        bindsym $MOD+a $SHCMD $BIN/audio-output-menu $DMENU_THEME; $ESC
+        bindsym $MOD+b $SHCMD $BIN/bluetooth-menu $DMENU_THEME; $ESC
+        bindsym $MOD+k $SHCMD $BIN/killprocess-menu $DMENU_THEME; $ESC
         bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME); $ESC
 
         bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC
         bindsym $MOD+shift+s $SHCMD $SCROT; $ESC
 
         bindsym $MOD+e $SHCMD emacsclient --eval "(emacs-everywhere)"; $ESC
-
-        bindsym $MOD+m $SHCMD mpv "$(xclip -out)"; $ESC
 
         bindsym $MOD+q $SHCMD $SYS_SLEEP; $ESC
         bindsym $MOD+o $SHCMD $SYS_SCREENOFF; $ESC

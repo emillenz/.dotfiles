@@ -10,38 +10,34 @@
 require 'json'
 require 'open3'
 
-DMENU_CMD = [
-        'dmenu',
-        '-b',
-        '-i',
-        '-fn', 'Iosevka Comfy-10',
-        '-nb', '#ffffff',
-        '-nf', '#000000',
-        '-sb', '#c0deff',
-        '-sf', '#000000',
-        '-p',  'window >'
-].freeze
-
+# ARGV := arguments to pass to dmenu
 def main
-        windows = windows(JSON.parse(`i3-msg -t get_tree`)['nodes']).flatten.compact
-        dmenu_stdin = windows.map { |win| win[:name] }.join("\n")
-        read, status = Open3.capture2(*DMENU_CMD, stdin_data: dmenu_stdin)
+        windows = windows(JSON.parse(`i3-msg -t get_tree`))
+        window_titles = windows.map { |win| win[:name] }.join("\n")
+
+        selected_title, status = Open3.capture2('dmenu',
+                                                '-p',
+                                                "#{File.basename($PROGRAM_NAME)} >",
+                                                *ARGV,
+                                                stdin_data: window_titles)
+
         exit(1) unless status.success?
-        win_id = windows.find { |win| win[:name] == read.chomp }[:id]
-        `i3-msg '[con_id=#{win_id}] focus'`
+        sel_window = windows.find { |win| win[:name] == selected_title.chomp }
+
+        exec('i3-msg', "[con_id=#{sel_window[:id]}] focus")
 end
 
-def windows(nodes)
-        return nil if nodes == []
+def windows(node)
+        return [] unless node
 
-        nodes.map do |node|
-                if node['window_type'] == 'normal'
-                        { id: node['id'],
-                          name: node['window_properties']['title'],
-                          class: node['window_properties']['class'] }
-                else
-                        windows(node['nodes'])
-                end
+        if node['window_type'] == 'normal'
+                {
+                        id: node['id'],
+                        name: node['window_properties']['title'],
+                        class: node['window_properties']['class']
+                }
+        else
+                (node['nodes'] || []).flat_map { |child_node| windows(child_node) }
         end
 end
 

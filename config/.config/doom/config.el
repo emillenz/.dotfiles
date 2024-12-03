@@ -331,6 +331,11 @@
       :n "gk" #'evil-previous-visual-line)
 ;; editing:2 ends here
 
+;; [[file:config.org::*editing][editing:3]]
+(map! :map (c-mode-map cpp-mode-map c++-mode-map)
+      :nm "C-l" #'recenter-top-bottom)
+;; editing:3 ends here
+
 ;; [[file:config.org::*embrace emacs][embrace emacs:1]]
 (define-key! [remap evil-ex] #'execute-extended-command)
 

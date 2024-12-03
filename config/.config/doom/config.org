@@ -505,6 +505,13 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
       :n "gk" #'evil-previous-visual-line)
 #+end_src
 
+we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are already for screen-movements: [[kbd:][C-u/d/e/y]]), but ~c~ modes don't respect that for some reason.
+#+begin_src elisp
+(map! :map (c-mode-map cpp-mode-map c++-mode-map)
+      :nm "C-l" #'recenter-top-bottom)
+#+end_src
+
+
 *** embrace emacs
 - don't use vim's commandline: ~evil-ex~, instead just use emacs ~M-x~.  this introduces and additional layer of unneccessary complexity.  we use only the vim-motions, for all other things, emacs tools are more powerful.
   - :%s/ :: use emacs-native ~query-replace-regex~ instead, which is more interactive, powerful and flexible than vim's replacement.  it has undo, navigating matches, and can even transfor the match using arbitrary lisp code (see help: ~query-replace-regex~).

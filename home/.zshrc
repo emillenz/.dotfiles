@@ -27,6 +27,7 @@ export PATH="$PATH:$GEM_HOME/bin"
 export EDITOR="emacsclient -nw --alternate-editor='emacs -nw'"
 export VISUAL="emacsclient --reuse-frame --alternate-editor=emacs"
 export BROWSER="firefox"
+export TERMINAL="alacritty"
 
 alias -g ls="ls -v --human-readable --group-directories-first --color=auto"
 alias -g rm="rm --recursive --verbose"

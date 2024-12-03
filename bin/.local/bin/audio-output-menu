@@ -12,25 +12,17 @@ require 'json'
 require 'open3'
 require 'English'
 
-
-DMENU_CMD = [
-        'dmenu',
-        '-b',
-        '-i',
-        '-fn', 'Iosevka Comfy-10',
-        '-nb', '#ffffff',
-        '-nf', '#000000',
-        '-sb', '#c0deff',
-        '-sf', '#000000',
-        '-p',  'audio-output >'
-].freeze
-
+# ARGV := arguments to pass to dmenu
 def main
         sinks = JSON.parse(`pactl --format json list sinks`)
 
-        stdin = sinks.map { |sink| sink['description'] }.join("\n")
+        sink_names = sinks.map { |sink| sink['description'] }.join("\n")
 
-        read, status = Open3.capture2(*DMENU_CMD, stdin_data: stdin)
+        read, status = Open3.capture2('dmenu',
+                                      '-p',
+                                      "#{File.basename($PROGRAM_NAME)} >",
+                                      *ARGV,
+                                      stdin_data: sink_names)
         exit(1) unless status.success?
 
         sink_id = sinks.find { |sink| sink['description'] == read.chomp }['index']
