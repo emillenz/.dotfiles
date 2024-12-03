@@ -4,6 +4,14 @@
 ;; user:1 ends here
 
 ;; [[file:config.org::*global options][global options:1]]
+(let ((width 100))
+  (setq fill-column width
+        async-shell-command-width width
+        visual-fill-column-width width))
+
+(global-visual-fill-column-mode)
+(global-visual-line-mode)
+
 (setq initial-scratch-message ""
       delete-by-moving-to-trash t
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
@@ -12,7 +20,6 @@
       hscroll-margin 0
       scroll-margin 0
       enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
-      display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t)
 
 (save-place-mode)
@@ -23,23 +30,18 @@
 
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
-(let ((width 100))
-
-  (setq fill-column width
-        async-shell-command-width width
-        visual-fill-column-width width))
-
-(global-visual-fill-column-mode)
-(global-visual-line-mode)
-
-(add-hook! 'prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
-  (visual-fill-column-mode -1))
-
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
-
-(advice-add '+default/man-or-woman :override #'man) ;; HACK :: we don't use macos, and +default/man-or-woman doesn't invoke `man' correctly
 ;; global options:1 ends here
+
+;; [[file:config.org::*global options][global options:2]]
+(add-hook! 'prog-mode-hook
+  (visual-fill-column-mode -1))
+;; global options:2 ends here
+
+;; [[file:config.org::*global options][global options:3]]
+(advice-add '+default/man-or-woman :override #'man)
+;; global options:3 ends here
 
 ;; [[file:config.org::*modus-theme][modus-theme:1]]
 (use-package! modus-themes
@@ -79,8 +81,7 @@
 ;; modeline:1 ends here
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
-(setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc.  use `doom/window-enlargen' if you need to scroll its contents.
-                             (,(rx (seq "*" (or "transient"
+(setq display-buffer-alist `((,(rx (seq "*" (or "transient"
                                                 (seq "Org " (or "Select" "todo"))
                                                 "Agenda Commands"
                                                 "doom eval"
@@ -91,30 +92,34 @@
                               (window-height . fit-window-to-buffer)
                               (side . bottom))
 
-                             ;; default (all buffer's) :: replace existing window (side window is never used by this)
                              ("."
                               display-buffer-same-window))
 
       switch-to-buffer-obey-display-actions t)
+;; window layout & behavior :: single maximized buffer workflow:1 ends here
 
- ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
+;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:2]]
 (after! org
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
- ;; for when commiting, let magit use it's own window layout.
+(after! man
+  (setq Man-notify-method 'pushy))
+;; window layout & behavior :: single maximized buffer workflow:2 ends here
+
+;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:3]]
 (after! magit
   (setq magit-commit-diff-inhibit-same-window t
         +magit-open-windows-in-direction 'down))
+;; window layout & behavior :: single maximized buffer workflow:3 ends here
 
- ;; does not obey `display-buffer-alist'
-(after! man
-  (setq Man-notify-method 'pushy))
-;; window layout & behavior :: single maximized buffer workflow:1 ends here
-
-;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:2]]
+;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:4]]
 (add-hook! 'doom-escape-hook #'delete-other-windows)
-;; window layout & behavior :: single maximized buffer workflow:2 ends here
+;; window layout & behavior :: single maximized buffer workflow:4 ends here
+
+;; [[file:config.org::*line-numbers][line-numbers:1]]
+(setq display-line-numbers-type 'visual)
+;; line-numbers:1 ends here
 
 ;; [[file:config.org::*indentation][indentation:1]]
 (advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
@@ -315,21 +320,13 @@
 
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
-(define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+(define-key! key-translation-map "C-h" "DEL") ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 ;; editing:1 ends here
 
 ;; [[file:config.org::*editing][editing:2]]
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
 ;; editing:2 ends here
-
-;; [[file:config.org::*surround][surround:1]]
-(map! :after evil
-      :n "s"    #'evil-surround-region
-      :n "S"    #'evil-Surround-region)
-
-(add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
-;; surround:1 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:1]]
 (define-key! [remap evil-ex] #'execute-extended-command)
@@ -344,10 +341,26 @@
 (define-key! [remap query-replace-regexp] #'anzu-query-replace-regexp)
 ;; embrace emacs:2 ends here
 
-;; [[file:config.org::*no visual modes][no visual modes:1]]
+;; [[file:config.org::*no visual selections][no visual selections:1]]
 (define-key! [remap evil-visual-char] #'ignore)
 (define-key! [remap evil-visual-line] #'ignore)
-;; no visual modes:1 ends here
+;; no visual selections:1 ends here
+
+;; [[file:config.org::*surround & smartparens][surround & smartparens:1]]
+(map! :after evil
+      :n "s"    #'evil-surround-region
+      :n "S"    #'evil-Surround-region)
+
+(after! evil-surround
+  (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
+
+  (add-hook! 'org-mode-hook :local
+    (add-to-list 'evil-surround-pairs-alist '(?~ . ("~" . "~")))))
+
+(after! smartparens
+  (sp-with-modes 'org-mode
+    (sp-local-pair "~" "~")))
+;; surround & smartparens:1 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon
@@ -497,9 +510,6 @@
                             laas-mode
                             +org-pretty-mode
                             org-appear-mode))
-
-(add-hook! 'org-mode-hook :local
-  (add-to-list 'evil-surround-pairs-alist '(?~ . ("~" . "~"))))
 
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
@@ -1019,15 +1029,15 @@ legibility."
 (use-package! nov
   :mode ("\\.epub\\'" . nov-mode)
   :config
-  (setq nov-variable-pitch t ;; serif for prose reading
-        nov-text-width t) ;; used visual-line-mode and visual-fill-column mode to visually wrap line.
+  (setq nov-variable-pitch t
+        nov-text-width t)
   (advice-add 'nov-render-title :override #'ignore) ;; using modeline...
 
   (map! :map (nov-mode-map nov-button-map)
-        "SPC" nil                     ;; never override leader-mode
-        "C-SPC" nil                   ;; never override leader-mode
-        :n "q" #'kill-current-buffer  ;; consistent with other read-only modes (magit, dired, docs...)
-        :n "o" #'nov-goto-toc         ;; o => outline, which is more mnemonic (consistent with pdf-view-mode, info-mode, evil: 'imenu' outline when in code)
+        "SPC" nil
+        "C-SPC" nil
+        :n "q" #'kill-current-buffer
+        :n "o" #'nov-goto-toc
 
         ;; next/previous page
         :n "<next>" #'nov-scroll-up
@@ -1037,10 +1047,11 @@ legibility."
     (visual-fill-column-mode)
     (visual-line-mode)
 
-    (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
-                line-spacing 2) ;; padding increases focus on current line for long prose text.
+    (setq-local next-screen-context-lines 0
+                line-spacing 2)
 
-    (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
+    ;; HACK :: need to unset
+    (setq-local global-hl-line-mode nil)
     (hl-line-mode -1)))
 ;; nov: ebooks:1 ends here
 

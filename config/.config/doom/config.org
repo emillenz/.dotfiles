@@ -98,6 +98,14 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 
 * global options
 #+begin_src elisp
+(let ((width 100))
+  (setq fill-column width
+        async-shell-command-width width
+        visual-fill-column-width width))
+
+(global-visual-fill-column-mode)
+(global-visual-line-mode)
+
 (setq initial-scratch-message ""
       delete-by-moving-to-trash t
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
@@ -106,7 +114,6 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
       hscroll-margin 0
       scroll-margin 0
       enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
-      display-line-numbers-type 'visual
       shell-command-prompt-show-cwd t)
 
 (save-place-mode)
@@ -117,22 +124,19 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 
 (add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
-(let ((width 100))
-
-  (setq fill-column width
-        async-shell-command-width width
-        visual-fill-column-width width))
-
-(global-visual-fill-column-mode)
-(global-visual-line-mode)
-
-(add-hook! 'prog-mode-hook ;; HACK :: must disable, since it displays the flycheck inline warnings/errors incorrectly.
-  (visual-fill-column-mode -1))
-
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
+#+end_src
 
-(advice-add '+default/man-or-woman :override #'man) ;; HACK :: we don't use macos, and +default/man-or-woman doesn't invoke `man' correctly
+- HACK :: must disable, since it displays the ~flycheck~ inline warnings/errors incorrectly.
+#+begin_src elisp
+(add-hook! 'prog-mode-hook
+  (visual-fill-column-mode -1))
+#+end_src
+
+- HACK :: we don't use macos, and ~+default/man-or-woman~ doesn't invoke ~man~ correctly
+#+begin_src elisp
+(advice-add '+default/man-or-woman :override #'man)
 #+end_src
 
 * ui
@@ -183,12 +187,12 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 #+end_src
 
 ** window layout & behavior :: single maximized buffer workflow
-- single maximized buffer workflow :: we explicitly never use more than a single window (we don't split a window) in the frame, since we can only ever focus on a single thing anyways, and thus in the meantime other windows would clutter the screen distractingly.  additionally using multiple windows introduces additional navigational overhead first having to go to the correct window before using ~switch-to-buffer~, ~harpoon~ etc. managing windows and placing them correctly is complex and inconsistent, some windows recieve focus, other's don't, some buffer's create a split, completely changing window layout, others don't.  instead of using windows, you should become really efficient at navigating between buffers using ~switch-to-buffer~, ~evil-switch-to-windows-last-buffer~, ~harpoon~ and evil's ~global-marks~.  it is more efficiet to just change the buffer in the current window, instead of getting disrupted by the newly opened window and having to change your eyes focus.  read more at [[file:~/.config/readme.org][readme.org]].
+- single maximized buffer workflow :: we explicitly never use more than a single window (we don't split a window) in the frame, since we can only ever focus on a single thing anyways, and thus in the meantime other windows would clutter the screen distractingly.  additionally using multiple windows introduces additional navigational overhead first having to go to the correct window before using ~switch-to-buffer~, ~harpoon~ etc. managing windows and placing them correctly is complex and inconsistent, some windows recieve focus, other's don't, some buffer's create a split, completely changing window layout, others don't.  instead of using windows, you should become really efficient at navigating between buffers using ~switch-to-buffer~, ~evil-switch-to-windows-last-buffer~, ~harpoon~ and evil's ~global-marks~.  it is more efficiet to just change the buffer in the current window, instead of getting disrupted by the newly opened window and having to change your eyes focus.
 - only horizontal split :: since emacs sometimes creates splits in special views (eg. magit, ediff) or for displaying additional information (lsp-help...), and thus we must handle them to consistently split below and never side-by-side, since due to the wm, our emacs window is in full height but has a constrained width, perfectly sized for displaying source-code / technical documents.
+- minibuffers :: at bottom, consistent with ~minibuffer-prompt~, ~whichkey~, etc.  use ~doom/window-enlargen~ if you need to view it large.
 
 #+begin_src elisp
-(setq display-buffer-alist `(;; mini-buffers :: at bottom, consistent with minibuffer prompt, whichkey, etc.  use `doom/window-enlargen' if you need to scroll its contents.
-                             (,(rx (seq "*" (or "transient"
+(setq display-buffer-alist `((,(rx (seq "*" (or "transient"
                                                 (seq "Org " (or "Select" "todo"))
                                                 "Agenda Commands"
                                                 "doom eval"
@@ -199,30 +203,37 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
                               (window-height . fit-window-to-buffer)
                               (side . bottom))
 
-                             ;; default (all buffer's) :: replace existing window (side window is never used by this)
                              ("."
                               display-buffer-same-window))
 
       switch-to-buffer-obey-display-actions t)
+#+end_src
 
- ;; HACK :: org src ignores 'display-buffer-alist'.  need to set like this
+some modes don't obey ~display-buffer-alist~, so we set the same-window-behaviour in their special way.
+#+begin_src elisp
 (after! org
   (setq org-src-window-setup 'current-window
         org-agenda-window-setup 'current-window))
 
- ;; for when commiting, let magit use it's own window layout.
+(after! man
+  (setq Man-notify-method 'pushy))
+#+end_src
+
+let magit use it's own window layout (for commits etc.)
+#+begin_src elisp
 (after! magit
   (setq magit-commit-diff-inhibit-same-window t
         +magit-open-windows-in-direction 'down))
-
- ;; does not obey `display-buffer-alist'
-(after! man
-  (setq Man-notify-method 'pushy))
 #+end_src
 
 close popup window (eg. ~*lsp-help*~) from the main window with [[kbd:][escape]] in normal mode.
 #+begin_src elisp
 (add-hook! 'doom-escape-hook #'delete-other-windows)
+#+end_src
+** line-numbers
+- we make extensive use of motions (eg: ~d2}~, ~d12j~, etc), hence we need ~visual~ line-numbers.  (+ we don't hard-fill our text in prose, instead we use ~visual-fill-column-mode~, which means we need ~'visual~ instead of ~'relative~ numbers)
+#+begin_src elisp
+(setq display-line-numbers-type 'visual)
 #+end_src
 
 ** indentation
@@ -460,10 +471,11 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 #+end_src
 
 ** editing
-goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and improve consistency of implementation.
+- goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and improve consistency of implementation.
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
 - [[kbd:][C-j]] :: inverse of: [[kbd:][J]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
+- note :: don't use the common remap: ~evil-next-line~ to ~evil-next-visual-line~ (or ~prev~).  since this causes inconsisten number prefix line-motions (eg: ~12dd~ deletes by full lines, but ~12dj~ deletes by visual lines)
 
 #+begin_src elisp
 (map! :after evil
@@ -480,26 +492,13 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
-(define-key key-translation-map (kbd "C-h") (kbd "DEL")) ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+(define-key! key-translation-map "C-h" "DEL") ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 #+end_src
 
-- note :: operators ~dd~, etc. still operate on the whole line (intended behaviour).
-- we use long lines in prose (eg: org) and only wrap it visually (since it makes sense that the text is a continous line, when it is eg. an org item instead of hard-formatting it with ~gw~).
+- note :: when you use motions, don't use motions like ~5dd~ (or ~yy~, ~cc~). instead always opt to using ~5d<motion>~ (eg: ~5dj~).  this technique is more powerful anyways, since it allows you to go bidirectional.  (additionally using ~dd~ etc. causes confusing behaviour when referencing the line numbers (offset by one) and with our remaps might not even correspond to the right line number anyway.)
 #+begin_src elisp
 (define-key! [remap evil-next-line] #'evil-next-visual-line)
 (define-key! [remap evil-previous-line] #'evil-previous-visual-line)
-#+end_src
-
-
-*** surround
-- s/S :: vim's ~s, S~ is useless, since they are duplicates of: ~x, C~.  we introduce a powerful operator: ~evil-surround~.
-  - readme: https://github.com/emacs-evil/evil-surround
-#+begin_src elisp
-(map! :after evil
-      :n "s"    #'evil-surround-region
-      :n "S"    #'evil-Surround-region)
-
-(add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
 #+end_src
 
 *** embrace emacs
@@ -525,17 +524,36 @@ goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and impro
 (define-key! [remap query-replace-regexp] #'anzu-query-replace-regexp)
 #+end_src
 
-
-*** no visual modes
+*** no visual selections
 - after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual mode), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even though a motion would have been more efficient).
 - you are faster & more efficient enforcing the usage of motions, prefix-number commands and ~evil-repeat~.  instead of visual line mode, use a number prefix argument for ~dd, yy, cc~.  if you can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that you want.  (eg: ~d /~)
 - this enforces you to use vim more efficiently.  additionally it comes with the benefit of making your workflow more compatible if you are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
 - if you absolutely must use a visual selection, you can use [[kbd:][C-space]] (emacs binding).
 - to paste over some text in visual mode, you just delete the region, then paste and use [[kbd:][C-p]] ~evil-paste-pop~ to insert what you originally yanked.
+- ~evil-visual-block~ :: still enabled, since this is not replaceable by motions.
 
 #+begin_src elisp
 (define-key! [remap evil-visual-char] #'ignore)
 (define-key! [remap evil-visual-line] #'ignore)
+#+end_src
+
+*** surround & smartparens
+- s/S :: vim's ~s, S~ is useless, since they are duplicates of: ~x, C~.  we introduce a powerful operator: ~evil-surround~.
+  - readme: https://github.com/emacs-evil/evil-surround
+#+begin_src elisp
+(map! :after evil
+      :n "s"    #'evil-surround-region
+      :n "S"    #'evil-Surround-region)
+
+(after! evil-surround
+  (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
+
+  (add-hook! 'org-mode-hook :local
+    (add-to-list 'evil-surround-pairs-alist '(?~ . ("~" . "~")))))
+
+(after! smartparens
+  (sp-with-modes 'org-mode
+    (sp-local-pair "~" "~")))
 #+end_src
 
 ** harpoon
@@ -734,9 +752,6 @@ harpoon bugfix
                             +org-pretty-mode
                             org-appear-mode))
 
-(add-hook! 'org-mode-hook :local
-  (add-to-list 'evil-surround-pairs-alist '(?~ . ("~" . "~"))))
-
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
 (setq org-use-property-inheritance t
@@ -794,8 +809,8 @@ harpoon bugfix
 #+end_src
 
 ** symbols
-- clean up symbols with unicode => more clean, minimalist, easier to read.
-- use '●' for heading, '─' for list for unambiguity and a minimalist look.  org heading level is differentiated by indentation and face.
+- clean up symbols with corresponding coherent unicode symbols.
+- use ~●~ for heading, ~─~ for list for unambiguity and a minimalist look.  org heading level is differentiated by indentation and face.
 #+begin_src elisp
 (add-hook! 'org-mode-hook '(org-superstar-mode
                             prettify-symbols-mode))
@@ -821,6 +836,7 @@ harpoon bugfix
 #+end_src
 
 ** org/keybindings
+- we don't hard format (using ~evil-fill~) long lines in prose (~org-mode~).  since it makes sense for the content (eg. a long org list item) to be coherent as a single block of text.  we use ~visual-fill-column~ to display lines right.  navigate within a long line using ~evil-ex-search~ and ~evil-org-forward-sentence~.
 #+begin_src elisp
 (map! :map org-mode-map :after org
       :localleader
@@ -1341,20 +1357,26 @@ legibility."
 #+end_src
 
 * nov: ebooks
-- uses variable pitch mode
+- uses variable pitch mode (serif font for reading)
+- ~visual-line-mode~ and ~visual-fill-column~ mode to wrap line & center text
+- o, outline :: which is more mnemonic (consistent with pdf-view-mode, info-mode, evil: 'imenu' outline when in code)
+- q :: consistent with other read-only modes (magit, dired, docs...)
+- SPC :: don't override leader-mode-binding
+- line-spacing :: padding increases focus on current line for long prose text.
+- screen-context-lines :: no confusing page overlaps, always start reading on the first visible line of the next page
 #+begin_src elisp
 (use-package! nov
   :mode ("\\.epub\\'" . nov-mode)
   :config
-  (setq nov-variable-pitch t ;; serif for prose reading
-        nov-text-width t) ;; used visual-line-mode and visual-fill-column mode to visually wrap line.
+  (setq nov-variable-pitch t
+        nov-text-width t)
   (advice-add 'nov-render-title :override #'ignore) ;; using modeline...
 
   (map! :map (nov-mode-map nov-button-map)
-        "SPC" nil                     ;; never override leader-mode
-        "C-SPC" nil                   ;; never override leader-mode
-        :n "q" #'kill-current-buffer  ;; consistent with other read-only modes (magit, dired, docs...)
-        :n "o" #'nov-goto-toc         ;; o => outline, which is more mnemonic (consistent with pdf-view-mode, info-mode, evil: 'imenu' outline when in code)
+        "SPC" nil
+        "C-SPC" nil
+        :n "q" #'kill-current-buffer
+        :n "o" #'nov-goto-toc
 
         ;; next/previous page
         :n "<next>" #'nov-scroll-up
@@ -1364,10 +1386,11 @@ legibility."
     (visual-fill-column-mode)
     (visual-line-mode)
 
-    (setq-local next-screen-context-lines 0 ;; no confusing page overlaps, always start reading on the first visible line of the next page
-                line-spacing 2) ;; padding increases focus on current line for long prose text.
+    (setq-local next-screen-context-lines 0
+                line-spacing 2)
 
-    (setq-local global-hl-line-mode nil)  ;; HACK :: need to unset, instead of using a hook
+    ;; HACK :: need to unset
+    (setq-local global-hl-line-mode nil)
     (hl-line-mode -1)))
 #+end_src
 
@@ -1461,3 +1484,4 @@ we automate this repetetive task using a snippets.
 #+begin_src elisp
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 #+end_src
+
