@@ -20,7 +20,9 @@
 export PATH="$PATH:$HOME/.config/emacs/bin"
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:$HOME/.local/bin"
-export PATH="$PATH:$HOME/.local/share/gem/ruby/3.3.0/bin"
+
+export GEM_HOME="$HOME/.local/share/gem"
+export PATH="$PATH:$GEM_HOME/bin"
 
 export EDITOR="emacsclient -nw --alternate-editor='emacs -nw'"
 export VISUAL="emacsclient --reuse-frame --alternate-editor=emacs"

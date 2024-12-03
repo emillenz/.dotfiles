@@ -11,7 +11,9 @@
 
 (global-visual-fill-column-mode)
 (global-visual-line-mode)
+;; global options:1 ends here
 
+;; [[file:config.org::*global options][global options:2]]
 (setq initial-scratch-message ""
       delete-by-moving-to-trash t
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
@@ -28,20 +30,18 @@
 
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
 
-(add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
-
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
-;; global options:1 ends here
-
-;; [[file:config.org::*global options][global options:2]]
-(add-hook! 'prog-mode-hook
-  (visual-fill-column-mode -1))
 ;; global options:2 ends here
 
 ;; [[file:config.org::*global options][global options:3]]
-(advice-add '+default/man-or-woman :override #'man)
+(add-hook! 'prog-mode-hook
+  (visual-fill-column-mode -1))
 ;; global options:3 ends here
+
+;; [[file:config.org::*global options][global options:4]]
+(advice-add '+default/man-or-woman :override #'man)
+;; global options:4 ends here
 
 ;; [[file:config.org::*modus-theme][modus-theme:1]]
 (use-package! modus-themes
@@ -117,13 +117,11 @@
 (add-hook! 'doom-escape-hook #'delete-other-windows)
 ;; window layout & behavior :: single maximized buffer workflow:4 ends here
 
-;; [[file:config.org::*line-numbers][line-numbers:1]]
+;; [[file:config.org::*line numbers][line numbers:1]]
 (setq display-line-numbers-type 'visual)
-;; line-numbers:1 ends here
+;; line numbers:1 ends here
 
-;; [[file:config.org::*indentation][indentation:1]]
-(advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
-
+;; [[file:config.org::*rationale][rationale:1]]
 (defvar u-global-indent-width 8)
 
 (setq-default standard-indent u-global-indent-width
@@ -136,14 +134,17 @@
 (setq-hook! '(c++-mode-hook
               c-mode-hook
               java-mode-hook)
-  tab-width u-global-indent-width
   c-basic-offset u-global-indent-width
   evil-shift-width u-global-indent-width)
 
 (setq-hook! 'ruby-mode-hook
   evil-shift-width u-global-indent-width
   ruby-indent-level u-global-indent-width)
-;; indentation:1 ends here
+
+;; HACK :: prettier broken for me
+(after! apheleia-formatters
+ (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
+;; rationale:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
 (after! evil
@@ -291,12 +292,13 @@
 	:i "C-n" #'company-complete)
 
 (map! :map comint-mode-map :after comint
+      ;; cant use normal j/k
 	:n "C-k" #'comint-previous-input
 	:n "C-j" #'comint-next-input
+      :n "C-/" #'comint-history-isearch-backward-regexp
       ;; respect evil's bindings!
       :n "C-n" #'evil-paste-pop
-      :n "C-p" #'evil-paste-pop-next
-	:n "C-/" #'comint-history-isearch-backward-regexp)
+      :n "C-p" #'evil-paste-pop-next)
 ;; completion & minibuffer:1 ends here
 
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:2]]
@@ -324,8 +326,10 @@
 ;; editing:1 ends here
 
 ;; [[file:config.org::*editing][editing:2]]
-(define-key! [remap evil-next-line] #'evil-next-visual-line)
-(define-key! [remap evil-previous-line] #'evil-previous-visual-line)
+(map! :map evil-org-mode-map :after evil-org
+      ;; respect evil bindings!
+      :n "gj" #'evil-next-visual-line
+      :n "gk" #'evil-previous-visual-line)
 ;; editing:2 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:1]]

@@ -56,13 +56,13 @@ chsh --shell /usr/bin/zsh
 - alacritty :: terminal
 - rest :: dependecies for emacs/terminal tools
 #+begin_src sh
-dnf install alacritty fd-find ripgrep cmake gcc make tldr curl
+dnf install alacritty fd-find ripgrep tldr curl
 #+end_src
 
 * scripting & menu-scripts: ruby
 #+begin_src sh
-dnf install ruby ruby-devel
-gem install solargraph
+dnf install ruby ruby-devel irb
+gem install solargraph rubocop
 #+end_src
 
 * make system-scripts executeable
@@ -158,4 +158,9 @@ dnf install syncthing restic
 #+Begin_src sh
 dnf install timeshift
 echo '1 0 system-backup sudo timeshift --create' | sudo tee --append /etc/anacrontab
+#+end_src
+
+* c/cpp
+#+begin_src sh
+dnf install cmake gcc clang clang-tools-extra
 #+end_src

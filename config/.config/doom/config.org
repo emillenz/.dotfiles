@@ -105,7 +105,9 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 
 (global-visual-fill-column-mode)
 (global-visual-line-mode)
+#+end_src
 
+#+begin_src elisp
 (setq initial-scratch-message ""
       delete-by-moving-to-trash t
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
@@ -121,8 +123,6 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 (global-subword-mode)
 
 (add-hook! prog-mode-hook #'rainbow-delimiters-mode)
-
-(add-hook! emacs-lisp-mode-hook #'toggle-debug-on-error)
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
@@ -230,39 +230,14 @@ close popup window (eg. ~*lsp-help*~) from the main window with [[kbd:][escape]]
 #+begin_src elisp
 (add-hook! 'doom-escape-hook #'delete-other-windows)
 #+end_src
-** line-numbers
-- we make extensive use of motions (eg: ~d2}~, ~d12j~, etc), hence we need ~visual~ line-numbers.  (+ we don't hard-fill our text in prose, instead we use ~visual-fill-column-mode~, which means we need ~'visual~ instead of ~'relative~ numbers)
+
+** line numbers
+- we make extensive use of relative line motions (eg: ~12dd~ etc.) , hence we need ~visual~ line-numbers. (~visual~ also works with folded code (eg. ~org-mode~)).
 #+begin_src elisp
 (setq display-line-numbers-type 'visual)
 #+end_src
 
 ** indentation
-- formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
-- we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
-#+begin_src elisp
-(advice-add #'doom-highlight-non-default-indentation-h :override #'ignore)
-
-(defvar u-global-indent-width 8)
-
-(setq-default standard-indent u-global-indent-width
-              evil-shift-width u-global-indent-width
-              tab-width u-global-indent-width
-              org-indent-indentation-per-level u-global-indent-width
-              evil-indent-convert-tabs t
-              indent-tabs-mode nil)
-
-(setq-hook! '(c++-mode-hook
-              c-mode-hook
-              java-mode-hook)
-  tab-width u-global-indent-width
-  c-basic-offset u-global-indent-width
-  evil-shift-width u-global-indent-width)
-
-(setq-hook! 'ruby-mode-hook
-  evil-shift-width u-global-indent-width
-  ruby-indent-level u-global-indent-width)
-#+end_src
-
 *** rationale
 a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
 
@@ -281,6 +256,34 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
 - consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
 - using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
+- formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
+
+- we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
+- note :: you must install the formatters in ~apheleia-mode-alist~ for the languages you use.
+#+begin_src elisp
+(defvar u-global-indent-width 8)
+
+(setq-default standard-indent u-global-indent-width
+              evil-shift-width u-global-indent-width
+              tab-width u-global-indent-width
+              org-indent-indentation-per-level u-global-indent-width
+              evil-indent-convert-tabs t
+              indent-tabs-mode nil)
+
+(setq-hook! '(c++-mode-hook
+              c-mode-hook
+              java-mode-hook)
+  c-basic-offset u-global-indent-width
+  evil-shift-width u-global-indent-width)
+
+(setq-hook! 'ruby-mode-hook
+  evil-shift-width u-global-indent-width
+  ruby-indent-level u-global-indent-width)
+
+;; HACK :: prettier broken for me
+(after! apheleia-formatters
+ (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
+#+end_src
 
 * evil-mode
 - evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize yourself with them and harness their power.
@@ -455,12 +458,13 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 	:i "C-n" #'company-complete)
 
   (map! :map comint-mode-map :after comint
+        ;; cant use normal j/k
 	:n "C-k" #'comint-previous-input
 	:n "C-j" #'comint-next-input
+        :n "C-/" #'comint-history-isearch-backward-regexp
         ;; respect evil's bindings!
         :n "C-n" #'evil-paste-pop
-        :n "C-p" #'evil-paste-pop-next
-	:n "C-/" #'comint-history-isearch-backward-regexp)
+        :n "C-p" #'evil-paste-pop-next)
 #+end_src
 
 in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
@@ -475,7 +479,6 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
 - [[kbd:][C-j]] :: inverse of: [[kbd:][J]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
-- note :: don't use the common remap: ~evil-next-line~ to ~evil-next-visual-line~ (or ~prev~).  since this causes inconsisten number prefix line-motions (eg: ~12dd~ deletes by full lines, but ~12dj~ deletes by visual lines)
 
 #+begin_src elisp
 (map! :after evil
@@ -495,10 +498,12 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 (define-key! key-translation-map "C-h" "DEL") ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 #+end_src
 
-- note :: when you use motions, don't use motions like ~5dd~ (or ~yy~, ~cc~). instead always opt to using ~5d<motion>~ (eg: ~5dj~).  this technique is more powerful anyways, since it allows you to go bidirectional.  (additionally using ~dd~ etc. causes confusing behaviour when referencing the line numbers (offset by one) and with our remaps might not even correspond to the right line number anyway.)
+- we often use long lines in prose with ~visual-fill-column-mode~.
 #+begin_src elisp
-(define-key! [remap evil-next-line] #'evil-next-visual-line)
-(define-key! [remap evil-previous-line] #'evil-previous-visual-line)
+(map! :map evil-org-mode-map :after evil-org
+      ;; respect evil bindings!
+      :n "gj" #'evil-next-visual-line
+      :n "gk" #'evil-previous-visual-line)
 #+end_src
 
 *** embrace emacs
@@ -507,8 +512,7 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
     - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
   - :g :: use emacs ~reverse-region~, ~delete-lines~ and macros.
   - other commands such as ~:w~, ~:q~, ~:b~, ~:e~ etc. should be executed more ergonomically/efficiently by top-level keybindings (using [[kbd:][ctrl]]) anyways.
-- Q ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.  (same as in ~viper-mode~)
-- [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+- Q ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.  (same as in ~viper-mode~) - [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 
 #+begin_src elisp
 (define-key! [remap evil-ex] #'execute-extended-command)
@@ -558,7 +562,7 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 
 ** harpoon
 - when you are in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers you find yourself alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since you need to alternate between more than 2 file.
-- you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where, when switching and you should reprioritize your marks.  (4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween)
+- you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where.  when switching and you should reprioritize your marks.  4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween.
 - we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.
 #+begin_src elisp
 (use-package! harpoon
@@ -725,6 +729,7 @@ harpoon bugfix
    - visually distinctualize headings & keywods from the rest of the text with coloring and bold
    - like in code, everything is code/data => also org mode / latex documents.
    - its not about some fancy looking thing, its about the internals, the quality of the data, not the presentation.
+- we don't hard format (using ~evil-fill~) long lines in prose (~org-mode~).  since it makes sense for the content (eg. a long org list item) to be coherent as a single block of text.  we use ~visual-fill-column~ to display lines right.
 
 ** tags
 - Always use tags to specify what a todo-item belongs to & never write it in the todo-name | not: ~TODO uni math assignment [2]~ => instead: ~TODO assignment [2] :uni:math:assignments:~
@@ -836,7 +841,6 @@ harpoon bugfix
 #+end_src
 
 ** org/keybindings
-- we don't hard format (using ~evil-fill~) long lines in prose (~org-mode~).  since it makes sense for the content (eg. a long org list item) to be coherent as a single block of text.  we use ~visual-fill-column~ to display lines right.  navigate within a long line using ~evil-ex-search~ and ~evil-org-forward-sentence~.
 #+begin_src elisp
 (map! :map org-mode-map :after org
       :localleader
@@ -1480,7 +1484,7 @@ we automate this repetetive task using a snippets.
 (define-key! [remap +shell/toggle] #'+shell/here)
 #+end_src
 
- normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
+- normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
 #+begin_src elisp
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 #+end_src
