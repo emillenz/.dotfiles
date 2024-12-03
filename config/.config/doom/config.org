@@ -113,8 +113,6 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
       auto-save-default t
       confirm-kill-emacs nil
-      hscroll-margin 0
-      scroll-margin 0
       enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
       shell-command-prompt-show-cwd t)
 
@@ -183,7 +181,7 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 (setq display-battery-mode nil
       display-time-mode nil
       +modeline-height 8
-      +modeline-bar-width nil) ;; hide
+      +modeline-bar-width nil) ;; hide unicode sugar
 #+end_src
 
 ** window layout & behavior :: single maximized buffer workflow
@@ -495,7 +493,8 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
-(define-key! key-translation-map "C-h" "DEL") ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+ ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+(define-key! key-translation-map "C-h" "DEL")
 #+end_src
 
 - we often use long lines in prose with ~visual-fill-column-mode~.
@@ -563,7 +562,7 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 ** harpoon
 - when you are in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers you find yourself alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since you need to alternate between more than 2 file.
 - you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where.  when switching and you should reprioritize your marks.  4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween.
-- we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.
+- we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.  (harpoon hydra goes against emacs philosophy, use harpoon-toggle-file, is way more intuitive)
 #+begin_src elisp
 (use-package! harpoon
   :config
@@ -572,14 +571,16 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
         :nm "M-2" #'harpoon-go-to-2
         :nm "M-3" #'harpoon-go-to-3
         :nm "M-4" #'harpoon-go-to-4
-        :nm "M" #'harpoon-add-file) ;; quickly add file to harpoon (big brother of vims: 'm')
+        :nm "M" #'harpoon-add-file)
 
-  (map! :leader "m" #'harpoon-toggle-file) ;; manage harpoon candidates
+  (map! :leader "m" #'harpoon-toggle-file)
 
+  ;; exit like in help, magit, dired...
   (map! :map harpoon-mode-map :after harpoon
-        :nm "q" #'kill-current-buffer) ;; exit like in help, magit, dired...
+        :nm "q" #'kill-current-buffer)
 
-  (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
+  ;; show abs. line numbers to indicate the bindings.
+  (setq-hook! 'harpoon-mode-hook display-line-numbers t))
 #+end_src
 
 harpoon bugfix
@@ -760,14 +761,14 @@ harpoon bugfix
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
 (setq org-use-property-inheritance t
-      org-reverse-note-order t
-      org-startup-with-latex-preview t
+      org-reverse-note-order t ;; like stack
+      org-startup-with-latex-preview nil
       org-startup-with-inline-images t
       org-startup-indented t
       org-startup-numerated t
       org-startup-align-all-tables t
-      org-list-allow-alphabetical t
-      org-tags-column 0
+      org-list-allow-alphabetical nil ;; only numbers
+      org-tags-column 0 ;; don't align tags
       org-fold-catch-invisible-edits 'smart
       org-refile-use-outline-path 'full-file-path
       org-refile-allow-creating-parent-nodes 'confirm
@@ -775,8 +776,7 @@ harpoon bugfix
       org-fontify-quote-and-verse-blocks t
       org-fontify-whole-block-delimiter-line t
       doom-themes-org-fontify-special-tags t
-      org-ellipsis "…"
-      org-num-max-level 3
+      org-num-max-level 3 ;; don't nest deeply
       org-hide-leading-stars t
       org-appear-autoemphasis t
       org-appear-autosubmarkers t
@@ -788,12 +788,13 @@ harpoon bugfix
       org-pretty-entities t
       org-pretty-entities-include-sub-superscripts t
       org-list-demote-modify-bullet '(("-"  . "-")
-                                      ("1." . "a."))
+                                      ("1." . "1."))
       org-blank-before-new-entry '((heading . nil)
                                    (plain-list-item . nil))
-      org-src-ask-before-returning-to-edit-buffer nil)
+      org-src-ask-before-returning-to-edit-buffer nil) ;; don't annoy me
 
-(add-hook! 'org-src-mode-hook (flycheck-mode -1)) ;; flycheck full of error's, since it only reads partial buffer.
+;; flycheck full of errors, since it only reads partial buffer.
+(add-hook! 'org-src-mode-hook (flycheck-mode -1))
 #+end_src
 
 #+begin_src elisp
@@ -823,7 +824,7 @@ harpoon bugfix
 (setq org-superstar-headline-bullets-list "●")
 
 (setq org-superstar-item-bullet-alist '((?- . "─")
-                                        (?* . "─") ;; NOTE :: asteriks are reserved for headings only (don't use in lists) => no unambigiuity
+                                        (?* . "─")
                                         (?+ . "⇒")))
 
 (appendq! +ligatures-extra-symbols '(:em_dash       "—"
@@ -1259,7 +1260,8 @@ PARENT-PATH :: nil (used for recursion) "
 #+begin_src elisp
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
-(setq org-archive-location (file-name-concat u-archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
+ ;; NOTE :: archive based on relative file path
+(setq org-archive-location (file-name-concat u-archive-dir "org" "%s::")
       org-agenda-files (append
                         (when (file-exists-p org-directory)
                           (directory-files-recursively org-directory
@@ -1296,11 +1298,11 @@ org-agenda by default is a clusterfuck.  this will clean it up: cleanly align ev
 #+begin_src elisp
 (setq org-agenda-todo-keyword-format "%-3s"
       org-agenda-scheduled-leaders '(""
-                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
+                                     "<< %1dd")
       org-agenda-deadline-leaders '("─────"
                                     ">> %1dd"
                                     "<< %1dd")
-      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
+      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; all columns separated by minimum 2 spaces
                                  (todo   . "%-20c%-7s%-7t")
                                  (tags   . "%-20c%-7s%-7t")
                                  (search . "%-20c%-7s%-7t")))
@@ -1449,11 +1451,12 @@ we automate this repetetive task using a snippets.
 #+end_src
 
 * lispy(ville): editing lisp in vim
-- makes vim's motions dwmi in lisp modes (mainly respecting parenthesis).
+- makes vim's motions dwim in lisp modes (mainly respecting parenthesis).
+- key-themes :: give me all the lispyville editing power.
 #+begin_src elisp
 (add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
 
-;; call help on `lispyville-set-key-theme' to see the changed bindings.
+;; call help on `lispyville-set-key-theme' to see what is bound.
 (after! lispyville
   (lispyville-set-key-theme '(operators
                               insert
@@ -1468,24 +1471,22 @@ we automate this repetetive task using a snippets.
                               additional-insert)))
 #+end_src
 
-* shell
+* shell: zsh
 - to start a emacs/shell-buffer independent process, use ~nohup CMD &>/dev/null &~.
-- we never use popupterminals (use async-shell command for one-off's)
+- we never use a terminal, always use ~shell~ (to get benefits of comint mode).
+- normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
 #+begin_src elisp
 (setq explicit-shell-file-name "/usr/bin/zsh"
-      shell-file-name "zsh"
-      explicit-zsh-args '("--login" "--interactive"))
+      shell-file-name "zsh")
 
 (setq-hook! 'shell-mode-hook comint-process-echoes t)
 
+;; browse
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
 
 (define-key! [remap +shell/toggle] #'+shell/here)
-#+end_src
 
-- normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
-#+begin_src elisp
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 #+end_src
 

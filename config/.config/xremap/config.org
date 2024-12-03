@@ -12,6 +12,7 @@
  - [[kbd:][ctrl, esc]] :: mapped to [[kbd:][capslock]].  this greatly increases ergonomics and speed for all ctrl-bindings.
    - when bill-joy orignially developed VI, the terminal's keyboard, had [[kbd:][esc]] on todays [[kbd:][tab]] and [[kbd:][ctrl]] on [[kbd:][caps]]  this is where [[kbd:][ctrl]] should have always stayed at.
  - deleting characters :: instead of spamming unergonomic [[kbd:][backspace]], get in the habit of always directly using [[kbd:][C-h/w/u]] instead.  these bindings are implemented for all gtk apps using the gtk-emacs-keytheme.
+ - browser :: use same keybindings [[kbd:][C-n/p]] as in emacs/dmenu to navigate completion (suggested urls,...)
 
 #+begin_src yaml
 modmap:
@@ -25,4 +26,12 @@ modmap:
         held: ctrl_l
         alone: esc
         one_timeout_milis: 100
+
+keymap:
+  - name: browser
+    application:
+      only: firefox
+    remap:
+      C-n: down # vim :: navigate completion candidates (suggested urls...)
+      C-p: up
 #+end_src

@@ -19,8 +19,6 @@
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
       auto-save-default t
       confirm-kill-emacs nil
-      hscroll-margin 0
-      scroll-margin 0
       enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
       shell-command-prompt-show-cwd t)
 
@@ -77,7 +75,7 @@
 (setq display-battery-mode nil
       display-time-mode nil
       +modeline-height 8
-      +modeline-bar-width nil) ;; hide
+      +modeline-bar-width nil) ;; hide unicode sugar
 ;; modeline:1 ends here
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
@@ -322,7 +320,8 @@
 
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
-(define-key! key-translation-map "C-h" "DEL") ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+ ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+(define-key! key-translation-map "C-h" "DEL")
 ;; editing:1 ends here
 
 ;; [[file:config.org::*editing][editing:2]]
@@ -374,14 +373,16 @@
         :nm "M-2" #'harpoon-go-to-2
         :nm "M-3" #'harpoon-go-to-3
         :nm "M-4" #'harpoon-go-to-4
-        :nm "M" #'harpoon-add-file) ;; quickly add file to harpoon (big brother of vims: 'm')
+        :nm "M" #'harpoon-add-file)
 
-  (map! :leader "m" #'harpoon-toggle-file) ;; manage harpoon candidates
+  (map! :leader "m" #'harpoon-toggle-file)
 
+  ;; exit like in help, magit, dired...
   (map! :map harpoon-mode-map :after harpoon
-        :nm "q" #'kill-current-buffer) ;; exit like in help, magit, dired...
+        :nm "q" #'kill-current-buffer)
 
-  (setq-hook! 'harpoon-mode-hook display-line-numbers t)) ;; show abs. line numbers to indicate the bindings.
+  ;; show abs. line numbers to indicate the bindings.
+  (setq-hook! 'harpoon-mode-hook display-line-numbers t))
 ;; harpoon:1 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:2]]
@@ -518,14 +519,14 @@
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
 (setq org-use-property-inheritance t
-      org-reverse-note-order t
-      org-startup-with-latex-preview t
+      org-reverse-note-order t ;; like stack
+      org-startup-with-latex-preview nil
       org-startup-with-inline-images t
       org-startup-indented t
       org-startup-numerated t
       org-startup-align-all-tables t
-      org-list-allow-alphabetical t
-      org-tags-column 0
+      org-list-allow-alphabetical nil ;; only numbers
+      org-tags-column 0 ;; don't align tags
       org-fold-catch-invisible-edits 'smart
       org-refile-use-outline-path 'full-file-path
       org-refile-allow-creating-parent-nodes 'confirm
@@ -533,8 +534,7 @@
       org-fontify-quote-and-verse-blocks t
       org-fontify-whole-block-delimiter-line t
       doom-themes-org-fontify-special-tags t
-      org-ellipsis "…"
-      org-num-max-level 3
+      org-num-max-level 3 ;; don't nest deeply
       org-hide-leading-stars t
       org-appear-autoemphasis t
       org-appear-autosubmarkers t
@@ -546,12 +546,13 @@
       org-pretty-entities t
       org-pretty-entities-include-sub-superscripts t
       org-list-demote-modify-bullet '(("-"  . "-")
-                                      ("1." . "a."))
+                                      ("1." . "1."))
       org-blank-before-new-entry '((heading . nil)
                                    (plain-list-item . nil))
-      org-src-ask-before-returning-to-edit-buffer nil)
+      org-src-ask-before-returning-to-edit-buffer nil) ;; don't annoy me
 
-(add-hook! 'org-src-mode-hook (flycheck-mode -1)) ;; flycheck full of error's, since it only reads partial buffer.
+;; flycheck full of errors, since it only reads partial buffer.
+(add-hook! 'org-src-mode-hook (flycheck-mode -1))
 ;; options:1 ends here
 
 ;; [[file:config.org::*options][options:2]]
@@ -578,7 +579,7 @@
 (setq org-superstar-headline-bullets-list "●")
 
 (setq org-superstar-item-bullet-alist '((?- . "─")
-                                        (?* . "─") ;; NOTE :: asteriks are reserved for headings only (don't use in lists) => no unambigiuity
+                                        (?* . "─")
                                         (?+ . "⇒")))
 
 (appendq! +ligatures-extra-symbols '(:em_dash       "—"
@@ -944,7 +945,8 @@ PARENT-PATH :: nil (used for recursion) "
 ;; [[file:config.org::*agenda][agenda:1]]
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
-(setq org-archive-location (file-name-concat u-archive-dir "org" "%s::") ;; NOTE :: archive based on relative file path
+ ;; NOTE :: archive based on relative file path
+(setq org-archive-location (file-name-concat u-archive-dir "org" "%s::")
       org-agenda-files (append
                         (when (file-exists-p org-directory)
                           (directory-files-recursively org-directory
@@ -977,11 +979,11 @@ PARENT-PATH :: nil (used for recursion) "
 ;; [[file:config.org::*agenda][agenda:3]]
 (setq org-agenda-todo-keyword-format "%-3s"
       org-agenda-scheduled-leaders '(""
-                                     "<< %1dd") ;; NOTE :: unicode is not fixed width => breaks formatting => cannot use it.
+                                     "<< %1dd")
       org-agenda-deadline-leaders '("─────"
                                     ">> %1dd"
                                     "<< %1dd")
-      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; note all columns separated by minimum 2 spaces
+      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; all columns separated by minimum 2 spaces
                                  (todo   . "%-20c%-7s%-7t")
                                  (tags   . "%-20c%-7s%-7t")
                                  (search . "%-20c%-7s%-7t")))
@@ -1080,7 +1082,7 @@ legibility."
 ;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:1]]
 (add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
 
-;; call help on `lispyville-set-key-theme' to see the changed bindings.
+;; call help on `lispyville-set-key-theme' to see what is bound.
 (after! lispyville
   (lispyville-set-key-theme '(operators
                               insert
@@ -1095,19 +1097,17 @@ legibility."
                               additional-insert)))
 ;; lispy(ville): editing lisp in vim:1 ends here
 
-;; [[file:config.org::*shell][shell:1]]
+;; [[file:config.org::*shell: zsh][shell: zsh:1]]
 (setq explicit-shell-file-name "/usr/bin/zsh"
-      shell-file-name "zsh"
-      explicit-zsh-args '("--login" "--interactive"))
+      shell-file-name "zsh")
 
 (setq-hook! 'shell-mode-hook comint-process-echoes t)
 
+;; browse
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
 
 (define-key! [remap +shell/toggle] #'+shell/here)
-;; shell:1 ends here
 
-;; [[file:config.org::*shell][shell:2]]
 (add-to-list 'evil-normal-state-modes 'shell-mode)
-;; shell:2 ends here
+;; shell: zsh:1 ends here

@@ -88,10 +88,10 @@ $HOME/.config/emacs/bin/doom install
 
 * keybindings
 - [[https://github.com/xremap/xremap][xremap]]
-- configure it to run without ~sudo~ (works after reboot).
+- configure it to run without ~sudo~ (works after reboot)
 #+begin_src sh
 dnf copr enable blakegardner/xremap
-dnf install xremap-x11
+dnf install xremap-x11 # fedora i3 needs x11, normal xremap don't work
 
 # Make sure uinput is loaded
 /sbin/lsmod | grep uinput || echo uinput | sudo tee /etc/modules-load.d/uinput.conf

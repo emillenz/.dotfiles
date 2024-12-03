@@ -27,7 +27,7 @@ def spawn_processes
                             end
 
                 unless processes.include?(name)
-                        Process.detach(Process.spawn(cmd, %i[out err] => File::NULL))
+                        Process.detach(Process.spawn(cmd)) # , %i[out err] => File::NULL))
                         puts "> started: '#{cmd}'"
                 end
         end
@@ -41,8 +41,8 @@ CMDS = [
 ].freeze
 
 PROCESSES = [
-        { cmd: "nohup sudo xremap --watch=device --watch=config #{ENV['HOME']}/.config/xremap/config.yml",
-          name: 'xremap' },
+        { cmd: "nohup xremap-x11 --watch=device --watch=config #{ENV['HOME']}/.config/xremap/config.yml",
+          name: 'xremap-x11' },
         'emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)',
         'firefox',
         'keepassxc',
