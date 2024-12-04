@@ -53,10 +53,10 @@ chsh --shell /usr/bin/zsh
 * terminal & tools
 - fd + rg :: better defaults than ~find, grep~.  utilized in emacs.
 - tldr :: cheatsheet style documentation
-- alacritty :: terminal
+- terminal :: emacs.  (for CLI's, use any terminal, doesn't matter)
 - rest :: dependecies for emacs/terminal tools
 #+begin_src sh
-dnf install alacritty fd-find ripgrep tldr curl
+dnf install fd-find ripgrep tldr curl
 #+end_src
 
 * scripting & menu-scripts: ruby

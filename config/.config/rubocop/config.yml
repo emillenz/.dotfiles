@@ -1,2 +1,12 @@
+#  ---
+#  title:  rubocop ruby lsp server configuration file
+#  author: emil lenz
+#  email:  emillenz@protonmail.com
+#  date:   2024-12-04
+#  ---
+
+Style/StringLiterals:
+  Enabled: false
+
 Layout/IndentationWidth:
   Width: 8
