@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+#  ---
+#  title:  window goto
+#  author: emil lenz
+#  email:  emillenz@protonmail.com
+#  date:   2024-12-04
+#  info:
+#  - assumptions: you are working in tabbed layout, with a single container on the workspace.
+#  - goto to a window on the current workspace by its number in the tabbar.  (like in browser)
+#  - window numbering starts on 1 (since this script is mapped to MOD+1, etc.)
+#  ---
+
+require "json"
+
+def main
+        node = JSON.parse(`i3-msg -t get_tree`)
+        active_workspace = JSON.parse(`i3-msg -t get_workspaces`).find { |it| it["visible"] == true }
+        workspace_windows = find_windows(node, active_workspace)
+
+        if workspace_windows.size + 1 < ARGV.size
+                puts "[error] #{__FILE__} <N> # N: number to switch to in current workspace."
+                exit(1)
+        end
+
+        window_id = workspace_windows[ARGV[0].to_i - 1]["id"]
+
+        exec("i3-msg", "[con_id=#{window_id}] focus")
+end
+
+def find_windows(node, active_workspace)
+        node["id"] == active_workspace["id"] && (return node["nodes"][0]["nodes"])
+
+        node["nodes"].flat_map do |it|
+                find_windows(it, active_workspace)
+        end
+end
+
+main

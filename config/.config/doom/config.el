@@ -118,7 +118,7 @@
 ;; window layout & behavior :: single maximized buffer workflow:4 ends here
 
 ;; [[file:config.org::*line numbers][line numbers:1]]
-(setq display-line-numbers-type 'visual)
+(setq display-line-numbers-type 'relative)
 ;; line numbers:1 ends here
 
 ;; [[file:config.org::*rationale][rationale:1]]
@@ -225,9 +225,7 @@
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
-      doom-leader-alt-key "C-SPC"
-      doom-localleader-key ","
-      doom-localleader-alt-key "C-,")
+      doom-leader-alt-key "C-SPC")
 
 (map! :leader
       "." #'vertico-repeat
@@ -306,7 +304,7 @@
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
       :nm "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
-      :nm "&"   #'async-shell-command
+      :nm "&"   #'async-shell-command ;; consistent with dired, shell...
 
       ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless
       :n  "+"   #'evil-numbers/inc-at-pt
@@ -373,13 +371,13 @@
 (use-package! harpoon
   :config
   (map! :map 'override
-        :nm "M-1" #'harpoon-go-to-1
-        :nm "M-2" #'harpoon-go-to-2
-        :nm "M-3" #'harpoon-go-to-3
-        :nm "M-4" #'harpoon-go-to-4
+        :nm "C-1" #'harpoon-go-to-1
+        :nm "C-2" #'harpoon-go-to-2
+        :nm "C-3" #'harpoon-go-to-3
+        :nm "C-4" #'harpoon-go-to-4
         :nm "M"   #'harpoon-add-file)
 
-  (map! :leader "m" #'harpoon-toggle-file)
+  (map! :leader "M" #'harpoon-toggle-file)
 
   ;; exit like in help, magit, dired...
   (map! :map harpoon-mode-map :after harpoon
@@ -529,7 +527,7 @@
       org-startup-indented t
       org-startup-numerated t
       org-startup-align-all-tables t
-      org-list-allow-alphabetical nil ;; only numbers
+      org-list-allow-alphabetical t ;; alphabetical are useful for lists without ordering if you later want to reference an item (like case (a), case (b).)
       org-tags-column 0 ;; don't align tags
       org-fold-catch-invisible-edits 'smart
       org-refile-use-outline-path 'full-file-path
@@ -604,7 +602,6 @@
 (map! :map org-mode-map :after org
       :localleader
       "\\" #'org-latex-preview
-      ","  #'org-ctrl-c-ctrl-c
       "z"  #'org-add-note
       :desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
@@ -1120,6 +1117,8 @@ legibility."
 ;; HACK :: use rubocop formatter
 (after! apheleia-formatters
  (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
+
+(define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me
 
 (map! :after ruby-mode :localleader
      (:prefix "s"

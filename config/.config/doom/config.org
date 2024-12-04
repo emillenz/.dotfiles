@@ -232,9 +232,9 @@ close popup window (eg. ~*lsp-help*~) from the main window with [[kbd:][escape]]
 #+end_src
 
 ** line numbers
-- we make extensive use of relative line motions (eg: ~12dj~ etc.) , hence we need ~visual~ line-numbers. (~visual~ also works with folded code (eg. ~org-mode~)).
+- we make extensive use of relative line motions (eg: ~12dj~ etc.).
 #+begin_src elisp
-(setq display-line-numbers-type 'visual)
+(setq display-line-numbers-type 'relative)
 #+end_src
 
 ** indentation
@@ -380,9 +380,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 ** leaderkey
 #+begin_src elisp
 (setq doom-leader-key "SPC"
-      doom-leader-alt-key "C-SPC"
-      doom-localleader-key ","
-      doom-localleader-alt-key "C-,")
+      doom-leader-alt-key "C-SPC")
 
 (map! :leader
       "." #'vertico-repeat
@@ -480,7 +478,7 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 #+begin_src elisp
 (map! :after evil
       :nm "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
-      :nm "&"   #'async-shell-command
+      :nm "&"   #'async-shell-command ;; consistent with dired, shell...
 
       ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless
       :n  "+"   #'evil-numbers/inc-at-pt
@@ -535,12 +533,15 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
 #+end_src
 
 *** no visual selections
-- after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual selections), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even though a motion would have been more efficient).
-- we are faster & more efficient enforcing the usage of motions, prefix-number commands and ~evil-repeat~.  instead of visual line mode, use a number prefix argument like ~3dj, 3yap, 3ck~.  if we can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that we want.  (eg: ~d /~)
-- this enforces us to use vim more efficiently.  additionally it comes with the benefit of making our workflow more compatible if we are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
-- if we absolutely must use a visual selection, we can still use [[kbd:][C-space]] (emacs binding).
-- to paste over some text in visual mode, delete the region, then paste and use [[kbd:][C-p]] ~evil-paste-pop~ to insert what was originally yanked.
-- ~evil-visual-block~ :: still enabled, since this is not replaceable by motions.
+- efficiency :: after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual selections), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even though a motion would have been more efficient).
+- motions :: we are faster & more efficient enforcing the usage of motions, prefix-number commands and ~evil-repeat~.  instead of visual line mode, use a number prefix argument like ~3dj, 3yap, 3ck~.  if we can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that we want.  (eg: ~d /~)
+- viper-mode compatibility :: additionally it comes with the benefit of making our workflow more compatible if we are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
+- emergency :: if all fails and we must use a visual selection, we may still use [[kbd:][C-space]] (emacs binding).
+- paste replace :: to solve the problem of replacing some text with yanked text (normally we would visually select that region (again, unefficient) and then paste over it).  we can use these equally efficient methods:
+        a. delete the content and then use =yank-register=: ~"0p~ to paste
+        b. use ~"_d~ to delete into =black-hole-register= and the paste normally.
+        c. delete, paste, then use [[kbd:][C-p]] to cycle pasted text by 1
+- ~evil-visual-block~ :: still enabled, since this is still a efficient gap bridger between editin multiple lines before switching to macros.
 
 #+begin_src elisp
 (define-key! [remap evil-visual-char] #'ignore)
@@ -574,13 +575,13 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
 (use-package! harpoon
   :config
   (map! :map 'override
-        :nm "M-1" #'harpoon-go-to-1
-        :nm "M-2" #'harpoon-go-to-2
-        :nm "M-3" #'harpoon-go-to-3
-        :nm "M-4" #'harpoon-go-to-4
+        :nm "C-1" #'harpoon-go-to-1
+        :nm "C-2" #'harpoon-go-to-2
+        :nm "C-3" #'harpoon-go-to-3
+        :nm "C-4" #'harpoon-go-to-4
         :nm "M"   #'harpoon-add-file)
 
-  (map! :leader "m" #'harpoon-toggle-file)
+  (map! :leader "M" #'harpoon-toggle-file)
 
   ;; exit like in help, magit, dired...
   (map! :map harpoon-mode-map :after harpoon
@@ -774,7 +775,7 @@ harpoon bugfix
       org-startup-indented t
       org-startup-numerated t
       org-startup-align-all-tables t
-      org-list-allow-alphabetical nil ;; only numbers
+      org-list-allow-alphabetical t ;; alphabetical are useful for lists without ordering if you later want to reference an item (like case (a), case (b).)
       org-tags-column 0 ;; don't align tags
       org-fold-catch-invisible-edits 'smart
       org-refile-use-outline-path 'full-file-path
@@ -853,7 +854,6 @@ harpoon bugfix
 (map! :map org-mode-map :after org
       :localleader
       "\\" #'org-latex-preview
-      ","  #'org-ctrl-c-ctrl-c
       "z"  #'org-add-note
       :desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
@@ -1502,6 +1502,8 @@ we automate this repetetive task using a snippets.
 ;; HACK :: use rubocop formatter
 (after! apheleia-formatters
  (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
+
+(define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me
 
 (map! :after ruby-mode :localleader
      (:prefix "s"

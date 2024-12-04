@@ -78,6 +78,11 @@ bindsym $MOD+b            $SHCMD $BIN/window-menu $DMENU_THEME
 bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
 bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 bindsym $MOD+Tab          workspace back_and_forth
+
+bindsym $MOD+1            $SHCMD $BIN/window-goto 1
+bindsym $MOD+2            $SHCMD $BIN/window-goto 2
+bindsym $MOD+3            $SHCMD $BIN/window-goto 3
+bindsym $MOD+4            $SHCMD $BIN/window-goto 4
 # navigational bindings:1 ends here
 
 # [[file:config.org::*gaps][gaps:1]]
@@ -107,7 +112,7 @@ bindsym $MOD+w workspace web
 bindsym $MOD+shift+w exec --no-startup-id firefox
 
 # HACK :: must come last to apply to all workspaces.
-for_window [all] focus, title_window_icon no, floating disable
+for_window [all] focus, title_window_icon no
 # workspaces:2 ends here
 
 # [[file:config.org::*leader][leader:1]]

@@ -109,6 +109,7 @@ we favor cli shells, and ~dmenu-scripts~ over GUI applications (eg. using blueto
 - password manager
 - theming (light)
 - font set all font choices to the system wide font: iosevka comfy 10 and set: don't allow webpages to custom fonts.  that way it will always look uniform.
+- install plugin to goto tabs using [[kbd:][Ctrl+<number>]].
 
 *** useage
 - pin tabs that you want to assign to fixed hotkeys ([[kbd:][M-<number>]]), such as [[https://chatgpt.com]] or [[https://spotify.com]].  they will automatically open and you cant't accidentally close them with [[kbd:][C-w]].
