@@ -225,7 +225,8 @@
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
-      doom-leader-alt-key "C-SPC")
+      doom-leader-alt-key "C-SPC"
+      doom-localleader-key "SPC m")
 
 (map! :leader
       "." #'vertico-repeat
@@ -371,10 +372,10 @@
 (use-package! harpoon
   :config
   (map! :map 'override
-        :nm "C-1" #'harpoon-go-to-1
-        :nm "C-2" #'harpoon-go-to-2
-        :nm "C-3" #'harpoon-go-to-3
-        :nm "C-4" #'harpoon-go-to-4
+        :nm "M-1" #'harpoon-go-to-1
+        :nm "M-2" #'harpoon-go-to-2
+        :nm "M-3" #'harpoon-go-to-3
+        :nm "M-4" #'harpoon-go-to-4
         :nm "M"   #'harpoon-add-file)
 
   (map! :leader "M" #'harpoon-toggle-file)
@@ -1116,15 +1117,15 @@ legibility."
 ;; [[file:config.org::*ruby][ruby:1]]
 ;; HACK :: use rubocop formatter
 (after! apheleia-formatters
- (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
+  (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
 
 (define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me
 
-(map! :after ruby-mode :localleader
-     (:prefix "s"
-              "e" #'ruby-send-last-stmt
-              "l" #'ruby-send-line
-              "L" #'ruby-send-line-and-go
-              "b" #'ruby-send-block
-              "B" #'ruby-send-block-and-go))
+(map! :map ruby-mode-map :localleader :after ruby-mode
+      (:prefix "s"
+               "e" #'ruby-send-last-stmt
+               "l" #'ruby-send-line
+               "L" #'ruby-send-line-and-go
+               "b" #'ruby-send-block
+               "B" #'ruby-send-block-and-go))
 ;; ruby:1 ends here

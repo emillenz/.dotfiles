@@ -128,11 +128,6 @@ bindsym $MOD+Tab          workspace back_and_forth
 
 bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
 bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
-
-bindsym $MOD+1            $SHCMD $BIN/window-goto 1
-bindsym $MOD+2            $SHCMD $BIN/window-goto 2
-bindsym $MOD+3            $SHCMD $BIN/window-goto 3
-bindsym $MOD+4            $SHCMD $BIN/window-goto 4
 #+end_src
 
 * gaps

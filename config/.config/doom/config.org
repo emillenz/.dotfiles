@@ -253,7 +253,6 @@ the whole idea behind indentation is to clearly define where a block of control 
 every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 80-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
 
 in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
------
 
 - consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent code using only spaces.
 - using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
@@ -376,11 +375,13 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 - ~helpful-key~ and are crucial to understanding what our tools can do for us (ex: magit, dired, org-mode)
 - i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
 - always keep on exploring, learning new, efficient keybindings and break old routines for newer, more effcient one's after evaluating wether they are faster or not.
+- localleader :: [[kbd:][SPC m]] for ~major-mode~.  it is nice an egonomic (at least on ~dvorak & querty~).
 
 ** leaderkey
 #+begin_src elisp
 (setq doom-leader-key "SPC"
-      doom-leader-alt-key "C-SPC")
+      doom-leader-alt-key "C-SPC"
+      doom-localleader-key "SPC m")
 
 (map! :leader
       "." #'vertico-repeat
@@ -575,10 +576,10 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
 (use-package! harpoon
   :config
   (map! :map 'override
-        :nm "C-1" #'harpoon-go-to-1
-        :nm "C-2" #'harpoon-go-to-2
-        :nm "C-3" #'harpoon-go-to-3
-        :nm "C-4" #'harpoon-go-to-4
+        :nm "M-1" #'harpoon-go-to-1
+        :nm "M-2" #'harpoon-go-to-2
+        :nm "M-3" #'harpoon-go-to-3
+        :nm "M-4" #'harpoon-go-to-4
         :nm "M"   #'harpoon-add-file)
 
   (map! :leader "M" #'harpoon-toggle-file)
@@ -1501,15 +1502,15 @@ we automate this repetetive task using a snippets.
 #+begin_src elisp
 ;; HACK :: use rubocop formatter
 (after! apheleia-formatters
- (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
+  (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
 
 (define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me
 
-(map! :after ruby-mode :localleader
-     (:prefix "s"
-              "e" #'ruby-send-last-stmt
-              "l" #'ruby-send-line
-              "L" #'ruby-send-line-and-go
-              "b" #'ruby-send-block
-              "B" #'ruby-send-block-and-go))
+(map! :map ruby-mode-map :localleader :after ruby-mode
+      (:prefix "s"
+               "e" #'ruby-send-last-stmt
+               "l" #'ruby-send-line
+               "L" #'ruby-send-line-and-go
+               "b" #'ruby-send-block
+               "B" #'ruby-send-block-and-go))
 #+end_src
