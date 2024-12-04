@@ -9,18 +9,18 @@
 
 * about this config
 - a total of {{{src-len}}} LOC.
-- for debugging your configuration, start emacs with: ~emacs --debug-init~ to get a backtrace.  when debuggin lisp code, enable ~toggle-debug-on-error~ and eval the code.
+- for debugging our configuration, start emacs with: ~emacs --debug-init~ to get a backtrace.  when debuggin lisp code, enable ~toggle-debug-on-error~ and eval the code.
 - read up on and adhere to [[https://github.com/bbatsov/emacs-lisp-style-guide][emacs-lisp style guide]].
 - user defined global functions and variables are prefixed with ~u-~ (~user~) to distinguish them from emacs/library ones.
 - lazyload packages using ~after!~.  this keeps emacs efficent, since it now only loads the settings & packages when they are actually needed (no emacs bankruptcy).
 - i believe that customizations are personal and should not be blindly copied.  Everyone should carefully consider each customizable setting they hear about and decide for themselves whether they like it or not.  Non-trivial customizations that include Lisp code should be fully understood before they are accepted, rejected, or amended to personal taste.  (read the manual)
-  - i encourage you to master the tool that you are using.  this means thuroughly reading the complete documentation, keymaps for the tools you are using (eg. vertico, evil-mode, magit, leader-mode).
-  - try to first fundamentally understand & master the functionality your tool offers.  then you can assess and see if a extension really provides value to you, or if that functionality is already included.
+  - be encouraged to master the tool that we are using.  this means thoroughly reading the complete documentation, keymaps for the tools we are using (eg. vertico, evil-mode, magit, leader-mode).
+  - try to first fundamentally understand & master the functionality the tool offers.  then we may assess and see if a extension really provides value to us, or if that functionality is already included.
 - use ~use-package!~ for configuring packages added via ~package!~ in ~./packages.el~
 - to debug, start emacs with ~emacs --debug-init~ and use ~emacs --no-init-file~ to fix the errors.
-- viper mode :: use it if it's not feasible to install the full doom-config (eg. using emacs on another computer).  never use original vim if you have emacs installed.
-  - you should never use ~:ex~ commands and instead use the native ~M-x~ and ~C-x / C-c~ bindings that emacs provides for a more consistent experience.
-    - viper provides you 80% of evil-mode's ergonomics with the unlimited power of emacs.
+- viper mode :: use it if it's not feasible to install the full doom-config (eg. using emacs on another computer).
+  - we shall never use ~:ex~ commands and instead use the native ~M-x~ and ~C-x / C-c~ bindings that emacs provides for a more consistent experience.
+    - viper provides 80% of evil-mode's ergonomics with emacs extensibility and power.
 
 * preface
 ** why emacs
@@ -39,7 +39,7 @@ emacs is one of the most incredible piece of software ever made:
 - enables one to complete tasks with a consistent, standard set of keybindings, gui and editing methods - learn once, use everywhere
 - compressing the stages of a project - a more centralised workflow can progress with greater ease
 - integration between tasks previously relegated to different applications, but with a common subject - e.g.  linking to an email in a to-do list etc
-- emacs can be thought of as a platform within which various elements of your workflow may settle, while being able to interlink them interactively.
+- emacs can be thought of as a platform within which various elements of our workflow may settle, while being able to interlink them interactively.
 - reduced context-switching, many tools in one connected, coherent, interwoven keyboard-driven interface.  this integration is very efficient and consistent, since now any function can be reused in all tools (eg.  fuzzy finding, and doesn't have to be implemented in each separate program itself).  it greatly reduces the mental overhead needed to customize and extend the tools, since the context and language is always the same.  since these tools are text-centric, they align withthe single focus, no multitasking buffer wokflow philosophy.
   - editor
     - technical documents :: latex & org
@@ -61,34 +61,34 @@ emacs is one of the most incredible piece of software ever made:
     - the most efficient workflow for finding, opening and editing files on the os that i have ever developed.
 
 *** org mode
-- in my opinion the most elegant markup language, all the while keeping the syntax opinionated and simple with only one way to do it (=> looking at you: markdown with your weird spacing rules and arcane markup for links/quotes).
+- the most elegant markup language, all the while keeping the syntax opinionated and simple with only one way to do it (=> looking at you: markdown with your weird spacing rules and arcane markup for links/quotes).
 - one to rule them all, create websites, tables, journals, todolists, calendars and programs, all with the same consistent elegant and formatted syntax.
 - automate making entries into files and databases at specific places.
 - completely integrated into the editor (think: finding/filtering headlines, notes, tasks..)
 - the best support for literate programming covering every language (looking at you: jupyter..)
 
 *** emacs everywhere
-use emacs everywhere for anytime you are using a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
+use emacs everywhere for anytime we are using a prompt that requires more than few simple keywords.  eg. chatgpt query, writing a email.  execute emacs-everywhere from i3 (via keybinding) once inside the textfield (or highlighting all text to take over to emacs)
 
 *** downsides
 emacs sucks at graphical stuff, hence we use external programs to display pdfs and media.
 
-** emacs as your computing evironment (and your repl/terminal)
-- extend emacs by writing custom functions for things that you do repetitivly (moving files, manipulating text...) instead of writing shell aliases / shellscripts
+** emacs as the computing evironment
+- extend emacs by writing custom functions for things that are done repetitivly (moving files, manipulating text...) instead of writing shell aliases / shellscripts
   + more extensible and in a proper language
   + write shell-scripts (purely) for launching programs & processes.
 - all coding, writing, fileopening, viewing, navigating is done inside emacs (do not leave the environment), because this makes for a consistent and coherent workflow.  don't jump in and out of the commandline, lauching emacs instances, cd'ing around.
   - use inbuilt programs like magit & diff for more speed interactivity and ergonomics than doing it with git command aliases on the command-line.
 
 ** shell: using emacs instead of dedicated terminal
-you might be tempted to use a terminal with tmux, zsh/fish, fzf, fancy prompts, bat, exa, and pages filled with git aliases configured.  this results in great complexities and inconsistencies (trying to get the same keybindings, theme etc.) in your shell and editor.  instead you should shun all these features and focus on emacs.  using emacs you have consistency in bindings between the shell and your editor.  no more juggling tmux and the system clipboard when trying to yank/paste text.  no installing tons of shell-plugins to get better vim emulation in the shell (looking at you *zsh*).  you can seamlessly open and switch between man/help/tldr pages while using the shell.  you can navigate & filter (~occur~, etc...) the shell output (instead of using some hacked up, incomplete and inconsistent vim emulation like tmux).  instead of using cd etc. you can freely use all of emacs navigational capabilities (projectile, recentfiles...) (instead of having to install fzf and other crutches).
-your syntax highlighting (including help output etc) is directly inherited from your emacs-theme.
-using emacs for shells also has the benefit that you can seamlessly create a buffer to script in as soon as you are doing more than a simple oneliner, then either evaluating that buffer or regions to the shell.
+we might be tempted to use a terminal with tmux, zsh/fish, fzf, fancy prompts, bat, exa, and pages filled with git aliases configured.  this results in great complexities and inconsistencies (trying to get the same keybindings, theme etc.) in the shell and editor.  instead shun all these features and focus on emacs.  using emacs yields consistency in bindings between the shell and the editor.  no more juggling tmux and the system clipboard when trying to yank/paste text.  no installing tons of shell-plugins to get better vim emulation in the shell (looking at you *zsh*).  we can seamlessly open and switch between man/help/tldr pages while using the shell.  we can navigate & filter (~occur~, etc...) the shell output (instead of using some hacked up, incomplete and inconsistent vim emulation like tmux).  instead of using cd etc. we can freely use all of emacs navigational capabilities (projectile, recentfiles...) (instead of having to install fzf and other crutches).
+our syntax highlighting (including help output etc) is directly inherited from our emacs-theme.
+using emacs for shells also has the benefit that we can seamlessly create a buffer to script in as soon as we're doing more than a simple oneliner, then either evaluating that buffer or regions to the shell.
 
 *** workflow
-use simple minbuffer based ~async-shell-command~'s in emacs, if that doesn't suffice, open: ~shell~.  especially when programming, start REPL's and interactive environments from within emacs (terminal emulation) in order to have a seamless integration and navigation between running commands in the shell and programmning.  this has the benefit that you can navigate command output like a normal buffer and use the full power of emacs for the prompt editing.
+use simple minbuffer based ~async-shell-command~'s in emacs, if that doesn't suffice, open: ~shell~.  especially when programming, start REPL's and interactive environments from within emacs (terminal emulation) in order to have a seamless integration and navigation between running commands in the shell and programmning.  this has the benefit that of being able to navigate command output like a normal buffer and use the full power of emacs for the prompt editing.
 
-the only reason for you to ever use a terminal is if you need to use a TUI or a completely detached background process (eg. a server).
+the only reason for us to ever use a terminal is if we need to use a TUI or a completely detached background process (eg. a server).
 
 * user
 #+begin_src elisp
@@ -162,7 +162,7 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 ** font
 - same font & size set to same as system-wide (browser, gtk, terminal, ...).
 - variable-pitch-mode :: only for prose i sometimes use a serif font to become more immersed in the reading experience.  like the modeline & minibuffer, we use the default font for line-numbers (by default not the case).
-- font-size :: don't use manual font-size increasing, instead just use ~doom-big-font-mode~ if you need big font for presentation purposes.
+- font-size :: don't use manual font-size increasing, instead just use ~doom-big-font-mode~ (eg. for presentation purposes)
 - ~simple-html-rendering~ (~shr~) ::  should always use the universally applicable default font since we can't presume the content to be displayed with it.  (it is used for eg. ~devdocs~)
 #+begin_src elisp
 (setq doom-font (font-spec :family "Iosevka Comfy" :size 13))
@@ -185,9 +185,9 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
 #+end_src
 
 ** window layout & behavior :: single maximized buffer workflow
-- single maximized buffer workflow :: we explicitly never use more than a single window (we don't split a window) in the frame, since we can only ever focus on a single thing anyways, and thus in the meantime other windows would clutter the screen distractingly.  additionally using multiple windows introduces additional navigational overhead first having to go to the correct window before using ~switch-to-buffer~, ~harpoon~ etc. managing windows and placing them correctly is complex and inconsistent, some windows recieve focus, other's don't, some buffer's create a split, completely changing window layout, others don't.  instead of using windows, you should become really efficient at navigating between buffers using ~switch-to-buffer~, ~evil-switch-to-windows-last-buffer~, ~harpoon~ and evil's ~global-marks~.  it is more efficiet to just change the buffer in the current window, instead of getting disrupted by the newly opened window and having to change your eyes focus.
+- single maximized buffer workflow :: we explicitly never use more than a single window (we don't split a window) in the frame, since we can only ever focus on a single thing anyways, and thus in the meantime other windows would clutter the screen distractingly.  additionally using multiple windows introduces additional navigational overhead first having to go to the correct window before using ~switch-to-buffer~, ~harpoon~ etc. managing windows and placing them correctly is complex and inconsistent, some windows recieve focus, other's don't, some buffer's create a split, completely changing window layout, others don't.  instead of using windows, we must become really efficient at navigating between buffers using ~switch-to-buffer~, ~evil-switch-to-windows-last-buffer~, ~harpoon~ and evil's ~global-marks~.  it is more efficiet to just change the buffer in the current window, instead of getting disrupted by the newly opened window.
 - only horizontal split :: since emacs sometimes creates splits in special views (eg. magit, ediff) or for displaying additional information (lsp-help...), and thus we must handle them to consistently split below and never side-by-side, since due to the wm, our emacs window is in full height but has a constrained width, perfectly sized for displaying source-code / technical documents.
-- minibuffers :: at bottom, consistent with ~minibuffer-prompt~, ~whichkey~, etc.  use ~doom/window-enlargen~ if you need to view it large.
+- minibuffers :: at the bottom, consistent with ~minibuffer-prompt~, ~whichkey~, etc.  use ~doom/window-enlargen~ as needed.
 
 #+begin_src elisp
 (setq display-buffer-alist `((,(rx (seq "*" (or "transient"
@@ -232,7 +232,7 @@ close popup window (eg. ~*lsp-help*~) from the main window with [[kbd:][escape]]
 #+end_src
 
 ** line numbers
-- we make extensive use of relative line motions (eg: ~12dd~ etc.) , hence we need ~visual~ line-numbers. (~visual~ also works with folded code (eg. ~org-mode~)).
+- we make extensive use of relative line motions (eg: ~12dj~ etc.) , hence we need ~visual~ line-numbers. (~visual~ also works with folded code (eg. ~org-mode~)).
 #+begin_src elisp
 (setq display-line-numbers-type 'visual)
 #+end_src
@@ -253,13 +253,14 @@ the whole idea behind indentation is to clearly define where a block of control 
 every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 80-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
 
 in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
+-----
 
-- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent you code using only spaces.
+- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent code using only spaces.
 - using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
 - formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
 
 - we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
-- note :: you must install the formatters in ~apheleia-mode-alist~ for the languages you use.
+- note :: install the formatters in ~apheleia-mode-alist~ for the languages used.
 #+begin_src elisp
 (defvar u-global-indent-width 8)
 
@@ -281,8 +282,8 @@ in short, 8-char indents make things easier to read, and have the added benefit 
   ruby-indent-level u-global-indent-width)
 #+end_src
 * evil-mode
-- evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize yourself with them and harness their power.
-- evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if you need it use ~\m~ in search string to enable regex.
+- evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize and harness their power.
+- evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if we need it use ~\m~ in search string to enable regex.
 
 ~after! evil~ begin
 #+begin_src elisp
@@ -296,7 +297,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
         evil-ex-substitute-global t
         evil-want-C-i-jump t
         evil-want-C-h-delete t
-        evil-want-minibuffer t ;; don't loose your powers in the minibuffer
+        evil-want-minibuffer t ;; don't loose our powers in the minibuffer
         evil-org-use-additional-insert nil)
 
 (defadvice! u-preserve-point (fn &rest args)
@@ -341,7 +342,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 
   this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
   immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
-  '@q' (the exact key) for the first time and then only after that you may call '@@'."
+  '@q' (the exact key) for the first time and then only after that we may call '@@'."
   :after #'evil-record-macro
   (when (not evil-last-register)
     (setq evil-last-register evil-last-recorded-register)))
@@ -372,9 +373,9 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 #+end_src
 
 * global keybindings
-- ~helpful-key~ and are crucial to understanding what your tools can do for you (ex: magit, dired, org-mode)
+- ~helpful-key~ and are crucial to understanding what our tools can do for us (ex: magit, dired, org-mode)
 - i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
-- always keep on exploring, learning new, efficient keybindings and break your old routines for newer, more effcient one's after evaluating wether they are faster or not.
+- always keep on exploring, learning new, efficient keybindings and break old routines for newer, more effcient one's after evaluating wether they are faster or not.
 
 ** leaderkey
 #+begin_src elisp
@@ -417,9 +418,9 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 #+end_src
 
 ** completion & minibuffer
-- completion keybindings :: use [[kbd:C-n][C-n]] for code autocompletion.  use [[kbd:C-p][C-p]] for abbreviations (which is logical since the expansion is most likely to be above the current code position)  finally, if you want to expand a snippet, or move through completion fields, use [[kbd:tab][tab]].  once autocompletion is activated, we use [[kbd:][C-n/p]] to navigate candidates.
+- completion keybindings :: use [[kbd:C-n][C-n]] for code autocompletion.  use [[kbd:C-p][C-p]] for abbreviations (which is logical since the expansion is most likely to be above the current code position)  finally, if we want to expand a snippet, or move through completion fields, use [[kbd:tab][tab]].  once autocompletion is activated, we use [[kbd:][C-n/p]] to navigate candidates.
 - vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu/rofi's appearance).   we use the same bindings for navigating the candidates as for completion (consistency!): [[kbd:C-n/p][C-n/p]]
-- history :: [[kbd:][j, k]] is what bash's vi-mode uses by defaults, it is a good and ergonomic default.  ~evil~ expects you to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ must use [[kbd:][ctrl]] modifier, since it is a regular buffer).
+- history :: [[kbd:][j, k]] is what bash's vi-mode uses by defaults, it is a good and ergonomic default.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ must use [[kbd:][ctrl]] modifier, since it is a regular buffer).
 - normal mode :: we make evil-integration more sane: ~/~, ~RET~
 
 #+begin_src elisp
@@ -462,7 +463,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
         :n "C-p" #'evil-paste-pop-next)
 #+end_src
 
-in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows you to eg. quickly replace the symbol at 'point'.
+in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows us to eg. quickly replace the symbol at 'point'.
 #+begin_src elisp
 (setq evil-complete-previous-minibuffer-func
       #'(lambda () (apply evil-complete-previous-func
@@ -474,19 +475,21 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
 - [[kbd:][C-j]] :: inverse of: [[kbd:][J]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
+- & :: for running quick one-off shell commands we need a primary mapping (for anthing more, switch over to ~shell~).  (evil's: ~&~ is useless, since we use ~query-replace-regexp~ instead of ~evil-ex~).
 
 #+begin_src elisp
 (map! :after evil
-      :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
+      :nm "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
+      :nm "&"   #'async-shell-command
 
-      ;; more sensible than `C-x/C-a', `+-' in vim is useless
-      :n "+"    #'evil-numbers/inc-at-pt
-      :n "-"    #'evil-numbers/dec-at-pt
-      :n "g+"   #'evil-numbers/inc-at-pt-incremental
-      :n "g-"   #'evil-numbers/dec-at-pt-incremental
+      ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless
+      :n  "+"   #'evil-numbers/inc-at-pt
+      :n  "-"   #'evil-numbers/dec-at-pt
+      :n  "g+"  #'evil-numbers/inc-at-pt-incremental
+      :n  "g-"  #'evil-numbers/dec-at-pt-incremental
 
-      :n "g<"   #'evil-lion-left
-      :n "g>"   #'evil-lion-right)
+      :n  "g<"  #'evil-lion-left
+      :n  "g>"  #'evil-lion-right)
 
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
@@ -533,10 +536,10 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
 
 *** no visual selections
 - after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual selections), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even though a motion would have been more efficient).
-- you are faster & more efficient enforcing the usage of motions, prefix-number commands and ~evil-repeat~.  instead of visual line mode, use a number prefix argument for ~dd, yy, cc~.  if you can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that you want.  (eg: ~d /~)
-- this enforces you to use vim more efficiently.  additionally it comes with the benefit of making your workflow more compatible if you are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
-- if you absolutely must use a visual selection, you can use [[kbd:][C-space]] (emacs binding).
-- to paste over some text in visual mode, you just delete the region, then paste and use [[kbd:][C-p]] ~evil-paste-pop~ to insert what you originally yanked.
+- we are faster & more efficient enforcing the usage of motions, prefix-number commands and ~evil-repeat~.  instead of visual line mode, use a number prefix argument like ~3dj, 3yap, 3ck~.  if we can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that we want.  (eg: ~d /~)
+- this enforces us to use vim more efficiently.  additionally it comes with the benefit of making our workflow more compatible if we are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
+- if we absolutely must use a visual selection, we can still use [[kbd:][C-space]] (emacs binding).
+- to paste over some text in visual mode, delete the region, then paste and use [[kbd:][C-p]] ~evil-paste-pop~ to insert what was originally yanked.
 - ~evil-visual-block~ :: still enabled, since this is not replaceable by motions.
 
 #+begin_src elisp
@@ -564,8 +567,8 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
 #+end_src
 
 ** harpoon
-- when you are in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers you find yourself alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since you need to alternate between more than 2 file.
-- you are restrained to 4 files since that is all you'll need and generally, if you have more than that, you have too much mental overhead remembering which files are where.  when switching and you should reprioritize your marks.  4 seem's to be generally the limit for me for which i can subconsiously switch back and forth inbetween.
+- when in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers one finds themselves alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since we need to alternate between more than 2 file.
+- we are restrained to 4 files since that is all we'll need and generally, if we have more than that, we have too much mental overhead remembering which files are where.  4 seem's to be generally the limit for us, for which we can subconsiously switch back and forth inbetween.
 - we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.  (harpoon hydra goes against emacs philosophy, use harpoon-toggle-file, is way more intuitive)
 #+begin_src elisp
 (use-package! harpoon
@@ -653,10 +656,10 @@ harpoon bugfix
 
 * dired
 - avoid using integrated filemanagers and manually navigating directory structures (such as dired / ranger / thunar) whenever possible (and dont even dare to suggest a gui file manager...).
-- if think you need a sidebar type file explorer, you are doing something terribly inefficient in your workflow.
+- if we think we need a sidebar type file explorer, we are doing something terribly inefficient in our workflow.
 - use a fileexplorer mostly for getting an overview of a directory and to manipulate files in that directory.
 - it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding and using harpoon-marks, global-marks and bookmarks for switching to other directories and files.
-- ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file you are looking for.
+- ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file we are looking for.
 
 #+begin_src elisp
 (after! dired
@@ -698,7 +701,7 @@ harpoon bugfix
 #+end_src
 
 ** archive file
-- archive all things that were once written or created by you (instead of deleting them) => digital content cost's little to no space.  and you will be grateful later in life to have recorded data (that can be analyzed & crunched) what you were thinking and how you configured your tools etc...
+- archive all things that were once written or created (instead of deleting them) => digital content cost's little to no space.  and one shall be grateful later in life to have recorded data (that can be analyzed & crunched) what one was thinking.
 - this ensures a predictable and consistent archiving scheme (archive to original path under archive)
 #+begin_src elisp
 (defvar u-archive-dir "~/Archive/")
@@ -894,7 +897,7 @@ harpoon bugfix
 - ~[ ] watch lecture~ -> ~[-] watch lecture~ | annotate time: where the task was last left off: "01:25:23h"
 
 ~[@]~: event
-- useful if you have to take steps after the event
+- useful if we have to take steps after the event
 
 ~[ ]~: outstanding item
 
@@ -975,7 +978,7 @@ we prompt for a note on the task when chaning state to either: on-hold, in-prog 
 - create capture-templates for organization on a per project basis, ex: university, personal, work..
 - capture templates are used to collect & capture notes, events, tasks and templates; structured, tagged, sorted into a specific files.
 - this ensures information based data is consistently captured.
-- this is very customizeable and allows you to setup complex templates and should be used whenever you want to log data / repeatatively track things, or want to capture structured data with different entries consistently (eg: literature to track reading process).
+- this is very customizeable and allows us to setup complex templates and should be used whenever we want to log data / repeatatively track things, or want to capture structured data with different entries consistently (eg: literature to track reading process).
 - use the heading: ~inbox~ for collecting the captured tasks => can get messy, and can be refactored out of inbox into more structure if neccessary.
 - for each project there is a separate folder (relative to org-dir) with files:
 - agenda :: all tasks (todos, completed etc) and events (physical appointments)
@@ -1077,8 +1080,8 @@ TIME :: time in day of note to return. (default: today)"
                     "%?")))
 
 (defun u-doct-projects-cc-src-template (path)
-  "for quickly implementing/testing ideas (like a scratchpad, but you have all
-  your experimentations in a single literate document).  choose either c or c++.
+  "for quickly implementing/testing ideas (like a scratchpad, but have all
+  our code-snippets in a single literate document, instead of creating a new file each time).  choose either c or c++.
 
 `<<header>>' is org-babel's `:noweb' syntax and the named `org-src-block':
 `c_header' (or `cpp_header') which must be present in the targetfile.  depending
@@ -1259,7 +1262,7 @@ PARENT-PATH :: nil (used for recursion) "
 
 ** agenda
 - multi-day-todo-events: add multiple timestamps on the same line => same task shows scheduled on different days.  ex:
-- track which university lectures you have watched & reviewed.  => even if they are spread out onto multiple days => log all completions / review-notes under the same task.
+- track which university lectures have been watched & reviewed.  => even if they are spread out onto multiple days => log all completions / review-notes under the same task.
 
 #+begin_src elisp
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
@@ -1407,9 +1410,9 @@ legibility."
 * company: code completion
 - disable completion menu by default ::
   - i don't want company to show up and distract me when i already know exactly what i want.
-  - make use of it only when you don't know the exact symbol name / function signature, or when typing overly long symbol-names becomes tedious.
-  - this enforces more thoughtful coding, evaluating what the function actually does and let's you see what is really happening underneath.
-  - it actually makes you faster, since it removes the mental overhead and interruption that arises from the distracting completion menu, where you will choose the option from.  greatly improves overall typing speed.
+  - make use of it only when we don't know the exact symbol name / function signature, or when typing overly long symbol-names becomes tedious.
+  - this enforces more thoughtful coding, evaluating what the function actually does and let's us focus more on the semantics of the code.
+  - it actually makes us faster, since it removes the mental overhead and interruption that arises from the distracting completion menu.  it has great impact on improving the overall typing speed.
   - it makes coding more raw, distractionfree, and overall more enjoyeable
 #+begin_src elisp
 (after! company
@@ -1443,7 +1446,7 @@ in each new file systematically insert heading metadata (as comments) with the f
 - email :: author's email
 - for contacting him with question's / reaching out.
 - date :: date of file creation, iso8601 format.
-- track your coding/writing progress over the years and just generally it is important to document the timing of things, to analyze/order/reconstruct them.
+- track our coding/writing progress over the years and just generally it is important to document the timing of things, to analyze/order/reconstruct them.
 - info :: short document description/summary, think of it as a docstring for the file with this the reader should know what the document is about in one line.
 
 we automate this repetetive task using a snippets.

@@ -153,7 +153,7 @@
         evil-ex-substitute-global t
         evil-want-C-i-jump t
         evil-want-C-h-delete t
-        evil-want-minibuffer t ;; don't loose your powers in the minibuffer
+        evil-want-minibuffer t ;; don't loose our powers in the minibuffer
         evil-org-use-additional-insert nil)
 
 (defadvice! u-preserve-point (fn &rest args)
@@ -196,7 +196,7 @@
 
   this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
   immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
-  '@q' (the exact key) for the first time and then only after that you may call '@@'."
+  '@q' (the exact key) for the first time and then only after that we may call '@@'."
   :after #'evil-record-macro
   (when (not evil-last-register)
     (setq evil-last-register evil-last-recorded-register)))
@@ -305,16 +305,17 @@
 
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
-      :nmv "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
+      :nm "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
+      :nm "&"   #'async-shell-command
 
-      ;; more sensible than `C-x/C-a', `+-' in vim is useless
-      :n "+"    #'evil-numbers/inc-at-pt
-      :n "-"    #'evil-numbers/dec-at-pt
-      :n "g+"   #'evil-numbers/inc-at-pt-incremental
-      :n "g-"   #'evil-numbers/dec-at-pt-incremental
+      ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless
+      :n  "+"   #'evil-numbers/inc-at-pt
+      :n  "-"   #'evil-numbers/dec-at-pt
+      :n  "g+"  #'evil-numbers/inc-at-pt-incremental
+      :n  "g-"  #'evil-numbers/dec-at-pt-incremental
 
-      :n "g<"   #'evil-lion-left
-      :n "g>"   #'evil-lion-right)
+      :n  "g<"  #'evil-lion-left
+      :n  "g>"  #'evil-lion-right)
 
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
@@ -765,8 +766,8 @@ TIME :: time in day of note to return. (default: today)"
                     "%?")))
 
 (defun u-doct-projects-cc-src-template (path)
-  "for quickly implementing/testing ideas (like a scratchpad, but you have all
-  your experimentations in a single literate document).  choose either c or c++.
+  "for quickly implementing/testing ideas (like a scratchpad, but have all
+  our code-snippets in a single literate document, instead of creating a new file each time).  choose either c or c++.
 
 `<<header>>' is org-babel's `:noweb' syntax and the named `org-src-block':
 `c_header' (or `cpp_header') which must be present in the targetfile.  depending
