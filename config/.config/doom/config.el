@@ -138,10 +138,6 @@
 (setq-hook! 'ruby-mode-hook
   evil-shift-width u-global-indent-width
   ruby-indent-level u-global-indent-width)
-
-;; HACK :: prettier broken for me
-(after! apheleia-formatters
- (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
 ;; rationale:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
@@ -378,7 +374,7 @@
         :nm "M-2" #'harpoon-go-to-2
         :nm "M-3" #'harpoon-go-to-3
         :nm "M-4" #'harpoon-go-to-4
-        :nm "M" #'harpoon-add-file)
+        :nm "M"   #'harpoon-add-file)
 
   (map! :leader "m" #'harpoon-toggle-file)
 
@@ -1116,3 +1112,17 @@ legibility."
 
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 ;; shell: zsh:1 ends here
+
+;; [[file:config.org::*ruby][ruby:1]]
+;; HACK :: use rubocop formatter
+(after! apheleia-formatters
+ (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
+
+(map! :after ruby-mode :localleader
+     (:prefix "s"
+              "e" #'ruby-send-last-stmt
+              "l" #'ruby-send-line
+              "L" #'ruby-send-line-and-go
+              "b" #'ruby-send-block
+              "B" #'ruby-send-block-and-go))
+;; ruby:1 ends here

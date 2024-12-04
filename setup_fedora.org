@@ -113,20 +113,20 @@ echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rule
 - dunst :: desktop notifications
 - feh :: images
 - xset :: keyboard settings (repeat off, etc.) @autostart script
-- xsetroot :: set wm background to fixed color (modus operandi theme)
+- xsetroot :: set wm background to fixed color (=modus-operandi-bg=)
 - pamixer :: configure audio
-- keepassxc :: passwordmanager
+- keepassxc :: passwordmanager.  install browser extension + configure it's settings: run on startup, minimize to systray, don't kill on close.
 - scrot :: screenshots (via keybindings).
 - zathura :: minmalist pdf viewer (with vim-bindings )
 #+begin_src sh
-dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot pamixer keepassxc scrot
+dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc scrot
 
 dnf install zathura zathura-pdf-mupdf
 
-# dependency for pavucontrol
+# dependency for fedorea preinstalled volume control
 dnf install mesa-libEGL-devel
 
-# create i3-screenshot directory
+# create screenshot directory
 mkdir --verbose --parents ~/Pictures/screenshots
 #+end_src
 
@@ -154,7 +154,7 @@ dnf install syncthing restic
 #+end_src
 
 - timeshift :: backup & restore system configuration (when system breaks)
-- anacron :: run daily snapshots
+- anacron :: run ~timeshift~ daily
 #+Begin_src sh
 dnf install timeshift
 echo '1 0 system-backup sudo timeshift --create' | sudo tee --append /etc/anacrontab

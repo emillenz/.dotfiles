@@ -177,8 +177,8 @@
        ;;rest                       ; Emacs as a REST client
        ;;rst                        ; ReST in peace
        (ruby +lsp
-             +tree-sitter
-             +rbenv)     ; +rails 1.step {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
+             +chruby
+             +tree-sitter)          ; +rails 1.step {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
        ;;(rust +lsp)                ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
        ;;scala                      ; java, but good
        ;;(scheme +guile)            ; a fully conniving family of lisps

@@ -19,37 +19,35 @@ def spawn_processes
         processes = `ps -e -o comm`.lines.drop(0).map(&:chomp)
 
         PROCESSES.each do |ps|
-                # use hash if commandname is not first arg
-                name, cmd = if ps.is_a?(Hash)
-                                    [ps[:name], ps[:cmd]]
-                            else
-                                    [ps.split[0], ps]
-                            end
+                name = ps[1] || ps[0].split[0]
 
-                unless processes.include?(name)
-                        Process.detach(Process.spawn(cmd)) # , %i[out err] => File::NULL))
-                        puts "> started: '#{cmd}'"
+                if processes.include?(name)
+                        puts "[exists] #{name}"
+                else
+                        Process.detach(Process.spawn(ps[0], %i[out err] => File::NULL))
+                        puts "[started] #{name} '#{ps[0]}'"
                 end
         end
 end
 
 CMDS = [
-        'xsetroot -solid "#ffffff"', # minimalist modus-vivendi bg color
-        'xset dpms 0 0 0', # no auto screensaving
-        'xset s off',
-        'xset r off' # disable key repeat (efficiency!)
+        "xsetroot -solid '#ffffff'", # minimalist modus-vivendi bg color
+
+        # no auto screensaving
+        "xset dpms 0 0 0",
+        "xset s off",
+
+        "xset r off" # disable key repeat (efficiency!)
 ].freeze
 
 PROCESSES = [
-        { cmd: "nohup xremap-x11 --watch=device --watch=config #{ENV['HOME']}/.config/xremap/config.yml",
-          name: 'xremap-x11' },
-        'emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)',
-        'firefox',
-        'keepassxc',
-        'playerctld',
-        'unclutter',
-        'batsignal -bpe -w 50 -c 20 -d 5',
-        'nm-applet'
+        ["nohup xremap-x11 --watch=device --watch=config #{ENV['HOME']}/.config/xremap/config.yml", "xremap-x11"],
+        ["emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"],
+        ["firefox"],
+        ["playerctld"],
+        ["unclutter"],
+        ["batsignal -bpe -w 50 -c 20 -d 5"],
+        ["nm-applet"]
 ].freeze
 
 main

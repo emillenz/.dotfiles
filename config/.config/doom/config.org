@@ -277,12 +277,7 @@ in short, 8-char indents make things easier to read, and have the added benefit 
 (setq-hook! 'ruby-mode-hook
   evil-shift-width u-global-indent-width
   ruby-indent-level u-global-indent-width)
-
-;; HACK :: prettier broken for me
-(after! apheleia-formatters
- (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
 #+end_src
-
 * evil-mode
 - evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize yourself with them and harness their power.
 - evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if you need it use ~\m~ in search string to enable regex.
@@ -535,7 +530,7 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
 #+end_src
 
 *** no visual selections
-- after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual mode), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even though a motion would have been more efficient).
+- after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual selections), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even though a motion would have been more efficient).
 - you are faster & more efficient enforcing the usage of motions, prefix-number commands and ~evil-repeat~.  instead of visual line mode, use a number prefix argument for ~dd, yy, cc~.  if you can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that you want.  (eg: ~d /~)
 - this enforces you to use vim more efficiently.  additionally it comes with the benefit of making your workflow more compatible if you are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
 - if you absolutely must use a visual selection, you can use [[kbd:][C-space]] (emacs binding).
@@ -578,7 +573,7 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
         :nm "M-2" #'harpoon-go-to-2
         :nm "M-3" #'harpoon-go-to-3
         :nm "M-4" #'harpoon-go-to-4
-        :nm "M" #'harpoon-add-file)
+        :nm "M"   #'harpoon-add-file)
 
   (map! :leader "m" #'harpoon-toggle-file)
 
@@ -1497,3 +1492,17 @@ we automate this repetetive task using a snippets.
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 #+end_src
 
+* ruby
+#+begin_src elisp
+;; HACK :: use rubocop formatter
+(after! apheleia-formatters
+ (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
+
+(map! :after ruby-mode :localleader
+     (:prefix "s"
+              "e" #'ruby-send-last-stmt
+              "l" #'ruby-send-line
+              "L" #'ruby-send-line-and-go
+              "b" #'ruby-send-block
+              "B" #'ruby-send-block-and-go))
+#+end_src
