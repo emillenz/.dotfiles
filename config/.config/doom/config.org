@@ -207,14 +207,16 @@ the only reason for you to ever use a terminal is if you need to use a TUI or a 
       switch-to-buffer-obey-display-actions t)
 #+end_src
 
-some modes don't obey ~display-buffer-alist~, so we set the same-window-behaviour in their special way.
+some modes implement their own buffer popup system or make use of ~switch-to-buffer-other-window~ either way we make them obey/consitent with ~display-buffer-alist~'s behaviour.
 #+begin_src elisp
 (after! org
-  (setq org-src-window-setup 'current-window
+  (setq org-src-window-setup 'plain ;; use display-buffer setting
         org-agenda-window-setup 'current-window))
 
 (after! man
   (setq Man-notify-method 'pushy))
+
+(advice-add #'switch-to-buffer-other-window :override #'switch-to-buffer)
 #+end_src
 
 let magit use it's own window layout (for commits etc.)

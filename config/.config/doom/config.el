@@ -98,11 +98,13 @@
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:2]]
 (after! org
-  (setq org-src-window-setup 'current-window
+  (setq org-src-window-setup 'plain ;; use display-buffer setting
         org-agenda-window-setup 'current-window))
 
 (after! man
   (setq Man-notify-method 'pushy))
+
+(advice-add #'switch-to-buffer-other-window :override #'switch-to-buffer)
 ;; window layout & behavior :: single maximized buffer workflow:2 ends here
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:3]]

@@ -21,14 +21,15 @@ def main
                                                 *ARGV,
                                                 stdin_data: window_titles)
 
-        exit(1) unless status.success?
+        status.success? && exit(1)
+
         sel_window = windows.find { |win| win[:name] == selected_title.chomp }
 
         exec('i3-msg', "[con_id=#{sel_window[:id]}] focus")
 end
 
 def windows(node)
-        return [] unless node
+        node || return
 
         if node['window_type'] == 'normal'
                 {

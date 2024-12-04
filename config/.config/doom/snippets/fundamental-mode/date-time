@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: ISO current date-time
-# key: T
+# key: date-time
 # condition: t
 # --
-(format-time-string "%F-T%H%M")
+`(format-time-string "%F_T%H-%M-%S")`
