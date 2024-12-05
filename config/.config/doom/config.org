@@ -145,9 +145,7 @@ the only reason for us to ever use a terminal is if we need to use a TUI or a co
   (setq modus-themes-italic-constructs t
         modus-themes-bold-constructs t
         modus-themes-common-palette-overrides `((fg-region unspecified) ;; don't grey out syntax highlighting in active region
-                                                (fg-heading-1 fg-heading-0) ;; colorize (before: black)
-                                                ))
-
+                                                (fg-heading-1 fg-heading-0))) ;; colorize (before: black)
   ;; list of customizeable faces: `(helpful-variable 'modus-themes-faces)`
   (custom-set-faces!
     '(org-list-dt :inherit modus-themes-heading-1)
@@ -158,6 +156,13 @@ the only reason for us to ever use a terminal is if we need to use a TUI or a co
 
   (setq doom-theme 'modus-operandi))
 #+end_src
+
+the ~org-block~ background is different (dimmed) from ~bg-main~ in order to distinguish blocks clearly.  ~whitespace-tab~ uses ~bg-main~ by default, but we want same dimmed bg color as all text:
+#+begin_src elisp
+(add-hook! 'org-mode-hook
+  (face-remap-add-relative 'whitespace-tab 'org-block))
+#+end_src
+
 
 ** font
 - same font & size set to same as system-wide (browser, gtk, terminal, ...).
@@ -273,13 +278,6 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 (after! ruby-mode
   (setq ruby-indent-tabs-mode t
         ruby-indent-level 8))
-#+end_src
-
-lisps don't indent, they align.  hence we don't want to mix tabs/spaces and
-only use spaces.
-#+begin_src elisp
-(setq-hook! '(emacs-lisp-mode-hook lisp-mode-hook)
-  indent-tabs-mode nil)
 #+end_src
 
 * evil-mode

@@ -47,9 +47,7 @@
   (setq modus-themes-italic-constructs t
         modus-themes-bold-constructs t
         modus-themes-common-palette-overrides `((fg-region unspecified) ;; don't grey out syntax highlighting in active region
-                                                (fg-heading-1 fg-heading-0) ;; colorize (before: black)
-                                                ))
-
+                                                (fg-heading-1 fg-heading-0))) ;; colorize (before: black)
   ;; list of customizeable faces: `(helpful-variable 'modus-themes-faces)`
   (custom-set-faces!
     '(org-list-dt :inherit modus-themes-heading-1)
@@ -60,6 +58,11 @@
 
   (setq doom-theme 'modus-operandi))
 ;; modus-theme:1 ends here
+
+;; [[file:config.org::*modus-theme][modus-theme:2]]
+(add-hook! 'org-mode-hook
+  (face-remap-add-relative 'whitespace-tab 'org-block))
+;; modus-theme:2 ends here
 
 ;; [[file:config.org::*font][font:1]]
 (setq doom-font (font-spec :family "Iosevka Comfy" :size 13))
@@ -137,11 +140,6 @@
   (setq ruby-indent-tabs-mode t
         ruby-indent-level 8))
 ;; rationale:1 ends here
-
-;; [[file:config.org::*rationale][rationale:2]]
-(setq-hook! '(emacs-lisp-mode-hook lisp-mode-hook)
-  indent-tabs-mode nil)
-;; rationale:2 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
 (after! evil
