@@ -145,8 +145,8 @@ the only reason for us to ever use a terminal is if we need to use a TUI or a co
   (setq modus-themes-italic-constructs t
         modus-themes-bold-constructs t
         modus-themes-common-palette-overrides `((fg-region unspecified) ;; don't grey out syntax highlighting in active region
-                                                (fg-heading-1 fg-heading-0)
-                                                (bg-prose-block-contents bg-dim)))
+                                                (fg-heading-1 fg-heading-0) ;; colorize (before: black)
+                                                ))
 
   ;; list of customizeable faces: `(helpful-variable 'modus-themes-faces)`
   (custom-set-faces!
@@ -270,9 +270,18 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 
 (setq c-default-style "linux")
 
-(after! 'ruby-mode
-  (setq ruby-indent-tabs-mode t))
+(after! ruby-mode
+  (setq ruby-indent-tabs-mode t
+        ruby-indent-level 8))
 #+end_src
+
+lisps don't indent, they align.  hence we don't want to mix tabs/spaces and
+only use spaces.
+#+begin_src elisp
+(setq-hook! '(emacs-lisp-mode-hook lisp-mode-hook)
+  indent-tabs-mode nil)
+#+end_src
+
 * evil-mode
 - evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize and harness their power.
 - evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if we need it use ~\m~ in search string to enable regex.
@@ -386,6 +395,8 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
                "t" #'dictionary-search)
       (:prefix "f"
                "f" #'+vertico/consult-fd-or-find)
+      (:prefix "t"
+	       "a" #'toggle-text-mode-auto-fill)
       (:prefix "c"
                "r" #'lsp-rename
                (:prefix "'"
@@ -822,7 +833,7 @@ harpoon bugfix
 - use ~●~ for heading, ~─~ for list for unambiguity and a minimalist look.  org heading level is differentiated by indentation and face.
 #+begin_src elisp
 (add-hook! 'org-mode-hook '(org-superstar-mode
-                            prettify-symbols-mode))
+			    prettify-symbols-mode))
 
 (setq org-superstar-headline-bullets-list "●")
 
@@ -837,11 +848,11 @@ harpoon bugfix
                                      :arrow_lr      "↔"))
 
 (add-hook! 'org-mode-hook
-  (appendq! prettify-symbols-alist '(("--"  . "–")
-                                     ("---" . "—")
-                                     ("->" . "→")
-                                     ("=>" . "⇒")
-                                     ("<=>" . "⇔"))))
+  (appendq! prettify-symbols-alist '(("--" . "–")
+				     ("---" . "—")
+				     ("->" . "→")
+				     ("=>" . "⇒")
+				     ("<=>" . "⇔"))))
 #+end_src
 
 ** org/keybindings
@@ -1503,6 +1514,14 @@ we automate this repetetive task using a snippets.
                "e" #'ruby-send-last-stmt
                "l" #'ruby-send-line
                "L" #'ruby-send-line-and-go
+               "hello world"
                "b" #'ruby-send-block
                "B" #'ruby-send-block-and-go))
+#+end_src
+
+* lsp
+#+begin_src elisp
+(after! lsp-mode
+  ;; when we kill buffer's, don't prompt to restart the server...
+  (setq lsp-restart 'ignore))
 #+end_src

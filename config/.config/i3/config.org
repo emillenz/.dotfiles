@@ -47,7 +47,6 @@ set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep
 
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
-set $SCROT scrot --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M.png" --exec 'dunstify "screenshot" "$f"'
 #+end_src
 
 * autostart
@@ -115,7 +114,7 @@ bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 
 * navigational bindings
 - use [[kbd:][MOD+shift+h/l]] to vsplit a window when needing to view things side-by-side.
-- dmenu_run :: start process in a terminal if the user-input ends on ~!~
+- dmenu :: you may pass flags/args to programs if you desire.  (eg. ~emacs --debug-init~)
 #+begin_src conf
 bindsym $MOD+p            focus left
 bindsym $MOD+shift+p      move left
@@ -222,18 +221,17 @@ for_window [all] focus, title_window_icon no
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-        bindsym $MOD+a $SHCMD $BIN/audio-output-menu $DMENU_THEME; $ESC
-        bindsym $MOD+b $SHCMD $BIN/bluetooth-menu $DMENU_THEME; $ESC
-        bindsym $MOD+k $SHCMD $BIN/killprocess-menu $DMENU_THEME; $ESC
-        bindsym $MOD+d $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME); $ESC
+        bindsym $MOD+a $ESC; $SHCMD $BIN/audio-output-menu $DMENU_THEME
+        bindsym $MOD+b $ESC; $SHCMD $BIN/bluetooth-menu $DMENU_THEME
+        bindsym $MOD+k $ESC; $SHCMD $BIN/killprocess-menu $DMENU_THEME
+        bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
-        bindsym --release $MOD+s $SHCMD $SCROT --select; $ESC
-        bindsym $MOD+shift+s $SHCMD $SCROT; $ESC
+        bindsym $MOD+s $ESC; $SHCMD flameshot gui
 
-        bindsym $MOD+e $SHCMD emacsclient --eval "(emacs-everywhere)"; $ESC
+        bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 
-        bindsym $MOD+q $SHCMD $SYS_SLEEP; $ESC
-        bindsym $MOD+o $SHCMD $SYS_SCREENOFF; $ESC
+        bindsym $MOD+q $ESC; $SHCMD $SYS_SLEEP
+        bindsym $MOD+o $ESC; $SHCMD $SYS_SCREENOFF
 
         bindsym Escape mode "default"
 }

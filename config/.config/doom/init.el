@@ -69,7 +69,7 @@
        ;;eshell                     ; the elisp shell that works everywhere
        shell                      ; simple shell REPL for Emacs NOTE :: use this over vterm (better emacs integration).
        ;;term                       ; basic terminal emulator for Emacs
-       ;; vterm                      ; the best terminal emulation in Emacs
+       vterm                      ; the best terminal emulation in Emacs
 
        :checkers
        syntax                     ; (+childframe)

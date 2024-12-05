@@ -47,8 +47,8 @@
   (setq modus-themes-italic-constructs t
         modus-themes-bold-constructs t
         modus-themes-common-palette-overrides `((fg-region unspecified) ;; don't grey out syntax highlighting in active region
-                                                (fg-heading-1 fg-heading-0)
-                                                (bg-prose-block-contents bg-dim)))
+                                                (fg-heading-1 fg-heading-0) ;; colorize (before: black)
+                                                ))
 
   ;; list of customizeable faces: `(helpful-variable 'modus-themes-faces)`
   (custom-set-faces!
@@ -133,9 +133,15 @@
 
 (setq c-default-style "linux")
 
-(after! 'ruby-mode
-  (setq ruby-indent-tabs-mode t))
+(after! ruby-mode
+  (setq ruby-indent-tabs-mode t
+        ruby-indent-level 8))
 ;; rationale:1 ends here
+
+;; [[file:config.org::*rationale][rationale:2]]
+(setq-hook! '(emacs-lisp-mode-hook lisp-mode-hook)
+  indent-tabs-mode nil)
+;; rationale:2 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
 (after! evil
@@ -233,6 +239,8 @@
                "t" #'dictionary-search)
       (:prefix "f"
                "f" #'+vertico/consult-fd-or-find)
+      (:prefix "t"
+	       "a" #'toggle-text-mode-auto-fill)
       (:prefix "c"
                "r" #'lsp-rename
                (:prefix "'"
@@ -573,7 +581,7 @@
 
 ;; [[file:config.org::*symbols][symbols:1]]
 (add-hook! 'org-mode-hook '(org-superstar-mode
-                            prettify-symbols-mode))
+			    prettify-symbols-mode))
 
 (setq org-superstar-headline-bullets-list "●")
 
@@ -588,11 +596,11 @@
                                      :arrow_lr      "↔"))
 
 (add-hook! 'org-mode-hook
-  (appendq! prettify-symbols-alist '(("--"  . "–")
-                                     ("---" . "—")
-                                     ("->" . "→")
-                                     ("=>" . "⇒")
-                                     ("<=>" . "⇔"))))
+  (appendq! prettify-symbols-alist '(("--" . "–")
+				     ("---" . "—")
+				     ("->" . "→")
+				     ("=>" . "⇒")
+				     ("<=>" . "⇔"))))
 ;; symbols:1 ends here
 
 ;; [[file:config.org::*org/keybindings][org/keybindings:1]]
@@ -1120,6 +1128,13 @@ legibility."
                "e" #'ruby-send-last-stmt
                "l" #'ruby-send-line
                "L" #'ruby-send-line-and-go
+               "hello world"
                "b" #'ruby-send-block
                "B" #'ruby-send-block-and-go))
 ;; ruby:1 ends here
+
+;; [[file:config.org::*lsp][lsp:1]]
+(after! lsp-mode
+  ;; when we kill buffer's, don't prompt to restart the server...
+  (setq lsp-restart 'ignore))
+;; lsp:1 ends here

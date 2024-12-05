@@ -9,11 +9,7 @@
 - if you use a different distro you ensure to install at least these packages for the system config to be able to work. (no guarantees...)
 - run this script with sudo! (for ~dnf~)
 
-* setup
-#+begin_src sh
-git clone --depth=1 https://github.com/emillenz/config ~/Dotfiles
-#+end_src
-
+* preliminarys
 alias
 #+begin_src sh
 alias dnf="dnf --assumeyes"
@@ -24,22 +20,20 @@ alias dnf="dnf --assumeyes"
 dnf upgrade
 #+end_src
 
+* clone dotfiles
+#+begin_src sh
+git clone --depth=1 https://github.com/emillenz/config ~/Dotfiles
+#+end_src
+
 * link neccessary config files
 - we use GNU stow and symlink the important config files to keep them all centralized in the same directory and symlink them to the respective places.
 - backup your own config directory if neccessary since this will override any previous configuration.
+- override all existing files if you had existing configs using ~--adopt~ flag and
+  then running ~git revert .~
 #+begin_src sh
 dnf install git stow
 cd ~/Dotfiles
-stow --adopt home config bin
-
-# override all existing files if you had existing configs
-git revert .
-#+end_src
-
-* systemwide font
-- @readme
-#+begin_src sh
-git clone --depth 1 https://github.com/protesilaos/iosevka-comfy $HOME/.local/share/fonts
+stow adopt home config bin
 #+end_src
 
 * shell: zsh
@@ -50,13 +44,61 @@ sudo chsh --shell /bin/zsh
 chsh --shell /usr/bin/zsh
 #+end_src
 
+** never sudo-password-prompt
+#+begin_src sh
+echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
+#+end_src
+
 * terminal & tools
-- fd + rg :: better defaults than ~find, grep~.  utilized in emacs.
+- fd + rg :: better defaults than ~find, grep~.  improves performance of doom emacs find commands.
 - tldr :: cheatsheet style documentation
-- terminal :: emacs.  (for CLI's, use any terminal, doesn't matter)
+- terminal :: none => using emacs ~M-x shell~.   (and in emergencies ~vterm~ if you need to
+  run a program)
 - rest :: dependecies for emacs/terminal tools
 #+begin_src sh
-dnf install alacritty fd-find ripgrep tldr curl
+dnf install fd-find ripgrep tldr curl
+#+end_src
+
+* wm & programs
+- i3 :: wm
+- mpv :: minimalist video player
+- feh :: image viewer
+- arandr :: output configurations
+- unclutter :: hide mouse cursor after inactivity  @autostart script
+- firefox :: browser
+- playerctl :: used to control media via keybindings
+- bluetoothctl :: setup/manage bluetooth devices
+- dunst :: desktop notifications
+- feh :: images
+- xset :: keyboard settings (repeat off, etc.) @autostart script
+- xsetroot :: set wm background to fixed color (=modus-operandi-bg=)
+- pamixer :: configure audio
+- keepassxc :: passwordmanager.  install browser extension + configure it's settings: run on startup, minimize to systray, don't kill on close.
+- zathura :: minmalist pdf viewer (with vim-bindings )
+#+begin_src sh
+dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc flameshot
+
+dnf install zathura zathura-pdf-mupdf
+
+# dependency for fedorea preinstalled volume control
+dnf install mesa-libEGL-devel
+#+end_src
+
+** systemwide font
+- @readme
+#+begin_src sh
+git clone --depth 1 https://github.com/protesilaos/iosevka-comfy $HOME/.local/share/fonts
+#+end_src
+
+** batsignal
+- battery notifications (since we have statusbar turned off) @autostart script
+#+begin_src sh
+# dependency
+dnf install libnotify-devel
+
+git clone --depth=1 https://github.com/electrickite/batsignal && cd batsignal
+make
+sudo make install
 #+end_src
 
 * scripting & menu-scripts: ruby
@@ -65,33 +107,10 @@ dnf install ruby ruby-devel irb
 gem install solargraph rubocop
 #+end_src
 
-* make system-scripts executeable
+** make scripts executeable
 #+begin_src sh
 find ~/Dotfiles/bin/.local/bin -type f -exec chmod +x {}\;
 #+end_src
-
-* never sudo-password-prompt
-#+begin_src sh
-echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
-#+end_src
-
-* editor: doom emacs
-#+begin_src sh
-dnf install emacs-gtk+x11
-
-# HACK :: supress pure emacs-gtk warning (fedora problem)
-sudo alternatives --set emacs /usr/bin/emacs-gtk+x11
-
-git clone --depth 1 https://github.com/doomemacs/doomemacs $HOME/.config/emacs
-$HOME/.config/emacs/bin/doom install
-#+end_src
-
-- formatter
-#+begin_src sh
-sudo dnf install npm
-npm -g install prettier
-#+end_src
-
 
 * keybindings
 - [[https://github.com/xremap/xremap][xremap]]
@@ -108,47 +127,24 @@ sudo gpasswd -a $(whoami) input
 echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rules.d/input.rules
 #+end_src
 
-* wm workflow packages
-- i3 :: wm
-- mpv :: minimalist video player
-- feh :: image viewer
-- arandr :: output configurations
-- unclutter :: hide mouse cursor after inactivity  @autostart script
-- firefox :: browser
-- playerctl :: used to control media via keybindings
-- bluetoothctl :: setup/manage bluetooth devices
-- dunst :: desktop notifications
-- feh :: images
-- xset :: keyboard settings (repeat off, etc.) @autostart script
-- xsetroot :: set wm background to fixed color (=modus-operandi-bg=)
-- pamixer :: configure audio
-- keepassxc :: passwordmanager.  install browser extension + configure it's settings: run on startup, minimize to systray, don't kill on close.
-- scrot :: screenshots (via keybindings).
-- zathura :: minmalist pdf viewer (with vim-bindings )
+* editor: doom emacs
 #+begin_src sh
-dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc scrot
+dnf install emacs-gtk+x11
 
-dnf install zathura zathura-pdf-mupdf
+# HACK :: supress pure emacs-gtk warning (fedora problem)
+sudo alternatives --set emacs /usr/bin/emacs-gtk+x11
 
-# dependency for fedorea preinstalled volume control
-dnf install mesa-libEGL-devel
-
-# create screenshot directory
-mkdir --verbose --parents ~/Pictures/screenshots
+git clone --depth 1 https://github.com/doomemacs/doomemacs $HOME/.config/emacs
+$HOME/.config/emacs/bin/doom install
 #+end_src
 
-* batsignal
-- battery notifications (since we have statusbar turned off) @autostart script
+- universale formatter
 #+begin_src sh
-# dependency
-dnf install libnotify-devel
-
-git clone --depth=1 https://github.com/electrickite/batsignal && cd batsignal
-make
-sudo make install
+sudo dnf install npm
+npm -g install prettier
 #+end_src
 
-* sshd: for github, sycnthing...
+* sshd: for github, sycnthing
 #+begin_src sh
 sudo systemctl enable sshd
 #+end_src
