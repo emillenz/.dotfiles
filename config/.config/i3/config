@@ -73,16 +73,13 @@ bindsym $MOD+p            focus left
 bindsym $MOD+shift+p      move left
 bindsym $MOD+n            focus right
 bindsym $MOD+shift+n      move right
+
 bindsym $MOD+q            kill
 bindsym $MOD+b            $SHCMD $BIN/window-menu $DMENU_THEME
-bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
-bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 bindsym $MOD+Tab          workspace back_and_forth
 
-bindsym $MOD+1            $SHCMD $BIN/window-goto 1
-bindsym $MOD+2            $SHCMD $BIN/window-goto 2
-bindsym $MOD+3            $SHCMD $BIN/window-goto 3
-bindsym $MOD+4            $SHCMD $BIN/window-goto 4
+bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
+bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 # navigational bindings:1 ends here
 
 # [[file:config.org::*gaps][gaps:1]]

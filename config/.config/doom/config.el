@@ -493,10 +493,11 @@
 
   (mapc (lambda (file)
           (let* ((dest (file-name-concat u-archive-dir
-                                         (format "%s_archived_%s.%s"
-                                                 (file-name-sans-extension (file-relative-name file "~/"))
+                                         (concat (file-name-sans-extension (file-relative-name file "~/"))
+                                                 "_archived_"
                                                  (format-time-string "%F_T%H-%M-%S")
-                                                 (file-name-extension file))))
+                                                 (when (file-name-extension file)
+                                                   (concat "." (file-name-extension file))))))
                  (dir (file-name-directory dest)))
 
             (unless (file-exists-p dir)
@@ -1100,16 +1101,14 @@ legibility."
 ;; lispy(ville): editing lisp in vim:1 ends here
 
 ;; [[file:config.org::*shell: zsh][shell: zsh:1]]
-(setq explicit-shell-file-name "/usr/bin/zsh"
-      shell-file-name "zsh")
+(setq shell-file-name "/bin/zsh")
 
-(setq-hook! 'shell-mode-hook comint-process-echoes t)
+(after! comint
+  (setq comint-process-echoes t))
 
 ;; browse
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
-
-(define-key! [remap +shell/toggle] #'+shell/here)
 
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 ;; shell: zsh:1 ends here

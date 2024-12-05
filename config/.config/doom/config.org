@@ -714,10 +714,11 @@ harpoon bugfix
 
   (mapc (lambda (file)
           (let* ((dest (file-name-concat u-archive-dir
-                                         (format "%s_archived_%s.%s"
-                                                 (file-name-sans-extension (file-relative-name file "~/"))
+                                         (concat (file-name-sans-extension (file-relative-name file "~/"))
+                                                 "_archived_"
                                                  (format-time-string "%F_T%H-%M-%S")
-                                                 (file-name-extension file))))
+                                                 (when (file-name-extension file)
+                                                   (concat "." (file-name-extension file))))))
                  (dir (file-name-directory dest)))
 
             (unless (file-exists-p dir)
@@ -1480,20 +1481,18 @@ we automate this repetetive task using a snippets.
 #+end_src
 
 * shell: zsh
-- to start a emacs/shell-buffer independent process, use ~nohup CMD &>/dev/null &~.
+- to start a emacs/shell-buffer independent process, use ~disown~.
 - we never use a terminal, always use ~shell~ (to get benefits of comint mode).
 - normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
 #+begin_src elisp
-(setq explicit-shell-file-name "/usr/bin/zsh"
-      shell-file-name "zsh")
+(setq shell-file-name "/bin/zsh")
 
-(setq-hook! 'shell-mode-hook comint-process-echoes t)
+(after! comint
+  (setq comint-process-echoes t))
 
 ;; browse
 (after! shell
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
-
-(define-key! [remap +shell/toggle] #'+shell/here)
 
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 #+end_src

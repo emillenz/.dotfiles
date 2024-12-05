@@ -56,7 +56,7 @@ chsh --shell /usr/bin/zsh
 - terminal :: emacs.  (for CLI's, use any terminal, doesn't matter)
 - rest :: dependecies for emacs/terminal tools
 #+begin_src sh
-dnf install fd-find ripgrep tldr curl
+dnf install alacritty fd-find ripgrep tldr curl
 #+end_src
 
 * scripting & menu-scripts: ruby
