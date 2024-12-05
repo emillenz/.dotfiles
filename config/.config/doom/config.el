@@ -439,8 +439,24 @@
                  (kill-buffer)
                  (find-file full-file-name))
 
-        (message "File %s not found." full-file-name)))))
+        (message "[harpoon] File %s not found." full-file-name)))))
 ;; harpoon:2 ends here
+
+;; [[file:config.org::*buffer goto (harpoon concept, but for frequently used buffers)][buffer goto (harpoon concept, but for frequently used buffers):1]]
+(defun u-switch-to-compilation-buffer ()
+  "switch to projects compilation buffer"
+  (interactive)
+  (let ((buffer (seq-find (lambda (buf)
+                            (string-match-p "^\\*compilation\\*" buf))
+                          (projectile-project-buffer-names))))
+    (if buffer
+        (switch-to-buffer buffer)
+      (message "*compilation* not found in project: %s" (projectile-project-name)))))
+
+;; harpoon bindings continued
+(map! :map 'override
+      "M-5" #'u-switch-to-compilation-buffer)
+;; buffer goto (harpoon concept, but for frequently used buffers):1 ends here
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
 (map! :map occur-mode-map :after replace

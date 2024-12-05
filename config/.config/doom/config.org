@@ -645,8 +645,28 @@ harpoon bugfix
                  (kill-buffer)
                  (find-file full-file-name))
 
-        (message "File %s not found." full-file-name)))))
+        (message "[harpoon] File %s not found." full-file-name)))))
 #+end_src
+
+** buffer goto (harpoon concept, but for frequently used buffers)
+- shell :: for ~shell~ session buffers (ruby, zsh,...) we have bindings that bring forth the buffer.  eg [[kbd:][SPC o t]] to goto the terminal.
+- compilation :: in any projects that we compile, we frequently switch to the ~*compilation*~ buffer.
+#+begin_src elisp
+(defun u-switch-to-compilation-buffer ()
+  "switch to projects compilation buffer"
+  (interactive)
+  (let ((buffer (seq-find (lambda (buf)
+                            (string-match-p "^\\*compilation\\*" buf))
+                          (projectile-project-buffer-names))))
+    (if buffer
+        (switch-to-buffer buffer)
+      (message "*compilation* not found in project: %s" (projectile-project-name)))))
+
+;; harpoon bindings continued
+(map! :map 'override
+      "M-5" #'u-switch-to-compilation-buffer)
+#+end_src
+
 
 * occur: emacs interactive grep
 - occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
