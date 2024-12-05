@@ -147,13 +147,13 @@
 
 ;; [[file:config.org::*evil-mode][evil-mode:2]]
 (evil-surround-mode)
-  (setq evil-want-fine-undo nil
-        evil-magic nil
-        evil-ex-substitute-global t
-        evil-want-C-i-jump t
-        evil-want-C-h-delete t
-        evil-want-minibuffer t ;; don't loose our powers in the minibuffer
-        evil-org-use-additional-insert nil)
+(setq evil-want-fine-undo nil
+      evil-magic nil
+      evil-ex-substitute-global t
+      evil-want-C-i-jump t
+      evil-want-C-h-delete t
+      evil-want-minibuffer t ;; don't loose our powers in the minibuffer
+      evil-org-use-additional-insert nil)
 
 (defadvice! u-preserve-point (fn &rest args)
   :around '(anzu-query-replace-regexp
@@ -162,40 +162,40 @@
   (save-excursion
     (apply fn args)))
 
- ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
+;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 (advice-add '+fold/previous :override #'ignore)
 
- ;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
+;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
 (setq-hook! 'minibuffer-setup-hook cursor-type 'bar)
 ;; evil-mode:2 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:3]]
 (dolist (cmd '(flycheck-next-error
-               flycheck-previous-error
-               +lookup/definition
-               +lookup/references
-               +lookup/implementations
-               +default/search-buffer
-               consult-imenu))
+		 flycheck-previous-error
+		 +lookup/definition
+		 +lookup/references
+		 +lookup/implementations
+		 +default/search-buffer
+		 consult-imenu))
   (evil-add-command-properties cmd :jump t))
 
 (dolist (cmd '(evil-backward-section-begin
-               evil-forward-section-begin
-               evil-jump-item
-               evil-backward-paragraph
-               evil-forward-paragraph
-               evil-forward-section-end))
+		 evil-forward-section-begin
+		 evil-jump-item
+		 evil-backward-paragraph
+		 evil-forward-paragraph
+		 evil-forward-section-end))
   (evil-remove-command-properties cmd :jump))
 ;; evil-mode:3 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:4]]
 (defadvice! u-update-last-macro-register (fn &rest args)
   "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
-    set it to the just recorded macro.
+  set it to the just recorded macro.
 
-  this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
-  immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
-  '@q' (the exact key) for the first time and then only after that we may call '@@'."
+this is the sane default behaviour for 99% of the time: record a quick macro with 'qq' and
+immediately call it with '@@', instead of getting an error, getting annoyed and having to retype
+'@q' (the exact key) for the first time and then only after that we may call '@@'."
   :after #'evil-record-macro
   (when (not evil-last-register)
     (setq evil-last-register evil-last-recorded-register)))
@@ -208,9 +208,14 @@
   (add-hook! 'savehist-save-hook
     (kill-local-variable 'evil-markers-alist)
     (dolist (entry evil-markers-alist)
-      (when (markerp (cdr entry))
-        (setcdr entry (cons (file-truename (buffer-file-name (marker-buffer (cdr entry))))
-                            (marker-position (cdr entry)))))))
+	(when (markerp (cdr entry))
+        (setcdr entry
+		  (cons (->> entry
+			     (cdr)
+			     (marker-buffer)
+			     (buffer-file-name)
+			     (file-truename))
+                      (marker-position (cdr entry)))))))
 
   (add-hook! 'savehist-mode-hook
     (setq-default evil-markers-alist evil-markers-alist)
@@ -259,42 +264,42 @@
 
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:1]]
 (map! :map minibuffer-mode-map
-	:n "j" #'next-line-or-history-element
-	:n "k" #'previous-line-or-history-element
-	:i "C-n" #'completion-at-point
-	:n "/"   #'previous-matching-history-element
-	:n "RET" #'exit-minibuffer) ;;
+      :n "j" #'next-line-or-history-element
+      :n "k" #'previous-line-or-history-element
+      :i "C-n" #'completion-at-point
+      :n "/"   #'previous-matching-history-element
+      :n "RET" #'exit-minibuffer) ;;
 
 (map! :map evil-ex-search-keymap :after evil
-	:n "j" #'next-line-or-history-element
-	:n "k" #'previous-line-or-history-element
-	:n "/" #'previous-matching-history-element
-	:n "RET" #'exit-minibuffer)
+      :n "j" #'next-line-or-history-element
+      :n "k" #'previous-line-or-history-element
+      :n "/" #'previous-matching-history-element
+      :n "RET" #'exit-minibuffer)
 
 (map! :map vertico-flat-map :after vertico
-	:n "j" #'next-line-or-history-element
-	:n "k" #'previous-line-or-history-element
-	:i "C-n" #'next-line-or-history-element
-	:i "C-p" #'previous-line-or-history-element
-	:n "RET" #'vertico-exit
-	:n "/"   #'previous-matching-history-element)
+      :n "j" #'next-line-or-history-element
+      :n "k" #'previous-line-or-history-element
+      :i "C-n" #'next-line-or-history-element
+      :i "C-p" #'previous-line-or-history-element
+      :n "RET" #'vertico-exit
+      :n "/"   #'previous-matching-history-element)
 
 (map! :map vertico-map
-	:im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
-	:im "C-d" #'consult-dir
-	:im "C-f" #'consult-dir-jump-file)
+      :im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
+      :im "C-d" #'consult-dir
+      :im "C-f" #'consult-dir-jump-file)
 
 (map! :map company-mode-map :after company
-	:i "C-n" #'company-complete)
+      :i "C-n" #'company-complete)
 
 (map! :map comint-mode-map :after comint
       :i "C-r" #'comint-history-isearch-backward-regexp)
 ;; completion & minibuffer:1 ends here
 
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:2]]
+;; HACK :: '(1) since evil-complete-previous-func expects an arg.
 (setq evil-complete-previous-minibuffer-func
-      #'(lambda () (apply evil-complete-previous-func
-			  '(1)))) ;; HACK :: '(1) since evil-complete-previous-func expects an arg.
+      #'(lambda () (apply evil-complete-previous-func '(1))))
 ;; completion & minibuffer:2 ends here
 
 ;; [[file:config.org::*editing][editing:1]]
@@ -315,7 +320,7 @@
 
 (define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
 
- ;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
 (define-key! key-translation-map "C-h" "DEL")
 ;; editing:1 ends here
 
@@ -353,8 +358,8 @@
 
 ;; [[file:config.org::*surround & smartparens][surround & smartparens:1]]
 (map! :after evil
-      :n "s"    #'evil-surround-region
-      :n "S"    #'evil-Surround-region)
+      :n "s" #'evil-surround-region
+      :n "S" #'evil-Surround-region)
 
 (after! evil-surround
   (add-to-list 'evil-surround-pairs-alist '(?` . ("`" . "`")))
@@ -429,8 +434,10 @@
     (interactive)
 
     (let* ((file-name (or file-name
-                          (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
-           (full-file-name (concat harpoon--project-path file-name)))
+                          (buffer-substring-no-properties (point-at-bol)
+							  (point-at-eol))))
+           (full-file-name (concat harpoon--project-path
+				   file-name)))
 
       (if (file-exists-p full-file-name)
           (progn (save-buffer)
@@ -508,11 +515,15 @@
 
   (mapc (lambda (file)
           (let* ((dest (file-name-concat u-archive-dir
-                                         (concat (file-name-sans-extension (file-relative-name file "~/"))
-                                                 "_archived_"
-                                                 (format-time-string "%F_T%H-%M-%S")
-                                                 (when (file-name-extension file)
-                                                   (concat "." (file-name-extension file))))))
+					 (concat (->> "~/"
+						      (file-relative-name file)
+						      (file-name-sans-extension))
+						 "_archived_"
+						 (format-time-string "%F_T%H-%M-%S")
+						 (when (file-name-extension file)
+						   (->> file
+							(file-name-extension)
+							(concat "."))))))
                  (dir (file-name-directory dest)))
 
             (unless (file-exists-p dir)
@@ -538,37 +549,37 @@
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
 (setq org-use-property-inheritance t
-      org-reverse-note-order t ;; like stack
-      org-startup-with-latex-preview nil
-      org-startup-with-inline-images t
-      org-startup-indented t
-      org-startup-numerated t
-      org-startup-align-all-tables t
-      org-list-allow-alphabetical t ;; alphabetical are useful for lists without ordering if you later want to reference an item (like case (a), case (b).)
-      org-tags-column 0 ;; don't align tags
-      org-fold-catch-invisible-edits 'smart
-      org-refile-use-outline-path 'full-file-path
-      org-refile-allow-creating-parent-nodes 'confirm
-      org-use-sub-superscripts '{}
-      org-fontify-quote-and-verse-blocks t
-      org-fontify-whole-block-delimiter-line t
-      doom-themes-org-fontify-special-tags t
-      org-num-max-level 3 ;; don't nest deeply
-      org-hide-leading-stars t
-      org-appear-autoemphasis t
-      org-appear-autosubmarkers t
-      org-appear-autolinks t
-      org-appear-autoentities t
-      org-appear-autokeywords t
-      org-appear-inside-latex nil
-      org-hide-emphasis-markers t
-      org-pretty-entities t
-      org-pretty-entities-include-sub-superscripts t
-      org-list-demote-modify-bullet '(("-"  . "-")
-                                      ("1." . "1."))
-      org-blank-before-new-entry '((heading . nil)
+	org-reverse-note-order t ;; like stack
+	org-startup-with-latex-preview nil
+	org-startup-with-inline-images t
+	org-startup-indented t
+	org-startup-numerated t
+	org-startup-align-all-tables t
+	org-list-allow-alphabetical t ;; alphabetical are useful for lists without ordering if you later want to reference an item (like case (a), case (b).)
+	org-tags-column 0 ;; don't align tags
+	org-fold-catch-invisible-edits 'smart
+	org-refile-use-outline-path 'full-file-path
+	org-refile-allow-creating-parent-nodes 'confirm
+	org-use-sub-superscripts '{}
+	org-fontify-quote-and-verse-blocks t
+	org-fontify-whole-block-delimiter-line t
+	doom-themes-org-fontify-special-tags t
+	org-num-max-level 3 ;; don't nest deeply
+	org-hide-leading-stars t
+	org-appear-autoemphasis t
+	org-appear-autosubmarkers t
+	org-appear-autolinks t
+	org-appear-autoentities t
+	org-appear-autokeywords t
+	org-appear-inside-latex nil
+	org-hide-emphasis-markers t
+	org-pretty-entities t
+	org-pretty-entities-include-sub-superscripts t
+	org-list-demote-modify-bullet '(("-"  . "-")
+					("1." . "1."))
+	org-blank-before-new-entry '((heading . nil)
                                    (plain-list-item . nil))
-      org-src-ask-before-returning-to-edit-buffer nil) ;; don't annoy me
+	org-src-ask-before-returning-to-edit-buffer nil) ;; don't annoy me
 
 ;; flycheck full of errors, since it only reads partial buffer.
 (add-hook! 'org-src-mode-hook (flycheck-mode -1))
@@ -578,7 +589,7 @@
 (defadvice! u-insert-newline-above (fn &rest args)
   "pad newly inserted heading with newline unless is todo-item.
 
-  since i often have todolists , where i don't want the newlines.  newlines are for headings that have a body of text."
+since i often have todolists , where i don't want the newlines.  newlines are for headings that have a body of text."
   :after #'+org/insert-item-below
   (when (and (org-at-heading-p)
              (not (org-entry-is-todo-p)))
@@ -593,7 +604,7 @@
 
 ;; [[file:config.org::*symbols][symbols:1]]
 (add-hook! 'org-mode-hook '(org-superstar-mode
-			    prettify-symbols-mode))
+			      prettify-symbols-mode))
 
 (setq org-superstar-headline-bullets-list "●")
 
@@ -609,37 +620,37 @@
 
 (add-hook! 'org-mode-hook
   (appendq! prettify-symbols-alist '(("--" . "–")
-				     ("---" . "—")
-				     ("->" . "→")
-				     ("=>" . "⇒")
-				     ("<=>" . "⇔"))))
+				       ("---" . "—")
+				       ("->" . "→")
+				       ("=>" . "⇒")
+				       ("<=>" . "⇔"))))
 ;; symbols:1 ends here
 
 ;; [[file:config.org::*org/keybindings][org/keybindings:1]]
 (map! :map org-mode-map :after org
-      :localleader
-      "\\" #'org-latex-preview
-      "z"  #'org-add-note
-      :desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
+	:localleader
+	"\\" #'org-latex-preview
+	"z"  #'org-add-note
+	:desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
 ;; org/keybindings:1 ends here
 
 ;; [[file:config.org::*babel][babel:1]]
 (setq org-babel-default-header-args '((:session  . "none")
-                                      (:results  . "replace")
-                                      (:exports  . "code")
-                                      (:cache    . "no")
-                                      (:noweb    . "yes")
-                                      (:hlines   . "no")
-                                      (:tangle   . "no")
-                                      (:mkdirp   . "yes")
-                                      (:comments . "link"))) ;; important for when wanting to retangle
+					(:results  . "replace")
+					(:exports  . "code")
+					(:cache    . "no")
+					(:noweb    . "yes")
+					(:hlines   . "no")
+					(:tangle   . "no")
+					(:mkdirp   . "yes")
+					(:comments . "link"))) ;; important for when wanting to retangle
 ;; babel:1 ends here
 
 ;; [[file:config.org::*clock][clock:1]]
 (setq org-clock-out-when-done t
-      org-clock-persist t
-      org-clock-into-drawer t)
+	org-clock-persist t
+	org-clock-into-drawer t)
 ;; clock:1 ends here
 
 ;; [[file:config.org::*task states][task states:1]]
@@ -658,129 +669,131 @@
                            "[\\](\\!)")))
 
 (setq org-todo-keyword-faces '(("[@]"  . (bold +org-todo-project))
-                               ("[ ]"  . (bold org-todo))
-                               ("[-]"  . (bold +org-todo-active))
-                               ("[>]"  . (bold +org-todo-onhold))
-                               ("[?]"  . (bold +org-todo-onhold))
-                               ("[=]"  . (bold +org-todo-onhold))
-                               ("[&]"  . (bold +org-todo-onhold))
-                               ("[\\]" . (bold org-done))
-                               ("[x]"  . (bold org-done))))
+				 ("[ ]"  . (bold org-todo))
+				 ("[-]"  . (bold +org-todo-active))
+				 ("[>]"  . (bold +org-todo-onhold))
+				 ("[?]"  . (bold +org-todo-onhold))
+				 ("[=]"  . (bold +org-todo-onhold))
+				 ("[&]"  . (bold +org-todo-onhold))
+				 ("[\\]" . (bold org-done))
+				 ("[x]"  . (bold org-done))))
 ;; task states:1 ends here
 
 ;; [[file:config.org::*task states][task states:2]]
 (setq org-log-done 'time
-      org-log-repeat 'time
-      org-todo-repeat-to-state "[ ]"
-      org-log-redeadline 'time
-      org-log-reschedule 'time
-      org-log-into-drawer "LOG") ;; more concise & modern than: LOGBOOK
+	org-log-repeat 'time
+	org-todo-repeat-to-state "[ ]"
+	org-log-redeadline 'time
+	org-log-reschedule 'time
+	org-log-into-drawer "LOG") ;; more concise & modern than: LOGBOOK
 
 (setq org-priority-highest 1
-      org-priority-lowest 3)
+	org-priority-lowest 3)
 
 (setq org-log-note-headings '((done        . "note-done: %t")
-                              (state       . "state: %-3S -> %-3s %t") ;; NOTE :: the custom task-statuses are all 3- wide
-                              (note        . "note: %t")
-                              (reschedule  . "reschedule: %S, %t")
-                              (delschedule . "noschedule: %S, %t")
-                              (redeadline  . "deadline: %S, %t")
-                              (deldeadline . "nodeadline: %S, %t")
-                              (refile      . "refile: %t")
-                              (clock-out   . "")))
+				(state       . "state: %-3S -> %-3s %t") ;; NOTE :: the custom task-statuses are all 3- wide
+				(note        . "note: %t")
+				(reschedule  . "reschedule: %S, %t")
+				(delschedule . "noschedule: %S, %t")
+				(redeadline  . "deadline: %S, %t")
+				(deldeadline . "nodeadline: %S, %t")
+				(refile      . "refile: %t")
+				(clock-out   . "")))
 ;; task states:2 ends here
 
 ;; [[file:config.org::*capture templates][capture templates:1]]
 (setq org-directory "~/Documents/org/")
 
-(defvar u-journal-dir (file-name-concat "~/Documents/journal/")
-  "dir for daily captured journal files")
+  (defvar u-journal-dir (file-name-concat "~/Documents/journal/")
+    "dir for daily captured journal files")
 
-(defvar u-literature-dir "~/Documents/literature"
-  "literature sources and captured notes")
+  (defvar u-literature-dir "~/Documents/literature"
+    "literature sources and captured notes")
 
-(defvar u-literature-notes-dir (file-name-concat u-literature-dir "notes/")
-  "note files for each literature source")
+  (defvar u-literature-notes-dir (file-name-concat u-literature-dir "notes/")
+    "note files for each literature source")
 
-(defvar u-wiki-dir "~/Documents/wiki/"
-  "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
+  (defvar u-wiki-dir "~/Documents/wiki/"
+    "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
 and the later reviewed and merged into the corresponding article of the wiki.")
 
-(defvar u-u-doct-projects-default-templates '(u-doct-projects-task-template
-                                              u-doct-projects-event-template
-                                              u-doct-projects-note-template))
+  (defvar u-doct-projects-default-templates '(u-doct-projects-task-template
+					      u-doct-projects-event-template
+					      u-doct-projects-note-template))
 
-(defvar u-doct-projects `(("cs" :keys "c"
-                           :templates ,u-u-doct-projects-default-templates
-                           :children (("ti"   :keys "t")
-                                      ("an2"  :keys "a")
-                                      ("ph1"  :keys "p")
-                                      ("spca" :keys "s" :templates (u-doct-projects-cc-src-template))
-                                      ("nm"   :keys "n" :templates (u-doct-projects-cc-src-template))))
-                          ("personal" :keys "p" :templates ,u-u-doct-projects-default-templates)
-                          ("config"   :keys "f" :templates ,u-u-doct-projects-default-templates))
-  "same syntax as doct,  except for the key-value-pair: `:templates LIST`,
+  (defvar u-doct-projects `(("cs" :keys "c"
+                             :templates ,u-doct-projects-default-templates
+                             :children (("ti"   :keys "t")
+					("an2"  :keys "a")
+					("ph1"  :keys "p")
+					("spca" :keys "s" :templates (u-doct-projects-cc-src-template))
+					("nm"   :keys "n" :templates (u-doct-projects-cc-src-template))))
+                            ("personal" :keys "p" :templates ,u-doct-projects-default-templates)
+                            ("config"   :keys "f" :templates ,u-doct-projects-default-templates))
+    "same syntax as doct,  except for the key-value-pair: `:templates LIST`,
  where LIST is a list of functions with signature: `(PATH) -> VALID-DOCT-TEMPLATE`
  where PATH is to be generated by 'u-doct-projects-file'
  where TEMPLATE is a valid 'doct-capture-template'.
 ':templates' is inherited by the parent-group and if present in a childgroup it appends the
    additionally defined templates.")
 
-(defun u-doct-journal-file (&optional time)
-  "returns a structured filename based on the current date.
+  (defun u-doct-journal-file (&optional time)
+    "returns a structured filename based on the current date.
 eg: journal_2024-11-03.org
 TIME :: time in day of note to return. (default: today)"
-  (file-name-concat u-journal-dir
-                    (format "journal_%s.org"
-                            (format-time-string "%F"
-                                                (or time
-                                                    (current-time))))))
+    (->> (current-time)
+	 (or time)
+	 (format-time-string "%F")
+	 (format "journal_%s.org")
+	 (file-name-concat u-journal-dir)))
 
-(defun u-doct-projects-file (type path)
-  "TYPE :: 'agenda | 'notes"
-  (file-name-concat org-directory
-                    path (format "%s.org"
-                                 (symbol-name type))))
+  (defun u-doct-projects-file (type path)
+    "TYPE :: 'agenda | 'notes"
+    (->> type
+	 (symbol-name)
+	 (format "%s.org")
+	 (file-name-concat org-directory
+			   path)))
 
-(defun u-doct-projects-task-template (path)
-  (list "task"
-        :keys "t"
-        :file (u-doct-projects-file 'agenda path)
-        :headline "inbox"
-        :prepend t
-        :empty-lines-after 1
-        :template '("* [ ] %^{title}%?")))
+  (defun u-doct-projects-task-template (path)
+    (list "task"
+          :keys "t"
+          :file (u-doct-projects-file 'agenda path)
+          :headline "inbox"
+          :prepend t
+          :empty-lines-after 1
+          :template '("* [ ] %^{title}%?")))
 
-(defun u-doct-projects-event-template (path)
-  (list "event"
-        :keys "e"
-        :file (u-doct-projects-file 'agenda path)
-        :headline "events"
-        :prepend t
-        :empty-lines-after 1
-        :template '("* [@] %^{title}%?"
-                    "%^T"
-                    ":PROPERTIES:"
-                    ":REPEAT_TO_STATE: [@]" ; NOTE :: in case is made repeating
-                    ":location: %^{location}"
-                    ":material: %^{material}"
-                    ":END:")))
+  (defun u-doct-projects-event-template (path)
+    (list "event"
+          :keys "e"
+          :file (u-doct-projects-file 'agenda path)
+          :headline "events"
+          :prepend t
+          :empty-lines-after 1
+          :template '("* [@] %^{title}%?"
+                      "%^T"
+                      ":PROPERTIES:"
+                      ":REPEAT_TO_STATE: [@]" ; NOTE :: in case is made repeating
+                      ":location: %^{location}"
+                      ":material: %^{material}"
+                      ":END:")))
 
-(defun u-doct-projects-note-template (path)
-  (list "note"
-        :keys "n"
-        :file (u-doct-projects-file 'notes path)
-        :prepend t
-        :empty-lines-after 1
-        :template '("* %^{title} %^g"
-                    ":PROPERTIES:"
-                    ":created: %U"
-                    ":END:"
-                    "%?")))
+  (defun u-doct-projects-note-template (path)
+    (list "note"
+          :keys "n"
+          :file (u-doct-projects-file 'notes path)
+          :prepend t
+          :empty-lines-after 1
+          :template '("* %^{title} %^g"
+                      ":PROPERTIES:"
+                      ":created: %U"
+                      ":END:"
+                      "%?")))
 
-(defun u-doct-projects-cc-src-template (path)
-  "for quickly implementing/testing ideas (like a scratchpad, but have all
+  (defun u-doct-projects-cc-src-template (path)
+    "for quickly implementing/testing ideas (like a scratchpad, but have all
   our code-snippets in a single literate document, instead of creating a new file each time).  choose either c or c++.
 
 `<<header>>' is org-babel's `:noweb' syntax and the named `org-src-block':
@@ -788,203 +801,224 @@ TIME :: time in day of note to return. (default: today)"
 on wether the project uses C or cpp it is different.  and should contains stuff
 like `#include <iostream>' that is basically needed for every single snippet. "
 
-  (list "note: src cc"
-        :keys "s"
-        :file (u-doct-projects-file 'notes path)
-        :prepend t
-        :empty-lines 1
-        :template '("* %^{title} :%^{lang|C|C|cpp}:"
-                    ":PROPERTIES:"
-                    ":created: %U"
-                    ":END:"
-                    "#+begin_src %\\2"
-                    "<<%\\2_header>>"
-                    ""
-                    "int main() {"
-                    "        %?"
-                    "}"
-                    "#+end_src")))
+    (list "note: src cc"
+          :keys "s"
+          :file (u-doct-projects-file 'notes path)
+          :prepend t
+          :empty-lines 1
+          :template '("* %^{title} :%^{lang|C|C|cpp}:"
+                      ":PROPERTIES:"
+                      ":created: %U"
+                      ":END:"
+                      "#+begin_src %\\2"
+                      "<<%\\2_header>>"
+                      ""
+                      "int main() {"
+                      "        %?"
+                      "}"
+                      "#+end_src")))
 
-(defun u-doct-projects-expand-templates (projects &optional inherited-templates parent-path)
-  "PROJECTS :: `u-doct-projects'
+  (defun u-doct-projects-expand-templates (projects &optional inherited-templates parent-path)
+    "PROJECTS :: `u-doct-projects'
 PARENT-PATH :: nil (used for recursion) "
-  (mapcar (lambda (project)
-            (let* ((tag (car project))
-                   (props (cdr project))
-                   (key (plist-get props :keys))
-                   (self `(,tag :keys ,key))
-                   (children (plist-get props :children))
-                   (templates (append inherited-templates (plist-get props :templates)))
-                   (path (file-name-concat parent-path tag)))
-              (append self
-                      (if children
-                          ;; HAS CHILDREN => is project-node => recursivly expand children
+    (mapcar (lambda (project)
+              (let* ((tag (car project))
+                     (props (cdr project))
+                     (key (plist-get props :keys))
+                     (self `(,tag :keys ,key))
+                     (children (plist-get props :children))
+                     (templates (append inherited-templates (plist-get props :templates)))
+                     (path (file-name-concat parent-path tag)))
+
+		(append self
+			(if children
+                            ;; HAS CHILDREN => is project-node => recursivly expand children
+                            (list :children
+                                  (append (u-doct-projects-expand-templates (list self)
+                                                                            templates)
+                                          (u-doct-projects-expand-templates children
+                                                                            templates
+                                                                            path)))
+
+                          ;; NO CHILDREN => is leaf-node => instantiate templates
                           (list :children
-                                (append (u-doct-projects-expand-templates (list self)
-                                                                          templates)
-                                        (u-doct-projects-expand-templates children
-                                                                          templates
-                                                                          path)))
+				(mapcar (lambda (fn-sym)
+                                          (funcall fn-sym path))
+                                        templates))))))
+            projects))
 
-                        ;; NO CHILDREN => is leaf-node => instantiate templates
-                        (list :children (mapcar (lambda (fn-sym)
-                                                  (funcall fn-sym path))
-                                                templates))))))
-          projects))
+  (setq org-capture-templates
+	(doct `(;; PROJECT TEMPLATES
+		,@(u-doct-projects-expand-templates u-doct-projects)
 
-(setq org-capture-templates
-      (doct `(;; PROJECT TEMPLATES
-              ,@(u-doct-projects-expand-templates u-doct-projects)
+		;; NON-PROJECT TEMPLATES
+		("journal"
+		 :keys "j"
 
-              ;; NON-PROJECT TEMPLATES
-              ("journal"
-               :keys "j"
-               :file (lambda () (u-doct-journal-file))
-               :title (lambda ()
-                        (downcase (format-time-string "journal: %A, %e. %B %Y")))
+		 :file (lambda ()
+			 (u-doct-journal-file))
 
-               :children (("journal init"
-                           :keys "j"
-                           :type plain
-                           :template  ("#+title:  %{title}"
-                                       "#+author: %(user-full-name)"
-                                       "#+email:  %(message-user-mail-address)"
-                                       "#+date:   %<%F>"
-                                       "#+filetags: :journal:"
-                                       ""
-                                       "* goals"
-                                       "- [ ] %?"
-                                       ""
-                                       "* agenda"
-                                       "** [ ] "
-                                       ""
-                                       "* notes"))
+		 :title (lambda ()
+                          (downcase (format-time-string "journal: %A, %e. %B %Y")))
 
-                          ("note"
-                           :keys "n"
-                           :headline "notes"
-                           :prepend t
-                           :empty-lines-after 1
-                           :template ("* %^{title}"
-                                      ":PROPERTIES:"
-                                      ":created: %U"
-                                      ":END:"
-                                      "%?"))
+		 :children (("journal init"
+                             :keys "j"
+                             :type plain
+                             :template  ("#+title:  %{title}"
+					 "#+author: %(user-full-name)"
+					 "#+email:  %(message-user-mail-address)"
+					 "#+date:   %<%F>"
+					 "#+filetags: :journal:"
+					 ""
+					 "* goals"
+					 "- [ ] %?"
+					 ""
+					 "* agenda"
+					 "** [ ] "
+					 ""
+					 "* notes"))
 
-                          ("yesterday review"
-                           :keys "y"
-                           :unnarrowed t
-                           :file (lambda ()
-                                   (u-doct-journal-file (time-subtract (current-time)
-                                                                       (days-to-time 1))))
-                           :template ("* gratitude"
-                                      "- %?"
-                                      ""
-                                      "* reflection"
-                                      "-"))))
+                            ("note"
+                             :keys "n"
+                             :headline "notes"
+                             :prepend t
+                             :empty-lines-after 1
+                             :template ("* %^{title}"
+					":PROPERTIES:"
+					":created: %U"
+					":END:"
+					"%?"))
 
-              ("literature"
-               :keys "l"
-               :file (lambda () (read-file-name "file: " u-literature-notes-dir))
-               :children (("add to readlist"
-                           :keys "a"
-                           :file ,(file-name-concat u-literature-dir "readlist.org")
-                           :headline "inbox"
-                           :prepend t
-                           :template ("* [ ] %^{title}"))
+                            ("yesterday review"
+                             :keys "y"
+                             :unnarrowed t
 
-                          ("init source"
-                           :keys "i"
-                           :file (lambda ()
-                                   (file-name-concat u-literature-notes-dir
-                                                     (concat (replace-regexp-in-string " "
-                                                                                       "_"
-                                                                                       (read-from-minibuffer "short title: "))
-                                                             ".org")))
-                           :type plain
-                           :template ("#+title:  %^{full title}"
-                                      "#+author: %(user-full-name)"
-                                      "#+email:  %(message-user-mail-address)"
-                                      "#+date:   %<%F>"
-                                      "#+filetags: :literature:%^g"
-                                      ""
-                                      "* [-] %\\1%?"
-                                      ":PROPERTIES:"
-                                      ":title:  %\\1"
-                                      ":author: %^{author}"
-                                      ":year:   %^{year}"
-                                      ":type:   %^{type|book|book|textbook|book|paper|article|audiobook|podcast}"
-                                      ":pages:  %^{pages}"
-                                      ":END:")
-                           :hook (lambda () (message "change task-state in readlist.org!")))
+                             :file (lambda ()
+				     (->> (days-to-time 1)
+					  (time-subtract (current-time))
+					  (u-doct-journal-file)))
 
-                          ("quote"
-                           :keys "q"
-                           :headline "quotes"
-                           :empty-lines-before 1
-                           :template ("* %^{title} [pg: %^{page}]"
-                                      ":PROPERTIES:"
-                                      ":created: %U"
-                                      ":END:"
-                                      "#+begin_quote"
-                                      "%?"
-                                      "#+end_quote"))
+                             :template ("* gratitude"
+					"- %?"
+					""
+					"* reflection"
+					"-"))))
 
-                          ("note: literary"
-                           :keys "l"
-                           :headline "literature notes"
-                           :empty-lines-before 1
-                           :template ("* %^{title} [pg: %^{page}] %^g"
-                                      ":PROPERTIES:"
-                                      ":created: %U"
-                                      ":END:"
-                                      "%?"))
+		("literature"
+		 :keys "l"
 
-                          ("note: transient"
-                           :keys "t"
-                           :headline "transient notes"
-                           :empty-lines-before 1
-                           :template ("* %^{title} %^g"
-                                      ":PROPERTIES:"
-                                      ":created: %U"
-                                      ":END:"
-                                      "%?"))
+		 :file (lambda () (read-file-name "file: " u-literature-notes-dir))
 
-                          ("summarize"
-                           :keys "s"
-                           :headline "summary"
-                           :unnarrowed t
-                           :type plain
-                           :template ("%?")
-                           :hook (lambda ()
-                                   (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
+		 :children (("add to readlist"
+                             :keys "a"
+                             :file ,(file-name-concat u-literature-dir "readlist.org")
+                             :headline "inbox"
+                             :prepend t
+                             :template ("* [ ] %^{title}"))
+
+                            ("init source"
+                             :keys "i"
+
+                             :file (lambda ()
+                                     (file-name-concat u-literature-notes-dir
+                                                       (concat (replace-regexp-in-string " "
+											 "_"
+											 (read-from-minibuffer "short title: "))
+							       ".org")))
+
+                             :type plain
+
+                             :template ("#+title:  %^{full title}"
+					"#+author: %(user-full-name)"
+					"#+email:  %(message-user-mail-address)"
+					"#+date:   %<%F>"
+					"#+filetags: :literature:%^g"
+					""
+					"* [-] %\\1%?"
+					":PROPERTIES:"
+					":title:  %\\1"
+					":author: %^{author}"
+					":year:   %^{year}"
+					":type:   %^{type|book|book|textbook|book|paper|article|audiobook|podcast}"
+					":pages:  %^{pages}"
+					":END:")
+
+                             :hook (lambda () (message "change task-state in readlist.org!")))
+
+                            ("quote"
+                             :keys "q"
+                             :headline "quotes"
+                             :empty-lines-before 1
+
+                             :template ("* %^{title} [pg: %^{page}]"
+					":PROPERTIES:"
+					":created: %U"
+					":END:"
+					"#+begin_quote"
+					"%?"
+					"#+end_quote"))
+
+                            ("note: literary"
+                             :keys "l"
+                             :headline "literature notes"
+                             :empty-lines-before 1
+                             :template ("* %^{title} [pg: %^{page}] %^g"
+					":PROPERTIES:"
+					":created: %U"
+					":END:"
+					"%?"))
+
+                            ("note: transient"
+                             :keys "t"
+                             :headline "transient notes"
+                             :empty-lines-before 1
+                             :template ("* %^{title} %^g"
+					":PROPERTIES:"
+					":created: %U"
+					":END:"
+					"%?"))
+
+                            ("summarize"
+                             :keys "s"
+                             :headline "summary"
+                             :unnarrowed t
+                             :type plain
+                             :template ("%?")
+                             :hook (lambda ()
+                                     (message "change task-state!: TODO -> DONE")))))))) ;; in order to log finishing date
 ;; capture templates:1 ends here
 
 ;; [[file:config.org::*agenda][agenda:1]]
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
- ;; NOTE :: archive based on relative file path
-(setq org-archive-location (file-name-concat u-archive-dir "org" "%s::")
-      org-agenda-files (append
-                        (when (file-exists-p org-directory)
-                          (directory-files-recursively org-directory
-                                                       org-agenda-file-regexp
-                                                       t))
-                        (list (u-doct-journal-file)
-                              (u-doct-journal-file (time-subtract (current-time)
-                                                                (days-to-time 1))))) ;; include tasks from {today's, yesterday's} journal's agenda
-      org-agenda-skip-scheduled-if-done t
-      ;; org-agenda-sticky t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-tags-column 0
-      org-agenda-block-separator ?─
-      org-agenda-breadcrumbs-separator "…"
-      org-agenda-compact-blocks nil
-      org-agenda-show-future-repeats nil
-      org-deadline-warning-days 3
-      org-agenda-time-grid nil
-      org-capture-use-agenda-date t)
+;; NOTE :: archive based on relative file path
+(setq org-archive-location (file-name-concat u-archive-dir
+					       "org"
+					       "%s::")
+
+	org-agenda-files (append
+			  (when (file-exists-p org-directory)
+			    (directory-files-recursively org-directory
+							 org-agenda-file-regexp
+							 t))
+			  ;; include tasks from {today's, yesterday's} journal's agenda
+			  (->> (days-to-time 1)
+			       (time-subtract (current-time))
+			       (u-doct-journal-file)
+			       (list (u-doct-journal-file))))
+
+	org-agenda-skip-scheduled-if-done t
+	;; org-agenda-sticky t
+	org-agenda-skip-deadline-if-done t
+	org-agenda-include-deadlines t
+	org-agenda-tags-column 0
+	org-agenda-block-separator ?─
+	org-agenda-breadcrumbs-separator "…"
+	org-agenda-compact-blocks nil
+	org-agenda-show-future-repeats nil
+	org-deadline-warning-days 3
+	org-agenda-time-grid nil
+	org-capture-use-agenda-date t)
 ;; agenda:1 ends here
 
 ;; [[file:config.org::*agenda][agenda:2]]
@@ -996,12 +1030,13 @@ PARENT-PATH :: nil (used for recursion) "
 
 ;; [[file:config.org::*agenda][agenda:3]]
 (setq org-agenda-todo-keyword-format "%-3s"
-      org-agenda-scheduled-leaders '(""
-                                     "<< %1dd")
-      org-agenda-deadline-leaders '("─────"
+	org-agenda-scheduled-leaders '("" "<< %1dd")
+
+	org-agenda-deadline-leaders '("─────"
                                     ">> %1dd"
                                     "<< %1dd")
-      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; all columns separated by minimum 2 spaces
+
+	org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; all columns separated by minimum 2 spaces
                                  (todo   . "%-20c%-7s%-7t")
                                  (tags   . "%-20c%-7s%-7t")
                                  (search . "%-20c%-7s%-7t")))
@@ -1037,8 +1072,8 @@ PARENT-PATH :: nil (used for recursion) "
 speak more for it's self).  using the technical document convention of double space full stops for
 legibility."
   (save-excursion
-      (downcase-region beg end)
-      (repunctuate-sentences t beg end)))
+    (downcase-region beg end)
+    (repunctuate-sentences t beg end)))
 
 (add-hook! 'whisper-after-transcription-hook (u-reformat-prose (point-min) (point-max)))
 
@@ -1129,11 +1164,11 @@ legibility."
 ;; shell: zsh:1 ends here
 
 ;; [[file:config.org::*ruby][ruby:1]]
-;; HACK :: use rubocop formatter
+;; HACK :: use rubocop formatter.
 (after! apheleia-formatters
   (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
 
-(define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me
+(define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me.
 
 (map! :map ruby-mode-map :localleader :after ruby-mode
       (:prefix "s"
