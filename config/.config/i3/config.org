@@ -29,6 +29,7 @@
 - this is consistent with the navigational workflow inside emacs, where we also never use splits and instead use the current window.
 - managing windows over multiple monitors becomes increasingly complex and produces overhead.  it's faster to switch to the window you need instantaneously with a keyboard shortcut, instead of physically tilting the head (which is also unergonomic).  additionally we want consistency in the workflow inbetween using the laptop and desktop setup (if you even have that).
 - using a single monitor only not only makes you faster, but it also aligns with the focused singletasking fullscreen workflow.
+- hence we don't include any bindings to move workspaces/windows between outputs.
 
 * macros
 - no statusbar => using notifications to display volume change
@@ -38,7 +39,6 @@ set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
 set $BIN ~/.local/bin
-set $SCROT scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
 
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
@@ -122,11 +122,12 @@ bindsym $MOD+p            focus left
 bindsym $MOD+shift+p      move left
 bindsym $MOD+n            focus right
 bindsym $MOD+shift+n      move right
-
 bindsym $MOD+q            kill
-bindsym $MOD+b            $SHCMD $BIN/window-menu $DMENU_THEME
-bindsym $MOD+Tab          workspace back_and_forth
 
+# switch to window (same binding as in emacs: C-b)
+bindsym $MOD+b            $SHCMD wmctrl -a "$(wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >')"
+
+bindsym $MOD+Tab          workspace back_and_forth
 bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
 bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 #+end_src
@@ -228,7 +229,8 @@ mode "leader" {
         bindsym $MOD+k $ESC; $SHCMD $BIN/killprocess-menu $DMENU_THEME
         bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
-        bindsym $MOD+s $ESC; $SHCMD $SCROT
+	# screenshot
+        bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
 
         bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 

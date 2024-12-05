@@ -70,7 +70,7 @@ echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
 - zathura :: minmalist pdf viewer (with vim-bindings )
 - terminal :: using emacs ~M-x shell~ (~alacritty~ as a fallback).
 #+begin_src sh
-dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst alacritty feh maim xset xsetroot keepassxc scrot
+dnf install i3 wmctrl xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst alacritty feh maim xset xsetroot keepassxc scrot
 
 dnf install zathura zathura-pdf-mupdf
 

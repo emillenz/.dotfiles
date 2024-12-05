@@ -12,42 +12,44 @@ require 'English'
 
 # ARGV := arguments to pass to dmenu
 def main
-        addresses = `bluetoothctl devices`.split("\n").map do |line|
-                words = line.split
-                name = words[2..].join(' ')
-                addr = words[1]
-                [name, addr]
-        end.to_h
+	addresses = `bluetoothctl devices`.split("\n").map do |line|
+		words = line.split
+		name = words[2..].join(' ')
+		addr = words[1]
+		[name, addr]
+	end.to_h
 
-        input = addresses.keys.push('/off').join("\n")
+	input = addresses.keys.push('/off').join("\n")
 
-        selected, status = Open3.capture2('dmenu',
-                                          '-p',
-                                          "#{File.basename($PROGRAM_NAME)} >",
-                                          *ARGV,
-                                          stdin_data: input)
+	selected, status = Open3.capture2(
+		'dmenu',
+		'-p',
+		"#{File.basename($PROGRAM_NAME)} >",
+		*ARGV,
+		stdin_data: input
+	)
 
-        exit(1) unless status.success?
-        selected = selected.chomp
+	exit(1) unless status.success?
+	selected = selected.chomp
 
-        case selected
-        when '!off'
-                disconnect
-        else
-                connect(selected, addresses)
-        end
+	case selected
+	when '!off'
+		disconnect
+	else
+		connect(selected, addresses)
+	end
 end
 
 def connect(device_name, addresses)
-        `bluetoothctl power on`
-        `bluetoothctl connect #{addresses[device_name]}`
-        exit(1) unless $CHILD_STATUS.success?
-        `dunstify 'bluetooth connected' "#{device_name}"`
+	`bluetoothctl power on`
+	`bluetoothctl connect #{addresses[device_name]}`
+	exit(1) unless $CHILD_STATUS.success?
+	`dunstify 'bluetooth connected' "#{device_name}"`
 end
 
 def disconnect
-        `bluetoothctl power off`
-        `dunstify 'bluetooth off'`
+	`bluetoothctl power off`
+	`dunstify 'bluetooth off'`
 end
 
 main

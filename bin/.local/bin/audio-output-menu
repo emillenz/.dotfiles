@@ -5,7 +5,7 @@
 # email:  emillenz@protonmail.com
 # date:   2023-05-07
 # dependencies:
-# - rofi, pactl
+# - dmenu, pactl
 # ---
 
 require 'json'
@@ -14,27 +14,30 @@ require 'English'
 
 # ARGV := arguments to pass to dmenu
 def main
-        sinks = JSON.parse(`pactl --format json list sinks`)
+	sinks = JSON.parse(`pactl --format json list sinks`)
 
-        sink_names = sinks.map { |sink| sink['description'] }.join("\n")
+	sink_names = sinks.map { |sink| sink['description'] }.join("\n")
 
-        read, status = Open3.capture2('dmenu',
-                                      '-p',
-                                      "#{File.basename($PROGRAM_NAME)} >",
-                                      *ARGV,
-                                      stdin_data: sink_names)
-        exit(1) unless status.success?
+	read, status = Open3.capture2(
+		'dmenu',
+		'-p',
+		"#{File.basename($PROGRAM_NAME)} >",
+		*ARGV,
+		stdin_data: sink_names
+	)
 
-        sink_id = sinks.find { |sink| sink['description'] == read.chomp }['index']
+	exit(1) unless status.success?
 
-        `pactl set-default-sink #{sink_id}`
-        exit 1 unless $CHILD_STATUS.success?
+	sink_id = sinks.find { |sink| sink['description'] == read.chomp }['index']
 
-        JSON.parse(`pactl --format json list sink-inputs`).map do |sink|
-                `pactl move-sink-input #{sink['index']} #{sink_id}`
-        end
+	`pactl set-default-sink #{sink_id}`
+	exit 1 unless $CHILD_STATUS.success?
 
-        `dunstify 'audio-output changed' "#{read}"`
+	JSON.parse(`pactl --format json list sink-inputs`).map do |sink|
+		`pactl move-sink-input #{sink['index']} #{sink_id}`
+	end
+
+	`dunstify 'audio-output changed' "#{read}"`
 end
 
 main

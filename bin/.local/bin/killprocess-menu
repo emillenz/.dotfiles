@@ -4,8 +4,7 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2023-05-08
-# dependencies:
-# - rofi
+# dependencies: dmenu
 # ---
 
 require 'open3'
@@ -13,27 +12,29 @@ require 'English'
 
 # ARGV := arguments to pass to dmenu
 def main
-        processes = `ps -e -o pid,comm`.lines.drop(1).map do |line|
-                columns = line.strip.split(/\s+/)
-                pid = columns[0]
-                name = columns[1..].join(' ')
-                [name, pid]
-        end.to_h
+	processes = `ps -e -o pid,comm`.lines.drop(1).map do |line|
+		columns = line.strip.split(/\s+/)
+		pid = columns[0]
+		name = columns[1..].join(' ')
+		[name, pid]
+	end.to_h
 
-        process_names = processes.keys.join("\n")
+	process_names = processes.keys.join("\n")
 
-        selected_ps, status = Open3.capture2('dmenu',
-                                             '-p',
-                                             "#{File.basename($PROGRAM_NAME)} >",
-                                             *ARGV,
-                                             stdin_data: process_names)
+	selected_ps, status = Open3.capture2(
+		'dmenu',
+		'-p',
+		"#{File.basename($PROGRAM_NAME)} >",
+		*ARGV,
+		stdin_data: process_names
+	)
 
-        exit 1 unless status.success?
-        ps_id = processes[selected_ps.chomp]
+	exit 1 unless status.success?
+	ps_id = processes[selected_ps.chomp]
 
-        `sudo kill #{ps_id}`
-        exit 1 unless $CHILD_STATUS.success?
-        `dunstify 'killprocess' "#{selected_ps}`
+	`sudo kill #{ps_id}`
+	exit 1 unless $CHILD_STATUS.success?
+	`dunstify 'killprocess' "#{selected_ps}`
 end
 
 main
