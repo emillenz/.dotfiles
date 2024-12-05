@@ -4,7 +4,7 @@
 #  author: emil lenz
 #  email:  emillenz@protonmail.com
 #  date:   2024-05-26
-#  dependecies: bluetoothctl
+#  dependecies: bluetoothctl, dmenu
 #  ---
 
 require 'open3'
@@ -19,7 +19,7 @@ def main
 		[name, addr]
 	end.to_h
 
-	input = addresses.keys.push('/off').join("\n")
+	input = addresses.keys.push("off").join("\n")
 
 	selected, status = Open3.capture2(
 		'dmenu',
@@ -33,8 +33,8 @@ def main
 	selected = selected.chomp
 
 	case selected
-	when '!off'
-		disconnect
+	when "off"
+		poweroff
 	else
 		connect(selected, addresses)
 	end
@@ -47,7 +47,7 @@ def connect(device_name, addresses)
 	`dunstify 'bluetooth connected' "#{device_name}"`
 end
 
-def disconnect
+def poweroff
 	`bluetoothctl power off`
 	`dunstify 'bluetooth off'`
 end

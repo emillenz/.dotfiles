@@ -421,7 +421,7 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 ** completion & minibuffer
 - completion keybindings :: use [[kbd:C-n][C-n]] for code autocompletion.  use [[kbd:C-p][C-p]] for abbreviations (which is logical since the expansion is most likely to be above the current code position)  finally, if we want to expand a snippet, or move through completion fields, use [[kbd:tab][tab]].  once autocompletion is activated, we use [[kbd:][C-n/p]] to navigate candidates.
 - vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu/rofi's appearance).   we use the same bindings for navigating the candidates as for completion (consistency!): [[kbd:C-n/p][C-n/p]]
-- history :: [[kbd:][j, k]] is what bash's vi-mode uses by defaults, it is a good and ergonomic default.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ must use [[kbd:][ctrl]] modifier, since it is a regular buffer).
+- history :: [[kbd:][j, k]] is what bash's vi-mode uses by defaults, it is a good and ergonomic default.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ use [[kbd:][ctrl-n/p]] since it is a regular buffer).
 - normal mode :: we make evil-integration more sane: ~/~, ~RET~
 
 #+begin_src elisp
@@ -455,13 +455,7 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 	:i "C-n" #'company-complete)
 
   (map! :map comint-mode-map :after comint
-        ;; cant use normal j/k
-	:n "C-k" #'comint-previous-input
-	:n "C-j" #'comint-next-input
-        :n "C-/" #'comint-history-isearch-backward-regexp
-        ;; respect evil's bindings!
-        :n "C-n" #'evil-paste-pop
-        :n "C-p" #'evil-paste-pop-next)
+        :i "C-r" #'comint-history-isearch-backward-regexp)
 #+end_src
 
 in search/replace minibuffers we want C-p to work as in evil buffer's: to expand matches of the buffer.  C-n is still mapped to 'minibuffer-complete'.  this allows us to eg. quickly replace the symbol at 'point'.
@@ -475,19 +469,22 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 - goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and improve consistency of implementation.
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
-- [[kbd:][C-j]] :: inverse of: [[kbd:][J]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
+- [[kbd:][L]] :: inverse of: [[kbd:][L]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
 - & :: for running quick one-off shell commands we need a primary mapping (for anthing more, switch over to ~shell~).  (evil's: ~&~ is useless, since we use ~query-replace-regexp~ instead of ~evil-ex~).
+- [[kbd:][C-j/k]] :: navigate by sections these bindings are implemented in ~magit~, ~info-mode~, ~man~, ~org-mode~
 
 #+begin_src elisp
 (map! :after evil
       :nm "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
       :nm "&"   #'async-shell-command ;; consistent with dired, shell...
+      :n  "L"   #'newline-and-indent
 
       ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless
       :n  "+"   #'evil-numbers/inc-at-pt
       :n  "-"   #'evil-numbers/dec-at-pt
       :n  "g+"  #'evil-numbers/inc-at-pt-incremental
       :n  "g-"  #'evil-numbers/dec-at-pt-incremental
+
 
       :n  "g<"  #'evil-lion-left
       :n  "g>"  #'evil-lion-right)
@@ -502,8 +499,10 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 #+begin_src elisp
 (map! :map evil-org-mode-map :after evil-org
       ;; respect evil bindings!
-      :n "gj" #'evil-next-visual-line
-      :n "gk" #'evil-previous-visual-line)
+      :n "gj"  #'evil-next-visual-line
+      :n "gk"  #'evil-previous-visual-line
+      :n "C-j" #'org-next-visible-heading
+      :n "C-k" #'org-previous-visible-heading)
 #+end_src
 
 we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are already for screen-movements: [[kbd:][C-u/d/e/y]]), but ~c~ modes don't respect that for some reason.
@@ -664,7 +663,7 @@ harpoon bugfix
 
 ;; harpoon bindings continued
 (map! :map 'override
-      "M-5" #'u-switch-to-compilation-buffer)
+      "M-6" #'u-switch-to-compilation-buffer)
 #+end_src
 
 

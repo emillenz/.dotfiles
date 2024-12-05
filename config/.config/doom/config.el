@@ -288,13 +288,7 @@
 	:i "C-n" #'company-complete)
 
 (map! :map comint-mode-map :after comint
-      ;; cant use normal j/k
-	:n "C-k" #'comint-previous-input
-	:n "C-j" #'comint-next-input
-      :n "C-/" #'comint-history-isearch-backward-regexp
-      ;; respect evil's bindings!
-      :n "C-n" #'evil-paste-pop
-      :n "C-p" #'evil-paste-pop-next)
+      :i "C-r" #'comint-history-isearch-backward-regexp)
 ;; completion & minibuffer:1 ends here
 
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:2]]
@@ -307,12 +301,14 @@
 (map! :after evil
       :nm "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
       :nm "&"   #'async-shell-command ;; consistent with dired, shell...
+      :n  "L"   #'newline-and-indent
 
       ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless
       :n  "+"   #'evil-numbers/inc-at-pt
       :n  "-"   #'evil-numbers/dec-at-pt
       :n  "g+"  #'evil-numbers/inc-at-pt-incremental
       :n  "g-"  #'evil-numbers/dec-at-pt-incremental
+
 
       :n  "g<"  #'evil-lion-left
       :n  "g>"  #'evil-lion-right)
@@ -326,8 +322,10 @@
 ;; [[file:config.org::*editing][editing:2]]
 (map! :map evil-org-mode-map :after evil-org
       ;; respect evil bindings!
-      :n "gj" #'evil-next-visual-line
-      :n "gk" #'evil-previous-visual-line)
+      :n "gj"  #'evil-next-visual-line
+      :n "gk"  #'evil-previous-visual-line
+      :n "C-j" #'org-next-visible-heading
+      :n "C-k" #'org-previous-visible-heading)
 ;; editing:2 ends here
 
 ;; [[file:config.org::*editing][editing:3]]
@@ -455,7 +453,7 @@
 
 ;; harpoon bindings continued
 (map! :map 'override
-      "M-5" #'u-switch-to-compilation-buffer)
+      "M-6" #'u-switch-to-compilation-buffer)
 ;; buffer goto (harpoon concept, but for frequently used buffers):1 ends here
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
