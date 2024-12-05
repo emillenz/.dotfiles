@@ -4,12 +4,14 @@ set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
 set $BIN ~/.local/bin
+set $SCROT scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
 
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
 set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep 0.1 && playerctl status)"
+
 
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
@@ -120,7 +122,7 @@ mode "leader" {
         bindsym $MOD+k $ESC; $SHCMD $BIN/killprocess-menu $DMENU_THEME
         bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
-        bindsym $MOD+s $ESC; $SHCMD flameshot gui
+        bindsym $MOD+s $ESC; $SHCMD $SCROT
 
         bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 

@@ -83,18 +83,18 @@
 
 ;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
 (setq display-buffer-alist `((,(rx (seq "*" (or "transient"
-                                                (seq "Org " (or "Select" "todo"))
-                                                "Agenda Commands"
-                                                "doom eval"
-                                                "Backtrace"
-                                                "lsp-help")))
-                              display-buffer-in-side-window
-                              (window-parameters . ((mode-line-format . none)))
-                              (window-height . fit-window-to-buffer)
-                              (side . bottom))
+						(seq "Org " (or "Select" "todo"))
+						"Agenda Commands"
+						"doom eval"
+						"Backtrace"
+						"lsp-help")))
+			      display-buffer-in-side-window
+			      (window-parameters . ((mode-line-format . none)))
+			      (window-height . fit-window-to-buffer)
+			      (side . bottom))
 
-                             ("."
-                              display-buffer-same-window))
+			     ("."
+			      display-buffer-same-window))
 
       switch-to-buffer-obey-display-actions t)
 ;; window layout & behavior :: single maximized buffer workflow:1 ends here
@@ -1126,7 +1126,6 @@ legibility."
                "e" #'ruby-send-last-stmt
                "l" #'ruby-send-line
                "L" #'ruby-send-line-and-go
-               "hello world"
                "b" #'ruby-send-block
                "B" #'ruby-send-block-and-go))
 ;; ruby:1 ends here

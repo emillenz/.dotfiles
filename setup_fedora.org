@@ -76,7 +76,7 @@ dnf install fd-find ripgrep tldr curl
 - keepassxc :: passwordmanager.  install browser extension + configure it's settings: run on startup, minimize to systray, don't kill on close.
 - zathura :: minmalist pdf viewer (with vim-bindings )
 #+begin_src sh
-dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc flameshot
+dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc scrot
 
 dnf install zathura zathura-pdf-mupdf
 
