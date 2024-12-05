@@ -12,34 +12,36 @@ require 'open3'
 
 # ARGV := arguments to pass to dmenu
 def main
-        windows = windows(JSON.parse(`i3-msg -t get_tree`))
-        window_titles = windows.map { |win| win[:name] }.join("\n")
+	windows = windows(JSON.parse(`i3-msg -t get_tree`))
+	window_titles = windows.map { |win| win[:name] }.join("\n")
 
-        selected_title, status = Open3.capture2('dmenu',
-                                                '-p',
-                                                "#{File.basename($PROGRAM_NAME)} >",
-                                                *ARGV,
-                                                stdin_data: window_titles)
+	selected_title, status = Open3.capture2(
+		'dmenu',
+		'-p',
+		"#{File.basename($PROGRAM_NAME)} >",
+		*ARGV,
+		stdin_data: window_titles
+	)
 
-        status.success? && exit(1)
+	status.success? && exit(1)
 
-        sel_window = windows.find { |win| win[:name] == selected_title.chomp }
+	sel_window = windows.find { |win| win[:name] == selected_title.chomp }
 
-        exec('i3-msg', "[con_id=#{sel_window[:id]}] focus")
+	exec('i3-msg', "[con_id=#{sel_window[:id]}] focus")
 end
 
 def windows(node)
-        node || return
+	node || return
 
-        if node['window_type'] == 'normal'
-                {
-                        id: node['id'],
-                        name: node['window_properties']['title'],
-                        class: node['window_properties']['class']
-                }
-        else
-                (node['nodes'] || []).flat_map { |child_node| windows(child_node) }
-        end
+	if node['window_type'] == 'normal'
+		{
+			id: node['id'],
+			name: node['window_properties']['title'],
+			class: node['window_properties']['class']
+		}
+	else
+		(node['nodes'] || []).flat_map { |child_node| windows(child_node) }
+	end
 end
 
 main

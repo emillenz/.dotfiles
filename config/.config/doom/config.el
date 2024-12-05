@@ -124,22 +124,17 @@
 ;; [[file:config.org::*rationale][rationale:1]]
 (defvar u-global-indent-width 8)
 
-(setq-default standard-indent u-global-indent-width
-              evil-shift-width u-global-indent-width
+(setq-default indent-tabs-mode t
               tab-width u-global-indent-width
-              org-indent-indentation-per-level u-global-indent-width
+              standard-indent u-global-indent-width
               evil-indent-convert-tabs t
-              indent-tabs-mode nil)
+              evil-shift-width u-global-indent-width
+              org-indent-indentation-per-level u-global-indent-width)
 
-(setq-hook! '(c++-mode-hook
-              c-mode-hook
-              java-mode-hook)
-  c-basic-offset u-global-indent-width
-  evil-shift-width u-global-indent-width)
+(setq c-default-style "linux")
 
-(setq-hook! 'ruby-mode-hook
-  evil-shift-width u-global-indent-width
-  ruby-indent-level u-global-indent-width)
+(after! 'ruby-mode
+  (setq ruby-indent-tabs-mode t))
 ;; rationale:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]

@@ -246,39 +246,32 @@ Tabs are 8 characters, and thus indentations are also 8 characters.  There are h
 --- Linus Torvalds
 #+end_quote
 
-the 8 space indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 80 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 80 column limit forces you to keep your code within reasonable limits.
+the 8-wide tab indent cannot exist in isolation.  it has to be coupled with a right-hand side limit of 80 columns.  otherwise, you could just indent yourself off to infinity and there would be no consequences.  an 80 column limit forces you to keep your code within reasonable limits.
 
 the whole idea behind indentation is to clearly define where a block of control starts and ends.  this is the same philosophy applied in ~modus-theme~, where we clearly want to separate elements and enhace legibility & accessibility.  especially when you’ve been looking at your screen for 20 straight hours, you’ll find it a lot easier to see how the indentation works if you have large indentations.  you can look at a function definition from afar and tell easily where it begins & ends even though you cannot read the actual code.  it facilitates reading through a codebase in a more tree-like fashion.
 
 every level of indentation represents a piece of program state the reader has to keep in their head to understand a function.  “in this line, i know line points to the nth line as long as x is not true, but y > z.” 8-character indentations, internal spacing, and the 80-column rule effectively limits you to 4 levels of indentation in a function.  this effectively limits the internal complexity of any give function, which makes the code easier to understand and debug!  so the underlying functionality remains minimal and concise.
 
-in short, 8-char indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
+in short, 8-wide indents make things easier to read, and have the added benefit of warning you when you’re nesting your functions too deep.  heed that warning.
 
-- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across viewing environments is to indent code using only spaces.
-- using tabs for indentation and spaces for alignment requires extra care, and a carefully tuned editor setup which understands the semantic difference between the tabs and the spaces which follow.  in any sizeable team, deviations in formatting will creep in.  enforcing it will just be a big waste of time, compared to the simplicity of banishing tabs.
-- formatting :: always configure language formatters externally (config-file) to use 8 spaces indentation.
-
-- we need to re-setq some variables in the respective ~mode~ in order for them to take effect.
-- note :: install the formatters in ~apheleia-mode-alist~ for the languages used.
+- consistency :: the only reliable, repeatable, transportable way to ensure that indentation remains consistent across programming languages is to indent code using only tabs.
+- tabs have the semantic meaning of indentation.  tabs always align to the same column, no matter from where inserted in the column.
+- tabs allow impaired users to display indentation in the way they deem most ergonomic (accessibility!).
+- TODO :: always configure your language formatters (eg. clang-format) to use tabs for indentation.  (check ~apheleia-mode-alist~)
 #+begin_src elisp
 (defvar u-global-indent-width 8)
 
-(setq-default standard-indent u-global-indent-width
-              evil-shift-width u-global-indent-width
+(setq-default indent-tabs-mode t
               tab-width u-global-indent-width
-              org-indent-indentation-per-level u-global-indent-width
+              standard-indent u-global-indent-width
               evil-indent-convert-tabs t
-              indent-tabs-mode nil)
+              evil-shift-width u-global-indent-width
+              org-indent-indentation-per-level u-global-indent-width)
 
-(setq-hook! '(c++-mode-hook
-              c-mode-hook
-              java-mode-hook)
-  c-basic-offset u-global-indent-width
-  evil-shift-width u-global-indent-width)
+(setq c-default-style "linux")
 
-(setq-hook! 'ruby-mode-hook
-  evil-shift-width u-global-indent-width
-  ruby-indent-level u-global-indent-width)
+(after! 'ruby-mode
+  (setq ruby-indent-tabs-mode t))
 #+end_src
 * evil-mode
 - evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize and harness their power.

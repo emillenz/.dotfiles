@@ -9,4 +9,7 @@ Style/StringLiterals:
   Enabled: false
 
 Layout/IndentationWidth:
-  Width: 8
+  Width: 1
+
+Layout/IndentationStyle:
+  EnforcedStyle: tabs

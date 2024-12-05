@@ -5,18 +5,24 @@
 # date:   2024-05-15
 # notes:
 # - put this file into project root
-# - this is optimized for 8 space indentation and readability.
+# - this is optimized for Tab-width 8 indentation and readability.
+# - Tabs: IndentWidth must match TabWidth to work consistently
 # ---
 
 BasedOnStyle: LLVM
+
+UseTab: Always
 IndentWidth: 8
-ContinuationIndentWidth: 8
+TabWidth: 8
+
 AllowAllParametersOfDeclarationOnNextLine: false
 BinPackParameters: false
 BinPackArguments: false
-BreakBeforeBraces: Attach
-BreakConstructorInitializers: AfterColon
-AlwaysBreakAfterDefinitionReturnType: None
-SpaceBeforeParens: ControlStatements
-DerivePointerAlignment: false
-PointerAlignment: Left
+
+# BreakBeforeBraces: Attach
+# AlwaysBreakAfterDefinitionReturnType: None
+# BreakConstructorInitializers: AfterColon
+# ContinuationIndentWidth: 8
+# SpaceBeforeParens: ControlStatements
+# DerivePointerAlignment: false
+# PointerAlignment: Left

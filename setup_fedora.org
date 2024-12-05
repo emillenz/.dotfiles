@@ -86,6 +86,13 @@ git clone --depth 1 https://github.com/doomemacs/doomemacs $HOME/.config/emacs
 $HOME/.config/emacs/bin/doom install
 #+end_src
 
+- formatter
+#+begin_src sh
+sudo dnf install npm
+npm -g install prettier
+#+end_src
+
+
 * keybindings
 - [[https://github.com/xremap/xremap][xremap]]
 - configure it to run without ~sudo~ (works after reboot)
