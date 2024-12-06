@@ -155,6 +155,7 @@ dnf install syncthing restic
 #+Begin_src sh
 dnf install timeshift
 echo '1 0 system-backup sudo timeshift --create' | sudo tee --append /etc/anacrontab
+systemctl enable crond && systemctl start crond
 #+end_src
 
 * c/cpp

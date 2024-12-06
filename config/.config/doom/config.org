@@ -361,10 +361,10 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 	(when (markerp (cdr entry))
           (setcdr entry
 		  (cons (->> entry
-			     (cdr)
-			     (marker-buffer)
-			     (buffer-file-name)
-			     (file-truename))
+			     cdr
+			     marker-buffer
+			     buffer-file-name
+			     file-truename)
                         (marker-position (cdr entry)))))))
 
     (add-hook! 'savehist-mode-hook
@@ -380,10 +380,10 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 
 * global keybindings
 - ~helpful-key~ and are crucial to understanding what our tools can do for us (ex: magit, dired, org-mode)
-- i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
+- i recommend to lookup the variable: ~M-x helpful-variable <X-mode-map>~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
 - always keep on exploring, learning new, efficient keybindings and break old routines for newer, more effcient one's after evaluating wether they are faster or not.
 - localleader :: [[kbd:][:leader m]] mnemonic for ~major-mode~.  additionally it can be pressed in rapid succession ergonomically (at least on ~dvorak & querty~).
-- generally [[kbd:][ctrl]] bindings in vim are either for insert mode or navigation (eg. [[kbd:][C-u/d/j/k/o]])
+- generally [[kbd:][ctrl]] bindings in vim are either for insert mode or navigation (eg. [[kbd:][C-u/d/j/k/o]]).
 
 ** leaderkey
 #+begin_src elisp
@@ -416,8 +416,7 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 ** completion & minibuffer
 - completion keybindings :: use [[kbd:C-n][C-n]] for code autocompletion.  use [[kbd:C-p][C-p]] for abbreviations (which is logical since the expansion is most likely to be above the current code position)  finally, if we want to expand a snippet, or move through completion fields, use [[kbd:tab][tab]].  once autocompletion is activated, we use [[kbd:][C-n/p]] to navigate candidates.
 - vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu/rofi's appearance).   we use the same bindings for navigating the candidates as for completion (consistency!): [[kbd:C-n/p][C-n/p]]
-- history :: [[kbd:][j, k]] is what bash's vi-mode uses by defaults, it is a good and ergonomic default.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ we must use [[kbd:][ctrl-n/p]] since it is a regular buffer).
-- normal mode :: we make evil-integration more sane: ~/~, ~RET~
+- history :: [[kbd:][j, k, /, RET]]  as a evil-style ergonomic default.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ we must use [[kbd:][ctrl-n/p]] since it is a regular buffer).
 
 #+begin_src elisp
 (map! :map minibuffer-mode-map
@@ -621,14 +620,16 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
   (setq-hook! 'harpoon-mode-hook display-line-numbers t))
 #+end_src
 
- - [[kbd:][TAB]] :: we frequently alternate between 2 bufers in rapid succession, and we follow the OS consistent binding.
+ - [[kbd:][TAB]] :: we frequently alternate between 2 bufers in rapid succession (especially since we don't use splits), and we follow the OS consistent binding.
  (additionally evil's [[kbd:][C-6]] is not mnemonic, nor ergonomic)
 
 in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, we should by using the more precise evil fold-prefix: [[kbd:][z]]
-org-cycles standard behavior is to cycle between three levels: collapsed, subtree and whole document. this is slow, especially in larger org buffer. most of the time we just want to peek into the current subtree -- at most, expand only the current subtree.
 #+begin_src elisp
 (map! :map 'override
       :nm "<tab>" #'evil-switch-to-windows-last-buffer) ;; HACK :: must be <tab> not TAB to properly override
+
+ ;; +org/toggle-fold ins incomplete (don't work with org-blocks/ LOG)
+(define-key! [remap +org/toggle-fold] #'org-cycle)
 #+end_src
 
 * occur: emacs interactive grep
@@ -701,12 +702,12 @@ org-cycles standard behavior is to cycle between three levels: collapsed, subtre
           (let* ((dest (file-name-concat u-archive-dir
 					 (concat (->> "~/"
 						      (file-relative-name file)
-						      (file-name-sans-extension))
+						      file-name-sans-extension)
 						 "_archived_"
 						 (format-time-string "%F_T%H-%M-%S")
 						 (when (file-name-extension file)
 						   (->> file
-							(file-name-extension)
+							file-name-extension
 							(concat "."))))))
                  (dir (file-name-directory dest)))
 
@@ -1022,7 +1023,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
     "returns a structured filename based on the current date.
 eg: journal_2024-11-03.org
 TIME :: time in day of note to return. (default: today)"
-    (->> (current-time)
+    (->> current-time
 	 (or time)
 	 (format-time-string "%F")
 	 (format "journal_%s.org")
@@ -1031,10 +1032,9 @@ TIME :: time in day of note to return. (default: today)"
   (defun u-doct-projects-file (type path)
     "TYPE :: 'agenda | 'notes"
     (->> type
-	 (symbol-name)
+	 symbol-name
 	 (format "%s.org")
-	 (file-name-concat org-directory
-			   path)))
+	 (file-name-concat org-directory path)))
 
   (defun u-doct-projects-task-template (path)
     (list "task"
@@ -1174,9 +1174,10 @@ PARENT-PATH :: nil (used for recursion) "
                              :unnarrowed t
 
                              :file (lambda ()
-				     (->> (days-to-time 1)
+				     (->> 1
+					  days-to-time
 					  (time-subtract (current-time))
-					  (u-doct-journal-file)))
+					  u-doct-journal-file))
 
                              :template ("* gratitude"
 					"- %?"
@@ -1286,9 +1287,10 @@ PARENT-PATH :: nil (used for recursion) "
 							 org-agenda-file-regexp
 							 t))
 			  ;; include tasks from {today's, yesterday's} journal's agenda
-			  (->> (days-to-time 1)
+			  (->> 1
+			   days-to-time
 			       (time-subtract (current-time))
-			       (u-doct-journal-file)
+			       u-doct-journal-file
 			       (list (u-doct-journal-file))))
 
 	org-agenda-skip-scheduled-if-done t

@@ -119,22 +119,25 @@ we favor cli shells, and ~dmenu-scripts~ over GUI applications (eg. using blueto
 - make use of google search operators (~site:~, quoting, ~-~)
 - use inbuilt shortcuts...
 
-* scripting: using ruby
-we never script using the POSIX-shell.  the shell is only meant to be used to run simple shell commands.  if we need to do more than that (eg. programming constructs such as loops, functions, variables, using ~sed/awk/cut...~) then we simply switch over to using the proper scripting language ~ruby~ (alternatively ~python~ if the script must be portable).
+* [&] scripting: clojure/babashka
+:LOG:
+- state: "[ ]" -> "[&]" [2024-12-06 Fri 14:07] \\
+  rewrite why use lisp/babashka/clojure
+:END:
+we never script using the POSIX-shell.  the shell is only meant to be used to run simple shell commands.  if we need to do more than that (eg. programming constructs such as loops, functions, variables, using ~sed/awk/cut...~) then we simply switch over to using the proper scripting language ~clojure/babashka~ (alternatively ~python~ if the script must be portable).
 
 shell is coherent with respect to the mind of certain benevolent dictator.  shell is a steaming pile of inconsistent user-unfrienly shit.
 
-on the command line, i don't really need a full language with a repl-like interface.  i want a fast and quick way to interface with the os.  anything beyond that should be written in a proper language (~ruby~) that will inherently bring more benefits.
+on the command line, i don't really need a full language with a repl-like interface.  i want a fast and quick way to interface with the os.  anything beyond that should be written in a proper language (~clojure/babashka~) that will inherently bring more benefits.
 
 - long-flags :: when writing shell commands in scripts one should always favor ~--long-flags~ over ~-l~ in order to increase code readability  and maintaineability.  this makes understanding the script for people who may not be familiar with the programs easier to understand and modify (reduce elitism in free software).
 
-*** ruby scripting rationale
-a shell only exists for interactive use and running commands: launching processes/commands, interaction with the filesystem and programs (mv, cp, find, grep..).
-for scripting however, anything that cannot be done in a oneliner (using && || etc.).  for example: data manipulation (JSON, etc.), conditional execution (if else), functions or the usage of variables/datastructures, you should always opt towards a proper scripting language such as ruby.  since it offer's full library support, is more extensible and maintaineable.
+*** clojure/babashka scripting rationale
+a shell only exists for interactive use and running commands: launching processes/commands, interaction with the filesystem and programs (~mv~, ~cp~, ~find~, ~grep~..).
+
+for scripting however, anything that cannot be done in a oneliner (using && || etc.).  for example: data manipulation (JSON, etc.), conditional execution (if else), functions or the usage of variables/datastructures, you should always opt towards a proper scripting language such as clojure/babashka.  since it offer's full library support, is more extensible and maintaineable.
 
 even though it may have a steeper learning curve and requires a more structured and less hacky approach to scripting.  but once fluent in it, it smoothly bridges the gap between compiled highly efficient languages such as rust or c and the interactive nature of a shell.
-
-choosen over python since it is well designed, has a very minimal, clean, consistent syntax.  close interconnectedness with ~sh~ by running ~sh~-commands with ~``~.  i love the fact that everything is a expression (has a value).  This means, it's a extreme joy for functional programers.  Python is pretty badly designed, lots inconsistencies in syntax as well as semantics.  ruby follows the MIT philosophy of making the userinterface consistent and a joy to use.
 
 * keybindings
 - typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)

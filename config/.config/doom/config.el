@@ -214,10 +214,10 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 	(when (markerp (cdr entry))
         (setcdr entry
 		  (cons (->> entry
-			     (cdr)
-			     (marker-buffer)
-			     (buffer-file-name)
-			     (file-truename))
+			     cdr
+			     marker-buffer
+			     buffer-file-name
+			     file-truename)
                       (marker-position (cdr entry)))))))
 
   (add-hook! 'savehist-mode-hook
@@ -414,6 +414,9 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; [[file:config.org::*harpoon][harpoon:2]]
 (map! :map 'override
       :nm "<tab>" #'evil-switch-to-windows-last-buffer) ;; HACK :: must be <tab> not TAB to properly override
+
+ ;; +org/toggle-fold ins incomplete (don't work with org-blocks/ LOG)
+(define-key! [remap +org/toggle-fold] #'org-cycle)
 ;; harpoon:2 ends here
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
@@ -470,12 +473,12 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
           (let* ((dest (file-name-concat u-archive-dir
 					 (concat (->> "~/"
 						      (file-relative-name file)
-						      (file-name-sans-extension))
+						      file-name-sans-extension)
 						 "_archived_"
 						 (format-time-string "%F_T%H-%M-%S")
 						 (when (file-name-extension file)
 						   (->> file
-							(file-name-extension)
+							file-name-extension
 							(concat "."))))))
                  (dir (file-name-directory dest)))
 
@@ -695,7 +698,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
     "returns a structured filename based on the current date.
 eg: journal_2024-11-03.org
 TIME :: time in day of note to return. (default: today)"
-    (->> (current-time)
+    (->> current-time
 	 (or time)
 	 (format-time-string "%F")
 	 (format "journal_%s.org")
@@ -704,10 +707,9 @@ TIME :: time in day of note to return. (default: today)"
   (defun u-doct-projects-file (type path)
     "TYPE :: 'agenda | 'notes"
     (->> type
-	 (symbol-name)
+	 symbol-name
 	 (format "%s.org")
-	 (file-name-concat org-directory
-			   path)))
+	 (file-name-concat org-directory path)))
 
   (defun u-doct-projects-task-template (path)
     (list "task"
@@ -847,9 +849,10 @@ PARENT-PATH :: nil (used for recursion) "
                              :unnarrowed t
 
                              :file (lambda ()
-				     (->> (days-to-time 1)
+				     (->> 1
+					  days-to-time
 					  (time-subtract (current-time))
-					  (u-doct-journal-file)))
+					  u-doct-journal-file))
 
                              :template ("* gratitude"
 					"- %?"
@@ -955,9 +958,10 @@ PARENT-PATH :: nil (used for recursion) "
 							 org-agenda-file-regexp
 							 t))
 			  ;; include tasks from {today's, yesterday's} journal's agenda
-			  (->> (days-to-time 1)
+			  (->> 1
+			   days-to-time
 			       (time-subtract (current-time))
-			       (u-doct-journal-file)
+			       u-doct-journal-file
 			       (list (u-doct-journal-file))))
 
 	org-agenda-skip-scheduled-if-done t
