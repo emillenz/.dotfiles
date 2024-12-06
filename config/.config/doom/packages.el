@@ -5,7 +5,7 @@
                    evil-snipe ; usless bloat :: just use incremental-search in combo with f/t motions
                    evil-easymotion
                    lispy                ;; we use lispyville which is made for evil
-                   evil-exchange) ; do this using vanilla vim's visual pasting
+                   evil-exchange) ; this is the stupid bloat we get when people don't understand how to use evil's registers (hint: use evil's yank register ~"0~)
 
 (package! dired-open)
 (package! tldr)

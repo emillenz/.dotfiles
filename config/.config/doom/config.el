@@ -151,7 +151,7 @@
 ;; [[file:config.org::*evil-mode][evil-mode:2]]
 (evil-surround-mode)
 (setq evil-want-fine-undo nil
-      evil-magic nil
+      evil-magic 'very-nomagic
       evil-ex-substitute-global t
       evil-want-C-i-jump t
       evil-want-C-h-delete t
@@ -236,8 +236,9 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       doom-localleader-key "SPC m")
 
 (map! :leader
-      "." #'vertico-repeat
-      "'" #'consult-bookmark
+      "'"   #'consult-bookmark
+      "SPC" #'consult-buffer ;; super frequently accessed -> fastest binding
+
       (:prefix "h"
                "w" #'tldr)
       (:prefix "s"
@@ -256,36 +257,27 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
                "g" #'org-capture-goto-last-stored))
 ;; leaderkey:1 ends here
 
-;; [[file:config.org::*global navigation][global navigation:1]]
-(map! :map 'override
-      :nm "C-q"     #'kill-current-buffer
-      :nm "C-s"     #'basic-save-buffer
-      :nm "C-f"     #'find-file
-      :nm "C-b"     #'consult-buffer
-      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer)
-;; global navigation:1 ends here
-
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:1]]
 (map! :map minibuffer-mode-map
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
-      :i "C-n" #'completion-at-point
+      :n "j"   #'next-history-element
+      :n "k"   #'previous-history-element
       :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer) ;;
+      :n "RET" #'exit-minibuffer
+      :i "C-n" #'completion-at-point)
 
 (map! :map evil-ex-search-keymap :after evil
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
+      :n "j" #'next-history-element
+      :n "k" #'previous-history-element
       :n "/" #'previous-matching-history-element
       :n "RET" #'exit-minibuffer)
 
 (map! :map vertico-flat-map :after vertico
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element
+      :n "j" #'next-history-element
+      :n "k" #'previous-history-element
+      :n "/"   #'previous-matching-history-element
       :n "RET" #'vertico-exit
-      :n "/"   #'previous-matching-history-element)
+      :i "C-n" #'next-line-or-history-element
+      :i "C-p" #'previous-line-or-history-element)
 
 (map! :map vertico-map
       :im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
@@ -326,9 +318,9 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 ;; [[file:config.org::*editing][editing:3]]
 (map! :map evil-org-mode-map :after evil-org
-      ;; respect evil bindings!
       :n "gj"  #'evil-next-visual-line
       :n "gk"  #'evil-previous-visual-line
+
       :n "C-j" #'org-next-visible-heading
       :n "C-k" #'org-previous-visible-heading)
 ;; editing:3 ends here
@@ -356,6 +348,12 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (define-key! [remap evil-visual-line] #'ignore)
 ;; no visual selections:1 ends here
 
+;; [[file:config.org::*no visual selections][no visual selections:2]]
+(map! :map 'override
+      :nm "v" #'basic-save-buffer
+      :nm "V" #'find-file)
+;; no visual selections:2 ends here
+
 ;; [[file:config.org::*surround & smartparens][surround & smartparens:1]]
 (map! :after evil
       :n "s" #'evil-surround-region
@@ -372,14 +370,35 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
     (sp-local-pair "~" "~")))
 ;; surround & smartparens:1 ends here
 
+;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:1]]
+(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
+
+;; call help on `lispyville-set-key-theme' to see what is bound.
+(after! lispyville
+  (lispyville-set-key-theme '(operators
+                              insert
+                              c-w
+                              c-u
+                              prettify
+                              text-objects
+                              commentary
+                              slurp/barf-lispy
+                              additional
+                              (atom-movement t)
+                              additional-insert)))
+;; lispy(ville): editing lisp in vim:1 ends here
+
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon
   :config
   (map! :map 'override
-        :nm "M-1" #'harpoon-go-to-1
-        :nm "M-2" #'harpoon-go-to-2
-        :nm "M-3" #'harpoon-go-to-3
-        :nm "M-4" #'harpoon-go-to-4
+	:nm "M-1" #'harpoon-go-to-1
+	:nm "M-2" #'harpoon-go-to-2
+	:nm "M-3" #'harpoon-go-to-3
+	:nm "M-4" #'harpoon-go-to-4
+
+	:nm "M-6" (cmd! (switch-to-buffer next-error-last-buffer))
+
         :nm "M"   #'harpoon-add-file)
 
   (map! :leader "M" #'harpoon-toggle-file)
@@ -393,77 +412,9 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; harpoon:1 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:2]]
-(after! harpoon
-  (defadvice! u-harpoon-go-to (line-number)
-    "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
-    :override #'harpoon-go-to
-    (require 'project)
-
-    (let* ((harpoon-mode-p (eq major-mode 'harpoon-mode))
-
-           (harpoon-file (if harpoon-mode-p
-                             (file-truename (buffer-file-name))
-                           (harpoon--file-name)))
-
-           (file-name (s-replace-regexp "\n" ""
-                                        (with-temp-buffer
-                                          (insert-file-contents-literally harpoon-file)
-                                          (goto-char (point-min))
-                                          (forward-line (- line-number 1))
-                                          (buffer-substring-no-properties (line-beginning-position)
-                                                                          (line-end-position)))))
-
-           (full-file-name (if (and (fboundp 'project-root)
-                                    (harpoon--has-project))
-                               (concat (or harpoon--project-path
-                                           (harpoon-project-root-function))
-                                       file-name)
-
-                             file-name)))
-      (if harpoon-mode-p
-          (harpoon-find-file file-name)
-
-        (if (file-exists-p full-file-name)
-            (find-file full-file-name)
-
-          (message (concat full-file-name " not found."))))))
-
-  (defadvice! u-harpoon-find-file (&optional file-name)
-    "Visit file on `harpoon-mode'."
-    :override #'harpoon-find-file
-    (interactive)
-
-    (let* ((file-name (or file-name
-                          (buffer-substring-no-properties (point-at-bol)
-							  (point-at-eol))))
-           (full-file-name (concat harpoon--project-path
-				   file-name)))
-
-      (if (file-exists-p full-file-name)
-          (progn (save-buffer)
-                 (kill-buffer)
-                 (find-file full-file-name))
-
-        (message "[harpoon] File %s not found." full-file-name)))))
-;; harpoon:2 ends here
-
-;; [[file:config.org::*goto to compilation buffer][goto to compilation buffer:1]]
-(defun u-goto-compilation-buffer ()
-  "goto to the current project's compilation buffer"
-  (require 'projectile)
-  (interactive)
-
-  (let ((buffer (seq-find (lambda (buf)
-                            (string-match-p "^\\*compilation\\*" buf))
-                          (projectile-project-buffer-names))))
-
-    (if buffer
-        (switch-to-buffer buffer)
-      (message "*compilation* not found in project: %s" (projectile-project-name)))))
-
 (map! :map 'override
-      "M-6" #'u-goto-compilation-buffer)
-;; goto to compilation buffer:1 ends here
+      :nm "<tab>" #'evil-switch-to-windows-last-buffer) ;; HACK :: must be <tab> not TAB to properly override
+;; harpoon:2 ends here
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
 (map! :map occur-mode-map :after replace
@@ -1134,24 +1085,6 @@ legibility."
  '(makefile-gmake-mode :ignore t))
 ;; file templates:1 ends here
 
-;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:1]]
-(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
-
-;; call help on `lispyville-set-key-theme' to see what is bound.
-(after! lispyville
-  (lispyville-set-key-theme '(operators
-                              insert
-                              c-w
-                              c-u
-                              prettify
-                              text-objects
-                              commentary
-                              slurp/barf-lispy
-                              additional
-                              (atom-movement t)
-                              additional-insert)))
-;; lispy(ville): editing lisp in vim:1 ends here
-
 ;; [[file:config.org::*shell: zsh][shell: zsh:1]]
 (setq shell-file-name "/bin/zsh")
 
@@ -1186,3 +1119,58 @@ legibility."
   ;; when we kill buffer's, don't prompt to restart the server...
   (setq lsp-restart 'ignore))
 ;; lsp:1 ends here
+
+;; [[file:config.org::*\[&\] harpoon bugfix (PR open, override until accepted)][[&] harpoon bugfix (PR open, override until accepted):1]]
+(after! harpoon
+  (defadvice! u-harpoon-go-to (line-number)
+    "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
+    :override #'harpoon-go-to
+    (require 'project)
+
+    (let* ((harpoon-mode-p (eq major-mode 'harpoon-mode))
+
+           (harpoon-file (if harpoon-mode-p
+                             (file-truename (buffer-file-name))
+                           (harpoon--file-name)))
+
+           (file-name (s-replace-regexp "\n" ""
+                                        (with-temp-buffer
+                                          (insert-file-contents-literally harpoon-file)
+                                          (goto-char (point-min))
+                                          (forward-line (- line-number 1))
+                                          (buffer-substring-no-properties (line-beginning-position)
+                                                                          (line-end-position)))))
+
+           (full-file-name (if (and (fboundp 'project-root)
+                                    (harpoon--has-project))
+                               (concat (or harpoon--project-path
+                                           (harpoon-project-root-function))
+                                       file-name)
+
+                             file-name)))
+      (if harpoon-mode-p
+          (harpoon-find-file file-name)
+
+        (if (file-exists-p full-file-name)
+            (find-file full-file-name)
+
+          (message (concat full-file-name " not found."))))))
+
+  (defadvice! u-harpoon-find-file (&optional file-name)
+    "Visit file on `harpoon-mode'."
+    :override #'harpoon-find-file
+    (interactive)
+
+    (let* ((file-name (or file-name
+                          (buffer-substring-no-properties (point-at-bol)
+							  (point-at-eol))))
+           (full-file-name (concat harpoon--project-path
+				   file-name)))
+
+      (if (file-exists-p full-file-name)
+          (progn (save-buffer)
+                 (kill-buffer)
+                 (find-file full-file-name))
+
+        (message "[harpoon] File %s not found." full-file-name)))))
+;; [&] harpoon bugfix (PR open, override until accepted):1 ends here

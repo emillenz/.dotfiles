@@ -46,7 +46,6 @@ set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --g
 set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
 set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep 0.1 && playerctl status)"
 
-
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
 #+end_src
@@ -105,8 +104,6 @@ bindsym XF86AudioRaiseVolume  $SHCMD $VOL_INC
 bindsym XF86AudioMute         $SHCMD $VOL_MUTE
 bindsym XF86AudioMicMute      $SHCMD $MIC_MUTE
 
-bindsym $MOD+9            $SHCMD $MIC_MUTE
-bindsym $MOD+0            $SHCMD $VOL_MUTE
 bindsym $MOD+minus        $SHCMD $VOL_DEC
 bindsym $MOD+equal        $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
@@ -116,7 +113,7 @@ bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
 
 * navigational bindings
 - use [[kbd:][MOD+shift+h/l]] to vsplit a window when needing to view things side-by-side.
-- dmenu :: you may pass flags/args to programs if you desire.  (eg. ~emacs --debug-init~)
+- dmenu :: you can pass flags/args to programs as neccessary (eg. ~emacs -Q~)
 #+begin_src conf
 bindsym $MOD+p            focus left
 bindsym $MOD+shift+p      move left
@@ -124,8 +121,8 @@ bindsym $MOD+n            focus right
 bindsym $MOD+shift+n      move right
 bindsym $MOD+q            kill
 
-# switch to window (same binding as in emacs: C-b)
-bindsym $MOD+b            $SHCMD wmctrl -a "$(wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >')"
+# find window
+bindsym $MOD+f            $SHCMD wmctrl -a "$(wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >')"
 
 bindsym $MOD+Tab          workspace back_and_forth
 bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
@@ -224,20 +221,23 @@ for_window [all] focus, title_window_icon no
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-        bindsym $MOD+a $ESC; $SHCMD $BIN/audio-output-menu $DMENU_THEME
-        bindsym $MOD+b $ESC; $SHCMD $BIN/bluetooth-menu $DMENU_THEME
-        bindsym $MOD+k $ESC; $SHCMD $BIN/killprocess-menu $DMENU_THEME
-        bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
+	bindsym $MOD+a $ESC; $SHCMD $BIN/audio-output-menu $DMENU_THEME
+	bindsym $MOD+b $ESC; $SHCMD $BIN/bluetooth-menu $DMENU_THEME
+	bindsym $MOD+k $ESC; $SHCMD $BIN/killprocess-menu $DMENU_THEME
+	bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(fd '.' --base-directory $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
 	# screenshot
-        bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
+	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
 
-        bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
+	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 
-        bindsym $MOD+q $ESC; $SHCMD $SYS_SLEEP
-        bindsym $MOD+o $ESC; $SHCMD $SYS_SCREENOFF
+	bindsym $MOD+q $ESC; $SHCMD $SYS_SLEEP
+	bindsym $MOD+o $ESC; $SHCMD $SYS_SCREENOFF
 
-        bindsym Escape mode "default"
+	bindsym $MOD+m       $ESC; $SHCMD $VOL_MUTE
+	bindsym $MOD+shift+m $ESC; $SHCMD $MIC_MUTE
+
+	bindsym Escape mode "default"
 }
 #+end_src
 

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: kbd
+# uuid:
+# key: kbd
+# condition: t
+# --
+[[kbd:][$0]]

@@ -138,29 +138,13 @@ choosen over python since it is well designed, has a very minimal, clean, consis
 
 * keybindings
 - typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
-- ctrl-map :: bindings found on this layer are related to navigation (~switch-to-buffer~, ~find-file~, ~jump-backwards~, etc..)
-- key-repetition :: disable it.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][C-u/d]]  not spamming delete, instead using [[kbd:][d-motion]]
+- key-repetition :: disabled.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][C-u/d]]  not spamming delete, instead using [[kbd:][d-motion]]
 - remaps :: [[file:config/.config/xremap/config.org][remapping tool (xremap) configuration file]]
-
-** navigational standard
-- condenses down a minimal set of universal, efficient navigational commands, which are found in basically all applications (editor, browser..).  they will suffice 90% of all your navigational needs.
-  - [[kbd:][ctrl]] :: inside applications since it is the defacto standard & aligns with vim's navigational-ctrl-layer-keybind (and is now ergonomically bound).
-- inter program keyboard shortcuts consistency is important because they make the keys easier to remember and you will not have to learn multiple paradigms of keymaps.  the here defined set of keybindings are shared across applications (webbrowser, emacs, etc)
-- windowmanager :: the set of program-names during runtime is known and consistent (unlike tabs in applications, where we cannot make presumtions about the contents of the tabs, hence we use numbers), we use specific-chars for switching to the tabs.
-
-| mod+key | action                   | consistency                                              |
-|---------+--------------------------+----------------------------------------------------------|
-| [[kbd:][b]]       | buffer/window, prompt    | vim: :b <name>                                           |
-| [[kbd:][q]]       | [q]uit (buffer/window)   | vim: :q                                                  |
-| [[kbd:][f]]       | [f]ind-file (fuzzy)      | commmand line: find, emacs: find-file                    |
-| [[kbd:][tab]]     | alterate buffer/tab      | standard convention (apps & other oss)                   |
-| [[kbd:][1-4]]     | switch to buffer/tab 1-4 | emacs (harpoon) / tmux (windows) / browser (pinned tabs) |
-| [[kbd:][space]]   | leader-key               | vim                                                      |
 
 ***  workflow
 when you need to navigate to a different file/tab, this should be your order of modus-operandi ::
-1. alternate buffer :: when you are alternating between 2 files/tabs or need to just goto back to the last visited buffer.  this takes the least amount of overhead and is the fastest.
-2. hotswitch tab 1-4 :: use each of them for a file/tmux window/page within the project you are working on (ex: tmux: [1]repl, [2] compilation, [3] manpages, emacs: [1] main.c, [2] srcfile.c, [3] makefile).  you can then navigate between these files instantly without mental overhead.  we purposefully do not allow more than 4 tabs, since that is usually all that is neede within a project.  we want to ensure that it really is frequently visited files and thus keep the overhead low.  avoid manual tab creation if possible => auto-create a tab if it doesn't exist upon focusing it.  we never want visual indication for tabs.   instead switching to other buffer's should be muscle memory => eliminate bad habit and mental overhead of looking at tab-bar to find the tab you want, and instead hotkey to the file instantly.  no tablines, no statusbars.
+1. alternate buffer [[kbd:][C-<tab>]] :: when you are alternating between 2 files/tabs or need to just goto back to the last visited buffer.  this takes the least amount of overhead and is the fastest.
+2. goto tab [[kbd:][M-<number>]] :: assign a tab/file to each number (pinned tabs in browsers, ~harpoon~ in emacs) you can then navigate between these files/tabs instantly without mental overhead.  we are intentionally restricted to a max of 4 tabs.  we want to ensure that it really is frequently visited files and keep the overhead of remembering which file/tab is on which number so low that we can always subconciously jump between the files/tabs.
 3. find buffer/tab :: search through the list of open buffers/tabs to switch to the one you need.
 
 * principles

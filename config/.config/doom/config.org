@@ -157,7 +157,7 @@ the only reason for us to ever use a terminal is if we need to use a TUI or a co
   (setq doom-theme 'modus-operandi))
 #+end_src
 
-the ~org-block~ background is different (dimmed) from ~bg-main~ in order to distinguish blocks clearly.  ~whitespace-tab~ uses ~bg-main~ by default, but we want same dimmed bg color as all text:
+the ~org-block~ background is different (dimmed) from ~bg-main~ in order to distinguish blocks clearly.  ~whitespace-tab~ uses ~bg-main~ by default, but we want same dimmed bg color as all text.
 #+begin_src elisp
 (add-hook! 'org-mode-hook
   (face-remap-add-relative 'whitespace-tab 'org-block))
@@ -285,7 +285,7 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 
 * evil-mode
 - evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize and harness their power.
-- evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if we need it use ~\m~ in search string to enable regex.
+- evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if we need it, use ~\m~ as a prefix in search string to enable regex.
 
 ~after! evil~ begin
 #+begin_src elisp
@@ -295,7 +295,7 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 #+begin_src elisp
   (evil-surround-mode)
   (setq evil-want-fine-undo nil
-        evil-magic nil
+        evil-magic 'very-nomagic
         evil-ex-substitute-global t
         evil-want-C-i-jump t
         evil-want-C-h-delete t
@@ -383,6 +383,7 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 - i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
 - always keep on exploring, learning new, efficient keybindings and break old routines for newer, more effcient one's after evaluating wether they are faster or not.
 - localleader :: [[kbd:][:leader m]] mnemonic for ~major-mode~.  additionally it can be pressed in rapid succession ergonomically (at least on ~dvorak & querty~).
+- generally [[kbd:][ctrl]] bindings in vim are either for insert mode or navigation (eg. [[kbd:][C-u/d/j/k/o]])
 
 ** leaderkey
 #+begin_src elisp
@@ -391,8 +392,9 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
       doom-localleader-key "SPC m")
 
 (map! :leader
-      "." #'vertico-repeat
-      "'" #'consult-bookmark
+      "'"   #'consult-bookmark
+      "SPC" #'consult-buffer ;; super frequently accessed -> fastest binding
+
       (:prefix "h"
                "w" #'tldr)
       (:prefix "s"
@@ -411,47 +413,33 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
                "g" #'org-capture-goto-last-stored))
 #+end_src
 
-** global navigation
-- follows the os-consistent keymap
-- these mappings are universal to all programs (shell, emacs, browser, i3) and highly frequently accessed (from any mode/file).
-- workflow :: this minimalistic but powerful navigation workflow (fuzzy-find, find-file, global-marks, and find-buffer) is the most efficient & overheadfree way of navigating simultaneously between multiple different files/buffer when working within a project (low overhead when context-switching and remaining distractionfree, works from anywhere.  improves typing speed)
-
-#+begin_src elisp
-(map! :map 'override
-      :nm "C-q"     #'kill-current-buffer
-      :nm "C-s"     #'basic-save-buffer
-      :nm "C-f"     #'find-file
-      :nm "C-b"     #'consult-buffer
-      :nm "C-<tab>" #'evil-switch-to-windows-last-buffer)
-#+end_src
-
 ** completion & minibuffer
 - completion keybindings :: use [[kbd:C-n][C-n]] for code autocompletion.  use [[kbd:C-p][C-p]] for abbreviations (which is logical since the expansion is most likely to be above the current code position)  finally, if we want to expand a snippet, or move through completion fields, use [[kbd:tab][tab]].  once autocompletion is activated, we use [[kbd:][C-n/p]] to navigate candidates.
 - vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu/rofi's appearance).   we use the same bindings for navigating the candidates as for completion (consistency!): [[kbd:C-n/p][C-n/p]]
-- history :: [[kbd:][j, k]] is what bash's vi-mode uses by defaults, it is a good and ergonomic default.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ use [[kbd:][ctrl-n/p]] since it is a regular buffer).
+- history :: [[kbd:][j, k]] is what bash's vi-mode uses by defaults, it is a good and ergonomic default.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ we must use [[kbd:][ctrl-n/p]] since it is a regular buffer).
 - normal mode :: we make evil-integration more sane: ~/~, ~RET~
 
 #+begin_src elisp
 (map! :map minibuffer-mode-map
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
-      :i "C-n" #'completion-at-point
+      :n "j"   #'next-history-element
+      :n "k"   #'previous-history-element
       :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer) ;;
+      :n "RET" #'exit-minibuffer
+      :i "C-n" #'completion-at-point)
 
 (map! :map evil-ex-search-keymap :after evil
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
+      :n "j" #'next-history-element
+      :n "k" #'previous-history-element
       :n "/" #'previous-matching-history-element
       :n "RET" #'exit-minibuffer)
 
 (map! :map vertico-flat-map :after vertico
-      :n "j" #'next-line-or-history-element
-      :n "k" #'previous-line-or-history-element
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element
+      :n "j" #'next-history-element
+      :n "k" #'previous-history-element
+      :n "/"   #'previous-matching-history-element
       :n "RET" #'vertico-exit
-      :n "/"   #'previous-matching-history-element)
+      :i "C-n" #'next-line-or-history-element
+      :i "C-p" #'previous-line-or-history-element)
 
 (map! :map vertico-map
       :im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
@@ -500,13 +488,13 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 (define-key! key-translation-map "C-h" "DEL")
 #+end_src
 
-
 - we often use long lines in prose with ~visual-fill-column-mode~.
+- [[kbd:][gj, gk]] :: respect evil's fundamentally neccessary bindings.
 #+begin_src elisp
 (map! :map evil-org-mode-map :after evil-org
-      ;; respect evil bindings!
       :n "gj"  #'evil-next-visual-line
       :n "gk"  #'evil-previous-visual-line
+
       :n "C-j" #'org-next-visible-heading
       :n "C-k" #'org-previous-visible-heading)
 #+end_src
@@ -516,7 +504,6 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 (map! :map (c-mode-map cpp-mode-map c++-mode-map)
       :nm "C-l" #'recenter-top-bottom)
 #+end_src
-
 
 *** embrace emacs
 - don't use vim's commandline: ~evil-ex~, instead just use emacs ~M-x~.  this introduces and additional layer of unneccessary complexity.  we use only the vim-motions, for all other things, emacs tools are more powerful.
@@ -545,15 +532,23 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 - motions :: we are faster & more efficient enforcing the usage of motions, prefix-number commands and ~evil-repeat~.  instead of visual line mode, use a number prefix argument like ~3dj, 3yap, 3ck~.  if we can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that we want.  (eg: ~d /~)
 - viper-mode compatibility :: additionally it comes with the benefit of making our workflow more compatible if we are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
 - emergency :: if all fails and we must use a visual selection, we may still use [[kbd:][C-space]] (emacs binding).
-- paste replace :: to solve the problem of replacing some text with yanked text (normally we would visually select that region (again, unefficient) and then paste over it).  we can use these equally efficient methods:
-        a. delete the content and then use =yank-register=: ~"0p~ to paste
-        b. use ~"_d~ to delete into =black-hole-register= and the paste normally.
-        c. delete, paste, then use [[kbd:][C-p]] to cycle pasted text by 1
+- paste replace :: to replace some text with yanked text (normally we would visually select that region (again, unefficient) and then paste over it).  we can use these equally efficient methods:
+  a. delete the content and then use =yank-register=: ~"0p~ to paste
+  b. use ~"_d~ to delete using the =black-hole-register= and the paste normally.
+  c. delete, paste, then use [[kbd:][C-p]] to cycle the kill ring back to the yanked text.
 - ~evil-visual-block~ :: still enabled, since this is still a efficient gap bridger between editin multiple lines before switching to macros.
 
 #+begin_src elisp
 (define-key! [remap evil-visual-char] #'ignore)
 (define-key! [remap evil-visual-line] #'ignore)
+#+end_src
+
+- we map the valuable top level key to the statistically most frequently used non-editing commands.  (consistent with ~viper-mode~)
+  (see: [[http://xahlee.info/emacs/emacs/command-frequency.html][emacs command frequency statistics]]).
+#+begin_src elisp
+(map! :map 'override
+      :nm "v" #'basic-save-buffer
+      :nm "V" #'find-file)
 #+end_src
 
 *** surround & smartparens
@@ -575,18 +570,45 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
     (sp-local-pair "~" "~")))
 #+end_src
 
+*** lispy(ville): editing lisp in vim
+- makes vim's motions dwim in lisp modes (mainly respecting parenthesis).
+- key-themes :: give me all the lispyville editing power.
+#+begin_src elisp
+(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
+
+;; call help on `lispyville-set-key-theme' to see what is bound.
+(after! lispyville
+  (lispyville-set-key-theme '(operators
+                              insert
+                              c-w
+                              c-u
+                              prettify
+                              text-objects
+                              commentary
+                              slurp/barf-lispy
+                              additional
+                              (atom-movement t)
+                              additional-insert)))
+#+end_src
+
 ** harpoon
 - when in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers one finds themselves alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since we need to alternate between more than 2 file.
 - we are restrained to 4 files since that is all we'll need and generally, if we have more than that, we have too much mental overhead remembering which files are where.  4 seem's to be generally the limit for us, for which we can subconsiously switch back and forth inbetween.
 - we use [[kbd:][:leader m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.  (harpoon hydra goes against emacs philosophy, use harpoon-toggle-file, is way more intuitive)
+- REPL-buffer :: for repl-coupled languages (ruby, zsh, clojure) we already have efficient bindings to jump back and forth between the ~REPL~ and our file(s).  eg [[kbd:][:leader o t]] to go to the ~shell~ buffer, or [[kbd:][:localleader ']] for ruby's ~REPL~.
+- compilation-buffer :: in any projects that we compile, we frequently switch to the ~*compilation*~ buffer.  since this is a consistently repeating action, we make it efficient.
+- bindings are consistent with the webbrowser (switch tabs using [[kbd:][M-<number]])
 #+begin_src elisp
 (use-package! harpoon
   :config
   (map! :map 'override
-        :nm "M-1" #'harpoon-go-to-1
-        :nm "M-2" #'harpoon-go-to-2
-        :nm "M-3" #'harpoon-go-to-3
-        :nm "M-4" #'harpoon-go-to-4
+	:nm "M-1" #'harpoon-go-to-1
+	:nm "M-2" #'harpoon-go-to-2
+	:nm "M-3" #'harpoon-go-to-3
+	:nm "M-4" #'harpoon-go-to-4
+
+	:nm "M-6" (cmd! (switch-to-buffer next-error-last-buffer))
+
         :nm "M"   #'harpoon-add-file)
 
   (map! :leader "M" #'harpoon-toggle-file)
@@ -599,83 +621,15 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
   (setq-hook! 'harpoon-mode-hook display-line-numbers t))
 #+end_src
 
-harpoon bugfix
+ - [[kbd:][TAB]] :: we frequently alternate between 2 bufers in rapid succession, and we follow the OS consistent binding.
+ (additionally evil's [[kbd:][C-6]] is not mnemonic, nor ergonomic)
+
+in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, we should by using the more precise evil fold-prefix: [[kbd:][z]]
+org-cycles standard behavior is to cycle between three levels: collapsed, subtree and whole document. this is slow, especially in larger org buffer. most of the time we just want to peek into the current subtree -- at most, expand only the current subtree.
 #+begin_src elisp
-(after! harpoon
-  (defadvice! u-harpoon-go-to (line-number)
-    "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
-    :override #'harpoon-go-to
-    (require 'project)
-
-    (let* ((harpoon-mode-p (eq major-mode 'harpoon-mode))
-
-           (harpoon-file (if harpoon-mode-p
-                             (file-truename (buffer-file-name))
-                           (harpoon--file-name)))
-
-           (file-name (s-replace-regexp "\n" ""
-                                        (with-temp-buffer
-                                          (insert-file-contents-literally harpoon-file)
-                                          (goto-char (point-min))
-                                          (forward-line (- line-number 1))
-                                          (buffer-substring-no-properties (line-beginning-position)
-                                                                          (line-end-position)))))
-
-           (full-file-name (if (and (fboundp 'project-root)
-                                    (harpoon--has-project))
-                               (concat (or harpoon--project-path
-                                           (harpoon-project-root-function))
-                                       file-name)
-
-                             file-name)))
-      (if harpoon-mode-p
-          (harpoon-find-file file-name)
-
-        (if (file-exists-p full-file-name)
-            (find-file full-file-name)
-
-          (message (concat full-file-name " not found."))))))
-
-  (defadvice! u-harpoon-find-file (&optional file-name)
-    "Visit file on `harpoon-mode'."
-    :override #'harpoon-find-file
-    (interactive)
-
-    (let* ((file-name (or file-name
-                          (buffer-substring-no-properties (point-at-bol)
-							  (point-at-eol))))
-           (full-file-name (concat harpoon--project-path
-				   file-name)))
-
-      (if (file-exists-p full-file-name)
-          (progn (save-buffer)
-                 (kill-buffer)
-                 (find-file full-file-name))
-
-        (message "[harpoon] File %s not found." full-file-name)))))
-#+end_src
-
-** goto to compilation buffer
-- shell :: for repl-coupled languages (ruby, zsh, clojure) we already have efficient bindings to jump back and forth between the ~REPL~ and our file(s).  eg [[kbd:][:leader o t]] to go to the ~shell~ buffer, or [[kbd:][:localleader ']] for ruby's ~REPL~.
-- compilation :: in any projects that we compile, we frequently switch to the ~*compilation*~ buffer.  lets make this cross-project consistent and efficient.  we use a harpoon-like binding.
-#+begin_src elisp
-(defun u-goto-compilation-buffer ()
-  "goto to the current project's compilation buffer"
-  (require 'projectile)
-  (interactive)
-
-  (let ((buffer (seq-find (lambda (buf)
-                            (string-match-p "^\\*compilation\\*" buf))
-                          (projectile-project-buffer-names))))
-
-    (if buffer
-        (switch-to-buffer buffer)
-      (message "*compilation* not found in project: %s" (projectile-project-name)))))
-
 (map! :map 'override
-      "M-6" #'u-goto-compilation-buffer)
+      :nm "<tab>" #'evil-switch-to-windows-last-buffer) ;; HACK :: must be <tab> not TAB to properly override
 #+end_src
-
 
 * occur: emacs interactive grep
 - occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
@@ -1518,27 +1472,6 @@ we automate this repetetive task using a snippets.
  '(makefile-gmake-mode :ignore t))
 #+end_src
 
-* lispy(ville): editing lisp in vim
-- makes vim's motions dwim in lisp modes (mainly respecting parenthesis).
-- key-themes :: give me all the lispyville editing power.
-#+begin_src elisp
-(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
-
-;; call help on `lispyville-set-key-theme' to see what is bound.
-(after! lispyville
-  (lispyville-set-key-theme '(operators
-                              insert
-                              c-w
-                              c-u
-                              prettify
-                              text-objects
-                              commentary
-                              slurp/barf-lispy
-                              additional
-                              (atom-movement t)
-                              additional-insert)))
-#+end_src
-
 * shell: zsh
 - to start a emacs/shell-buffer independent process, use ~disown~.
 - we never use a terminal, always use ~shell~ (to get benefits of comint mode).
@@ -1578,4 +1511,60 @@ we automate this repetetive task using a snippets.
 (after! lsp-mode
   ;; when we kill buffer's, don't prompt to restart the server...
   (setq lsp-restart 'ignore))
+#+end_src
+
+* [&] harpoon bugfix (PR open, override until accepted)
+#+begin_src elisp
+(after! harpoon
+  (defadvice! u-harpoon-go-to (line-number)
+    "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
+    :override #'harpoon-go-to
+    (require 'project)
+
+    (let* ((harpoon-mode-p (eq major-mode 'harpoon-mode))
+
+           (harpoon-file (if harpoon-mode-p
+                             (file-truename (buffer-file-name))
+                           (harpoon--file-name)))
+
+           (file-name (s-replace-regexp "\n" ""
+                                        (with-temp-buffer
+                                          (insert-file-contents-literally harpoon-file)
+                                          (goto-char (point-min))
+                                          (forward-line (- line-number 1))
+                                          (buffer-substring-no-properties (line-beginning-position)
+                                                                          (line-end-position)))))
+
+           (full-file-name (if (and (fboundp 'project-root)
+                                    (harpoon--has-project))
+                               (concat (or harpoon--project-path
+                                           (harpoon-project-root-function))
+                                       file-name)
+
+                             file-name)))
+      (if harpoon-mode-p
+          (harpoon-find-file file-name)
+
+        (if (file-exists-p full-file-name)
+            (find-file full-file-name)
+
+          (message (concat full-file-name " not found."))))))
+
+  (defadvice! u-harpoon-find-file (&optional file-name)
+    "Visit file on `harpoon-mode'."
+    :override #'harpoon-find-file
+    (interactive)
+
+    (let* ((file-name (or file-name
+                          (buffer-substring-no-properties (point-at-bol)
+							  (point-at-eol))))
+           (full-file-name (concat harpoon--project-path
+				   file-name)))
+
+      (if (file-exists-p full-file-name)
+          (progn (save-buffer)
+                 (kill-buffer)
+                 (find-file full-file-name))
+
+        (message "[harpoon] File %s not found." full-file-name)))))
 #+end_src
