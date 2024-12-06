@@ -138,7 +138,10 @@
 
 (after! ruby-mode
   (setq ruby-indent-tabs-mode t
-        ruby-indent-level 8))
+        ruby-indent-level u-global-indent-width))
+
+(after! sh-script
+  sh-basic-offset u-global-indent-width)
 ;; rationale:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
@@ -304,7 +307,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
-      :nm "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
       :nm "&"   #'async-shell-command ;; consistent with dired, shell...
       :n  "L"   #'newline-and-indent
 
@@ -314,29 +316,27 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       :n  "g+"  #'evil-numbers/inc-at-pt-incremental
       :n  "g-"  #'evil-numbers/dec-at-pt-incremental
 
-
       :n  "g<"  #'evil-lion-left
       :n  "g>"  #'evil-lion-right)
-
-(define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
-
-;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
-(define-key! key-translation-map "C-h" "DEL")
 ;; editing:1 ends here
 
 ;; [[file:config.org::*editing][editing:2]]
+(define-key! key-translation-map "C-h" "DEL")
+;; editing:2 ends here
+
+;; [[file:config.org::*editing][editing:3]]
 (map! :map evil-org-mode-map :after evil-org
       ;; respect evil bindings!
       :n "gj"  #'evil-next-visual-line
       :n "gk"  #'evil-previous-visual-line
       :n "C-j" #'org-next-visible-heading
       :n "C-k" #'org-previous-visible-heading)
-;; editing:2 ends here
+;; editing:3 ends here
 
-;; [[file:config.org::*editing][editing:3]]
+;; [[file:config.org::*editing][editing:4]]
 (map! :map (c-mode-map cpp-mode-map c++-mode-map)
       :nm "C-l" #'recenter-top-bottom)
-;; editing:3 ends here
+;; editing:4 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:1]]
 (define-key! [remap evil-ex] #'execute-extended-command)
@@ -447,21 +447,23 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
         (message "[harpoon] File %s not found." full-file-name)))))
 ;; harpoon:2 ends here
 
-;; [[file:config.org::*buffer goto (harpoon concept, but for frequently used buffers)][buffer goto (harpoon concept, but for frequently used buffers):1]]
-(defun u-switch-to-compilation-buffer ()
-  "switch to projects compilation buffer"
+;; [[file:config.org::*goto to compilation buffer][goto to compilation buffer:1]]
+(defun u-goto-compilation-buffer ()
+  "goto to the current project's compilation buffer"
+  (require 'projectile)
   (interactive)
+
   (let ((buffer (seq-find (lambda (buf)
                             (string-match-p "^\\*compilation\\*" buf))
                           (projectile-project-buffer-names))))
+
     (if buffer
         (switch-to-buffer buffer)
       (message "*compilation* not found in project: %s" (projectile-project-name)))))
 
-;; harpoon bindings continued
 (map! :map 'override
-      "M-6" #'u-switch-to-compilation-buffer)
-;; buffer goto (harpoon concept, but for frequently used buffers):1 ends here
+      "M-6" #'u-goto-compilation-buffer)
+;; goto to compilation buffer:1 ends here
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
 (map! :map occur-mode-map :after replace

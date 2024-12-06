@@ -17,12 +17,17 @@
 
 #  ---
 
-export PATH="$PATH:$HOME/.config/emacs/bin"
-export PATH="$PATH:$HOME/.cargo/bin"
-export PATH="$PATH:$HOME/.local/bin"
-
 export GEM_HOME="$HOME/.local/share/gem"
-export PATH="$PATH:$GEM_HOME/bin"
+export GOPATH="$HOME/.local/share/go"
+
+path+=(
+	"$HOME/.config/emacs/bin"
+	"$HOME/.cargo/bin"
+	"$HOME/.local/bin"
+	"$GEM_HOME/bin"
+	"$GOPATH"
+)
+export PATH
 
 export EDITOR="emacsclient -nw --alternate-editor='emacs -nw'"
 export VISUAL="emacsclient --reuse-frame --alternate-editor=emacs"
@@ -48,5 +53,5 @@ setopt HIST_IGNORE_DUPS
 # using empty line to clearly separate commands in history.
 PROMPT=$'\n%B%F{cyan}%(?..[%?]) %~ > %b%f'
 
-# for when you must exit emacs
+# for when you are forced outside of emacs ~shell~
 bindkey -v

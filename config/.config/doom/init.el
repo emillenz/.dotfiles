@@ -114,7 +114,7 @@
        ;;agda                       ; types of types of types of types...
        ;;beancount                  ; mind the GAAP
        (cc +lsp)                    ; (+lsp) C >  C++ == 1
-       ;;clojure                    ; java with a lisp
+       (clojure +lsp +treesitter)                    ; java with a lisp
        ;;common-lisp                ; if you've seen one lisp, you've seen them all
        ;;coq                        ; proofs-as-programs
        ;;crystal                    ; ruby at the speed of c
@@ -133,7 +133,8 @@
        ;;fsharp                     ; ML stands for Microsoft's Language
        ;;fstar                      ; (dependent) types and (monadic) effects and Z3
        ;;gdscript                   ; the language you waited for
-       ;; (go +lsp +tree-sitter)                  ; the hipster dialect
+       (go +lsp
+	   +tree-sitter)                  ; the hipster dialect
        ;;(graphql +lsp)             ; Give queries a REST
        ;;(haskell +lsp)             ; a language that's lazier than I am
        ;;hy                         ; readability of scheme w/ speed of python
@@ -155,8 +156,8 @@
        ;;nix                        ; I hereby declare "nix geht mehr!"
        ;;ocaml                      ; an objective camel
        (org                         ; organize your plain life in plain text
-        +dragndrop                  ; drag & drop files/images into org buffers
-        +jupyter                    ; ipython/jupyter support for babel
+        ;; +dragndrop                  ; drag & drop files/images into org buffers
+        ;; +jupyter                    ; ipython/jupyter support for babel
         +pandoc                     ; export-with-pandoc support
         +pretty
         +roam2                      ; wander around notes

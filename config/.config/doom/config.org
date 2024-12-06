@@ -277,7 +277,10 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 
 (after! ruby-mode
   (setq ruby-indent-tabs-mode t
-        ruby-indent-level 8))
+        ruby-indent-level u-global-indent-width))
+
+(after! sh-script
+  sh-basic-offset u-global-indent-width)
 #+end_src
 
 * evil-mode
@@ -379,7 +382,7 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 - ~helpful-key~ and are crucial to understanding what our tools can do for us (ex: magit, dired, org-mode)
 - i recommend to lookup the variable: ~M-x helpful-variable XXX-mode-map~ to get an overview of the available bindings for that mode.  find out the mode with: ~M-x describe-mode~
 - always keep on exploring, learning new, efficient keybindings and break old routines for newer, more effcient one's after evaluating wether they are faster or not.
-- localleader :: [[kbd:][SPC m]] for ~major-mode~.  it is nice an egonomic (at least on ~dvorak & querty~).
+- localleader :: [[kbd:][:leader m]] mnemonic for ~major-mode~.  additionally it can be pressed in rapid succession ergonomically (at least on ~dvorak & querty~).
 
 ** leaderkey
 #+begin_src elisp
@@ -475,11 +478,10 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
 - [[kbd:][L]] :: inverse of: [[kbd:][L]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
 - & :: for running quick one-off shell commands we need a primary mapping (for anthing more, switch over to ~shell~).  (evil's: ~&~ is useless, since we use ~query-replace-regexp~ instead of ~evil-ex~).
-- [[kbd:][C-j/k]] :: navigate by sections these bindings are implemented in ~magit~, ~info-mode~, ~man~, ~org-mode~
+- [[kbd:][C-j/k]] :: navigate by sections.  these bindings are implemented in ~magit~, ~info-mode~, ~man~, ~org-mode~, ~comint-mode~.
 
 #+begin_src elisp
 (map! :after evil
-      :nm "C-i" #'better-jumper-jump-forward ;; HACK :: fix overridden binding
       :nm "&"   #'async-shell-command ;; consistent with dired, shell...
       :n  "L"   #'newline-and-indent
 
@@ -489,15 +491,15 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
       :n  "g+"  #'evil-numbers/inc-at-pt-incremental
       :n  "g-"  #'evil-numbers/dec-at-pt-incremental
 
-
       :n  "g<"  #'evil-lion-left
       :n  "g>"  #'evil-lion-right)
+#+end_src
 
-(define-key! [remap electric-newline-and-maybe-indent] #'newline-and-indent) ;; always try to indent!
-
-;; HACK :: simulate `C-h' as backspace consistently (some modes override it to `help').
+- HACK :: map [[kbd:][C-h]] to [[kbd:][backspace]] consistently (some modes don't respect ~evil-want-C-h-delete~).
+#+begin_src elisp
 (define-key! key-translation-map "C-h" "DEL")
 #+end_src
+
 
 - we often use long lines in prose with ~visual-fill-column-mode~.
 #+begin_src elisp
@@ -509,7 +511,7 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
       :n "C-k" #'org-previous-visible-heading)
 #+end_src
 
-we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are already for screen-movements: [[kbd:][C-u/d/e/y]]), but ~c~ modes don't respect that for some reason.
+- we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + [[kbd:][ctrl]] bindings are already for screen-movements: [[kbd:][C-u/d/e/y]]), but ~c~ modes don't respect it.
 #+begin_src elisp
 (map! :map (c-mode-map cpp-mode-map c++-mode-map)
       :nm "C-l" #'recenter-top-bottom)
@@ -522,7 +524,7 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
     - tip :: use ~C-r C-w/C-a~ to insert the inside-word/around-word under point in the main-buffer (vim feature).
   - :g :: use emacs ~reverse-region~, ~delete-lines~ and macros.
   - other commands such as ~:w~, ~:q~, ~:b~, ~:e~ etc. should be executed more ergonomically/efficiently by top-level keybindings (using [[kbd:][ctrl]]) anyways.
-- Q ::   ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.  (same as in ~viper-mode~) - [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
+- [[kbd:][Q]] :: ~query-replace~ needs to be easily accessible (used all the time for renaming var's etc.) so it gets a top level binding and has directional forward/backward mapping like vim's: ~/?~.  (same as in ~viper-mode~) - [remap] :: use `remap' to replace function with enhanced ones that have the same functionality (thus keeping the binding's consistency).
 
 #+begin_src elisp
 (define-key! [remap evil-ex] #'execute-extended-command)
@@ -576,7 +578,7 @@ we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + ctrl-bindings are alread
 ** harpoon
 - when in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers one finds themselves alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since we need to alternate between more than 2 file.
 - we are restrained to 4 files since that is all we'll need and generally, if we have more than that, we have too much mental overhead remembering which files are where.  4 seem's to be generally the limit for us, for which we can subconsiously switch back and forth inbetween.
-- we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.  (harpoon hydra goes against emacs philosophy, use harpoon-toggle-file, is way more intuitive)
+- we use [[kbd:][:leader m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.  (harpoon hydra goes against emacs philosophy, use harpoon-toggle-file, is way more intuitive)
 #+begin_src elisp
 (use-package! harpoon
   :config
@@ -653,23 +655,25 @@ harpoon bugfix
         (message "[harpoon] File %s not found." full-file-name)))))
 #+end_src
 
-** buffer goto (harpoon concept, but for frequently used buffers)
-- shell :: for ~shell~ session buffers (ruby, zsh,...) we have bindings that bring forth the buffer.  eg [[kbd:][SPC o t]] to goto the terminal.
-- compilation :: in any projects that we compile, we frequently switch to the ~*compilation*~ buffer.
+** goto to compilation buffer
+- shell :: for repl-coupled languages (ruby, zsh, clojure) we already have efficient bindings to jump back and forth between the ~REPL~ and our file(s).  eg [[kbd:][:leader o t]] to go to the ~shell~ buffer, or [[kbd:][:localleader ']] for ruby's ~REPL~.
+- compilation :: in any projects that we compile, we frequently switch to the ~*compilation*~ buffer.  lets make this cross-project consistent and efficient.  we use a harpoon-like binding.
 #+begin_src elisp
-(defun u-switch-to-compilation-buffer ()
-  "switch to projects compilation buffer"
+(defun u-goto-compilation-buffer ()
+  "goto to the current project's compilation buffer"
+  (require 'projectile)
   (interactive)
+
   (let ((buffer (seq-find (lambda (buf)
                             (string-match-p "^\\*compilation\\*" buf))
                           (projectile-project-buffer-names))))
+
     (if buffer
         (switch-to-buffer buffer)
       (message "*compilation* not found in project: %s" (projectile-project-name)))))
 
-;; harpoon bindings continued
 (map! :map 'override
-      "M-6" #'u-switch-to-compilation-buffer)
+      "M-6" #'u-goto-compilation-buffer)
 #+end_src
 
 
