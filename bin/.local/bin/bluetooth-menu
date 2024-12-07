@@ -17,7 +17,7 @@
 (require '[babashka.process :refer [shell process check]])
 (require '[clojure.string :as str])
 
-(def addresses=>devices
+(defn addresses=>devices []
   (->> (shell {:out :string} "bluetoothctl devices")
        check
        :out
@@ -30,7 +30,7 @@
 
 (def off-cmd "/off")
 
-(def device-selected
+(defn selected-device [addresses=>devices]
   (->> (apply shell
               {:in (->> (conj (keys addresses=>devices) off-cmd)
                         (str/join "\n"))
@@ -42,15 +42,15 @@
        :out
        str/trim))
 
-(defn connect []
+(defn connect [addresses=>devices selected-device]
   (shell "bluetoothctl" "power" "on")
   (try (do
-         (shell "dunstify" "bluetooth: connecting" device-selected)
-         (->> (shell "bluetoothctl" "connect" (get addresses=>devices device-selected))
+         (shell "dunstify" "bluetooth: connecting" selected-device)
+         (->> (shell "bluetoothctl" "connect" (get addresses=>devices selected-device))
               check)
-         (shell "dunstify" "bluetooth: connected" device-selected))
+         (shell "dunstify" "bluetooth: connected" selected-device))
        (catch Exception e
-         (shell "dunstify" "bluetooth" (format "[error] failed to connect to device: %s" device-selected)))))
+         (shell "dunstify" "bluetooth" (format "[error] failed to connect to device: %s" selected-device)))))
 
 (defn off []
   (->> (shell "bluetoothctl" "power" "off")
@@ -58,8 +58,11 @@
   (shell "dunstify" "bluetooth: off"))
 
 (defn main []
-  (if (= device-selected off-cmd)
-    (off)
-    (connect)))
+  (let [addresses=>devices (addresses=>devices)
+        selected-device (selected-device addresses=>devices)]
+
+    (if (= selected-device off-cmd)
+      (off)
+      (connect addresses=>devices selected-device))))
 
 (main)

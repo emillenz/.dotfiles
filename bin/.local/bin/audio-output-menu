@@ -18,19 +18,19 @@
 (require '[clojure.string :as str])
 (require '[cheshire.core :as json])
 
-(def sinks
+(defn sinks []
   (->> (shell {:out :string} "pactl" "--format" "json" "list" "sinks")
        deref
        :out
        json/parse-string))
 
-(def sink-inputs
+(defn sink-inputs []
   (->> (shell {:out :string} "pactl" "--format" "json" "list" "sink-inputs")
        check
        :out
        json/parse-string))
 
-(def selected-sink
+(defn select-sink [sinks]
   (->> (apply process
               {:in (->> sinks
                         (map #(get % "description"))
@@ -43,21 +43,26 @@
        :out
        str/trim))
 
-(def sink-id
+(defn sink-id [sinks selected-sink]
   (as-> sinks x
     (filter #(= (get % "description") selected-sink) x)
     (first x)
     (get x "index")))
 
 (defn main []
-  (->> (shell {:out :string} "pactl" "set-default-sink" sink-id)
-       check
-       :out)
+  (let [sinks (sinks)
+        sink-inputs (sink-inputs)
+        selected-sink (select-sink sinks)
+        sink-id (sink-id sinks select-sink)]
 
-  (doseq [sink sink-inputs]
-    (->> (shell {:out :string}
-                "pactl" "move-sink-input" (get sink "index") sink-id)))
+    (->> (shell {:out :string} "pactl" "set-default-sink" sink-id)
+         check
+         :out)
 
-  (shell "dunstify" "audio-output" (format "changed to: %s" selected-sink)))
+    (doseq [sink sink-inputs]
+      (->> (shell {:out :string}
+                  "pactl" "move-sink-input" (get sink "index") sink-id)))
+
+    (shell "dunstify" "audio-output" (format "changed to: %s" selected-sink))))
 
 (main)
