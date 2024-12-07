@@ -1,6 +1,7 @@
 # -*- mode: snippet -*-
 # name: ISO current date
 # key: date
+# uuid: fund-mode-date
 # condition: t
 # --
 `(format-time-string "%F")`

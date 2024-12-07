@@ -1,43 +1,63 @@
-#!/usr/bin/env ruby
-# ---
-# title:  audio output selection menu
-# author: emil lenz
-# email:  emillenz@protonmail.com
-# date:   2023-05-07
-# dependencies:
-# - dmenu, pactl
-# ---
+#!/usr/bin/env bb
 
-require 'json'
-require 'open3'
-require 'English'
+;; ---
+;; title:  audio output menu
+;; author: emil lenz
+;; email:  emillenz@protonmail.com
+;; date:   [2024-12-06] <- (initial ruby version [2023-05-07])
+;; info:
+;; - intended for use with a WM.
+;; - any provided arguments are directly passed on to dmenu (use dmenu's flags to customize the prompt/theme)
+;; dependencies:
+;; - dmenu
+;; - pactl
+;; - dunst
+;; ---
 
-# ARGV := arguments to pass to dmenu
-def main
-	sinks = JSON.parse(`pactl --format json list sinks`)
+(require '[babashka.process :refer [shell process check]])
+(require '[clojure.string :as str])
+(require '[cheshire.core :as json])
 
-	sink_names = sinks.map { |sink| sink['description'] }.join("\n")
+(def sinks
+  (->> (shell {:out :string} "pactl" "--format" "json" "list" "sinks")
+       deref
+       :out
+       json/parse-string))
 
-	read, status = Open3.capture2(
-		'dmenu',
-		'-p',
-		"#{File.basename($PROGRAM_NAME)} >",
-		*ARGV,
-		stdin_data: sink_names
-	)
+(def sink-inputs
+  (->> (shell {:out :string} "pactl" "--format" "json" "list" "sink-inputs")
+       check
+       :out
+       json/parse-string))
 
-	exit(1) unless status.success?
+(def selected-sink
+  (->> (apply process
+              {:in (->> sinks
+                        (map #(get % "description"))
+                        (str/join "\n"))
+               :out :string}
+              "dmenu"
+              "-p" "device >"
+              *command-line-args*)
+       check
+       :out
+       str/trim))
 
-	sink_id = sinks.find { |sink| sink['description'] == read.chomp }['index']
+(def sink-id
+  (as-> sinks x
+    (filter #(= (get % "description") selected-sink) x)
+    (first x)
+    (get x "index")))
 
-	`pactl set-default-sink #{sink_id}`
-	exit 1 unless $CHILD_STATUS.success?
+(defn main []
+  (->> (shell {:out :string} "pactl" "set-default-sink" sink-id)
+       check
+       :out)
 
-	JSON.parse(`pactl --format json list sink-inputs`).map do |sink|
-		`pactl move-sink-input #{sink['index']} #{sink_id}`
-	end
+  (doseq [sink sink-inputs]
+    (->> (shell {:out :string}
+                "pactl" "move-sink-input" (get sink "index") sink-id)))
 
-	`dunstify 'audio-output changed' "#{read}"`
-end
+  (shell "dunstify" "audio-output" (format "changed to: %s" selected-sink)))
 
-main
+(main)

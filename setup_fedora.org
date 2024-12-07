@@ -15,9 +15,10 @@ alias
 alias dnf="dnf --assumeyes"
 #+end_src
 
-- update all packages before doing anything
+- update all packages before doing anything (+ install basic dependecies)
 #+begin_src sh
 dnf upgrade
+dnf install curl git
 #+end_src
 
 * clone dotfiles
@@ -31,7 +32,7 @@ git clone --depth=1 https://github.com/emillenz/config ~/Dotfiles
 - override all existing files if you had existing configs using ~--adopt~ flag and
   then running ~git revert .~
 #+begin_src sh
-dnf install git stow
+dnf install stow
 cd ~/Dotfiles
 stow adopt home config bin
 #+end_src
@@ -41,7 +42,7 @@ stow adopt home config bin
 - fd + rg :: better defaults than ~find, grep~.  improves performance of doom emacs find commands.
 - tldr :: cheatsheet style documentation
 #+begin_src sh
-dnf install zsh fd-find ripgrep tldr curl
+dnf install zsh fd-find ripgrep tldr
 
 sudo chsh --shell /bin/zsh
 chsh --shell /usr/bin/zsh
@@ -79,7 +80,6 @@ dnf install mesa-libEGL-devel
 #+end_src
 
 ** systemwide font
-- @readme
 #+begin_src sh
 git clone --depth 1 https://github.com/protesilaos/iosevka-comfy $HOME/.local/share/fonts
 #+end_src
@@ -95,10 +95,10 @@ make
 sudo make install
 #+end_src
 
-* scripting & menu-scripts: ruby
+* scripting: babashka (clojure)
 #+begin_src sh
-dnf install ruby ruby-devel irb
-gem install solargraph rubocop
+dnf install clojure
+sh < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
 #+end_src
 
 ** make scripts executeable
@@ -111,7 +111,7 @@ find ~/Dotfiles/bin/.local/bin -type f -exec chmod +x {}\;
 - configure it to run without ~sudo~ (works after reboot)
 #+begin_src sh
 dnf copr enable blakegardner/xremap
-dnf install xremap-x11 # fedora i3 needs x11, normal xremap don't work
+dnf install xremap-x11 # must be x11 version since we use i3
 
 # Make sure uinput is loaded
 /sbin/lsmod | grep uinput || echo uinput | sudo tee /etc/modules-load.d/uinput.conf

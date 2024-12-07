@@ -81,7 +81,7 @@
       +modeline-bar-width nil) ;; hide unicode sugar
 ;; modeline:1 ends here
 
-;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:1]]
+;; [[file:config.org::*display buffers][display buffers:1]]
 (setq display-buffer-alist `((,(rx (seq "*" (or "transient"
 						(seq "Org " (or "Select" "todo"))
 						"Agenda Commands"
@@ -97,9 +97,9 @@
 			      display-buffer-same-window))
 
       switch-to-buffer-obey-display-actions t)
-;; window layout & behavior :: single maximized buffer workflow:1 ends here
+;; display buffers:1 ends here
 
-;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:2]]
+;; [[file:config.org::*display buffers][display buffers:2]]
 (after! org
   (setq org-src-window-setup 'plain ;; use display-buffer setting
         org-agenda-window-setup 'current-window))
@@ -108,17 +108,16 @@
   (setq Man-notify-method 'pushy))
 
 (advice-add #'switch-to-buffer-other-window :override #'switch-to-buffer)
-;; window layout & behavior :: single maximized buffer workflow:2 ends here
 
-;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:3]]
+(after! cider
+  (setq cider-auto-select-error-buffer nil
+	cider-inspector-auto-select-buffer nil
+	cider-jump-to-pop-to-buffer-actions '((display-buffer-in-side-window))))
+
 (after! magit
   (setq magit-commit-diff-inhibit-same-window t
         +magit-open-windows-in-direction 'down))
-;; window layout & behavior :: single maximized buffer workflow:3 ends here
-
-;; [[file:config.org::*window layout & behavior :: single maximized buffer workflow][window layout & behavior :: single maximized buffer workflow:4]]
-(add-hook! 'doom-escape-hook #'delete-other-windows)
-;; window layout & behavior :: single maximized buffer workflow:4 ends here
+;; display buffers:2 ends here
 
 ;; [[file:config.org::*line numbers][line numbers:1]]
 (setq display-line-numbers-type 'relative)
@@ -211,14 +210,17 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
   (add-hook! 'savehist-save-hook
     (kill-local-variable 'evil-markers-alist)
     (dolist (entry evil-markers-alist)
-	(when (markerp (cdr entry))
-        (setcdr entry
-		  (cons (->> entry
-			     cdr
-			     marker-buffer
-			     buffer-file-name
-			     file-truename)
-                      (marker-position (cdr entry)))))))
+      (when (->> (cdr entry)
+		 markerp)
+	(setcdr entry
+		(cons (->> entry
+			   cdr
+			   marker-buffer
+			   buffer-file-name
+			   file-truename)
+		      (->> entry
+			   cdr
+			   marker-position))))))
 
   (add-hook! 'savehist-mode-hook
     (setq-default evil-markers-alist evil-markers-alist)
@@ -236,9 +238,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       doom-localleader-key "SPC m")
 
 (map! :leader
-      "'"   #'consult-bookmark
-      "SPC" #'consult-buffer ;; super frequently accessed -> fastest binding
-
       (:prefix "h"
                "w" #'tldr)
       (:prefix "s"
@@ -266,14 +265,14 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       :i "C-n" #'completion-at-point)
 
 (map! :map evil-ex-search-keymap :after evil
-      :n "j" #'next-history-element
-      :n "k" #'previous-history-element
-      :n "/" #'previous-matching-history-element
+      :n "j"   #'next-history-element
+      :n "k"   #'previous-history-element
+      :n "/"   #'previous-matching-history-element
       :n "RET" #'exit-minibuffer)
 
-(map! :map vertico-flat-map :after vertico
-      :n "j" #'next-history-element
-      :n "k" #'previous-history-element
+(map! :map vertico-map :after vertico
+      :n "j"   #'next-history-element
+      :n "k"   #'previous-history-element
       :n "/"   #'previous-matching-history-element
       :n "RET" #'vertico-exit
       :i "C-n" #'next-line-or-history-element
@@ -289,6 +288,14 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 (map! :map comint-mode-map :after comint
       :i "C-r" #'comint-history-isearch-backward-regexp)
+
+;; not defined :(
+(map! :map cider-repl-mode-map :after cider-repl
+      :n "C-j" #'cider-repl-next-prompt
+      :n "C-k" #'cider-repl-previous-prompt
+      :n "C-n" #'cider-repl-next-input
+      :n "C-p" #'cider-repl-previous-input
+      :i "C-r" #'cider-repl-previous-matching-input)
 ;; completion & minibuffer:1 ends here
 
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:2]]
@@ -301,6 +308,8 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (map! :after evil
       :nm "&"   #'async-shell-command ;; consistent with dired, shell...
       :n  "L"   #'newline-and-indent
+      :n  "_"   (cmd! (evil-use-register ?_)
+		      (call-interactively #'evil-delete))
 
       ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless
       :n  "+"   #'evil-numbers/inc-at-pt
@@ -329,6 +338,13 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (map! :map (c-mode-map cpp-mode-map c++-mode-map)
       :nm "C-l" #'recenter-top-bottom)
 ;; editing:4 ends here
+
+;; [[file:config.org::*editing][editing:5]]
+(add-hook! 'doom-escape-hook #'delete-other-windows)
+
+(map! :after evil
+      :nm "C-w" #'next-window-any-frame)
+;; editing:5 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:1]]
 (define-key! [remap evil-ex] #'execute-extended-command)
@@ -366,12 +382,16 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
     (add-to-list 'evil-surround-pairs-alist '(?~ . ("~" . "~")))))
 
 (after! smartparens
-  (sp-with-modes 'org-mode
-    (sp-local-pair "~" "~")))
+  (->> (sp-local-pair "~" "~")
+   (sp-with-modes 'org-mode)))
 ;; surround & smartparens:1 ends here
 
 ;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:1]]
-(add-hook! '(emacs-lisp-mode-hook lisp-mode-hook) #'lispyville-mode)
+(add-hook! '(emacs-lisp-mode-hook
+	     lisp-mode-hook
+	     clojure-mode-hook
+	     cider-repl-mode-hook)
+	   #'lispyville-mode)
 
 ;; call help on `lispyville-set-key-theme' to see what is bound.
 (after! lispyville
@@ -391,6 +411,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon
   :config
+  (setq harpoon-separate-by-branch nil) ;; simple repos
   (map! :map 'override
 	:nm "M-1" #'harpoon-go-to-1
 	:nm "M-2" #'harpoon-go-to-2
@@ -431,7 +452,10 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (after! dired
   ;; make it more visually minimal, toggle all the details if needed explicitly.
   (add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
-  (add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
+   ;; prevent hidden edits
+  (add-hook! 'wdired-mode-hook
+    (dired-hide-details-mode -1)
+    (dired-omit-mode -1))
 
   ;; open graphical files externally
   (setq dired-open-extensions (mapcan (lambda (pair)
@@ -505,37 +529,37 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (setq-hook! 'org-mode-hook warning-minimum-level :error) ;; prevent frequent popups of *warning* buffer
 
 (setq org-use-property-inheritance t
-	org-reverse-note-order t ;; like stack
-	org-startup-with-latex-preview nil
-	org-startup-with-inline-images t
-	org-startup-indented t
-	org-startup-numerated t
-	org-startup-align-all-tables t
-	org-list-allow-alphabetical t ;; alphabetical are useful for lists without ordering if you later want to reference an item (like case (a), case (b).)
-	org-tags-column 0 ;; don't align tags
-	org-fold-catch-invisible-edits 'smart
-	org-refile-use-outline-path 'full-file-path
-	org-refile-allow-creating-parent-nodes 'confirm
-	org-use-sub-superscripts '{}
-	org-fontify-quote-and-verse-blocks t
-	org-fontify-whole-block-delimiter-line t
-	doom-themes-org-fontify-special-tags t
-	org-num-max-level 3 ;; don't nest deeply
-	org-hide-leading-stars t
-	org-appear-autoemphasis t
-	org-appear-autosubmarkers t
-	org-appear-autolinks t
-	org-appear-autoentities t
-	org-appear-autokeywords t
-	org-appear-inside-latex nil
-	org-hide-emphasis-markers t
-	org-pretty-entities t
-	org-pretty-entities-include-sub-superscripts t
-	org-list-demote-modify-bullet '(("-"  . "-")
-					("1." . "1."))
-	org-blank-before-new-entry '((heading . nil)
-                                   (plain-list-item . nil))
-	org-src-ask-before-returning-to-edit-buffer nil) ;; don't annoy me
+      org-reverse-note-order t ;; like stack
+      org-startup-with-latex-preview nil
+      org-startup-with-inline-images t
+      org-startup-indented t
+      org-startup-numerated t
+      org-startup-align-all-tables t
+      org-list-allow-alphabetical t ;; alphabetical are useful for lists without ordering if you later want to reference an item (like case (a), case (b).)
+      org-tags-column 0		    ;; don't align tags
+      org-fold-catch-invisible-edits 'smart
+      org-refile-use-outline-path 'full-file-path
+      org-refile-allow-creating-parent-nodes 'confirm
+      org-use-sub-superscripts '{}
+      org-fontify-quote-and-verse-blocks t
+      org-fontify-whole-block-delimiter-line t
+      doom-themes-org-fontify-special-tags t
+      org-num-max-level 3 ;; don't nest deeply
+      org-hide-leading-stars t
+      org-appear-autoemphasis t
+      org-appear-autosubmarkers t
+      org-appear-autolinks t
+      org-appear-autoentities t
+      org-appear-autokeywords t
+      org-appear-inside-latex nil
+      org-hide-emphasis-markers t
+      org-pretty-entities t
+      org-pretty-entities-include-sub-superscripts t
+      org-list-demote-modify-bullet '(("-" . "-")
+				      ("1." . "1."))
+      org-blank-before-new-entry '((heading . nil)
+				   (plain-list-item . nil))
+      org-src-ask-before-returning-to-edit-buffer nil) ;; don't annoy me
 
 ;; flycheck full of errors, since it only reads partial buffer.
 (add-hook! 'org-src-mode-hook (flycheck-mode -1))
@@ -624,15 +648,15 @@ since i often have todolists , where i don't want the newlines.  newlines are fo
                            "[x](x!)"
                            "[\\](\\!)")))
 
-(setq org-todo-keyword-faces '(("[@]"  . (bold +org-todo-project))
-				 ("[ ]"  . (bold org-todo))
-				 ("[-]"  . (bold +org-todo-active))
-				 ("[>]"  . (bold +org-todo-onhold))
-				 ("[?]"  . (bold +org-todo-onhold))
-				 ("[=]"  . (bold +org-todo-onhold))
-				 ("[&]"  . (bold +org-todo-onhold))
-				 ("[\\]" . (bold org-done))
-				 ("[x]"  . (bold org-done))))
+(setq org-todo-keyword-faces '(("[@]" . (bold +org-todo-project))
+			       ("[ ]" . (bold org-todo))
+			       ("[-]" . (bold +org-todo-active))
+			       ("[>]" . (bold +org-todo-onhold))
+			       ("[?]" . (bold +org-todo-onhold))
+			       ("[=]" . (bold +org-todo-onhold))
+			       ("[&]" . (bold +org-todo-onhold))
+			       ("[\\]" . (bold org-done))
+			       ("[x]" . (bold org-done))))
 ;; task states:1 ends here
 
 ;; [[file:config.org::*task states][task states:2]]
@@ -646,15 +670,15 @@ since i often have todolists , where i don't want the newlines.  newlines are fo
 (setq org-priority-highest 1
 	org-priority-lowest 3)
 
-(setq org-log-note-headings '((done        . "note-done: %t")
-				(state       . "state: %-3S -> %-3s %t") ;; NOTE :: the custom task-statuses are all 3- wide
-				(note        . "note: %t")
-				(reschedule  . "reschedule: %S, %t")
-				(delschedule . "noschedule: %S, %t")
-				(redeadline  . "deadline: %S, %t")
-				(deldeadline . "nodeadline: %S, %t")
-				(refile      . "refile: %t")
-				(clock-out   . "")))
+(setq org-log-note-headings '((done . "note-done: %t")
+			      (state . "state: %-3S -> %-3s %t") ;; NOTE :: the custom task-statuses are all 3- wide
+			      (note . "note: %t")
+			      (reschedule . "reschedule: %S, %t")
+			      (delschedule . "noschedule: %S, %t")
+			      (redeadline . "deadline: %S, %t")
+			      (deldeadline . "nodeadline: %S, %t")
+			      (refile . "refile: %t")
+			      (clock-out . "")))
 ;; task states:2 ends here
 
 ;; [[file:config.org::*capture templates][capture templates:1]]
@@ -698,7 +722,7 @@ and the later reviewed and merged into the corresponding article of the wiki.")
     "returns a structured filename based on the current date.
 eg: journal_2024-11-03.org
 TIME :: time in day of note to return. (default: today)"
-    (->> current-time
+    (->> (current-time)
 	 (or time)
 	 (format-time-string "%F")
 	 (format "journal_%s.org")
@@ -782,7 +806,8 @@ PARENT-PATH :: nil (used for recursion) "
                      (key (plist-get props :keys))
                      (self `(,tag :keys ,key))
                      (children (plist-get props :children))
-                     (templates (append inherited-templates (plist-get props :templates)))
+                     (templates (append inherited-templates
+					(plist-get props :templates)))
                      (path (file-name-concat parent-path tag)))
 
 		(append self
@@ -790,10 +815,10 @@ PARENT-PATH :: nil (used for recursion) "
                             ;; HAS CHILDREN => is project-node => recursivly expand children
                             (list :children
                                   (append (u-doct-projects-expand-templates (list self)
-                                                                            templates)
+									    templates)
                                           (u-doct-projects-expand-templates children
-                                                                            templates
-                                                                            path)))
+									    templates
+									    path)))
 
                           ;; NO CHILDREN => is leaf-node => instantiate templates
                           (list :children
@@ -814,7 +839,8 @@ PARENT-PATH :: nil (used for recursion) "
 			 (u-doct-journal-file))
 
 		 :title (lambda ()
-                          (downcase (format-time-string "journal: %A, %e. %B %Y")))
+                          (->> (format-time-string "journal: %A, %e. %B %Y")
+			       downcase))
 
 		 :children (("journal init"
                              :keys "j"
@@ -849,8 +875,7 @@ PARENT-PATH :: nil (used for recursion) "
                              :unnarrowed t
 
                              :file (lambda ()
-				     (->> 1
-					  days-to-time
+				     (->> (days-to-time 1)
 					  (time-subtract (current-time))
 					  u-doct-journal-file))
 
@@ -876,11 +901,10 @@ PARENT-PATH :: nil (used for recursion) "
                              :keys "i"
 
                              :file (lambda ()
-                                     (file-name-concat u-literature-notes-dir
-                                                       (concat (replace-regexp-in-string " "
-											 "_"
-											 (read-from-minibuffer "short title: "))
-							       ".org")))
+                                     (->> (concat (->> (read-from-minibuffer "short title: ")
+						       (replace-regexp-in-string " " "_"))
+						  ".org")
+					  (file-name-concat u-literature-notes-dir)))
 
                              :type plain
 
@@ -949,20 +973,18 @@ PARENT-PATH :: nil (used for recursion) "
 
 ;; NOTE :: archive based on relative file path
 (setq org-archive-location (file-name-concat u-archive-dir
-					       "org"
-					       "%s::")
+					     "org"
+					     "%s::")
 
-	org-agenda-files (append
-			  (when (file-exists-p org-directory)
-			    (directory-files-recursively org-directory
-							 org-agenda-file-regexp
-							 t))
-			  ;; include tasks from {today's, yesterday's} journal's agenda
-			  (->> 1
-			   days-to-time
-			       (time-subtract (current-time))
-			       u-doct-journal-file
-			       (list (u-doct-journal-file))))
+	org-agenda-files (append (when (file-exists-p org-directory)
+				   (directory-files-recursively org-directory
+								org-agenda-file-regexp
+								t))
+				 ;; include tasks from {today's, yesterday's} journal's agenda
+				 (->> (days-to-time 1)
+				      (time-subtract (current-time))
+				      u-doct-journal-file
+				      (list (u-doct-journal-file))))
 
 	org-agenda-skip-scheduled-if-done t
 	;; org-agenda-sticky t
@@ -982,21 +1004,22 @@ PARENT-PATH :: nil (used for recursion) "
 (defadvice! u-add-newline (fn &rest args)
   "Separate dates in 'org-agenda' with newline."
   :around #'org-agenda-format-date-aligned
-  (concat "\n" (apply fn args) ))
+  (->> (apply fn args)
+       (concat "\n")))
 ;; agenda:2 ends here
 
 ;; [[file:config.org::*agenda][agenda:3]]
 (setq org-agenda-todo-keyword-format "%-3s"
-	org-agenda-scheduled-leaders '("" "<< %1dd")
+      org-agenda-scheduled-leaders '("" "<< %1dd")
 
-	org-agenda-deadline-leaders '("─────"
-                                    ">> %1dd"
-                                    "<< %1dd")
+      org-agenda-deadline-leaders '("─────"
+				    ">> %1dd"
+				    "<< %1dd")
 
-	org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; all columns separated by minimum 2 spaces
-                                 (todo   . "%-20c%-7s%-7t")
-                                 (tags   . "%-20c%-7s%-7t")
-                                 (search . "%-20c%-7s%-7t")))
+      org-agenda-prefix-format '((agenda . "%-20c%-7s%-7t") ;; all columns separated by minimum 2 spaces
+				 (todo   . "%-20c%-7s%-7t")
+				 (tags   . "%-20c%-7s%-7t")
+				 (search . "%-20c%-7s%-7t")))
 ;; agenda:3 ends here
 
 ;; [[file:config.org::*org roam][org roam:1]]
@@ -1021,6 +1044,9 @@ PARENT-PATH :: nil (used for recursion) "
 (setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
+(setq-hook! '(cider-mode-hook
+	      cider-repl-mode-hook)
+  devdocs-current-docs '("clojure~1.11"))
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*whisper: transcription][whisper: transcription:1]]
@@ -1103,19 +1129,14 @@ legibility."
 ;; shell: zsh:1 ends here
 
 ;; [[file:config.org::*ruby][ruby:1]]
-;; HACK :: use rubocop formatter.
-(after! apheleia-formatters
-  (setf (alist-get 'ruby-mode apheleia-mode-alist) 'rubocop))
-
 (define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me.
 
 (map! :map ruby-mode-map :localleader :after ruby-mode
+      ;; add some neat but missing bindings
       (:prefix "s"
                "e" #'ruby-send-last-stmt
                "l" #'ruby-send-line
-               "L" #'ruby-send-line-and-go
-               "b" #'ruby-send-block
-               "B" #'ruby-send-block-and-go))
+               "b" #'ruby-send-block))
 ;; ruby:1 ends here
 
 ;; [[file:config.org::*lsp][lsp:1]]
@@ -1124,7 +1145,7 @@ legibility."
   (setq lsp-restart 'ignore))
 ;; lsp:1 ends here
 
-;; [[file:config.org::*\[&\] harpoon bugfix (PR open, override until accepted)][[&] harpoon bugfix (PR open, override until accepted):1]]
+;; [[file:config.org::*harpoon bugfix (PR open, override until accepted)][harpoon bugfix (PR open, override until accepted):1]]
 (after! harpoon
   (defadvice! u-harpoon-go-to (line-number)
     "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
@@ -1177,4 +1198,4 @@ legibility."
                  (find-file full-file-name))
 
         (message "[harpoon] File %s not found." full-file-name)))))
-;; [&] harpoon bugfix (PR open, override until accepted):1 ends here
+;; harpoon bugfix (PR open, override until accepted):1 ends here

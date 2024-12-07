@@ -1,55 +1,65 @@
-#!/usr/bin/env ruby
-#  ---
-#  title:  blutoothconnect menu
-#  author: emil lenz
-#  email:  emillenz@protonmail.com
-#  date:   2024-05-26
-#  dependecies: bluetoothctl, dmenu
-#  ---
+#!/usr/bin/env bb
 
-require 'open3'
-require 'English'
+;; ---
+;; title:  bluetooth device menu
+;; author: emil lenz
+;; email:  emillenz@protonmail.com
+;; date:   [2024-12-07] <- (initial ruby version: [2024-05-26]
+;; info:
+;; - intended for use with a WM.
+;; - any provided arguments are directly passed on to dmenu (use dmenu's flags to customize the prompt/theme)
+;; dependecies:
+;; - dunst
+;; - bluetoothctl
+;; - dmenu
+;; ---
 
-# ARGV := arguments to pass to dmenu
-def main
-	addresses = `bluetoothctl devices`.split("\n").map do |line|
-		words = line.split
-		name = words[2..].join(' ')
-		addr = words[1]
-		[name, addr]
-	end.to_h
+(require '[babashka.process :refer [shell process check]])
+(require '[clojure.string :as str])
 
-	input = addresses.keys.push("off").join("\n")
+(def addresses=>devices
+  (->> (shell {:out :string} "bluetoothctl devices")
+       check
+       :out
+       str/split-lines
+       (map (fn [line]
+              (let [[dev addr name]
+                    (str/split line #"\s" 3)]
+                [name addr])))
+       (into {})))
 
-	selected, status = Open3.capture2(
-		'dmenu',
-		'-p',
-		"#{File.basename($PROGRAM_NAME)} >",
-		*ARGV,
-		stdin_data: input
-	)
+(def off-cmd "/off")
 
-	exit(1) unless status.success?
-	selected = selected.chomp
+(def device-selected
+  (->> (apply shell
+              {:in (->> (conj (keys addresses=>devices) off-cmd)
+                        (str/join "\n"))
+               :out :string}
+              "dmenu"
+              "-p" "bluetooth-device >"
+              *command-line-args*)
+       check
+       :out
+       str/trim))
 
-	case selected
-	when "off"
-		poweroff
-	else
-		connect(selected, addresses)
-	end
-end
+(defn connect []
+  (shell "bluetoothctl" "power" "on")
+  (try (do
+         (shell "dunstify" "bluetooth: connecting" device-selected)
+         (->> (shell "bluetoothctl" "connect" (get addresses=>devices device-selected))
+              check)
+         (shell "dunstify" "bluetooth: connected" device-selected))
+       (catch Exception e
+         (shell "dunstify" "bluetooth" (format "[error] failed to connect to device: %s" device-selected)))))
 
-def connect(device_name, addresses)
-	`bluetoothctl power on`
-	`bluetoothctl connect #{addresses[device_name]}`
-	exit(1) unless $CHILD_STATUS.success?
-	`dunstify 'bluetooth connected' "#{device_name}"`
-end
+(defn off []
+  (->> (shell "bluetoothctl" "power" "off")
+       check)
+  (shell "dunstify" "bluetooth: off"))
 
-def poweroff
-	`bluetoothctl power off`
-	`dunstify 'bluetooth off'`
-end
+(defn main []
+  (if (= device-selected off-cmd)
+    (off)
+    (connect)))
 
-main
+(main)

@@ -34,7 +34,7 @@ export VISUAL="emacsclient --reuse-frame --alternate-editor=emacs"
 export BROWSER="firefox"
 export TERMINAL="alacritty"
 
-alias -g ls="ls -v --human-readable --group-directories-first --color=auto"
+alias -g ls="ls -v --human-readable --group-directories-first"
 alias -g rm="rm --recursive --verbose"
 alias -g du="du --human-readable"
 alias -g mv="mv --verbose"

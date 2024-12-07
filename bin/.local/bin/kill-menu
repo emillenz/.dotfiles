@@ -1,0 +1,47 @@
+#!/usr/bin/env bb
+
+;; ---
+;; title:  kill processes menu
+;; author: emil lenz
+;; email:  emillenz@protonmail.com
+;; date:   [2024-12-06] <- (initial ruby version [2023-05-08])
+;; info:
+;; - intended for use with a WM.
+;; - any provided arguments are directly passed on to dmenu (use dmenu's flags to customize the prompt/theme)
+;; dependencies:
+;; - dunst
+;; ---
+
+(require '[babashka.process :refer [shell process check]])
+(require '[clojure.string :as str])
+
+(def processes
+  (->> (shell {:out :string}
+              "ps" "-e" "-o" "pid,comm")
+       :out
+       str/split-lines
+       rest
+       (map (fn [line]
+              (let  [[padding id name] (str/split line #"\s+")]
+                [name id])))
+       (into {})))
+
+(def ps-selected
+  (->> (apply process
+              {:in (->> processes
+                        keys
+                        (map name)
+                        (str/join "\n"))
+               :out :string}
+              "dmenu"
+              "-p" "killprocess >"
+              *command-line-args*)
+       check
+       :out
+       str/trim))
+
+(defn main []
+    (->> (shell "kill" (get processes ps-selected)))
+  (shell "dunstify" "killed process" ps-selected))
+
+(main)
