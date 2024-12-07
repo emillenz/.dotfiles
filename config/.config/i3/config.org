@@ -143,8 +143,8 @@ bindsym $MOD+n            focus right
 bindsym $MOD+shift+n      move right
 bindsym $MOD+q            kill
 
-# find window
-bindsym $MOD+f            $SHCMD wmctrl -a "$(wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >')"
+# find window (using xargs to abort if none picked)
+bindsym $MOD+f            $SHCMD wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >' | xargs --delimiter='\n' wmctrl -a
 
 bindsym $MOD+Tab          workspace back_and_forth
 bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
