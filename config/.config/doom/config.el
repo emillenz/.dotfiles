@@ -370,7 +370,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       :nm "V" #'find-file)
 ;; no visual selections:2 ends here
 
-;; [[file:config.org::*surround & smartparens][surround & smartparens:1]]
+;; [[file:config.org::*surround][surround:1]]
 (map! :after evil
       :n "s" #'evil-surround-region
       :n "S" #'evil-Surround-region)
@@ -380,11 +380,14 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
   (add-hook! 'org-mode-hook :local
     (add-to-list 'evil-surround-pairs-alist '(?~ . ("~" . "~")))))
+;; surround:1 ends here
 
+;; [[file:config.org::*smartparens][smartparens:1]]
 (after! smartparens
+  (setq sp-ignore-modes-list '()) ;; disable nowhere (consistency!)
   (->> (sp-local-pair "~" "~")
    (sp-with-modes 'org-mode)))
-;; surround & smartparens:1 ends here
+;; smartparens:1 ends here
 
 ;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:1]]
 (add-hook! '(emacs-lisp-mode-hook
@@ -403,10 +406,17 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
                               text-objects
                               commentary
                               slurp/barf-lispy
-                              additional
-                              (atom-movement t)
-                              additional-insert)))
+                              atom-movement
+			      additional-movement)))
 ;; lispy(ville): editing lisp in vim:1 ends here
+
+;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:2]]
+(map! :map lispyville-mode-map :after lispyville
+      :nm "U" #'lispyville-raise-list
+
+      :nm "(" #'lispyville-backward-up-list
+      :nm ")" #'lispyville-up-list)
+;; lispy(ville): editing lisp in vim:2 ends here
 
 ;; [[file:config.org::*harpoon][harpoon:1]]
 (use-package! harpoon
