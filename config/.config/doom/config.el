@@ -87,7 +87,8 @@
 						"Agenda Commands"
 						"doom eval"
 						"Backtrace"
-						"lsp-help")))
+						"lsp-help"
+						"Async Shell Command")))
 			      display-buffer-in-side-window
 			      (window-parameters . ((mode-line-format . none)))
 			      (window-height . fit-window-to-buffer)
@@ -124,23 +125,23 @@
 ;; line numbers:1 ends here
 
 ;; [[file:config.org::*rationale][rationale:1]]
-(defvar u-global-indent-width 8)
+(defvar u/global-indent-width 8)
 
 (setq-default indent-tabs-mode t
-              tab-width u-global-indent-width
-              standard-indent u-global-indent-width
+              tab-width u/global-indent-width
+              standard-indent u/global-indent-width
               evil-indent-convert-tabs t
-              evil-shift-width u-global-indent-width
-              org-indent-indentation-per-level u-global-indent-width)
+              evil-shift-width u/global-indent-width
+              org-indent-indentation-per-level u/global-indent-width)
 
 (setq c-default-style "linux")
 
 (after! ruby-mode
   (setq ruby-indent-tabs-mode t
-        ruby-indent-level u-global-indent-width))
+        ruby-indent-level u/global-indent-width))
 
 (after! sh-script
-  sh-basic-offset u-global-indent-width)
+  sh-basic-offset u/global-indent-width)
 ;; rationale:1 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:1]]
@@ -157,7 +158,7 @@
       evil-want-minibuffer t ;; don't loose our powers in the minibuffer
       evil-org-use-additional-insert nil)
 
-(defadvice! u-preserve-point (fn &rest args)
+(defadvice! u/preserve-point (fn &rest args)
   :around '(anzu-query-replace-regexp
             query-replace-regexp
             +format:region)
@@ -191,7 +192,7 @@
 ;; evil-mode:3 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:4]]
-(defadvice! u-update-last-macro-register (fn &rest args)
+(defadvice! u/update-last-macro-register (fn &rest args)
   "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
   set it to the just recorded macro.
 
@@ -350,7 +351,18 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (define-key! [remap evil-ex] #'execute-extended-command)
 
 (map! :after evil
-      :n "Q" #'query-replace-regexp)
+      :n "Q" #'u/query-replace-regexp-op)
+
+(evil-define-operator u/query-replace-regexp-op (beg end type)
+  "make (anzu)`query-replace-regexp' into an operator acting only on defined region."
+  :restore-point t
+  (interactive "<R>")
+  (let ((region-start (save-excursion (goto-char beg) (point)))
+        (region-end (save-excursion (goto-char end) (point))))
+
+    (save-restriction
+      (narrow-to-region region-start region-end)
+      (call-interactively 'anzu-query-replace-regexp))))
 ;; embrace emacs:1 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:2]]
@@ -406,8 +418,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
                               text-objects
                               commentary
                               slurp/barf-lispy
-                              atom-movement
-			      additional-movement)))
+                              atom-movement)))
 ;; lispy(ville): editing lisp in vim:1 ends here
 
 ;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:2]]
@@ -493,18 +504,18 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (map! :map dired-mode-map :localleader :after dired-x
       :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
                                            (call-interactively #'dired-hide-details-mode))
-      "a" #'u-dired-archive)
+      "a" #'u/dired-archive)
 ;; dired/keybindings:1 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
-(defvar u-archive-dir "~/Archive/")
+(defvar u/archive-dir "~/Archive/")
 
-(defun u-dired-archive ()
-  "`mv' marked file/s to: `u-archive-dir'/{relative-filepath-to-HOME}/{filename}"
+(defun u/dired-archive ()
+  "`mv' marked file/s to: `u/archive-dir'/{relative-filepath-to-HOME}/{filename}"
   (interactive)
 
   (mapc (lambda (file)
-          (let* ((dest (file-name-concat u-archive-dir
+          (let* ((dest (file-name-concat u/archive-dir
 					 (concat (->> "~/"
 						      (file-relative-name file)
 						      file-name-sans-extension)
@@ -576,7 +587,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; options:1 ends here
 
 ;; [[file:config.org::*options][options:2]]
-(defadvice! u-insert-newline-above (fn &rest args)
+(defadvice! u/insert-newline-above (fn &rest args)
   "pad newly inserted heading with newline unless is todo-item.
 
 since i often have todolists , where i don't want the newlines.  newlines are for headings that have a body of text."
@@ -585,7 +596,7 @@ since i often have todolists , where i don't want the newlines.  newlines are fo
              (not (org-entry-is-todo-p)))
     (+evil/insert-newline-above 1)))
 
-(defadvice! u-insert-newline-below (fn &rest args)
+(defadvice! u/insert-newline-below (fn &rest args)
   :after #'+org/insert-item-above
   (when (and (org-at-heading-p)
              (not (org-entry-is-todo-p)))
@@ -694,41 +705,41 @@ since i often have todolists , where i don't want the newlines.  newlines are fo
 ;; [[file:config.org::*capture templates][capture templates:1]]
 (setq org-directory "~/Documents/org/")
 
-  (defvar u-journal-dir (file-name-concat "~/Documents/journal/")
+  (defvar u/journal-dir (file-name-concat "~/Documents/journal/")
     "dir for daily captured journal files")
 
-  (defvar u-literature-dir "~/Documents/literature"
+  (defvar u/literature-dir "~/Documents/literature"
     "literature sources and captured notes")
 
-  (defvar u-literature-notes-dir (file-name-concat u-literature-dir "notes/")
+  (defvar u/literature-notes-dir (file-name-concat u/literature-dir "notes/")
     "note files for each literature source")
 
-  (defvar u-wiki-dir "~/Documents/wiki/"
+  (defvar u/wiki-dir "~/Documents/wiki/"
     "personal knowledge base directory :: cohesive, structured, standalone articles/guides.
 (blueprints and additions to these articles are captured into 'org-directory/personal/notes.org',
 and the later reviewed and merged into the corresponding article of the wiki.")
 
-  (defvar u-doct-projects-default-templates '(u-doct-projects-task-template
-					      u-doct-projects-event-template
-					      u-doct-projects-note-template))
+  (defvar u/doct-projects-default-templates '(u/doct-projects-task-template
+					      u/doct-projects-event-template
+					      u/doct-projects-note-template))
 
-  (defvar u-doct-projects `(("cs" :keys "c"
-                             :templates ,u-doct-projects-default-templates
+  (defvar u/doct-projects `(("cs" :keys "c"
+                             :templates ,u/doct-projects-default-templates
                              :children (("ti"   :keys "t")
 					("an2"  :keys "a")
 					("ph1"  :keys "p")
-					("spca" :keys "s" :templates (u-doct-projects-cc-src-template))
-					("nm"   :keys "n" :templates (u-doct-projects-cc-src-template))))
-                            ("personal" :keys "p" :templates ,u-doct-projects-default-templates)
-                            ("config"   :keys "f" :templates ,u-doct-projects-default-templates))
+					("spca" :keys "s" :templates (u/doct-projects-cc-src-template))
+					("nm"   :keys "n" :templates (u/doct-projects-cc-src-template))))
+                            ("personal" :keys "p" :templates ,u/doct-projects-default-templates)
+                            ("config"   :keys "f" :templates ,u/doct-projects-default-templates))
     "same syntax as doct,  except for the key-value-pair: `:templates LIST`,
  where LIST is a list of functions with signature: `(PATH) -> VALID-DOCT-TEMPLATE`
- where PATH is to be generated by 'u-doct-projects-file'
+ where PATH is to be generated by 'u/doct-projects-file'
  where TEMPLATE is a valid 'doct-capture-template'.
 ':templates' is inherited by the parent-group and if present in a childgroup it appends the
    additionally defined templates.")
 
-  (defun u-doct-journal-file (&optional time)
+  (defun u/doct-journal-file (&optional time)
     "returns a structured filename based on the current date.
 eg: journal_2024-11-03.org
 TIME :: time in day of note to return. (default: today)"
@@ -736,28 +747,28 @@ TIME :: time in day of note to return. (default: today)"
 	 (or time)
 	 (format-time-string "%F")
 	 (format "journal_%s.org")
-	 (file-name-concat u-journal-dir)))
+	 (file-name-concat u/journal-dir)))
 
-  (defun u-doct-projects-file (type path)
+  (defun u/doct-projects-file (type path)
     "TYPE :: 'agenda | 'notes"
     (->> type
 	 symbol-name
 	 (format "%s.org")
 	 (file-name-concat org-directory path)))
 
-  (defun u-doct-projects-task-template (path)
+  (defun u/doct-projects-task-template (path)
     (list "task"
           :keys "t"
-          :file (u-doct-projects-file 'agenda path)
+          :file (u/doct-projects-file 'agenda path)
           :headline "inbox"
           :prepend t
           :empty-lines-after 1
           :template '("* [ ] %^{title}%?")))
 
-  (defun u-doct-projects-event-template (path)
+  (defun u/doct-projects-event-template (path)
     (list "event"
           :keys "e"
-          :file (u-doct-projects-file 'agenda path)
+          :file (u/doct-projects-file 'agenda path)
           :headline "events"
           :prepend t
           :empty-lines-after 1
@@ -769,10 +780,10 @@ TIME :: time in day of note to return. (default: today)"
                       ":material: %^{material}"
                       ":END:")))
 
-  (defun u-doct-projects-note-template (path)
+  (defun u/doct-projects-note-template (path)
     (list "note"
           :keys "n"
-          :file (u-doct-projects-file 'notes path)
+          :file (u/doct-projects-file 'notes path)
           :prepend t
           :empty-lines-after 1
           :template '("* %^{title} %^g"
@@ -781,7 +792,7 @@ TIME :: time in day of note to return. (default: today)"
                       ":END:"
                       "%?")))
 
-  (defun u-doct-projects-cc-src-template (path)
+  (defun u/doct-projects-cc-src-template (path)
     "for quickly implementing/testing ideas (like a scratchpad, but have all
   our code-snippets in a single literate document, instead of creating a new file each time).  choose either c or c++.
 
@@ -792,7 +803,7 @@ like `#include <iostream>' that is basically needed for every single snippet. "
 
     (list "note: src cc"
           :keys "s"
-          :file (u-doct-projects-file 'notes path)
+          :file (u/doct-projects-file 'notes path)
           :prepend t
           :empty-lines 1
           :template '("* %^{title} :%^{lang|C|C|cpp}:"
@@ -807,8 +818,8 @@ like `#include <iostream>' that is basically needed for every single snippet. "
                       "}"
                       "#+end_src")))
 
-  (defun u-doct-projects-expand-templates (projects &optional inherited-templates parent-path)
-    "PROJECTS :: `u-doct-projects'
+  (defun u/doct-projects-expand-templates (projects &optional inherited-templates parent-path)
+    "PROJECTS :: `u/doct-projects'
 PARENT-PATH :: nil (used for recursion) "
     (mapcar (lambda (project)
               (let* ((tag (car project))
@@ -824,9 +835,9 @@ PARENT-PATH :: nil (used for recursion) "
 			(if children
                             ;; HAS CHILDREN => is project-node => recursivly expand children
                             (list :children
-                                  (append (u-doct-projects-expand-templates (list self)
+                                  (append (u/doct-projects-expand-templates (list self)
 									    templates)
-                                          (u-doct-projects-expand-templates children
+                                          (u/doct-projects-expand-templates children
 									    templates
 									    path)))
 
@@ -839,14 +850,14 @@ PARENT-PATH :: nil (used for recursion) "
 
   (setq org-capture-templates
 	(doct `(;; PROJECT TEMPLATES
-		,@(u-doct-projects-expand-templates u-doct-projects)
+		,@(u/doct-projects-expand-templates u/doct-projects)
 
 		;; NON-PROJECT TEMPLATES
 		("journal"
 		 :keys "j"
 
 		 :file (lambda ()
-			 (u-doct-journal-file))
+			 (u/doct-journal-file))
 
 		 :title (lambda ()
                           (->> (format-time-string "journal: %A, %e. %B %Y")
@@ -887,7 +898,7 @@ PARENT-PATH :: nil (used for recursion) "
                              :file (lambda ()
 				     (->> (days-to-time 1)
 					  (time-subtract (current-time))
-					  u-doct-journal-file))
+					  u/doct-journal-file))
 
                              :template ("* gratitude"
 					"- %?"
@@ -898,11 +909,11 @@ PARENT-PATH :: nil (used for recursion) "
 		("literature"
 		 :keys "l"
 
-		 :file (lambda () (read-file-name "file: " u-literature-notes-dir))
+		 :file (lambda () (read-file-name "file: " u/literature-notes-dir))
 
 		 :children (("add to readlist"
                              :keys "a"
-                             :file ,(file-name-concat u-literature-dir "readlist.org")
+                             :file ,(file-name-concat u/literature-dir "readlist.org")
                              :headline "inbox"
                              :prepend t
                              :template ("* [ ] %^{title}"))
@@ -914,7 +925,7 @@ PARENT-PATH :: nil (used for recursion) "
                                      (->> (concat (->> (read-from-minibuffer "short title: ")
 						       (replace-regexp-in-string " " "_"))
 						  ".org")
-					  (file-name-concat u-literature-notes-dir)))
+					  (file-name-concat u/literature-notes-dir)))
 
                              :type plain
 
@@ -982,7 +993,7 @@ PARENT-PATH :: nil (used for recursion) "
 (add-hook! 'org-agenda-mode-hook #'org-super-agenda-mode)
 
 ;; NOTE :: archive based on relative file path
-(setq org-archive-location (file-name-concat u-archive-dir
+(setq org-archive-location (file-name-concat u/archive-dir
 					     "org"
 					     "%s::")
 
@@ -993,8 +1004,8 @@ PARENT-PATH :: nil (used for recursion) "
 				 ;; include tasks from {today's, yesterday's} journal's agenda
 				 (->> (days-to-time 1)
 				      (time-subtract (current-time))
-				      u-doct-journal-file
-				      (list (u-doct-journal-file))))
+				      u/doct-journal-file
+				      (list (u/doct-journal-file))))
 
 	org-agenda-skip-scheduled-if-done t
 	;; org-agenda-sticky t
@@ -1011,7 +1022,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; agenda:1 ends here
 
 ;; [[file:config.org::*agenda][agenda:2]]
-(defadvice! u-add-newline (fn &rest args)
+(defadvice! u/add-newline (fn &rest args)
   "Separate dates in 'org-agenda' with newline."
   :around #'org-agenda-format-date-aligned
   (->> (apply fn args)
@@ -1033,7 +1044,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; agenda:3 ends here
 
 ;; [[file:config.org::*org roam][org roam:1]]
-(setq org-roam-directory u-wiki-dir)
+(setq org-roam-directory u/wiki-dir)
 ;; org roam:1 ends here
 
 ;; [[file:config.org::*end org][end org:1]]
@@ -1060,7 +1071,7 @@ PARENT-PATH :: nil (used for recursion) "
 ;; devdocs:1 ends here
 
 ;; [[file:config.org::*whisper: transcription][whisper: transcription:1]]
-(evil-define-operator u-reformat-prose (beg end)
+(evil-define-operator u/reformat-prose (beg end)
   "we write all lowercase, all the time (to make the text more monotone, such that it's value will
 speak more for it's self).  using the technical document convention of double space full stops for
 legibility."
@@ -1068,7 +1079,7 @@ legibility."
     (downcase-region beg end)
     (repunctuate-sentences t beg end)))
 
-(add-hook! 'whisper-after-transcription-hook (u-reformat-prose (point-min) (point-max)))
+(add-hook! 'whisper-after-transcription-hook (u/reformat-prose (point-min) (point-max)))
 
 (map! :leader "X" #'whisper-run)
 ;; whisper: transcription:1 ends here
@@ -1157,7 +1168,7 @@ legibility."
 
 ;; [[file:config.org::*harpoon bugfix (PR open, override until accepted)][harpoon bugfix (PR open, override until accepted):1]]
 (after! harpoon
-  (defadvice! u-harpoon-go-to (line-number)
+  (defadvice! u/harpoon-go-to (line-number)
     "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
     :override #'harpoon-go-to
     (require 'project)
@@ -1191,7 +1202,7 @@ legibility."
 
           (message (concat full-file-name " not found."))))))
 
-  (defadvice! u-harpoon-find-file (&optional file-name)
+  (defadvice! u/harpoon-find-file (&optional file-name)
     "Visit file on `harpoon-mode'."
     :override #'harpoon-find-file
     (interactive)

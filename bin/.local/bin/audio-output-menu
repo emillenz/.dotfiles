@@ -53,7 +53,7 @@
   (let [sinks (sinks)
         sink-inputs (sink-inputs)
         selected-sink (select-sink sinks)
-        sink-id (sink-id sinks select-sink)]
+        sink-id (sink-id sinks selected-sink)]
 
     (->> (shell {:out :string} "pactl" "set-default-sink" sink-id)
          check
@@ -61,7 +61,9 @@
 
     (doseq [sink sink-inputs]
       (->> (shell {:out :string}
-                  "pactl" "move-sink-input" (get sink "index") sink-id)))
+                  "pactl" "move-sink-input" (get sink "index") sink-id)
+           check
+           :out))
 
     (shell "dunstify" "audio-output" (format "changed to: %s" selected-sink))))
 
