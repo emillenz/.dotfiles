@@ -4,7 +4,7 @@
 ;; title:  audio output menu
 ;; author: emil lenz
 ;; email:  emillenz@protonmail.com
-;; date:   [2024-12-06] <- (initial ruby version [2023-05-07])
+;; date:   [2024-12-06] <- (init ruby version [2023-05-07])
 ;; info:
 ;; - intended for use with a WM.
 ;; - any provided arguments are directly passed on to dmenu (use dmenu's flags to customize the prompt/theme)
@@ -44,10 +44,12 @@
        str/trim))
 
 (defn sink-id [sinks selected-sink]
-  (as-> sinks x
-    (filter #(= (get % "description") selected-sink) x)
-    (first x)
-    (get x "index")))
+  (get (->> sinks
+            (filter (fn [sink]
+                      (= (get sink "description")
+                         selected-sink)))
+            first)
+       "index"))
 
 (defn main []
   (let [sinks (sinks)

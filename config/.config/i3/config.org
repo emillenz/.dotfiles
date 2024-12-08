@@ -33,9 +33,9 @@
 * macros
 - no statusbar => using notifications to display volume change
 #+begin_src conf
-set $ESC mode "default"
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
+set $LSHCMD exec mode "default"; --no-startup-id
 set $START_SHCMD exec_always --no-startup-id
 set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
 set $BIN ~/.local/bin
@@ -48,6 +48,7 @@ set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep
 
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
+set $SYS_HIBERNATE systemctl hibernate
 #+end_src
 
 * start processes
@@ -112,42 +113,42 @@ bindsym button4 nop
 bindsym button5 nop
 
 bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
-bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
+bindsym XF86MonBrightnessUp $SHCMD brightnessctl set 5%+
 # to reset screenlayouts when disconnecting laptop from external output
-bindsym XF86Display           $SHCMD xrandr --auto
-bindsym XF86ScreenSaver       $SHCMD $SYS_SCREENOFF
-bindsym XF86Sleep             $SHCMD $SYS_SLEEP
-bindsym XF86AudioPlay         $SHCMD $PLAYERCTL_PLAY_PAUSE
-bindsym XF86AudioPause        $SHCMD $PLAYERCTL_PLAY_PAUSE
-bindsym XF86AudioNext         $SHCMD playerctl next
-bindsym XF86AudioPrev         $SHCMD playerctl previous
-bindsym XF86AudioLowerVolume  $SHCMD $VOL_DEC
-bindsym XF86AudioRaiseVolume  $SHCMD $VOL_INC
-bindsym XF86AudioMute         $SHCMD $VOL_MUTE
-bindsym XF86AudioMicMute      $SHCMD $MIC_MUTE
+bindsym XF86Display $SHCMD xrandr --auto
+bindsym XF86ScreenSaver $SHCMD $SYS_SCREENOFF
+bindsym XF86Sleep $SHCMD $SYS_SLEEP
+bindsym XF86AudioPlay $SHCMD $PLAYERCTL_PLAY_PAUSE
+bindsym XF86AudioPause $SHCMD $PLAYERCTL_PLAY_PAUSE
+bindsym XF86AudioNext $SHCMD playerctl next
+bindsym XF86AudioPrev $SHCMD playerctl previous
+bindsym XF86AudioLowerVolume $SHCMD $VOL_DEC
+bindsym XF86AudioRaiseVolume $SHCMD $VOL_INC
+bindsym XF86AudioMute $SHCMD $VOL_MUTE
+bindsym XF86AudioMicMute $SHCMD $MIC_MUTE
 
-bindsym $MOD+minus        $SHCMD $VOL_DEC
-bindsym $MOD+equal        $SHCMD $VOL_INC
+bindsym $MOD+minus $SHCMD $VOL_DEC
+bindsym $MOD+equal $SHCMD $VOL_INC
 bindsym $MOD+bracketright $SHCMD playerctl next
-bindsym $MOD+bracketleft  $SHCMD playerctl previous
-bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
+bindsym $MOD+bracketleft $SHCMD playerctl previous
+bindsym $MOD+backslash $SHCMD $PLAYERCTL_PLAY_PAUSE
 #+end_src
 
 * navigational bindings
 - use [[kbd:][MOD+shift+h/l]] to vsplit a window when needing to view things side-by-side.
 - dmenu :: you can pass flags/args to programs as neccessary (eg. ~emacs -Q~)
 #+begin_src conf
-bindsym $MOD+p            focus left
-bindsym $MOD+shift+p      move left
-bindsym $MOD+n            focus right
-bindsym $MOD+shift+n      move right
-bindsym $MOD+q            kill
+bindsym $MOD+p focus left
+bindsym $MOD+shift+p move left
+bindsym $MOD+n focus right
+bindsym $MOD+shift+n move right
+bindsym $MOD+q kill
 
 # find window (using xargs to abort if none picked)
-bindsym $MOD+f            $SHCMD wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >' | xargs --delimiter='\n' wmctrl -a
+bindsym $MOD+f $SHCMD wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >' | xargs --delimiter='\n' wmctrl -a
 
-bindsym $MOD+Tab          workspace back_and_forth
-bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
+bindsym $MOD+Tab workspace back_and_forth
+bindsym $MOD+Return $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
 bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 #+end_src
 
@@ -230,7 +231,24 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 
 (read: ~M-x info-display-manual org~ chapter: =16 working with source code=, if you don't know what this magic is doing)
 #+begin_src conf
-<<workspaces()>>
+# WORKSPACE: ALL
+for_window [class="."] move container to workspace all
+bindsym $MOD+a workspace all
+
+# WORKSPACE: EDIT
+workspace edit gaps horizontal $GAPSIZE
+for_window [class="Emacs"] move container to workspace edit
+bindsym $MOD+e workspace edit
+bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
+
+# WORKSPACE: READ
+for_window [class="Zathura"] move container to workspace read
+bindsym $MOD+r workspace read
+
+# WORKSPACE: WEB
+for_window [class="firefox"] move container to workspace web
+bindsym $MOD+w workspace web
+bindsym $MOD+shift+w exec --no-startup-id firefox
 
 # HACK :: must come last to apply to all workspaces.
 for_window [all] focus, title_window_icon no
@@ -243,21 +261,22 @@ for_window [all] focus, title_window_icon no
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-	bindsym $MOD+a $ESC; $SHCMD $BIN/audio-output-menu $DMENU_THEME
-	bindsym $MOD+b $ESC; $SHCMD $BIN/bluetooth-menu $DMENU_THEME
-	bindsym $MOD+k $ESC; $SHCMD $BIN/kill-menu $DMENU_THEME
-	bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
+	bindsym $MOD+a $LSHCMD $BIN/audio-output-menu $DMENU_THEME
+	bindsym $MOD+b $LSHCMD $BIN/bluetooth-menu $DMENU_THEME
+	bindsym $MOD+k $LSHCMD $BIN/kill-menu $DMENU_THEME
+	bindsym $MOD+d $LSHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
 	# screenshot
-	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
+	bindsym $MOD+s $LSHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
 
-	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
+	bindsym $MOD+e $LSHCMD emacsclient --eval "(emacs-everywhere)"
 
-	bindsym $MOD+q $ESC; $SHCMD $SYS_SLEEP
-	bindsym $MOD+o $ESC; $SHCMD $SYS_SCREENOFF
+	bindsym $MOD+q $LSHCMD $SYS_SLEEP
+	bindsym $MOD+shift+q $LSHCMD $SYS_HIBERNATE
+	bindsym $MOD+o $LSHCMD $SYS_SCREENOFF
 
-	bindsym $MOD+m       $ESC; $SHCMD $VOL_MUTE
-	bindsym $MOD+shift+m $ESC; $SHCMD $MIC_MUTE
+	bindsym $MOD+m $LSHCMD $VOL_MUTE
+	bindsym $MOD+shift+m $LSHCMD $MIC_MUTE
 
 	bindsym Escape mode "default"
 }
@@ -295,25 +314,25 @@ client.background       $BG
 - modline only shown when explicitly toggled and used as a leadermode indicator.
 #+begin_src conf
 bar {
-        mode hide
-        workspace_buttons yes
-        binding_mode_indicator yes
-        modifier none
-        tray_output primary
-        status_command i3status
-        separator_symbol " | "
-        workspace_min_width 40
+	mode hide
+	workspace_buttons yes
+	binding_mode_indicator yes
+	modifier none
+	tray_output primary
+	status_command i3status
+	separator_symbol " | "
+	workspace_min_width 40
 
-        colors {
-                background $MODELINE_BG
-                statusline $FG
-                separator  $FG
-                #class             $border      $bg          $fg
-                binding_mode       $MODELINE_BG $MODELINE_BG $MODELINE_BG
-                focused_workspace  $BORDER      $ACTIVE_BG   $FG
-                active_workspace   $BORDER      $MODELINE_BG $FG
-                inactive_workspace $BORDER      $MODELINE_BG $FG
-                urgent_workspace   $BORDER      $URGENT_BG   $FG
-        }
+	colors {
+		background $MODELINE_BG
+		statusline $FG
+		separator $FG
+		#class             $border      $bg          $fg
+		binding_mode       $MODELINE_BG $MODELINE_BG $MODELINE_BG
+		focused_workspace  $BORDER      $ACTIVE_BG   $FG
+		active_workspace   $BORDER      $MODELINE_BG $FG
+		inactive_workspace $BORDER      $MODELINE_BG $FG
+		urgent_workspace   $BORDER      $URGENT_BG   $FG
+	}
 }
 #+end_src

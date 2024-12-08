@@ -14,6 +14,7 @@ set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep
 
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
 set $SYS_SCREENOFF sleep 1 && xset dpms force off
+set $SYS_HIBERNATE systemctl hibernate
 # macros:1 ends here
 
 # [[file:config.org::*start processes][start processes:1]]
@@ -63,41 +64,41 @@ bindsym --whole-window $MOD+button2 floating toggle
 bindsym button4 nop
 bindsym button5 nop
 
-bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
-bindsym XF86MonBrightnessUp   $SHCMD brightnessctl set 5%+
+bindsym XF86MonBrightnessDown	$SHCMD brightnessctl set 5%-
+bindsym XF86MonBrightnessUp	$SHCMD brightnessctl set 5%+
 # to reset screenlayouts when disconnecting laptop from external output
-bindsym XF86Display           $SHCMD xrandr --auto
-bindsym XF86ScreenSaver       $SHCMD $SYS_SCREENOFF
-bindsym XF86Sleep             $SHCMD $SYS_SLEEP
-bindsym XF86AudioPlay         $SHCMD $PLAYERCTL_PLAY_PAUSE
-bindsym XF86AudioPause        $SHCMD $PLAYERCTL_PLAY_PAUSE
-bindsym XF86AudioNext         $SHCMD playerctl next
-bindsym XF86AudioPrev         $SHCMD playerctl previous
-bindsym XF86AudioLowerVolume  $SHCMD $VOL_DEC
-bindsym XF86AudioRaiseVolume  $SHCMD $VOL_INC
-bindsym XF86AudioMute         $SHCMD $VOL_MUTE
-bindsym XF86AudioMicMute      $SHCMD $MIC_MUTE
+bindsym XF86Display		$SHCMD xrandr --auto
+bindsym XF86ScreenSaver		$SHCMD $SYS_SCREENOFF
+bindsym XF86Sleep		$SHCMD $SYS_SLEEP
+bindsym XF86AudioPlay		$SHCMD $PLAYERCTL_PLAY_PAUSE
+bindsym XF86AudioPause		$SHCMD $PLAYERCTL_PLAY_PAUSE
+bindsym XF86AudioNext		$SHCMD playerctl next
+bindsym XF86AudioPrev		$SHCMD playerctl previous
+bindsym XF86AudioLowerVolume	$SHCMD $VOL_DEC
+bindsym XF86AudioRaiseVolume	$SHCMD $VOL_INC
+bindsym XF86AudioMute		$SHCMD $VOL_MUTE
+bindsym XF86AudioMicMute	$SHCMD $MIC_MUTE
 
-bindsym $MOD+minus        $SHCMD $VOL_DEC
-bindsym $MOD+equal        $SHCMD $VOL_INC
-bindsym $MOD+bracketright $SHCMD playerctl next
-bindsym $MOD+bracketleft  $SHCMD playerctl previous
-bindsym $MOD+backslash    $SHCMD $PLAYERCTL_PLAY_PAUSE
+bindsym $MOD+minus		$SHCMD $VOL_DEC
+bindsym $MOD+equal		$SHCMD $VOL_INC
+bindsym $MOD+bracketright	$SHCMD playerctl next
+bindsym $MOD+bracketleft	$SHCMD playerctl previous
+bindsym $MOD+backslash		$SHCMD $PLAYERCTL_PLAY_PAUSE
 # keybindings:1 ends here
 
 # [[file:config.org::*navigational bindings][navigational bindings:1]]
-bindsym $MOD+p            focus left
-bindsym $MOD+shift+p      move left
-bindsym $MOD+n            focus right
-bindsym $MOD+shift+n      move right
-bindsym $MOD+q            kill
+bindsym $MOD+p		focus left
+bindsym $MOD+shift+p	move left
+bindsym $MOD+n		focus right
+bindsym $MOD+shift+n	move right
+bindsym $MOD+q		kill
 
 # find window (using xargs to abort if none picked)
-bindsym $MOD+f            $SHCMD wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >' | xargs --delimiter='\n' wmctrl -a
+bindsym $MOD+f			$SHCMD wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >' | xargs --delimiter='\n' wmctrl -a
 
-bindsym $MOD+Tab          workspace back_and_forth
-bindsym $MOD+Return       $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
-bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
+bindsym $MOD+Tab		workspace back_and_forth
+bindsym $MOD+Return		$SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
+bindsym $MOD+shift+Return	$SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 # navigational bindings:1 ends here
 
 # [[file:config.org::*gaps][gaps:1]]
@@ -144,53 +145,54 @@ mode "leader" {
 
 	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 
-	bindsym $MOD+q $ESC; $SHCMD $SYS_SLEEP
-	bindsym $MOD+o $ESC; $SHCMD $SYS_SCREENOFF
+	bindsym $MOD+q		$ESC; $SHCMD $SYS_SLEEP
+	bindsym $MOD+shift+q	$ESC; $SHCMD $SYS_HIBERNATE
+	bindsym $MOD+o		$ESC; $SHCMD $SYS_SCREENOFF
 
-	bindsym $MOD+m       $ESC; $SHCMD $VOL_MUTE
-	bindsym $MOD+shift+m $ESC; $SHCMD $MIC_MUTE
+	bindsym $MOD+m       	$ESC; $SHCMD $VOL_MUTE
+	bindsym $MOD+shift+m 	$ESC; $SHCMD $MIC_MUTE
 
 	bindsym Escape mode "default"
 }
 # leader:1 ends here
 
 # [[file:config.org::*modus-operandi theme][modus-operandi theme:1]]
-set $BG          #ffffff
-set $FG          #000000
-set $MODELINE_BG #c8c8c8
-set $BORDER      #9f9f9f
-set $ACTIVE_BG   #c0deff
-set $URGENT_BG   #ff8f88
+set $BG			#ffffff
+set $FG			#000000
+set $MODELINE_BG	#c8c8c8
+set $BORDER		#9f9f9f
+set $ACTIVE_BG		#c0deff
+set $URGENT_BG		#ff8f88
 
 ## element              $border    $bg          $fg $mark $border (child)
-client.focused          $ACTIVE_BG $ACTIVE_BG   $FG $FG   $ACTIVE_BG
-client.focused_inactive $BORDER    $MODELINE_BG $FG $FG   $BORDER
-client.unfocused        $BORDER    $MODELINE_BG $FG $FG   $BORDER
-client.urgent           $URGENT_BG $URGENT_BG   $FG $FG   $URGENT_BG
-client.background       $BG
+client.focused		$ACTIVE_BG $ACTIVE_BG   $FG $FG   $ACTIVE_BG
+client.focused_inactive	$BORDER    $MODELINE_BG $FG $FG   $BORDER
+client.unfocused	$BORDER    $MODELINE_BG $FG $FG   $BORDER
+client.urgent		$URGENT_BG $URGENT_BG   $FG $FG   $URGENT_BG
+client.background	$BG
 # modus-operandi theme:1 ends here
 
 # [[file:config.org::*modeline / tabbar][modeline / tabbar:1]]
 bar {
-        mode hide
-        workspace_buttons yes
-        binding_mode_indicator yes
-        modifier none
-        tray_output primary
-        status_command i3status
-        separator_symbol " | "
-        workspace_min_width 40
+	mode hide
+	workspace_buttons yes
+	binding_mode_indicator yes
+	modifier none
+	tray_output primary
+	status_command i3status
+	separator_symbol " | "
+	workspace_min_width 40
 
-        colors {
-                background $MODELINE_BG
-                statusline $FG
-                separator  $FG
-                #class             $border      $bg          $fg
-                binding_mode       $MODELINE_BG $MODELINE_BG $MODELINE_BG
-                focused_workspace  $BORDER      $ACTIVE_BG   $FG
-                active_workspace   $BORDER      $MODELINE_BG $FG
-                inactive_workspace $BORDER      $MODELINE_BG $FG
-                urgent_workspace   $BORDER      $URGENT_BG   $FG
-        }
+	colors {
+		background $MODELINE_BG
+		statusline $FG
+		separator  $FG
+		#class             $border      $bg          $fg
+		binding_mode       $MODELINE_BG $MODELINE_BG $MODELINE_BG
+		focused_workspace  $BORDER      $ACTIVE_BG   $FG
+		active_workspace   $BORDER      $MODELINE_BG $FG
+		inactive_workspace $BORDER      $MODELINE_BG $FG
+		urgent_workspace   $BORDER      $URGENT_BG   $FG
+	}
 }
 # modeline / tabbar:1 ends here

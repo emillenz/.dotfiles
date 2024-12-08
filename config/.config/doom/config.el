@@ -308,14 +308,11 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       :n  "_"   (cmd! (evil-use-register ?_)
 		      (call-interactively #'evil-delete))
 
-      ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless
+      ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless anyways.
       :n  "+"   #'evil-numbers/inc-at-pt
       :n  "-"   #'evil-numbers/dec-at-pt
       :n  "g+"  #'evil-numbers/inc-at-pt-incremental
-      :n  "g-"  #'evil-numbers/dec-at-pt-incremental
-
-      :n  "g<"  #'evil-lion-left
-      :n  "g>"  #'evil-lion-right)
+      :n  "g-"  #'evil-numbers/dec-at-pt-incremental)
 ;; editing:1 ends here
 
 ;; [[file:config.org::*editing][editing:2]]
@@ -434,9 +431,9 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 	:nm "M-3" #'harpoon-go-to-3
 	:nm "M-4" #'harpoon-go-to-4
 
-	:nm "M-6" (cmd! (switch-to-buffer next-error-last-buffer))
+	:nm "M-6" (cmd! (switch-to-buffer next-error-last-buffer)))
 
-        :nm "M"   #'harpoon-add-file)
+  (map! :n "M" #'harpoon-add-file) ;; works only in file-visiting-buffers
 
   (map! :leader "M" #'harpoon-toggle-file)
 

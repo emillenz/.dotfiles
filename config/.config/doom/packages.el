@@ -7,6 +7,9 @@
 		   evil-snipe
 		   evil-easymotion
 
+		   ;; thats what tabs are for
+		   evil-lion
+
 		   ;; we use lispyville which is made for evil (don't know why doom includes lispy)
 		   lispy
 		   ;; this is the stupid bloat we get when people don't understand how to use evil's registers (hint: use evil's yank register ~"0~)

@@ -15,7 +15,7 @@
 (require '[babashka.process :refer [shell process check]])
 (require '[clojure.string :as str])
 
-(defn processes []
+(defn names=>ids []
   (->> (shell {:out :string}
               "ps" "-e" "-o" "pid,comm")
        :out
@@ -26,9 +26,9 @@
                 [name id])))
        (into {})))
 
-(defn select-ps [processes ]
+(defn select-ps [names=>ids ]
   (->> (apply process
-              {:in (->> processes
+              {:in (->> names=>ids
                         keys
                         (map name)
                         (str/join "\n"))
@@ -41,10 +41,10 @@
        str/trim))
 
 (defn main []
-  (let [processes (processes)
-        selected-ps (select-ps processes)]
+  (let [names=>ids (names=>ids)
+        selected-ps (select-ps names=>ids)]
 
-    (shell "kill" (get processes selected-ps))
+    (shell "kill" (get names=>ids selected-ps))
     (shell "dunstify" "killed process" selected-ps)))
 
 (main)
