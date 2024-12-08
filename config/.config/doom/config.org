@@ -25,6 +25,7 @@
 - if you remove a package, search this entire config for entries to also remove, since some configuration entries are centralized under different headings (eg. ~indentation~).
 - we always make use of threading operators: ~->>~, since this greatly enhances readability.
 
+
 * preface
 ** why emacs
 #+begin_quote
@@ -242,6 +243,9 @@ some modes implement their own buffer popup system or make use of ~switch-to-buf
 (setq display-line-numbers-type 'relative)
 #+end_src
 
+** formatting
+don't format my file automatically on-save.  instead format by calling it manually.  sometimes a file needs manual alignment that a formatter destroys.  our old ass computer is to weak to be able to run a format each time the file is saved.
+
 ** indentation
 *** rationale
 a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
@@ -274,10 +278,6 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
               org-indent-indentation-per-level u/global-indent-width)
 
 (setq c-default-style "linux")
-
-(after! ruby-mode
-  (setq ruby-indent-tabs-mode t
-        ruby-indent-level u/global-indent-width))
 
 (after! sh-script
   sh-basic-offset u/global-indent-width)
@@ -644,7 +644,7 @@ some selective mappings of disabled keythemes
 - when in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers one finds themselves alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since we need to alternate between more than 2 file.
 - we are restrained to 4 files since that is all we'll need and generally, if we have more than that, we have too much mental overhead remembering which files are where.  4 seem's to be generally the limit for us, for which we can subconsiously switch back and forth inbetween.
 - we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.  (harpoon hydra goes against emacs philosophy, use harpoon-toggle-file, is way more intuitive)
-- REPL-buffer :: for repl-coupled languages (python, zsh, clojure) we already have efficient bindings to jump back and forth between the ~REPL~ / ~shell~ buffer and our file(s).  (on ~localleader~ map for the mode).
+- REPL-buffer :: for repl-coupled languages (python, shell, clojure) we already have efficient bindings to jump back and forth between the ~REPL~ / ~shell~ buffer and our file(s).  (on ~localleader~ map for the mode).
 - compilation-buffer :: in any projects that we compile, we frequently switch to the ~*compilation*~ buffer.  since this is a consistently repeating action, we make it efficient.
 - bindings are consistent with the webbrowser (switch tabs using [[kbd:][M-<number]])
 #+begin_src elisp
@@ -1410,7 +1410,6 @@ i always look up documentation/manuals within emacs.  (only if it's not sufficie
   (setq devdocs-window-select t))
 
 (setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
-(setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 (setq-hook! '(cider-mode-hook
@@ -1530,13 +1529,11 @@ we automate this repetetive task using a snippets.
  '(makefile-gmake-mode :ignore t))
 #+end_src
 
-* shell: zsh
+* shell
 - to start a emacs/shell-buffer independent process, use ~disown~.
-- we never use a terminal, always use ~shell~ (to get benefits of comint mode).
+- we never use an actual terminal, always use ~shell~ (to get benefits of comint mode).
 - normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
 #+begin_src elisp
-(setq shell-file-name "/bin/zsh")
-
 (after! comint
   (setq comint-process-echoes t))
 
@@ -1545,18 +1542,6 @@ we automate this repetetive task using a snippets.
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
 
 (add-to-list 'evil-normal-state-modes 'shell-mode)
-#+end_src
-
-* ruby
-#+begin_src elisp
-(define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me.
-
-(map! :map ruby-mode-map :localleader :after ruby-mode
-      ;; add some neat but missing bindings
-      (:prefix "s"
-               "e" #'ruby-send-last-stmt
-               "l" #'ruby-send-line
-               "b" #'ruby-send-block))
 #+end_src
 
 * lsp

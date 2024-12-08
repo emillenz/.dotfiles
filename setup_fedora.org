@@ -1,8 +1,7 @@
 #+title:  fedora system install
 #+author: emil lenz
 #+email:  emillenz@protonmail.com
-#+date:   2024-12-01
-#+info:   moved from arch -> fedora on: 2023-05-28
+#+date:   [2024-12-01] (moved arch->fedora: [2023-05-28])
 #+property:  header-args:sh :tangle yes :shebang #!/bin/bash
 
 * info
@@ -18,7 +17,7 @@ alias dnf="dnf --assumeyes"
 - update all packages before doing anything (+ install basic dependecies)
 #+begin_src sh
 dnf upgrade
-dnf install curl git
+dnf install git
 #+end_src
 
 * clone dotfiles
@@ -37,18 +36,7 @@ cd ~/Dotfiles
 stow adopt home config bin
 #+end_src
 
-* shell: zsh
-- we use emacs's ~comint-mode~ for shell-prompts, so we don't have to configure the shell much.  but zsh is more sane than bash, for the rare time we do still need a regular terminal.
-- fd + rg :: better defaults than ~find, grep~.  improves performance of doom emacs find commands.
-- tldr :: cheatsheet style documentation
-#+begin_src sh
-dnf install zsh fd-find ripgrep tldr
-
-sudo chsh --shell /bin/zsh
-chsh --shell /usr/bin/zsh
-#+end_src
-
-** never sudo-password-prompt
+* never sudo-password-prompt
 #+begin_src sh
 echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
 #+end_src
@@ -69,9 +57,10 @@ echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
 - pamixer :: configure audio
 - keepassxc :: passwordmanager.  install browser extension + configure it's settings: run on startup, minimize to systray, don't kill on close.
 - zathura :: minmalist pdf viewer (with vim-bindings )
-- terminal :: using emacs ~M-x shell~ (~alacritty~ as a fallback).
+- terminal :: using emacs ~M-x shell~.
+- scrot :: screenshots
 #+begin_src sh
-dnf install i3 wmctrl xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst alacritty feh maim xset xsetroot keepassxc scrot
+dnf install i3 wmctrl xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc scrot
 
 dnf install zathura zathura-pdf-mupdf
 
@@ -95,15 +84,18 @@ make
 sudo make install
 #+end_src
 
-* scripting: babashka (clojure)
-#+begin_src sh
-dnf install clojure
-sh < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
-#+end_src
-
 ** make scripts executeable
 #+begin_src sh
-find ~/Dotfiles/bin/.local/bin -type f -exec chmod +x {}\;
+find ~/Dotfiles/bin/.local/bin -type f -exec chmod +x {} \;
+#+end_src
+
+** scripting: babashka (clojure)
+- required since scripts are written in it.
+
+#+begin_src sh
+dnf install clojure curl
+
+bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
 #+end_src
 
 * keybindings
@@ -122,20 +114,15 @@ echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rule
 #+end_src
 
 * editor: doom emacs
+- fd, rg :: improve performance of doom emacs ~occur~ and find commands.
 #+begin_src sh
-dnf install emacs-gtk+x11
+dnf install emacs-gtk+x11 fd-find ripgrep
 
 # HACK :: supress pure emacs-gtk warning (fedora problem)
 sudo alternatives --set emacs /usr/bin/emacs-gtk+x11
 
 git clone --depth 1 https://github.com/doomemacs/doomemacs $HOME/.config/emacs
 $HOME/.config/emacs/bin/doom install
-#+end_src
-
-- universale formatter
-#+begin_src sh
-sudo dnf install npm
-npm -g install prettier
 #+end_src
 
 * sshd: for github, sycnthing
@@ -158,7 +145,7 @@ echo '1 0 system-backup sudo timeshift --create' | sudo tee --append /etc/anacro
 systemctl enable crond && systemctl start crond
 #+end_src
 
-* c/cpp
+* c, c++
 #+begin_src sh
 dnf install cmake gcc clang clang-tools-extra
 #+end_src

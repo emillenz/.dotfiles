@@ -42,13 +42,13 @@ It may looks ridiculous to the outside observer, but efficiency it’s about eli
   - prompts & statusbars on bottom (if neccessary?)
   - completion-menu's / promts are an extensions of the statusbar
     - do not block view
-    - consistently on the same spot across all apps (emacs, rofi)
+    - consistently on the same spot across all apps (emacs, dmenu)
     - they should not distract => use flat mode (dmenu style)
   - use thin/lightweight/sharp over thick/heavy/rounded (box drawings / terminal characters / symbols)
     - 1px lines, borders with hard corners & sharp edges have their own beautiful, highly functional aestetic.
     - thin and sharp will create less obstruction (having more complex and voluminous symbols/ui than actually neccessary for visual distinction is bloat and visual sugar)
     - minimal and thin feels more soulless and is more ergonomic with screenspace
-  - prompts :: using ~>~ globally (shell, rofi,..) for prompt indicator symbol
+  - prompts :: using ~>~ globally (shell, dmenu,..) for prompt indicator symbol
 - thinking fast & slow :: rely on fast, instinctive thinking for non repeating tasks and for repeating patterns / actions on the slow, precise, analytical thinking.
   - this is the definition of dry, or not repeating yourself / taking the minimal required no.  of actions to get to the disired output/position.
   - ex: use vims search replace with patterns instead of manually going through and changing each instance

@@ -136,10 +136,6 @@
 
 (setq c-default-style "linux")
 
-(after! ruby-mode
-  (setq ruby-indent-tabs-mode t
-        ruby-indent-level u/global-indent-width))
-
 (after! sh-script
   sh-basic-offset u/global-indent-width)
 ;; rationale:1 ends here
@@ -1062,7 +1058,6 @@ PARENT-PATH :: nil (used for recursion) "
   (setq devdocs-window-select t))
 
 (setq-hook! 'java-mode-hook devdocs-current-docs '("openjdk~17"))
-(setq-hook! 'ruby-mode-hook devdocs-current-docs '("ruby~3.3"))
 (setq-hook! 'c++-mode-hook devdocs-current-docs '("cpp" "eigen3"))
 (setq-hook! 'c-mode-hook devdocs-current-docs '("c"))
 (setq-hook! '(cider-mode-hook
@@ -1136,9 +1131,7 @@ legibility."
  '(makefile-gmake-mode :ignore t))
 ;; file templates:1 ends here
 
-;; [[file:config.org::*shell: zsh][shell: zsh:1]]
-(setq shell-file-name "/bin/zsh")
-
+;; [[file:config.org::*shell][shell:1]]
 (after! comint
   (setq comint-process-echoes t))
 
@@ -1147,18 +1140,7 @@ legibility."
   (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
 
 (add-to-list 'evil-normal-state-modes 'shell-mode)
-;; shell: zsh:1 ends here
-
-;; [[file:config.org::*ruby][ruby:1]]
-(define-key! [remap robe-start] #'inf-ruby) ;; robe broken for me.
-
-(map! :map ruby-mode-map :localleader :after ruby-mode
-      ;; add some neat but missing bindings
-      (:prefix "s"
-               "e" #'ruby-send-last-stmt
-               "l" #'ruby-send-line
-               "b" #'ruby-send-block))
-;; ruby:1 ends here
+;; shell:1 ends here
 
 ;; [[file:config.org::*lsp][lsp:1]]
 (after! lsp-mode
