@@ -625,8 +625,7 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
                               prettify
                               text-objects
                               commentary
-                              slurp/barf-lispy
-                              atom-movement)))
+                              slurp/barf-lispy)))
 #+end_src
 
 some selective mappings of disabled keythemes
@@ -699,11 +698,10 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 - use a fileexplorer mostly for getting an overview of a directory and to manipulate files in that directory.
 - it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding and using harpoon-marks, global-marks and bookmarks for switching to other directories and files.
 - ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file we are looking for.
+- hide details (visual clutter) by default.  show explicitly when neccessary.
 
 #+begin_src elisp
 (after! dired
-  ;; make it more visually minimal, toggle all the details if needed explicitly.
-  (add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
    ;; prevent hidden edits
   (add-hook! 'wdired-mode-hook
     (dired-hide-details-mode -1)
@@ -735,12 +733,29 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 #+begin_src elisp
 (map! :map dired-mode-map :after dired
       :m "h" #'dired-up-directory) ;; navigate using hjkl
+#+end_src
+
+- hide details & hidden files by default (visual distracting clutter).  enable all details if needed.
+#+begin_src elisp
+(defun u/dired-hide-all ()
+  (dired-hide-details-mode)
+  (dired-omit-mode))
+
+ ;; HACK :: enabled by default, but we don't want duplicate hooks
+(remove-hook! 'dired-mode-hook #'dired-omit-mode)
+(add-hook! 'dired-mode-hook #'u/dired-hide-all)
 
 (map! :map dired-mode-map :localleader :after dired-x
-      :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
-                                           (call-interactively #'dired-hide-details-mode))
-      "a" #'u/dired-archive)
+      :desc "dired-hide-details" "h" (cmd! (apply (if (memq 'u/dired-hide-all dired-mode-hook)
+						      #'remove-hook
+						    #'add-hook)
+						  '(dired-mode-hook
+						    u/dired-hide-all))
+
+					   (call-interactively #'dired-omit-mode)
+					   (call-interactively #'dired-hide-details-mode)))
 #+end_src
+
 
 ** archive file
 - archive all things that were once written or created (instead of deleting them) => digital content cost's little to no space.  and one shall be grateful later in life to have recorded data (that can be analyzed & crunched) what one was thinking.
@@ -771,6 +786,9 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
         (dired-get-marked-files nil nil))
 
   (revert-buffer))
+
+(map! :map dired-mode-map :localleader
+      "a" #'u/dired-archive)
 #+end_src
 
 * org

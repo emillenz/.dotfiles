@@ -413,8 +413,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
                               prettify
                               text-objects
                               commentary
-                              slurp/barf-lispy
-                              atom-movement)))
+                              slurp/barf-lispy)))
 ;; lispy(ville): editing lisp in vim:1 ends here
 
 ;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:2]]
@@ -467,8 +466,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
-  ;; make it more visually minimal, toggle all the details if needed explicitly.
-  (add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
    ;; prevent hidden edits
   (add-hook! 'wdired-mode-hook
     (dired-hide-details-mode -1)
@@ -496,12 +493,27 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; [[file:config.org::*dired/keybindings][dired/keybindings:1]]
 (map! :map dired-mode-map :after dired
       :m "h" #'dired-up-directory) ;; navigate using hjkl
+;; dired/keybindings:1 ends here
+
+;; [[file:config.org::*dired/keybindings][dired/keybindings:2]]
+(defun u/dired-hide-all ()
+  (dired-hide-details-mode)
+  (dired-omit-mode))
+
+ ;; HACK :: enabled by default, but we don't want duplicate hooks
+(remove-hook! 'dired-mode-hook #'dired-omit-mode)
+(add-hook! 'dired-mode-hook #'u/dired-hide-all)
 
 (map! :map dired-mode-map :localleader :after dired-x
-      :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
-                                           (call-interactively #'dired-hide-details-mode))
-      "a" #'u/dired-archive)
-;; dired/keybindings:1 ends here
+      :desc "dired-hide-details" "h" (cmd! (apply (if (memq 'u/dired-hide-all dired-mode-hook)
+						      #'remove-hook
+						    #'add-hook)
+						  '(dired-mode-hook
+						    u/dired-hide-all))
+
+					   (call-interactively #'dired-omit-mode)
+					   (call-interactively #'dired-hide-details-mode)))
+;; dired/keybindings:2 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
 (defvar u/archive-dir "~/Archive/")
@@ -529,6 +541,9 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
         (dired-get-marked-files nil nil))
 
   (revert-buffer))
+
+(map! :map dired-mode-map :localleader
+      "a" #'u/dired-archive)
 ;; archive file:1 ends here
 
 ;; [[file:config.org::*org][org:1]]

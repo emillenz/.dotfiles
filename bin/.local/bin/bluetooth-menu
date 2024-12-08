@@ -45,7 +45,6 @@
 (defn connect [addresses=>devices selected-device]
   (shell "bluetoothctl" "power" "on")
   (try (do
-         (shell "dunstify" "bluetooth: connecting" selected-device)
          (->> (shell "bluetoothctl" "connect" (get addresses=>devices selected-device))
               check)
          (shell "dunstify" "bluetooth: connected" selected-device))
