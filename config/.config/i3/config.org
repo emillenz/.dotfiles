@@ -2,7 +2,7 @@
 #+author: emil lenz
 #+email:  emillenz@protonmail.com
 #+date:   [2023-05-15] <- ([2024-11-15] version: marks & literate style)
-#+property: header-args:conf :tangle config
+#+property: header-args:conf :tangle config :comments no
 
 * preface
 - [[https://i3wm.org/docs/userguide.html][i3 user-guide]]
@@ -35,7 +35,8 @@
 #+begin_src conf
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
-set $LSHCMD exec mode "default"; --no-startup-id
+set $ESC_SHCMD mode "default"; exec --no-startup-id
+set $ESC mode "default"
 set $START_SHCMD exec_always --no-startup-id
 set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
 set $BIN ~/.local/bin
@@ -47,12 +48,11 @@ set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "m
 set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep 0.1 && playerctl status)"
 
 set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
-set $SYS_SCREENOFF sleep 1 && xset dpms force off
-set $SYS_HIBERNATE systemctl hibernate
 #+end_src
 
 * start processes
 - ensure these programs/daemon's are always running
+
 #+begin_src conf
 $START_SHCMD emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 $START_SHCMD pgrep firefox || firefox
@@ -75,7 +75,7 @@ $START_SHCMD xset s off
 
 keyremaps + disable key repeat (efficiency!)
 #+begin_src conf
-$START_SHCMD pgrep xremap || xremap --watch=config ~/.config/xremap/config.yml
+$START_SHCMD pgrep xremap || xremap --watch=device ~/.config/xremap/config.yml
 $START_SHCMD xset r off
 #+end_src
 
@@ -116,7 +116,6 @@ bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
 bindsym XF86MonBrightnessUp $SHCMD brightnessctl set 5%+
 # to reset screenlayouts when disconnecting laptop from external output
 bindsym XF86Display $SHCMD xrandr --auto
-bindsym XF86ScreenSaver $SHCMD $SYS_SCREENOFF
 bindsym XF86Sleep $SHCMD $SYS_SLEEP
 bindsym XF86AudioPlay $SHCMD $PLAYERCTL_PLAY_PAUSE
 bindsym XF86AudioPause $SHCMD $PLAYERCTL_PLAY_PAUSE
@@ -143,11 +142,11 @@ bindsym $MOD+shift+p move left
 bindsym $MOD+n focus right
 bindsym $MOD+shift+n move right
 bindsym $MOD+q kill
+bindsym $MOD+Tab workspace back_and_forth
 
 # find window (using xargs to abort if none picked)
-bindsym $MOD+f $SHCMD wmctrl -l | cut --delimiter=' ' --fields='5-' | dmenu $DMENU_THEME -p 'window >' | xargs --delimiter='\n' wmctrl -a
+bindsym $MOD+f $SHCMD $BIN/window-menu $DMENU_THEME
 
-bindsym $MOD+Tab workspace back_and_forth
 bindsym $MOD+Return $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
 bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 #+end_src
@@ -223,7 +222,7 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
                                                       key
                                                       name)
 
-                                              (when cmd (format "bindsym $MOD+shift+%s exec --no-startup-id %s" key cmd))))
+                                              (when cmd (format "bindsym $MOD+shift+%s $SHCMD %s" key cmd))))
                             "\n")))
              workspaces
              "\n\n"))
@@ -231,27 +230,7 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 
 (read: ~M-x info-display-manual org~ chapter: =16 working with source code=, if you don't know what this magic is doing)
 #+begin_src conf
-# WORKSPACE: ALL
-for_window [class="."] move container to workspace all
-bindsym $MOD+a workspace all
-
-# WORKSPACE: EDIT
-workspace edit gaps horizontal $GAPSIZE
-for_window [class="Emacs"] move container to workspace edit
-bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e exec --no-startup-id emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
-
-# WORKSPACE: READ
-for_window [class="Zathura"] move container to workspace read
-bindsym $MOD+r workspace read
-
-# WORKSPACE: WEB
-for_window [class="firefox"] move container to workspace web
-bindsym $MOD+w workspace web
-bindsym $MOD+shift+w exec --no-startup-id firefox
-
-# HACK :: must come last to apply to all workspaces.
-for_window [all] focus, title_window_icon no
+<<workspaces()>>
 #+end_src
 
 * leader
@@ -261,24 +240,24 @@ for_window [all] focus, title_window_icon no
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-	bindsym $MOD+a $LSHCMD $BIN/audio-output-menu $DMENU_THEME
-	bindsym $MOD+b $LSHCMD $BIN/bluetooth-menu $DMENU_THEME
-	bindsym $MOD+k $LSHCMD $BIN/kill-menu $DMENU_THEME
-	bindsym $MOD+d $LSHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
+	bindsym $MOD+a $ESC_SHCMD $BIN/audio-output-menu $DMENU_THEME
+	bindsym $MOD+b $ESC_SHCMD $BIN/bluetooth-menu $DMENU_THEME
+	bindsym $MOD+k $ESC_SHCMD $BIN/kill-menu $DMENU_THEME
+	bindsym $MOD+d $ESC_SHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
 	# screenshot
-	bindsym $MOD+s $LSHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
+	bindsym $MOD+s $ESC_SHCMD scrot\
+		--select\
+		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png"\
+		--exec 'dunstify "screenshot" "$f"'
 
-	bindsym $MOD+e $LSHCMD emacsclient --eval "(emacs-everywhere)"
+	bindsym $MOD+e $ESC_SHCMD emacsclient --eval "(emacs-everywhere)"
+	bindsym $MOD+q $ESC_SHCMD $SYS_SLEEP
+	bindsym $MOD+o $ESC; move workspace to output next
+	bindsym $MOD+m $ESC_SHCMD $VOL_MUTE
+	bindsym $MOD+shift+m $ESC_SHCMD $MIC_MUTE
 
-	bindsym $MOD+q $LSHCMD $SYS_SLEEP
-	bindsym $MOD+shift+q $LSHCMD $SYS_HIBERNATE
-	bindsym $MOD+o $LSHCMD $SYS_SCREENOFF
-
-	bindsym $MOD+m $LSHCMD $VOL_MUTE
-	bindsym $MOD+shift+m $LSHCMD $MIC_MUTE
-
-	bindsym Escape mode "default"
+	bindsym Escape $ES C
 }
 #+end_src
 

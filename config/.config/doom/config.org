@@ -117,8 +117,7 @@ the only reason for us to ever use a terminal is if we need to use a TUI or a co
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
       auto-save-default t
       confirm-kill-emacs nil
-      enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
-      shell-command-prompt-show-cwd t)
+      enable-recursive-minibuffers t) ;; all of emacs available even if in minibuffer.
 
 (save-place-mode)
 
@@ -347,7 +346,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 '@q' (the exact key) for the first time and then only after that we may call '@@'."
   :after #'evil-record-macro
   (when (not evil-last-register)
-    (setq evil-last-register evil-last-recorded-register)))
+    (setq-local evil-last-register evil-last-recorded-register)))
 #+end_src
 
 - make evil's global markers persist across sessions (save state => reduce repetition, increase consistency).  this is default behaviour in vim.
@@ -396,6 +395,8 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       doom-localleader-key "SPC m")
 
 (map! :leader
+      "'" #'consult-bookmark
+
       (:prefix "h"
                "w" #'tldr)
       (:prefix "s"
@@ -473,7 +474,7 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
 - [[kbd:][L]] :: inverse of: [[kbd:][L]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
-- & :: for running quick one-off shell commands we need a primary mapping (for anthing more, switch over to ~shell~).  (evil's: ~&~ is useless, since we use ~query-replace-regexp~ instead of ~evil-ex~).
+- & :: for running quick one-off shell commands.  we use a more ergonomic mapping than [[kbd:][M-&]].  for anthing more, use ~shell~.  evils mapping of [[kbd:][&]] is useless, since we use ~query-replace-regexp~ instead of evil's ~:s~
 - [[kbd:][C-j/k]] :: navigate by sections.  these bindings are implemented in ~magit~, ~info-mode~, ~man~, ~org-mode~.
 - [[kbd:][_]] :: default mapping is useless (use [[kbd:][^]]).  is mapped to the commonly used (but unergonomic) [[kbd:]["_d]] to delete into the ~null-register~.
 
@@ -626,11 +627,11 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 #+end_src
 
 some selective mappings of disabled keythemes
-- [[kbd:][U]] :: "up"
-- [[kbd:][()]] :: navigate to beginning/end of current sexp.  very useful!
+- [[kbd:][H]] :: "up"
+- [[kbd:][()]] :: navigate to beginning/end of current sexp.  very useful! (structural navigation, eg. insert at end of current sexp)
 #+begin_src elisp
 (map! :map lispyville-mode-map :after lispyville
-      :nm "U" #'lispyville-raise-list
+      :nm "H" #'lispyville-raise-list
 
       :nm "(" #'lispyville-backward-up-list
       :nm ")" #'lispyville-up-list)
@@ -1522,8 +1523,8 @@ in each new file systematically insert heading metadata (as comments) with the f
 # title:  file metadata
 # author: emil lenz
 # email:  emillenz@protonmail.com
-# date:   2024-01-06
-# notes:
+# date:   [2024-01-06]
+# info:
 # - outlines file-metadata template, to be inserted at top of every file systematically.
 # ---
 #+end_example
@@ -1545,24 +1546,23 @@ we automate this repetetive task using a snippets.
 #+end_src
 
 * shell
-- to start a emacs/shell-buffer independent process, use ~disown~.
 - we never use an actual terminal, always use ~shell~ (to get benefits of comint mode).
 - normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
 #+begin_src elisp
-(after! comint
-  (setq comint-process-echoes t))
+(setq shell-command-prompt-show-cwd t
+      async-shell-command-buffer 'new-buffer)
 
-;; browse
-(after! shell
-  (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
+(setq comint-process-echoes t)
+
+(set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler)
 
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 #+end_src
 
 * lsp
+- when we kill buffer's, don't prompt to restart the server...
 #+begin_src elisp
 (after! lsp-mode
-  ;; when we kill buffer's, don't prompt to restart the server...
   (setq lsp-restart 'ignore))
 #+end_src
 

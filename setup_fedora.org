@@ -60,7 +60,7 @@ echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
 - terminal :: using emacs ~M-x shell~.
 - scrot :: screenshots
 #+begin_src sh
-dnf install i3 wmctrl xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc scrot
+dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc scrot
 
 dnf install zathura zathura-pdf-mupdf
 

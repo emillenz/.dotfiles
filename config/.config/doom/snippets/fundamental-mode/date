@@ -4,4 +4,4 @@
 # uuid: fund-mode-date
 # condition: t
 # --
-`(format-time-string "%F")`
+`(format-time-string "[%F]")`

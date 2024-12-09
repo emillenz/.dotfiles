@@ -19,8 +19,7 @@
       bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
       auto-save-default t
       confirm-kill-emacs nil
-      enable-recursive-minibuffers t ;; all of emacs available even if in minibuffer.
-      shell-command-prompt-show-cwd t)
+      enable-recursive-minibuffers t) ;; all of emacs available even if in minibuffer.
 
 (save-place-mode)
 
@@ -197,7 +196,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 '@q' (the exact key) for the first time and then only after that we may call '@@'."
   :after #'evil-record-macro
   (when (not evil-last-register)
-    (setq evil-last-register evil-last-recorded-register)))
+    (setq-local evil-last-register evil-last-recorded-register)))
 ;; evil-mode:4 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:5]]
@@ -235,6 +234,8 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       doom-localleader-key "SPC m")
 
 (map! :leader
+      "'" #'consult-bookmark
+
       (:prefix "h"
                "w" #'tldr)
       (:prefix "s"
@@ -415,7 +416,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 ;; [[file:config.org::*lispy(ville): editing lisp in vim][lispy(ville): editing lisp in vim:2]]
 (map! :map lispyville-mode-map :after lispyville
-      :nm "U" #'lispyville-raise-list
+      :nm "H" #'lispyville-raise-list
 
       :nm "(" #'lispyville-backward-up-list
       :nm ")" #'lispyville-up-list)
@@ -1144,19 +1145,18 @@ legibility."
 ;; file templates:1 ends here
 
 ;; [[file:config.org::*shell][shell:1]]
-(after! comint
-  (setq comint-process-echoes t))
+(setq shell-command-prompt-show-cwd t
+      async-shell-command-buffer 'new-buffer)
 
-;; browse
-(after! shell
-  (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler))
+(setq comint-process-echoes t)
+
+(set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler)
 
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 ;; shell:1 ends here
 
 ;; [[file:config.org::*lsp][lsp:1]]
 (after! lsp-mode
-  ;; when we kill buffer's, don't prompt to restart the server...
   (setq lsp-restart 'ignore))
 ;; lsp:1 ends here
 
