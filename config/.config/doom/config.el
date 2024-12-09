@@ -349,14 +349,15 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 (evil-define-operator u/query-replace-regexp-op (beg end type)
   "make (anzu)`query-replace-regexp' into an operator acting only on defined region."
-  :restore-point t
+  :repeat nil
   (interactive "<R>")
-  (let ((region-start (save-excursion (goto-char beg) (point)))
-        (region-end (save-excursion (goto-char end) (point))))
-
-    (save-restriction
-      (narrow-to-region region-start region-end)
-      (call-interactively 'anzu-query-replace-regexp))))
+  (save-excursion
+   (goto-char end)
+   (set-mark (point))
+   (goto-char beg)
+   (condition-case nil
+       (call-interactively #'anzu-query-replace-regexp)
+     (t (deactivate-mark)))))
 ;; embrace emacs:1 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:2]]

@@ -1,6 +1,5 @@
 set $MV move container to workspace
 set $SHCMD exec --no-startup-id
-set $ESC_SHCMD mode "default"; exec --no-startup-id
 set $ESC mode "default"
 set $START_SHCMD exec_always --no-startup-id
 set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
@@ -109,22 +108,22 @@ bindsym $MOD+shift+w $SHCMD firefox
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-	bindsym $MOD+a $ESC_SHCMD $BIN/audio-output-menu $DMENU_THEME
-	bindsym $MOD+b $ESC_SHCMD $BIN/bluetooth-menu $DMENU_THEME
-	bindsym $MOD+k $ESC_SHCMD $BIN/kill-menu $DMENU_THEME
-	bindsym $MOD+d $ESC_SHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
+	bindsym $MOD+a $ESC; $SHCMD $BIN/audio-output-menu $DMENU_THEME
+	bindsym $MOD+b $ESC; $SHCMD $BIN/bluetooth-menu $DMENU_THEME
+	bindsym $MOD+k $ESC; $SHCMD $BIN/kill-menu $DMENU_THEME
+	bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
 	# screenshot
-	bindsym $MOD+s $ESC_SHCMD scrot\
+	bindsym $MOD+s $ESC; $SHCMD scrot\
 		--select\
 		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png"\
 		--exec 'dunstify "screenshot" "$f"'
 
-	bindsym $MOD+e $ESC_SHCMD emacsclient --eval "(emacs-everywhere)"
-	bindsym $MOD+q $ESC_SHCMD $SYS_SLEEP
+	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
+	bindsym $MOD+q $ESC; $SHCMD $SYS_SLEEP
 	bindsym $MOD+o $ESC; move workspace to output next
-	bindsym $MOD+m $ESC_SHCMD $VOL_MUTE
-	bindsym $MOD+shift+m $ESC_SHCMD $MIC_MUTE
+	bindsym $MOD+m $ESC; $SHCMD $VOL_MUTE
+	bindsym $MOD+shift+m $ESC; $SHCMD $MIC_MUTE
 
 	bindsym Escape $ES C
 }
