@@ -330,16 +330,10 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; editing:3 ends here
 
 ;; [[file:config.org::*editing][editing:4]]
-(map! :map (c-mode-map cpp-mode-map c++-mode-map)
-      :nm "C-l" #'recenter-top-bottom)
+(add-hook! 'c-mode-common-hook
+ (map! :map (c-mode-map c++-mode-map)
+       :n "C-l" #'recenter-top-bottom))
 ;; editing:4 ends here
-
-;; [[file:config.org::*editing][editing:5]]
-(add-hook! 'doom-escape-hook #'delete-other-windows)
-
-(map! :after evil
-      :nm "C-w" #'next-window-any-frame)
-;; editing:5 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:1]]
 (define-key! [remap evil-ex] #'execute-extended-command)
@@ -804,12 +798,7 @@ TIME :: time in day of note to return. (default: today)"
 
   (defun u/doct-projects-cc-src-template (path)
     "for quickly implementing/testing ideas (like a scratchpad, but have all
-  our code-snippets in a single literate document, instead of creating a new file each time).  choose either c or c++.
-
-`<<header>>' is org-babel's `:noweb' syntax and the named `org-src-block':
-`c_header' (or `cpp_header') which must be present in the targetfile.  depending
-on wether the project uses C or cpp it is different.  and should contains stuff
-like `#include <iostream>' that is basically needed for every single snippet. "
+  our code-snippets in a single literate document, instead of creating a new file each time).  choose either c or c++."
 
     (list "note: src cc"
           :keys "s"
@@ -821,8 +810,6 @@ like `#include <iostream>' that is basically needed for every single snippet. "
                       ":created: %U"
                       ":END:"
                       "#+begin_src %\\2"
-                      "<<%\\2_header>>"
-                      ""
                       "int main() {"
                       "        %?"
                       "}"

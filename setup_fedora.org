@@ -28,12 +28,13 @@ git clone --depth=1 https://github.com/emillenz/config ~/Dotfiles
 * link neccessary config files
 - we use GNU stow and symlink the important config files to keep them all centralized in the same directory and symlink them to the respective places.
 - backup your own config directory if neccessary since this will override any previous configuration.
-- override all existing files if you had existing configs using ~--adopt~ flag and
-  then running ~git revert .~
 #+begin_src sh
 dnf install stow
+mkdir ~/.local/bin
 cd ~/Dotfiles
-stow adopt home config bin
+stow --target=$HOME/.config config
+stow home
+stow --target=/usr/local/bin bin
 #+end_src
 
 * never sudo-password-prompt

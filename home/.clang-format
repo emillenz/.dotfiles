@@ -14,15 +14,4 @@ BasedOnStyle: LLVM
 UseTab: Always
 IndentWidth: 8
 TabWidth: 8
-
-AllowAllParametersOfDeclarationOnNextLine: false
-BinPackParameters: false
-BinPackArguments: false
-
-# BreakBeforeBraces: Attach
-# AlwaysBreakAfterDefinitionReturnType: None
-# BreakConstructorInitializers: AfterColon
-# ContinuationIndentWidth: 8
-# SpaceBeforeParens: ControlStatements
-# DerivePointerAlignment: false
-# PointerAlignment: Left
+ColumnLimit: 100

@@ -18,7 +18,6 @@ export GOPATH="$HOME/.local/share/go"
 export PATH="$PATH:$GOPATH"
 export PATH="$PATH:$HOME/.config/emacs/bin"
 export PATH="$PATH:$HOME/.cargo/bin"
-export PATH="$PATH:$HOME/.local/bin"
 
 export EDITOR="emacsclient -nw --alternate-editor='emacs -nw'"
 export VISUAL="emacsclient --reuse-frame --alternate-editor=emacs"

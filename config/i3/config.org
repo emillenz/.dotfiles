@@ -38,7 +38,6 @@ set $SHCMD exec --no-startup-id
 set $ESC mode "default"
 set $START_SHCMD exec_always --no-startup-id
 set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
-set $BIN ~/.local/bin
 
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
@@ -59,6 +58,7 @@ $START_SHCMD pgrep playerctld || playerctld
 $START_SHCMD pgrep unclutter || unclutter
 $START_SHCMD pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
 $START_SHCMD pgrep nm-applet || nm-applet
+$START_SHCMD pgrep keepassxc || keepassxc
 #+end_src
 
 - background :: minimalist modus-vivendi bg color
@@ -144,7 +144,7 @@ bindsym $MOD+q kill
 bindsym $MOD+Tab workspace back_and_forth
 
 # find window (using xargs to abort if none picked)
-bindsym $MOD+f $SHCMD $BIN/window-menu $DMENU_THEME
+bindsym $MOD+f $SHCMD window-menu $DMENU_THEME
 
 bindsym $MOD+Return $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
 bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
@@ -207,9 +207,7 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
                       (gaps-flag (nth 3 tuple)))
 
                  (mapconcat #'identity
-                            (remove nil (list (format "# WORKSPACE: %s" (upcase name))
-
-                                              (when gaps-flag
+                            (remove nil (list (when gaps-flag
                                                 (format "workspace %s gaps horizontal $GAPSIZE"
                                                         name))
 
@@ -230,25 +228,24 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 (read: ~M-x info-display-manual org~ chapter: =16 working with source code=, if you don't know what this magic is doing)
 #+begin_src conf
 <<workspaces()>>
+
+# HACK :: must come last to apply to all workspaces.
+for_window [all] focus, title_window_icon no
 #+end_src
 
 * leader
 - bind infrequently used commands and menus
-- ~kill-menu~ :: gives a overview of running processes and allows you to interactively kill one (you don't need htop).
 #+begin_src conf
 bindsym $MOD+space mode "leader"
 
 mode "leader" {
-	bindsym $MOD+a $ESC; $SHCMD $BIN/audio-output-menu $DMENU_THEME
-	bindsym $MOD+b $ESC; $SHCMD $BIN/bluetooth-menu $DMENU_THEME
-	bindsym $MOD+k $ESC; $SHCMD $BIN/kill-menu $DMENU_THEME
+	bindsym $MOD+a $ESC; $SHCMD audio-output-menu $DMENU_THEME
+	bindsym $MOD+b $ESC; $SHCMD bluetooth-menu $DMENU_THEME
+	bindsym $MOD+k $ESC; $SHCMD kill-menu $DMENU_THEME
 	bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
 	# screenshot
-	bindsym $MOD+s $ESC; $SHCMD scrot\
-		--select\
-		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png"\
-		--exec 'dunstify "screenshot" "$f"'
+	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
 
 	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 	bindsym $MOD+q $ESC; $SHCMD $SYS_SLEEP
@@ -256,7 +253,7 @@ mode "leader" {
 	bindsym $MOD+m $ESC; $SHCMD $VOL_MUTE
 	bindsym $MOD+shift+m $ESC; $SHCMD $MIC_MUTE
 
-	bindsym Escape $ES C
+	bindsym Escape $ESC
 }
 #+end_src
 
