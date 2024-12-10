@@ -4,14 +4,15 @@
 # email:  emillenz@protonmail.com
 # date:   2024-05-15
 # notes:
-# - put this file into project root
-# - this is optimized for Tab-width 8 indentation and readability.
-# - Tabs: IndentWidth must match TabWidth to work consistently
+# - this is adheres to linux kernel standards, 8-wide tab indentation, optimized for readability.
+# - braces on newlines for functions in c-style languages make sense, since library functions can have abysmally long types.
 # ---
 
 BasedOnStyle: LLVM
-
-UseTab: Always
 IndentWidth: 8
-TabWidth: 8
+TabWidth: 8 # for the editor
+UseTab: Always
+BreakBeforeBraces: Linux
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
 ColumnLimit: 100

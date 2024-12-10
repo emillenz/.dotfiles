@@ -7,6 +7,8 @@
 		   evil-snipe
 		   evil-easymotion
 
+		   ccls ;; redundant, using clang
+
 		   ;; thats what tabs are for
 		   evil-lion
 

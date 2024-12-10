@@ -135,7 +135,7 @@ the only reason for us to ever use a terminal is if we need to use a TUI or a co
   (visual-fill-column-mode -1))
 #+end_src
 
-- HACK :: we don't use macos, and ~+default/man-or-woman~ doesn't invoke ~man~ correctly
+- HACK :: we don't use macOS, and ~+default/man-or-woman~ doesn't invoke ~man~ correctly
 #+begin_src elisp
 (advice-add '+default/man-or-woman :override #'man)
 #+end_src
@@ -205,7 +205,6 @@ the ~org-block~ background is different (dimmed) from ~bg-main~ in order to dist
 						"lsp-help"
 						"Async Shell Command")))
 			      display-buffer-in-side-window
-			      (window-parameters . ((mode-line-format . none)))
 			      (window-height . fit-window-to-buffer)
 			      (side . bottom))
 
@@ -227,8 +226,8 @@ some modes implement their own buffer popup system or make use of ~switch-to-buf
 (advice-add #'switch-to-buffer-other-window :override #'switch-to-buffer)
 
 (after! cider
-  (setq cider-auto-select-error-buffer nil
-	cider-inspector-auto-select-buffer nil
+  (setq ;; cider-auto-select-error-buffer
+	;; cider-inspector-auto-select-buffer
 	cider-jump-to-pop-to-buffer-actions '((display-buffer-in-side-window))))
 
 (after! magit
@@ -286,7 +285,6 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 - evil comes with powerful additions and bindings that are to be discovered: [[~/.config/emacs/modules/editor/evil/README.org::* TODO Usage][evil readme]].  familiarize and harness their power.
 - evil-magic 'nomagic :: statistically its more sensible to incsearch without regex (if we need it, use ~\m~ as a prefix in search string to enable regex.
 
-~after! evil~ begin
 #+begin_src elisp
 (after! evil
 #+end_src
@@ -375,7 +373,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
     (make-local-variable 'evil-markers-alist)))
 #+end_src
 
-~after! evil~ end
 #+begin_src elisp
 )
 #+end_src
@@ -508,17 +505,10 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
       :n "C-k" #'org-previous-visible-heading)
 #+end_src
 
-- we use [[kbd:][C-l]] over [[kbd:][zz]] (same as shell + [[kbd:][ctrl]] bindings are already for screen-movements: [[kbd:][C-u/d/e/y]])
-- HACK :: in c-modes it gets overridden by an obscure lambda ~ccls-navigate~.  must set with hook to override.
-#+begin_src elisp
-(add-hook! 'c-mode-common-hook
- (map! :map (c-mode-map c++-mode-map)
-       :n "C-l" #'recenter-top-bottom))
- #+end_src
-
 - close popup window (eg. ~*lsp-help*~) from the main window with [[kbd:][escape]] in normal mode.  (ergonomic & fast)
 - since we don't split we only need to occasionally switch window, and [[kbd:][C-w]] is just one keypress to many.  (additionally we also want to jump in/out of minbuffer window if it is active).
-,#+begin_src elisp
+
+#+begin_src elisp
 (add-hook! 'doom-escape-hook #'delete-other-windows)
 
 (map! :after evil
@@ -694,69 +684,56 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 #+end_src
 
 * dired
-- avoid using integrated filemanagers and manually navigating directory structures (such as dired / ranger / thunar) whenever possible (and dont even dare to suggest a gui file manager...).
+- filemanagers :: avoid using integrated filemanagers (such as dired / ranger / lf) whenever possible replace them with shell commands and fuzzy-finding (in project/root/recentfiles)
+- in most cases it is more extensible and faster using tools such as emacs find-file in combination with fuzzy finding and using global bookmarks for frequently used projects/files.
+- create new files/dir's using ~find-file~ instead of ~dired-create-empty-file~ (inserts filetemplate properly)
 - if we think we need a sidebar type file explorer, we are doing something terribly inefficient in our workflow.
 - use a fileexplorer mostly for getting an overview of a directory and to manipulate files in that directory.
 - it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding and using harpoon-marks, global-marks and bookmarks for switching to other directories and files.
 - ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file we are looking for.
-- hide details (visual clutter) by default.  show explicitly when neccessary.
+- hide details & hidden files by default (visual distracting clutter).  show details explicitly if needed.
 
 #+begin_src elisp
 (after! dired
-   ;; prevent hidden edits
-  (add-hook! 'wdired-mode-hook
-    (dired-hide-details-mode -1)
-    (dired-omit-mode -1))
-
-  ;; open graphical files externally
-  (setq dired-open-extensions (mapcan (lambda (pair)
-                                        (let ((extensions (car pair))
-                                              (app (cdr pair)))
-                                          (mapcar (lambda (ext)
-                                                    (cons ext app))
-                                                  extensions)))
-                                      '((("mkv" "webm" "mp4" "mp3") . "mpv")
-                                        (("pdf")                    . "zathura")
-                                        (("gif" "jpg" "png")        . "feh")
-                                        (("docx" "odt" "odf")       . "libreoffice")))
-        dired-recursive-copies 'always
-        dired-recursive-deletes 'always
-        dired-no-confirm '(uncompress move copy)
-        dired-omit-files "^\\..*$")
-
-  (define-key! [remap dired-find-file] #'dired-open-file)) ;; try dired-open fn's (no success => call: `dired-find-file')
 #+end_src
 
-** dired/keybindings
-- filemanagers :: avoid using integrated filemanagers (such as dired / ranger / lf) whenever possible replace them with shell commands and fuzzy-finding (in project/root/recentfiles)
-- in most cases it is more extensible and faster using tools such as emacs find-file in combination with fuzzy finding and using global bookmarks for frequently used projects/files.
-- create new files/dir's using ~find-file~ instead of ~dired-create-empty-file~ (inserts filetemplate properly)
 #+begin_src elisp
-(map! :map dired-mode-map :after dired
-      :m "h" #'dired-up-directory) ;; navigate using hjkl
-#+end_src
+;; prevent hidden edits
+(add-hook! 'wdired-mode-hook
+  (dired-hide-details-mode -1)
+  (dired-omit-mode -1))
 
-- hide details & hidden files by default (visual distracting clutter).  enable all details if needed.
-#+begin_src elisp
-(defun u/dired-hide-all ()
-  (dired-hide-details-mode)
-  (dired-omit-mode))
-
- ;; HACK :: enabled by default, but we don't want duplicate hooks
-(remove-hook! 'dired-mode-hook #'dired-omit-mode)
-(add-hook! 'dired-mode-hook #'u/dired-hide-all)
+(add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
 
 (map! :map dired-mode-map :localleader :after dired-x
-      :desc "dired-hide-details" "h" (cmd! (apply (if (memq 'u/dired-hide-all dired-mode-hook)
-						      #'remove-hook
-						    #'add-hook)
-						  '(dired-mode-hook
-						    u/dired-hide-all))
-
-					   (call-interactively #'dired-omit-mode)
+      :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
 					   (call-interactively #'dired-hide-details-mode)))
-#+end_src
 
+
+;; open graphical files externally
+(setq dired-open-extensions (mapcan (lambda (pair)
+                                      (let ((extensions (car pair))
+                                            (app (cdr pair)))
+                                        (mapcar (lambda (ext)
+                                                  (cons ext app))
+                                                extensions)))
+                                    '((("mkv" "webm" "mp4" "mp3") . "mpv")
+                                      (("pdf")                    . "zathura")
+                                      (("gif" "jpg" "png")        . "feh")
+                                      (("docx" "odt" "odf")       . "libreoffice")))
+      dired-recursive-copies 'always
+      dired-recursive-deletes 'always
+      dired-no-confirm '(uncompress move copy)
+      dired-omit-files "^\\..*$")
+
+(map! :map dired-mode-map :after dired
+      :n "&" #'async-shell-command ;; same as evil-normal-mode binding.
+      :n "!" #'dired-do-async-shell-command ;; always use async
+      :m "h" #'dired-up-directory) ;; HACK :: must be 'm' (otherwise also binds in 'wdired-mode')
+
+;; try dired-open fn's (no success => call: `dired-find-file')
+(define-key! [remap dired-find-file] #'dired-open-file)
+#+end_src
 
 ** archive file
 - archive all things that were once written or created (instead of deleting them) => digital content cost's little to no space.  and one shall be grateful later in life to have recorded data (that can be analyzed & crunched) what one was thinking.
@@ -788,15 +765,15 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 
   (revert-buffer))
 
-(map! :map dired-mode-map :localleader
+(map! :map dired-mode-map :localleader :after dired
       "a" #'u/dired-archive)
 #+end_src
 
-* org
 #+begin_src elisp
-(after! org
+)
 #+end_src
 
+* org
  - syntax :: for lists, be consistent and only use: ~-~ for unordered lists (never ~*, +~), and for ordered lists, use ~1.~, ~a.~ (never ~1)~ or ~a)~)
  - ui ::
    - ensure all headings and faces have the same heigth => better overview & less overhead
@@ -804,6 +781,10 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
    - like in code, everything is code/data => also org mode / latex documents.
    - its not about some fancy looking thing, its about the internals, the quality of the data, not the presentation.
 - we don't hard format (using ~evil-fill~) long lines in prose (~org-mode~).  since it makes sense for the content (eg. a long org list item) to be coherent as a single block of text.  we use ~visual-fill-column~ to display lines right.
+
+#+begin_src elisp
+(after! org
+#+end_src
 
 ** tags
 - Always use tags to specify what a todo-item belongs to & never write it in the todo-name | not: ~TODO uni math assignment [2]~ => instead: ~TODO assignment [2] :uni:math:assignments:~
@@ -1402,8 +1383,6 @@ org-agenda by default is a clusterfuck.  this will clean it up: cleanly align ev
 (setq org-roam-directory u/wiki-dir)
 #+end_src
 
-** end org
-- end of org section started with: ~after! org~
 #+begin_src elisp
 )
 #+end_src

@@ -89,7 +89,6 @@
 						"lsp-help"
 						"Async Shell Command")))
 			      display-buffer-in-side-window
-			      (window-parameters . ((mode-line-format . none)))
 			      (window-height . fit-window-to-buffer)
 			      (side . bottom))
 
@@ -110,8 +109,8 @@
 (advice-add #'switch-to-buffer-other-window :override #'switch-to-buffer)
 
 (after! cider
-  (setq cider-auto-select-error-buffer nil
-	cider-inspector-auto-select-buffer nil
+  (setq ;; cider-auto-select-error-buffer
+	;; cider-inspector-auto-select-buffer
 	cider-jump-to-pop-to-buffer-actions '((display-buffer-in-side-window))))
 
 (after! magit
@@ -330,9 +329,10 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; editing:3 ends here
 
 ;; [[file:config.org::*editing][editing:4]]
-(add-hook! 'c-mode-common-hook
- (map! :map (c-mode-map c++-mode-map)
-       :n "C-l" #'recenter-top-bottom))
+(add-hook! 'doom-escape-hook #'delete-other-windows)
+
+(map! :after evil
+      :nm "C-w" #'next-window-any-frame)
 ;; editing:4 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:1]]
@@ -459,54 +459,45 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 ;; [[file:config.org::*dired][dired:1]]
 (after! dired
-   ;; prevent hidden edits
-  (add-hook! 'wdired-mode-hook
-    (dired-hide-details-mode -1)
-    (dired-omit-mode -1))
-
-  ;; open graphical files externally
-  (setq dired-open-extensions (mapcan (lambda (pair)
-                                        (let ((extensions (car pair))
-                                              (app (cdr pair)))
-                                          (mapcar (lambda (ext)
-                                                    (cons ext app))
-                                                  extensions)))
-                                      '((("mkv" "webm" "mp4" "mp3") . "mpv")
-                                        (("pdf")                    . "zathura")
-                                        (("gif" "jpg" "png")        . "feh")
-                                        (("docx" "odt" "odf")       . "libreoffice")))
-        dired-recursive-copies 'always
-        dired-recursive-deletes 'always
-        dired-no-confirm '(uncompress move copy)
-        dired-omit-files "^\\..*$")
-
-  (define-key! [remap dired-find-file] #'dired-open-file)) ;; try dired-open fn's (no success => call: `dired-find-file')
 ;; dired:1 ends here
 
-;; [[file:config.org::*dired/keybindings][dired/keybindings:1]]
-(map! :map dired-mode-map :after dired
-      :m "h" #'dired-up-directory) ;; navigate using hjkl
-;; dired/keybindings:1 ends here
+;; [[file:config.org::*dired][dired:2]]
+;; prevent hidden edits
+(add-hook! 'wdired-mode-hook
+  (dired-hide-details-mode -1)
+  (dired-omit-mode -1))
 
-;; [[file:config.org::*dired/keybindings][dired/keybindings:2]]
-(defun u/dired-hide-all ()
-  (dired-hide-details-mode)
-  (dired-omit-mode))
-
- ;; HACK :: enabled by default, but we don't want duplicate hooks
-(remove-hook! 'dired-mode-hook #'dired-omit-mode)
-(add-hook! 'dired-mode-hook #'u/dired-hide-all)
+(add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
 
 (map! :map dired-mode-map :localleader :after dired-x
-      :desc "dired-hide-details" "h" (cmd! (apply (if (memq 'u/dired-hide-all dired-mode-hook)
-						      #'remove-hook
-						    #'add-hook)
-						  '(dired-mode-hook
-						    u/dired-hide-all))
-
-					   (call-interactively #'dired-omit-mode)
+      :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
 					   (call-interactively #'dired-hide-details-mode)))
-;; dired/keybindings:2 ends here
+
+
+;; open graphical files externally
+(setq dired-open-extensions (mapcan (lambda (pair)
+                                      (let ((extensions (car pair))
+                                            (app (cdr pair)))
+                                        (mapcar (lambda (ext)
+                                                  (cons ext app))
+                                                extensions)))
+                                    '((("mkv" "webm" "mp4" "mp3") . "mpv")
+                                      (("pdf")                    . "zathura")
+                                      (("gif" "jpg" "png")        . "feh")
+                                      (("docx" "odt" "odf")       . "libreoffice")))
+      dired-recursive-copies 'always
+      dired-recursive-deletes 'always
+      dired-no-confirm '(uncompress move copy)
+      dired-omit-files "^\\..*$")
+
+(map! :map dired-mode-map :after dired
+      :n "&" #'async-shell-command ;; same as evil-normal-mode binding.
+      :n "!" #'dired-do-async-shell-command ;; always use async
+      :m "h" #'dired-up-directory) ;; HACK :: must be 'm' (otherwise also binds in 'wdired-mode')
+
+;; try dired-open fn's (no success => call: `dired-find-file')
+(define-key! [remap dired-find-file] #'dired-open-file)
+;; dired:2 ends here
 
 ;; [[file:config.org::*archive file][archive file:1]]
 (defvar u/archive-dir "~/Archive/")
@@ -535,9 +526,13 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
   (revert-buffer))
 
-(map! :map dired-mode-map :localleader
+(map! :map dired-mode-map :localleader :after dired
       "a" #'u/dired-archive)
 ;; archive file:1 ends here
+
+;; [[file:config.org::*archive file][archive file:2]]
+)
+;; archive file:2 ends here
 
 ;; [[file:config.org::*org][org:1]]
 (after! org
@@ -1044,9 +1039,9 @@ PARENT-PATH :: nil (used for recursion) "
 (setq org-roam-directory u/wiki-dir)
 ;; org roam:1 ends here
 
-;; [[file:config.org::*end org][end org:1]]
+;; [[file:config.org::*org roam][org roam:2]]
 )
-;; end org:1 ends here
+;; org roam:2 ends here
 
 ;; [[file:config.org::*dictionary][dictionary:1]]
 (after! dictionary
