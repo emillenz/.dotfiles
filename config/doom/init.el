@@ -65,13 +65,13 @@
        vc                           ; version-control and Emacs, sitting in a tree
 
        :term
-       eshell                     ; the elisp shell that works everywhere
+       ;; eshell                     ; the elisp shell that works everywhere
        shell                      ; simple shell REPL for Emacs NOTE :: use this over vterm (better emacs integration).
        ;; term                       ; basic terminal emulator for Emacs
        ;; vterm                     ; the best terminal emulation in Emacs
 
        :checkers
-       (syntax +childframe)                     ; (+childframe)
+       syntax                     ; (+childframe) ;; flycheck is bloat, all you need is a compiler
        ;;(spell)                    ; (+everywhere +flyspell) // tasing you for misspelling mispelling
        ;; grammar                      ; tasing grammar mistake every you make
 

@@ -25,7 +25,7 @@
 
 (global-subword-mode)
 
-(add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+(add-hook! 'prog-mode-hook #'rainbow-delimiters-mode)
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
@@ -81,21 +81,21 @@
 ;; modeline:1 ends here
 
 ;; [[file:config.org::*display buffers][display buffers:1]]
-(setq display-buffer-alist `((,(rx (seq "*" (or "transient"
-						(seq "Org " (or "Select" "todo"))
-						"Agenda Commands"
-						"doom eval"
-						"Backtrace"
-						"lsp-help"
-						"Async Shell Command")))
-			      display-buffer-in-side-window
-			      (window-height . fit-window-to-buffer)
-			      (side . bottom))
+(setq display-buffer-base-action '(display-buffer-same-window)
+      switch-to-buffer-obey-display-actions t
+      display-buffer-alist
+      `((,(rx (seq "*"
+		   (or "transient"
+                       (seq "Org " (or "Select" "todo"))
+                       "Agenda Commands"
+                       "doom eval"
+                       "Backtrace"
+                       "lsp-help"
+		       (seq (opt "Async ") "Shell Command"))))
+         display-buffer-at-bottom
+         (window-height . fit-window-to-buffer))
 
-			     ("."
-			      display-buffer-same-window))
-
-      switch-to-buffer-obey-display-actions t)
+	("." display-buffer-same-window)))
 ;; display buffers:1 ends here
 
 ;; [[file:config.org::*display buffers][display buffers:2]]
@@ -109,9 +109,8 @@
 (advice-add #'switch-to-buffer-other-window :override #'switch-to-buffer)
 
 (after! cider
-  (setq ;; cider-auto-select-error-buffer
-	;; cider-inspector-auto-select-buffer
-	cider-jump-to-pop-to-buffer-actions '((display-buffer-in-side-window))))
+  (setq cider-auto-select-error-buffer nil ;; don't annoy us
+	cider-inspector-auto-select-buffer nil))
 
 (after! magit
   (setq magit-commit-diff-inhibit-same-window t
@@ -303,7 +302,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
-      :nm "&"   #'async-shell-command ;; consistent with dired, shell...
       :n  "L"   #'newline-and-indent
       :n  "_"   (cmd! (evil-use-register ?_)
 		      (call-interactively #'evil-delete))
@@ -462,17 +460,13 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; dired:1 ends here
 
 ;; [[file:config.org::*dired][dired:2]]
-;; prevent hidden edits
-(add-hook! 'wdired-mode-hook
-  (dired-hide-details-mode -1)
-  (dired-omit-mode -1))
+(add-hook! 'dired-mode-hook #'dired-hide-details-mode)
 
-(add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
+(add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
 
 (map! :map dired-mode-map :localleader :after dired-x
       :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
 					   (call-interactively #'dired-hide-details-mode)))
-
 
 ;; open graphical files externally
 (setq dired-open-extensions (mapcan (lambda (pair)
@@ -491,8 +485,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       dired-omit-files "^\\..*$")
 
 (map! :map dired-mode-map :after dired
-      :n "&" #'async-shell-command ;; same as evil-normal-mode binding.
-      :n "!" #'dired-do-async-shell-command ;; always use async
       :m "h" #'dired-up-directory) ;; HACK :: must be 'm' (otherwise also binds in 'wdired-mode')
 
 ;; try dired-open fn's (no success => call: `dired-find-file')
@@ -580,9 +572,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       org-blank-before-new-entry '((heading . nil)
 				   (plain-list-item . nil))
       org-src-ask-before-returning-to-edit-buffer nil) ;; don't annoy me
-
-;; flycheck full of errors, since it only reads partial buffer.
-(add-hook! 'org-src-mode-hook (flycheck-mode -1))
 ;; options:1 ends here
 
 ;; [[file:config.org::*options][options:2]]

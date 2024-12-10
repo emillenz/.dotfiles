@@ -53,11 +53,11 @@
  (position . 27615)
  (last-modified 26355 42463 57337 569000))
 ("cs"
- (filename . "~/Documents/ethz/cs/s3/")
+ (filename . "~/Documents/uni/cs/s3/")
  (front-context-string . "ti\n  -rw-r--r-- ")
  (rear-context-string . "0K Sep 24 10:52 ")
  (position . 171)
- (last-modified 26363 33177 852146 136000))
+ (last-modified 26456 26816 794869 704000))
 ("Downloads"
  (filename . "~/Downloads/")
  (front-context-string . "ddca_s24_lab1_su")
@@ -71,9 +71,9 @@
  (position . 166)
  (last-modified 26152 39198 98722 800000))
 ("org-capture-last-stored"
- (filename . "~/Documents/uni/cs/s3/ti/org/notes.org")
- (front-context-string . "* test :TI:\n:PRO")
- (rear-context-string . "letags: :CS:TI:\n")
- (position . 140)
- (last-modified 26456 22648 428944 935000))
+ (filename . "~/Documents/wiki/org/notes.org")
+ (front-context-string . "* test :lisp:\n:P")
+ (rear-context-string . "gs: :personal:\n\n")
+ (position . 125)
+ (last-modified 26456 23881 646336 24000))
 )

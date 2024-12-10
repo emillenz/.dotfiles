@@ -123,7 +123,7 @@ the only reason for us to ever use a terminal is if we need to use a TUI or a co
 
 (global-subword-mode)
 
-(add-hook! prog-mode-hook #'rainbow-delimiters-mode)
+(add-hook! 'prog-mode-hook #'rainbow-delimiters-mode)
 
 (setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
@@ -197,21 +197,21 @@ the ~org-block~ background is different (dimmed) from ~bg-main~ in order to dist
 - minibuffers :: at the bottom, consistent with ~minibuffer-prompt~, ~whichkey~, etc.  use ~doom/window-enlargen~ as needed.
 
 #+begin_src elisp
-(setq display-buffer-alist `((,(rx (seq "*" (or "transient"
-						(seq "Org " (or "Select" "todo"))
-						"Agenda Commands"
-						"doom eval"
-						"Backtrace"
-						"lsp-help"
-						"Async Shell Command")))
-			      display-buffer-in-side-window
-			      (window-height . fit-window-to-buffer)
-			      (side . bottom))
+(setq display-buffer-base-action '(display-buffer-same-window)
+      switch-to-buffer-obey-display-actions t
+      display-buffer-alist
+      `((,(rx (seq "*"
+		   (or "transient"
+                       (seq "Org " (or "Select" "todo"))
+                       "Agenda Commands"
+                       "doom eval"
+                       "Backtrace"
+                       "lsp-help"
+		       (seq (opt "Async ") "Shell Command"))))
+         display-buffer-at-bottom
+         (window-height . fit-window-to-buffer))
 
-			     ("."
-			      display-buffer-same-window))
-
-      switch-to-buffer-obey-display-actions t)
+	("." display-buffer-same-window)))
 #+end_src
 
 some modes implement their own buffer popup system or make use of ~switch-to-buffer-other-window~ we make them obey/consitent with ~display-buffer-alist~'s behaviour.
@@ -226,9 +226,8 @@ some modes implement their own buffer popup system or make use of ~switch-to-buf
 (advice-add #'switch-to-buffer-other-window :override #'switch-to-buffer)
 
 (after! cider
-  (setq ;; cider-auto-select-error-buffer
-	;; cider-inspector-auto-select-buffer
-	cider-jump-to-pop-to-buffer-actions '((display-buffer-in-side-window))))
+  (setq cider-auto-select-error-buffer nil ;; don't annoy us
+	cider-inspector-auto-select-buffer nil))
 
 (after! magit
   (setq magit-commit-diff-inhibit-same-window t
@@ -471,13 +470,11 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 - useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
 - [[kbd:][L]] :: inverse of: [[kbd:][L]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
-- & :: for running quick one-off shell commands.  we use a more ergonomic mapping than [[kbd:][M-&]].  for anthing more, use ~shell~.  evils mapping of [[kbd:][&]] is useless, since we use ~query-replace-regexp~ instead of evil's ~:s~
 - [[kbd:][C-j/k]] :: navigate by sections.  these bindings are implemented in ~magit~, ~info-mode~, ~man~, ~org-mode~.
 - [[kbd:][_]] :: default mapping is useless (use [[kbd:][^]]).  is mapped to the commonly used (but unergonomic) [[kbd:]["_d]] to delete into the ~null-register~.
 
 #+begin_src elisp
 (map! :after evil
-      :nm "&"   #'async-shell-command ;; consistent with dired, shell...
       :n  "L"   #'newline-and-indent
       :n  "_"   (cmd! (evil-use-register ?_)
 		      (call-interactively #'evil-delete))
@@ -698,17 +695,13 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 #+end_src
 
 #+begin_src elisp
-;; prevent hidden edits
-(add-hook! 'wdired-mode-hook
-  (dired-hide-details-mode -1)
-  (dired-omit-mode -1))
+(add-hook! 'dired-mode-hook #'dired-hide-details-mode)
 
-(add-hook! 'dired-mode-hook '(dired-hide-details-mode dired-omit-mode))
+(add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
 
 (map! :map dired-mode-map :localleader :after dired-x
       :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
 					   (call-interactively #'dired-hide-details-mode)))
-
 
 ;; open graphical files externally
 (setq dired-open-extensions (mapcan (lambda (pair)
@@ -727,8 +720,6 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
       dired-omit-files "^\\..*$")
 
 (map! :map dired-mode-map :after dired
-      :n "&" #'async-shell-command ;; same as evil-normal-mode binding.
-      :n "!" #'dired-do-async-shell-command ;; always use async
       :m "h" #'dired-up-directory) ;; HACK :: must be 'm' (otherwise also binds in 'wdired-mode')
 
 ;; try dired-open fn's (no success => call: `dired-find-file')
@@ -846,9 +837,6 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
       org-blank-before-new-entry '((heading . nil)
 				   (plain-list-item . nil))
       org-src-ask-before-returning-to-edit-buffer nil) ;; don't annoy me
-
-;; flycheck full of errors, since it only reads partial buffer.
-(add-hook! 'org-src-mode-hook (flycheck-mode -1))
 #+end_src
 
 #+begin_src elisp
