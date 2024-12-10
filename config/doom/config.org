@@ -18,7 +18,7 @@
   - try to first fundamentally understand & master the functionality the tool offers.  then we may assess and see if a extension really provides value to us, or if that functionality is already included.
 - use ~use-package!~ for configuring packages added via ~package!~ in ~./packages.el~
 - to debug, start emacs with ~emacs --debug-init~ and use ~emacs --no-init-file~ to fix the errors.
-- to see how you may configure a package, ~customize-group~ gives a good overview of available options (but never use it to set an option.  do that in ~config.org/el~)
+- to see how you may configure a package, ~customize-group~ gives a good overview of available options (but never use it to configure anything, do in ~config.org~)
 - we shall never use ~:ex~ commands and instead use the native ~M-x~ and ~C-x / C-c~ bindings that emacs provides for a more consistent experience.
 - viper mode :: use it if it's not feasible to install the full doom-config (eg. using emacs on another computer).
   - viper provides 80% of evil-mode's ergonomics with emacs extensibility and power.
@@ -92,7 +92,13 @@ using emacs for shells also has the benefit that we can seamlessly create a buff
 *** workflow
 use simple minbuffer based ~async-shell-command~'s in emacs, if that doesn't suffice, open: ~shell~.  especially when programming, start REPL's and interactive environments from within emacs (terminal emulation) in order to have a seamless integration and navigation between running commands in the shell and programmning.  this has the benefit that of being able to navigate command output like a normal buffer and use the full power of emacs for the prompt editing.
 
-the only reason for us to ever use a terminal is if we need to use a TUI or a completely detached background process (eg. a server).
+the only reason for us to ever use a terminal is if we need to use a TUI.  (for processes that should run independent of emacs, use disown)
+
+* required libraries for config
+modern & functional lisp.  (provides many concepts from clojure, etc. such as destructuring in lambdas, let's, etc.)
+#+begin_src elisp
+(require 'dash)
+#+end_src
 
 * user
 #+begin_src elisp
@@ -112,12 +118,15 @@ the only reason for us to ever use a terminal is if we need to use a TUI or a co
 #+end_src
 
 #+begin_src elisp
-(setq initial-scratch-message ""
+(setq initial-scratch-message nil
       delete-by-moving-to-trash t
-      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
+       ;; save bookmarks in config dir (to preserve inbetween newinstalls)
+      bookmark-default-file "~/.config/doom/bookmarks"
       auto-save-default t
       confirm-kill-emacs nil
-      enable-recursive-minibuffers t) ;; all of emacs available even if in minibuffer.
+
+      ;; for looking up docs/help while in minibuffer
+      enable-recursive-minibuffers t)
 
 (save-place-mode)
 
@@ -412,47 +421,43 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 #+end_src
 
 ** completion & minibuffer
-- completion keybindings :: use [[kbd:C-n][C-n]] for code autocompletion.  use [[kbd:C-p][C-p]] for abbreviations (which is logical since the expansion is most likely to be above the current code position)  finally, if we want to expand a snippet, or move through completion fields, use [[kbd:tab][tab]].  once autocompletion is activated, we use [[kbd:][C-n/p]] to navigate candidates.
-- vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu/rofi's appearance).   we use the same bindings for navigating the candidates as for completion (consistency!): [[kbd:C-n/p][C-n/p]]
-- history :: [[kbd:][j, k, /, RET]]  as a evil-style ergonomic default.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ we must use [[kbd:][ctrl-n/p]] since it is a regular buffer).
+- completio hidden by default => focused, distractionless coding.  if we really need to autocomplete something (don't know the symbol names/parameters) we toggle it on manually.
+- completion keybindings :: use [[kbd:][TAB]] to activate code autocompletion/snippets.  use [[kbd:][C-n/p]] for word-completions and navigating the completion candidates (consistent with ~evil~).
+- vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu's appearance).
+- history using normal-mode :: [[kbd:][j, k, /, RET]]  for evil-consistency.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ we use [[kbd:][ctrl-n/p]] since [[kbd:][j, k]] navigate the buffer).
 
 #+begin_src elisp
-(map! :map minibuffer-mode-map
-      :n "j"   #'next-history-element
-      :n "k"   #'previous-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer
-      :i "C-n" #'completion-at-point)
-
-(map! :map evil-ex-search-keymap :after evil
-      :n "j"   #'next-history-element
-      :n "k"   #'previous-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer)
+(mapc (lambda (mode-map)
+	(map! :map mode-map
+	      :n "j" #'next-line-or-history-element
+	      :n "k" #'previous-line-or-history-element
+	      :n "/" #'previous-matching-history-element
+	      :n "RET" #'exit-minibuffer)) ;; dwim
+      (list minibuffer-mode-map
+	    evil-ex-search-keymap))
 
 (map! :map vertico-map :after vertico
-      :n "j"   #'next-history-element
-      :n "k"   #'previous-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "RET" #'vertico-exit
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element)
+      :n "RET" #'vertico-exit ;; dwim
 
-(map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
+      ;; cycle cadidates (don't complete)
+      :i "C-n" #'next-line
+      :i "C-p" #'previous-line
+
+      ;; smarter C-w
+      :im "C-w" #'vertico-directory-delete-word
+
       :im "C-d" #'consult-dir
       :im "C-f" #'consult-dir-jump-file)
-
-(map! :map company-mode-map :after company
-      :i "C-n" #'company-complete)
 
 (map! :map comint-mode-map :after comint
       :i "C-r" #'comint-history-isearch-backward-regexp)
 
 ;; not defined :(
 (map! :map cider-repl-mode-map :after cider-repl
+      ;; consistent with comint, magit, org,....
       :n "C-j" #'cider-repl-next-prompt
       :n "C-k" #'cider-repl-previous-prompt
+
       :n "C-n" #'cider-repl-next-input
       :n "C-p" #'cider-repl-previous-input
       :i "C-r" #'cider-repl-previous-matching-input)
@@ -695,6 +700,7 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 #+end_src
 
 #+begin_src elisp
+
 (add-hook! 'dired-mode-hook #'dired-hide-details-mode)
 
 (add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
@@ -704,7 +710,7 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 					   (call-interactively #'dired-hide-details-mode)))
 
 ;; open graphical files externally
-(setq dired-open-extensions (mapcan (lambda (pair)
+(setq dired-open-extensions (mapc (lambda (pair)
                                       (let ((extensions (car pair))
                                             (app (cdr pair)))
                                         (-map (lambda (ext)
@@ -1023,6 +1029,7 @@ we prompt for a note on the task when chaning state to either: on-hold, in-prog 
 - appending :: for hierarchical order eg. book-quotes ordered from begin -> end
 
 #+begin_src elisp
+
 (defvar u/doct-documents-dir "~/Documents")
 
 (setq org-directory (file-name-concat u/doct-documents-dir "org"))
@@ -1331,7 +1338,7 @@ TIME :: time in day of note to return. (default: today)"
 
 (setq org-agenda-files
       (->> (u/agenda-last-journal-files)
-	   (append (mapcan (lambda (dir)
+	   (append (mapc (lambda (dir)
 			   (when (file-exists-p dir)
 			     (directory-files-recursively dir ".*agenda.org"))) ;; see: u/doct-agenda-file
 			 (list u/doct-personal-dir
@@ -1509,13 +1516,13 @@ we automate this repetetive task using a snippets.
 #+end_src
 
 * shell
-- we never use an actual terminal, always use ~shell~ (to get benefits of comint mode).
 - normal mode by default :: 99% of the time i want to navigate the compilation/shell buffer.  (and not read stdin in insert mode))
 #+begin_src elisp
 (setq shell-command-prompt-show-cwd t
       async-shell-command-buffer 'new-buffer)
 
-(setq comint-process-echoes t)
+(setq comint-process-echoes nil
+      comint-input-ignoredups t)
 
 (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler)
 

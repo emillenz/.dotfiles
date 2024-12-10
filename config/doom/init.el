@@ -47,7 +47,7 @@
        (evil +everywhere)           ; (+everywhere) come to the dark side, we have cookies
        file-templates               ; auto-snippets for empty files
        fold                         ; (nigh) universal code folding
-       (format +lsp)                ; (+onsave)
+       ;; (format +lsp)                ; (+onsave)
        ;;god                        ; run Emacs commands without modifier keys
        lispy                        ; vim for lisp, for people who don't like vim
        ;;multiple-cursors           ; editing in many places at once
@@ -65,13 +65,13 @@
        vc                           ; version-control and Emacs, sitting in a tree
 
        :term
-       ;; eshell                     ; the elisp shell that works everywhere
+       eshell                     ; the elisp shell that works everywhere
        shell                      ; simple shell REPL for Emacs NOTE :: use this over vterm (better emacs integration).
        ;; term                       ; basic terminal emulator for Emacs
        ;; vterm                     ; the best terminal emulation in Emacs
 
        :checkers
-       syntax                     ; (+childframe) ;; flycheck is bloat, all you need is a compiler
+       ;; syntax                     ; (+childframe) ;; flycheck is bloat, all you need is a compiler
        ;;(spell)                    ; (+everywhere +flyspell) // tasing you for misspelling mispelling
        ;; grammar                      ; tasing grammar mistake every you make
 
@@ -90,8 +90,8 @@
         +dictionary                 ; (+dictionary +docsets +offline) incredibly handy when reading prose
         +docsets
         +offline)
-       (lsp
-        +peek)                      ; (+peek) M-x vscode
+       ;; (lsp
+       ;;  +peek)                      ; (+peek) M-x vscode
        (magit                       ; (+forge) a git porcelain for Emacs
         +forge)
        make                       ; run make tasks from Emacs

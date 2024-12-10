@@ -1,3 +1,7 @@
+;; [[file:config.org::*required libraries for config][required libraries for config:1]]
+(require 'dash)
+;; required libraries for config:1 ends here
+
 ;; [[file:config.org::*user][user:1]]
 (setq user-full-name "emil lenz"
       user-mail-address "emillenz@protonmail.com")
@@ -14,12 +18,15 @@
 ;; global options:1 ends here
 
 ;; [[file:config.org::*global options][global options:2]]
-(setq initial-scratch-message ""
+(setq initial-scratch-message nil
       delete-by-moving-to-trash t
-      bookmark-default-file "~/.config/doom/bookmarks" ;; save bookmarks in config dir (to preserve inbetween newinstalls)
+       ;; save bookmarks in config dir (to preserve inbetween newinstalls)
+      bookmark-default-file "~/.config/doom/bookmarks"
       auto-save-default t
       confirm-kill-emacs nil
-      enable-recursive-minibuffers t) ;; all of emacs available even if in minibuffer.
+
+      ;; for looking up docs/help while in minibuffer
+      enable-recursive-minibuffers t)
 
 (save-place-mode)
 
@@ -253,42 +260,37 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; leaderkey:1 ends here
 
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:1]]
-(map! :map minibuffer-mode-map
-      :n "j"   #'next-history-element
-      :n "k"   #'previous-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer
-      :i "C-n" #'completion-at-point)
-
-(map! :map evil-ex-search-keymap :after evil
-      :n "j"   #'next-history-element
-      :n "k"   #'previous-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "RET" #'exit-minibuffer)
+(mapc (lambda (mode-map)
+	(map! :map mode-map
+	      :n "j" #'next-line-or-history-element
+	      :n "k" #'previous-line-or-history-element
+	      :n "/" #'previous-matching-history-element
+	      :n "RET" #'exit-minibuffer)) ;; dwim
+      (list minibuffer-mode-map
+	    evil-ex-search-keymap))
 
 (map! :map vertico-map :after vertico
-      :n "j"   #'next-history-element
-      :n "k"   #'previous-history-element
-      :n "/"   #'previous-matching-history-element
-      :n "RET" #'vertico-exit
-      :i "C-n" #'next-line-or-history-element
-      :i "C-p" #'previous-line-or-history-element)
+      :n "RET" #'vertico-exit ;; dwim
 
-(map! :map vertico-map
-      :im "C-w" #'vertico-directory-delete-word ;; HACK :: must bind again (smarter C-w)
+      ;; cycle cadidates (don't complete)
+      :i "C-n" #'next-line
+      :i "C-p" #'previous-line
+
+      ;; smarter C-w
+      :im "C-w" #'vertico-directory-delete-word
+
       :im "C-d" #'consult-dir
       :im "C-f" #'consult-dir-jump-file)
-
-(map! :map company-mode-map :after company
-      :i "C-n" #'company-complete)
 
 (map! :map comint-mode-map :after comint
       :i "C-r" #'comint-history-isearch-backward-regexp)
 
 ;; not defined :(
 (map! :map cider-repl-mode-map :after cider-repl
+      ;; consistent with comint, magit, org,....
       :n "C-j" #'cider-repl-next-prompt
       :n "C-k" #'cider-repl-previous-prompt
+
       :n "C-n" #'cider-repl-next-input
       :n "C-p" #'cider-repl-previous-input
       :i "C-r" #'cider-repl-previous-matching-input)
@@ -469,7 +471,7 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 					   (call-interactively #'dired-hide-details-mode)))
 
 ;; open graphical files externally
-(setq dired-open-extensions (mapcan (lambda (pair)
+(setq dired-open-extensions (mapc (lambda (pair)
                                       (let ((extensions (car pair))
                                             (app (cdr pair)))
                                         (-map (lambda (ext)
@@ -994,7 +996,7 @@ TIME :: time in day of note to return. (default: today)"
 
 (setq org-agenda-files
       (->> (u/agenda-last-journal-files)
-	   (append (mapcan (lambda (dir)
+	   (append (mapc (lambda (dir)
 			   (when (file-exists-p dir)
 			     (directory-files-recursively dir ".*agenda.org"))) ;; see: u/doct-agenda-file
 			 (list u/doct-personal-dir
@@ -1121,7 +1123,8 @@ legibility."
 (setq shell-command-prompt-show-cwd t
       async-shell-command-buffer 'new-buffer)
 
-(setq comint-process-echoes t)
+(setq comint-process-echoes nil
+      comint-input-ignoredups t)
 
 (set-lookup-handlers! 'shell-mode :documentation '+sh-lookup-documentation-handler)
 
