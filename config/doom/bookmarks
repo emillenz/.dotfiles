@@ -72,8 +72,8 @@
  (last-modified 26152 39198 98722 800000))
 ("org-capture-last-stored"
  (filename . "~/Documents/wiki/org/notes.org")
- (front-context-string . "* test :lisp:\n:P")
+ (front-context-string . "* chaining funct")
  (rear-context-string . "gs: :personal:\n\n")
  (position . 125)
- (last-modified 26456 23881 646336 24000))
+ (last-modified 26457 29842 279940 349000))
 )

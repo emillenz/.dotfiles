@@ -8,13 +8,12 @@
        ;;layout                     ; auie,ctsrnm is the superior home row
 
        :completion
-       (company                       ; (+childframe +box +tng) the ultimate code completion backend
-        +childframe
-        +box)
+       ;(company +childframe +box +tng) ; heavy
        ;;helm                       ; the *other* search engine for love and life
        ;;ido                        ; the other *other* search engine...
        ;;ivy                        ;  (+fuzzy +icons) vertico but worse
        vertico             ; (+icons) the best => fastest & most minimal
+       (corfu +dabbrev +orderless) ;; lighweight + native
 
        :ui
        ;;deft                       ; notational velocity for Emacs
@@ -104,6 +103,7 @@
        ;;tmux                       ; an API for interacting with tmux
        tree-sitter                  ; syntax and parsing, sitting in a tree...
        ;;upload                     ; map local to remote projects via ssh/ftp
+       ;;collab
 
        :os
        ;;(:if IS-MAC macos)         ; improve compatibility with macOS
@@ -202,7 +202,6 @@
        everywhere                   ; *leave* Emacs!? You must be joking
        ;;irc                        ; how neckbeards socialize
        ;;(rss +org)                 ; emacs as an RSS reader
-       ;;twitter                    ; twitter client https://twitter.com/vnought
 
        :config
        literate

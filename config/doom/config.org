@@ -51,7 +51,7 @@ emacs is one of the most incredible piece of software ever made:
     - code
     - notes
     - journaling
-  - coding tools
+  - programming tools
     - git interface :: magit
     - manpages
     - diff
@@ -81,7 +81,7 @@ emacs sucks at graphical stuff, hence we use external programs to display pdfs a
 - extend emacs by writing custom functions for things that are done repetitivly (moving files, manipulating text...) instead of writing shell aliases / shellscripts
   + more extensible and in a proper language
   + write shell-scripts (purely) for launching programs & processes.
-- all coding, writing, fileopening, viewing, navigating is done inside emacs (do not leave the environment), because this makes for a consistent and coherent workflow.  don't jump in and out of the commandline, lauching emacs instances, cd'ing around.
+- all programming, writing, fileopening, viewing, navigating is done inside emacs (do not leave the environment), because this makes for a consistent and coherent workflow.  don't jump in and out of the commandline, lauching emacs instances, cd'ing around.
   - use inbuilt programs like magit & diff for more speed interactivity and ergonomics than doing it with git command aliases on the command-line.
 
 ** shell: using emacs instead of dedicated terminal
@@ -95,7 +95,7 @@ use simple minbuffer based ~async-shell-command~'s in emacs, if that doesn't suf
 the only reason for us to ever use a terminal is if we need to use a TUI.  (for processes that should run independent of emacs, use disown)
 
 * required libraries for config
-modern & functional lisp.  (provides many concepts from clojure, etc. such as destructuring in lambdas, let's, etc.)
+- modern & functional lisp.  (provides many concepts from clojure, etc. such as destructuring in lambdas, let's, etc.)
 #+begin_src elisp
 (require 'dash)
 #+end_src
@@ -254,7 +254,7 @@ don't format my file automatically on-save.  instead format by calling it manual
 
 ** indentation
 *** rationale
-a useful time for a quote from the linux kernel coding standards [1] - exactly the first item in fact:
+a useful time for a quote from the linux kernel programming standards [1] - exactly the first item in fact:
 
 #+begin_quote
 Tabs are 8 characters, and thus indentations are also 8 characters.  There are heretic movements that try to make indentations 4 (or even 2!) characters deep, and that is akin to trying to define the value of PI to be 3.  If you need more than 4 levels of indentation within a function, you’re screwed anyway, and should fix your program.
@@ -392,11 +392,11 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 - localleader :: [[kbd:][:leader m]] mnemonic for ~major-mode~.  additionally it can be pressed in rapid succession ergonomically (at least on ~dvorak & querty~).
 - generally [[kbd:][ctrl]] bindings in vim are either for insert mode or navigation (eg. [[kbd:][C-u/d/j/k/o]]).
 - make sure to use toplever leader mappings: [[kbd:][SPC ,]] ~consult-buffer~, [[kbd:][SPC SPC]] ~projectile-find-file~. since they are some of the most called functions.
+- to access a help menu (eg. view bindings) while in insert mode, use [[kbd:][F1]].
 
 ** leaderkey
 #+begin_src elisp
 (setq doom-leader-key "SPC"
-      doom-leader-alt-key "C-SPC"
       doom-localleader-key "SPC m")
 
 (map! :leader
@@ -421,20 +421,18 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 #+end_src
 
 ** completion & minibuffer
-- completio hidden by default => focused, distractionless coding.  if we really need to autocomplete something (don't know the symbol names/parameters) we toggle it on manually.
-- completion keybindings :: use [[kbd:][TAB]] to activate code autocompletion/snippets.  use [[kbd:][C-n/p]] for word-completions and navigating the completion candidates (consistent with ~evil~).
-- vertico-flat-mode :: less distracting and more focused.  it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.  (it is consistent with dmenu's appearance).
 - history using normal-mode :: [[kbd:][j, k, /, RET]]  for evil-consistency.  ~evil~ expects us to use unergonomic/inaccessible [[kbd:][up, down]] by default.  (for ~comint-mode~ we use [[kbd:][ctrl-n/p]] since [[kbd:][j, k]] navigate the buffer).
 
 #+begin_src elisp
-(mapc (lambda (mode-map)
-	(map! :map mode-map
-	      :n "j" #'next-line-or-history-element
-	      :n "k" #'previous-line-or-history-element
-	      :n "/" #'previous-matching-history-element
-	      :n "RET" #'exit-minibuffer)) ;; dwim
-      (list minibuffer-mode-map
-	    evil-ex-search-keymap))
+(->> (list minibuffer-mode-map
+           evil-ex-search-keymap)
+     (mapc (lambda (mode-map)
+             (map! :map mode-map
+                   :n "j" #'next-line-or-history-element
+                   :n "k" #'previous-line-or-history-element
+                   :n "/" #'previous-matching-history-element
+
+		   :n "RET" #'exit-minibuffer)))) ;; dwim
 
 (map! :map vertico-map :after vertico
       :n "RET" #'vertico-exit ;; dwim
@@ -700,7 +698,6 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 #+end_src
 
 #+begin_src elisp
-
 (add-hook! 'dired-mode-hook #'dired-hide-details-mode)
 
 (add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
@@ -710,16 +707,14 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 					   (call-interactively #'dired-hide-details-mode)))
 
 ;; open graphical files externally
-(setq dired-open-extensions (mapc (lambda (pair)
-                                      (let ((extensions (car pair))
-                                            (app (cdr pair)))
-                                        (-map (lambda (ext)
-                                                (cons ext app))
-                                              extensions)))
-                                    '((("mkv" "webm" "mp4" "mp3") . "mpv")
-                                      (("pdf")                    . "zathura")
-                                      (("gif" "jpg" "png")        . "feh")
-                                      (("docx" "odt" "odf")       . "libreoffice")))
+(setq dired-open-extensions (->> '((("mkv" "webm" "mp4" "mp3") "mpv")
+				   (("pdf") "zathura")
+				   (("gif" "jpg" "png") "feh")
+				   (("docx" "odt" "odf") "libreoffice"))
+
+			     (-mapcat (-lambda ((extensions app))
+					(->> extensions
+					     (--map (cons it app))))))
       dired-recursive-copies 'always
       dired-recursive-deletes 'always
       dired-no-confirm '(uncompress move copy)
@@ -742,23 +737,27 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
   "`mv' marked file/s to: `u/archive-dir'/{relative-filepath-to-HOME}/{filename}"
   (interactive)
 
-  (mapc (lambda (file)
-          (let* ((dest (file-name-concat u/archive-dir
-					 (concat (->> "~/"
-						      (file-relative-name file)
-						      file-name-sans-extension)
-						 "_archived_"
-						 (format-time-string "%F_T%H-%M-%S")
-						 (when (file-name-extension file)
-						   (->> file
-							file-name-extension
-							(concat "."))))))
+  (->> (dired-get-marked-files nil nil)
+       (mapc (lambda (file)
+          (let* ((dest (file-name-concat
+			u/archive-dir
+			(concat
+			 (->> "~/"
+			      (file-relative-name file)
+			      file-name-sans-extension)
+
+			 "_archived_"
+			 (format-time-string "%F_T%H-%M-%S")
+			 (when (file-name-extension file)
+			   (->> file
+				file-name-extension
+				(concat "."))))))
+
                  (dir (file-name-directory dest)))
 
             (unless (file-exists-p dir)
               (make-directory dir t))
-            (rename-file file dest 1)))
-        (dired-get-marked-files nil nil))
+            (rename-file file dest 1)))))
 
   (revert-buffer))
 
@@ -1125,27 +1124,26 @@ TIME :: time in day of note to return. (default: today)"
                "#+end_src")))
 
 (defun u/doct-expand-templates (project-dir template-fns)
-  (-map (lambda (templ-fn)
-	  (apply templ-fn (list project-dir)))
-	template-fns))
+  (->> template-fns
+       (--map (apply it (list project-dir)))))
 
 (setq org-capture-templates
       (doct
        `(("uni"
 	  :keys "u"
-	  :children ,(-map (lambda (name)
-			     (let* ((dir (file-name-concat u/doct-uni-dir name))
-				    (key (substring name 0 1))
-				    (templates (append '(u/doct-task-template
-							 u/doct-event-template
-							 u/doct-note-template)
-						       (when (member name '("spca" "nm"))
-							 '(u/doct-cc-src-template)))))
+	  :children ,(->> '("nm" "spca" "an2" "ti")
+			  (-map (lambda (name)
+				  (let* ((dir (file-name-concat u/doct-uni-dir name))
+					 (key (substring name 0 1))
+					 (templates (append '(u/doct-task-template
+							      u/doct-event-template
+							      u/doct-note-template)
+							    (when (member name '("spca" "nm"))
+							      '(u/doct-cc-src-template)))))
 
-			       (list name
-				     :keys key
-				     :children (u/doct-expand-templates dir templates))))
-			   '("nm" "spca" "an2" "ti")))
+				    (list name
+					  :keys key
+					  :children (u/doct-expand-templates dir templates)))))))
 
 	 ("personal"
 	  :keys "p"
@@ -1338,12 +1336,11 @@ TIME :: time in day of note to return. (default: today)"
 
 (setq org-agenda-files
       (->> (u/agenda-last-journal-files)
-	   (append (mapc (lambda (dir)
-			   (when (file-exists-p dir)
-			     (directory-files-recursively dir ".*agenda.org"))) ;; see: u/doct-agenda-file
-			 (list u/doct-personal-dir
-			       u/doct-uni-dir
-			       u/doct-dotfiles-dir)))
+	   (append (->> (list u/doct-personal-dir
+			      u/doct-uni-dir
+			      u/doct-dotfiles-dir)
+		    (--map (when (file-exists-p it)
+			     (directory-files-recursively it ".*agenda.org"))))) ;; see: u/doct-agenda-file
 	   (remove nil)))
 #+end_src
 
@@ -1421,8 +1418,9 @@ legibility."
 #+end_src
 
 * vertico: minibuffer completion
-- i want a minimalist unobtrusive menu on the bottom of the frame, not a huge window popup disturbing my focus and workflow.
-- this is consistent with rofi theme (or dmenu if using that).
+- we want a minimalist unobtrusive menu on the bottom of the frame, not a huge window popup disturbing our focus and workflow.
+- it promotes finding items not by navigating via scrolling through candidates, but instead by searching.  we don't need a fancy popup everytime we want to switch to a candidate, we only want to know when the completion matches, since we already know beforehand what we are looking for.
+- it is consistent with dmenu's appearance.
 #+begin_src elisp
 (vertico-flat-mode)
 #+end_src
@@ -1445,7 +1443,6 @@ legibility."
 
   (map! :map (nov-mode-map nov-button-map)
         "SPC" nil
-        "C-SPC" nil
         :n "q" #'kill-current-buffer
         :n "o" #'nov-goto-toc
 
@@ -1465,24 +1462,27 @@ legibility."
     (hl-line-mode -1)))
 #+end_src
 
-* company: code completion
-- disable completion menu by default ::
-  - i don't want company to show up and distract me when i already know exactly what i want.
-  - make use of it only when we don't know the exact symbol name / function signature, or when typing overly long symbol-names becomes tedious.
-  - this enforces more thoughtful coding, evaluating what the function actually does and let's us focus more on the semantics of the code.
-  - it actually makes us faster, since it removes the mental overhead and interruption that arises from the distracting completion menu.  it has great impact on improving the overall typing speed.
-  - it makes coding more raw, distractionfree, and overall more enjoyeable
+* autocomplete: corfu
+autocomplete menu hidden by default.  we want recreational programming/writing to be focused, distractionless, and unobtrusive.
+if neccessary we may request completion candidates explicitly.
+- we don't want autocomplete to show up and distract us when we already know exactly what we are going to type (evil-abbrevs are still your friend here though).
+- make use of it only when we don't know the exact symbol name / function signature, or when typing overly long symbol-names becomes tedious.
+- this enforces more thoughtful programming, evaluating what the function actually does and let's us focus more on the semantics of the code.
+- it actually makes us faster, since it removes the mental overhead and interruption that arises from the distracting autocomplete menu.  it has great impact on improving the overall typing speed.
+
+- capf backends :: eg. completing a file: [[kbd:][C-x C-f]] like in vim.
+- completion keybindings :: use [[kbd:][TAB]] to invoke autocompletion-menu/expand-snippet.  use [[kbd:][C-n/p]] for ~evil-complete~ (mostly [[kbd:][C-p]], since the abbrev is most likely behind the point) and navigating the completion candidates (consistent with ~evil~, minibuffer).
+
 #+begin_src elisp
-(after! company
-  (setq company-minimum-prefix-length 0
-        company-idle-delay nil ;; only show menu when explicitly activated
-        company-show-quick-access t))
+(after! corfu
+  (setq corfu-auto-delay nil ;; never auto-activate (activated explicilty)
+	corfu-preselect 'first)) ;; when activated, select first
 #+end_src
 
-* yas: snippets
-- nested snippets ared good
+- don't use doom's "smart" ~+corfu~ functions for [[kbd:][C-n/p]]. use evil's default abbrev functions, they are more accurate, fast & unobtrusive.
 #+begin_src elisp
-(setq yas-triggers-in-field t)
+(define-key! [remap +corfu/dabbrev-or-last] #'evil-complete-previous)
+(define-key! [remap +corfu/dabbrev-or-first] #'evil-complete-previous)
 #+end_src
 
 * file templates
@@ -1504,7 +1504,7 @@ in each new file systematically insert heading metadata (as comments) with the f
 - email :: author's email
 - for contacting him with question's / reaching out.
 - date :: date of file creation, ISO8601 format.
-- track our coding/writing progress over the years and just generally it is important to document the timing of things, to analyze/order/reconstruct them.
+- track our programming/writing progress over the years and just generally it is important to document the timing of things, to analyze/order/reconstruct them.
 - info :: short document description/summary, think of it as a docstring for the file with this the reader should know what the document is about in one line.
 
 we automate this repetetive task using a snippets.
@@ -1529,7 +1529,7 @@ we automate this repetetive task using a snippets.
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 #+end_src
 
-* lsp
+* lsp (unused)
 - when we kill buffer's, don't prompt to restart the server...
 #+begin_src elisp
 (after! lsp-mode

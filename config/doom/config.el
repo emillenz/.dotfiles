@@ -235,7 +235,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
-      doom-leader-alt-key "C-SPC"
       doom-localleader-key "SPC m")
 
 (map! :leader
@@ -260,14 +259,15 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; leaderkey:1 ends here
 
 ;; [[file:config.org::*completion & minibuffer][completion & minibuffer:1]]
-(mapc (lambda (mode-map)
-	(map! :map mode-map
-	      :n "j" #'next-line-or-history-element
-	      :n "k" #'previous-line-or-history-element
-	      :n "/" #'previous-matching-history-element
-	      :n "RET" #'exit-minibuffer)) ;; dwim
-      (list minibuffer-mode-map
-	    evil-ex-search-keymap))
+(->> (list minibuffer-mode-map
+           evil-ex-search-keymap)
+     (mapc (lambda (mode-map)
+             (map! :map mode-map
+                   :n "j" #'next-line-or-history-element
+                   :n "k" #'previous-line-or-history-element
+                   :n "/" #'previous-matching-history-element
+
+		   :n "RET" #'exit-minibuffer)))) ;; dwim
 
 (map! :map vertico-map :after vertico
       :n "RET" #'vertico-exit ;; dwim
@@ -471,16 +471,14 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 					   (call-interactively #'dired-hide-details-mode)))
 
 ;; open graphical files externally
-(setq dired-open-extensions (mapc (lambda (pair)
-                                      (let ((extensions (car pair))
-                                            (app (cdr pair)))
-                                        (-map (lambda (ext)
-                                                (cons ext app))
-                                              extensions)))
-                                    '((("mkv" "webm" "mp4" "mp3") . "mpv")
-                                      (("pdf")                    . "zathura")
-                                      (("gif" "jpg" "png")        . "feh")
-                                      (("docx" "odt" "odf")       . "libreoffice")))
+(setq dired-open-extensions (->> '((("mkv" "webm" "mp4" "mp3") "mpv")
+				   (("pdf") "zathura")
+				   (("gif" "jpg" "png") "feh")
+				   (("docx" "odt" "odf") "libreoffice"))
+
+			     (-mapcat (-lambda ((extensions app))
+					(->> extensions
+					     (--map (cons it app))))))
       dired-recursive-copies 'always
       dired-recursive-deletes 'always
       dired-no-confirm '(uncompress move copy)
@@ -500,23 +498,27 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
   "`mv' marked file/s to: `u/archive-dir'/{relative-filepath-to-HOME}/{filename}"
   (interactive)
 
-  (mapc (lambda (file)
-          (let* ((dest (file-name-concat u/archive-dir
-					 (concat (->> "~/"
-						      (file-relative-name file)
-						      file-name-sans-extension)
-						 "_archived_"
-						 (format-time-string "%F_T%H-%M-%S")
-						 (when (file-name-extension file)
-						   (->> file
-							file-name-extension
-							(concat "."))))))
+  (->> (dired-get-marked-files nil nil)
+       (mapc (lambda (file)
+          (let* ((dest (file-name-concat
+			u/archive-dir
+			(concat
+			 (->> "~/"
+			      (file-relative-name file)
+			      file-name-sans-extension)
+
+			 "_archived_"
+			 (format-time-string "%F_T%H-%M-%S")
+			 (when (file-name-extension file)
+			   (->> file
+				file-name-extension
+				(concat "."))))))
+
                  (dir (file-name-directory dest)))
 
             (unless (file-exists-p dir)
               (make-directory dir t))
-            (rename-file file dest 1)))
-        (dired-get-marked-files nil nil))
+            (rename-file file dest 1)))))
 
   (revert-buffer))
 
@@ -788,27 +790,26 @@ TIME :: time in day of note to return. (default: today)"
                "#+end_src")))
 
 (defun u/doct-expand-templates (project-dir template-fns)
-  (-map (lambda (templ-fn)
-	  (apply templ-fn (list project-dir)))
-	template-fns))
+  (->> template-fns
+       (--map (apply it (list project-dir)))))
 
 (setq org-capture-templates
       (doct
        `(("uni"
 	  :keys "u"
-	  :children ,(-map (lambda (name)
-			     (let* ((dir (file-name-concat u/doct-uni-dir name))
-				    (key (substring name 0 1))
-				    (templates (append '(u/doct-task-template
-							 u/doct-event-template
-							 u/doct-note-template)
-						       (when (member name '("spca" "nm"))
-							 '(u/doct-cc-src-template)))))
+	  :children ,(->> '("nm" "spca" "an2" "ti")
+			  (-map (lambda (name)
+				  (let* ((dir (file-name-concat u/doct-uni-dir name))
+					 (key (substring name 0 1))
+					 (templates (append '(u/doct-task-template
+							      u/doct-event-template
+							      u/doct-note-template)
+							    (when (member name '("spca" "nm"))
+							      '(u/doct-cc-src-template)))))
 
-			       (list name
-				     :keys key
-				     :children (u/doct-expand-templates dir templates))))
-			   '("nm" "spca" "an2" "ti")))
+				    (list name
+					  :keys key
+					  :children (u/doct-expand-templates dir templates)))))))
 
 	 ("personal"
 	  :keys "p"
@@ -996,12 +997,11 @@ TIME :: time in day of note to return. (default: today)"
 
 (setq org-agenda-files
       (->> (u/agenda-last-journal-files)
-	   (append (mapc (lambda (dir)
-			   (when (file-exists-p dir)
-			     (directory-files-recursively dir ".*agenda.org"))) ;; see: u/doct-agenda-file
-			 (list u/doct-personal-dir
-			       u/doct-uni-dir
-			       u/doct-dotfiles-dir)))
+	   (append (->> (list u/doct-personal-dir
+			      u/doct-uni-dir
+			      u/doct-dotfiles-dir)
+		    (--map (when (file-exists-p it)
+			     (directory-files-recursively it ".*agenda.org"))))) ;; see: u/doct-agenda-file
 	   (remove nil)))
 ;; agenda:2 ends here
 
@@ -1081,7 +1081,6 @@ legibility."
 
   (map! :map (nov-mode-map nov-button-map)
         "SPC" nil
-        "C-SPC" nil
         :n "q" #'kill-current-buffer
         :n "o" #'nov-goto-toc
 
@@ -1101,16 +1100,16 @@ legibility."
     (hl-line-mode -1)))
 ;; nov: ebooks:1 ends here
 
-;; [[file:config.org::*company: code completion][company: code completion:1]]
-(after! company
-  (setq company-minimum-prefix-length 0
-        company-idle-delay nil ;; only show menu when explicitly activated
-        company-show-quick-access t))
-;; company: code completion:1 ends here
+;; [[file:config.org::*autocomplete: corfu][autocomplete: corfu:1]]
+(after! corfu
+  (setq corfu-auto-delay nil ;; never auto-activate (activated explicilty)
+	corfu-preselect 'first)) ;; when activated, select first
+;; autocomplete: corfu:1 ends here
 
-;; [[file:config.org::*yas: snippets][yas: snippets:1]]
-(setq yas-triggers-in-field t)
-;; yas: snippets:1 ends here
+;; [[file:config.org::*autocomplete: corfu][autocomplete: corfu:2]]
+(define-key! [remap +corfu/dabbrev-or-last] #'evil-complete-previous)
+(define-key! [remap +corfu/dabbrev-or-first] #'evil-complete-previous)
+;; autocomplete: corfu:2 ends here
 
 ;; [[file:config.org::*file templates][file templates:1]]
 (set-file-templates!
@@ -1131,10 +1130,10 @@ legibility."
 (add-to-list 'evil-normal-state-modes 'shell-mode)
 ;; shell:1 ends here
 
-;; [[file:config.org::*lsp][lsp:1]]
+;; [[file:config.org::*lsp (unused)][lsp (unused):1]]
 (after! lsp-mode
   (setq lsp-restart 'ignore))
-;; lsp:1 ends here
+;; lsp (unused):1 ends here
 
 ;; [[file:config.org::*harpoon bugfix (PR open, override until accepted)][harpoon bugfix (PR open, override until accepted):1]]
 (after! harpoon
