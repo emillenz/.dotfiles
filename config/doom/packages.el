@@ -29,5 +29,4 @@
 (package! modus-themes)
 (package! devdocs)
 (package! nov)
-(package! harpoon)
 (package! whisper :recipe (:host github :repo "natrys/whisper.el"))

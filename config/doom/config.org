@@ -201,7 +201,7 @@ the ~org-block~ background is different (dimmed) from ~bg-main~ in order to dist
 #+end_src
 
 ** display buffers
-- single maximized buffer workflow :: we explicitly never use more than a single window (we don't split a window) in the frame, since we can only ever focus on a single thing anyways, and thus in the meantime other windows would clutter the screen distractingly.  additionally using multiple windows introduces additional navigational overhead first having to go to the correct window before using ~switch-to-buffer~, ~harpoon~ etc. managing windows and placing them correctly is complex and inconsistent, some windows recieve focus, other's don't, some buffer's create a split, completely changing window layout, others don't.  instead of using windows, we must become really efficient at navigating between buffers using ~switch-to-buffer~, ~evil-switch-to-windows-last-buffer~, ~harpoon~ and evil's ~global-marks~.  it is more efficiet to just change the buffer in the current window, instead of getting disrupted by the newly opened window.
+- single maximized buffer workflow :: we explicitly never use more than a single window (we don't split a window) in the frame, since we can only ever focus on a single thing anyways, and thus in the meantime other windows would clutter the screen distractingly.  additionally using multiple windows introduces additional navigational overhead first having to go to the correct window before using ~switch-to-buffer~, ~global-marks~ etc. managing windows and placing them correctly is complex and inconsistent, some windows recieve focus, other's don't, some buffer's create a split, completely changing window layout, others don't.  instead of using windows, we must become really efficient at navigating between buffers using ~switch-to-buffer~, ~evil-switch-to-windows-last-buffer~, and ~global-marks~.  it is more efficiet to just change the buffer in the current window, instead of getting disrupted by the newly opened window.
 - only horizontal split :: since emacs sometimes creates splits in special views (eg. magit, ediff) or for displaying additional information (lsp-help...), and thus we must handle them to consistently split below and never side-by-side, since due to the wm, our emacs window is in full height but has a constrained width, perfectly sized for displaying source-code / technical documents.
 - minibuffers :: at the bottom, consistent with ~minibuffer-prompt~, ~whichkey~, etc.  use ~doom/window-enlargen~ as needed.
 
@@ -247,6 +247,13 @@ some modes implement their own buffer popup system or make use of ~switch-to-buf
 - we make extensive use of relative line motions (eg: ~12dj~ etc.).
 #+begin_src elisp
 (setq display-line-numbers-type 'relative)
+#+end_src
+
+** cursor
+i like the minimalist, unambiguous look of a block cursor (mode switching is done subconscious anyways).
+#+begin_src elisp
+(after! evil
+  (setq evil-insert-state-cursor evil-normal-state-cursor))
 #+end_src
 
 ** formatting
@@ -316,9 +323,6 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 
 ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 (advice-add '+fold/previous :override #'ignore)
-
-;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
-(setq-hook! 'minibuffer-setup-hook cursor-type 'bar)
 #+end_src
 
 - jumplist is for functions that jump out of screen
@@ -353,32 +357,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
   :after #'evil-record-macro
   (when (not evil-last-register)
     (setq-local evil-last-register evil-last-recorded-register)))
-#+end_src
-
-- make evil's global markers persist across sessions (save state => reduce repetition, increase consistency).  this is default behaviour in vim.
-#+begin_src elisp
-(after! savehist
-  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-
-  (add-hook! 'savehist-save-hook
-    (kill-local-variable 'evil-markers-alist)
-    (dolist (entry evil-markers-alist)
-      (when (->> (cdr entry)
-		 markerp)
-	(setcdr entry
-		(cons (->> entry
-			   cdr
-			   marker-buffer
-			   buffer-file-name
-			   file-truename)
-		      (->> entry
-			   cdr
-			   marker-position))))))
-
-  (add-hook! 'savehist-mode-hook
-    (setq-default evil-markers-alist evil-markers-alist)
-    (kill-local-variable 'evil-markers-alist)
-    (make-local-variable 'evil-markers-alist)))
 #+end_src
 
 #+begin_src elisp
@@ -470,36 +448,50 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 
 ** editing
 - goal :: make vim's bindings even more mnemonic/sane/sensible/efficient and improve consistency of implementation.
-- useless default mappings :: remap underused/useless keys to statistically frequently used commands.
 - fundamentals :: we don't change fundamental bindings of vi(m), we improve on them, as to retain muscle memory and consistency in other applications (eg. ~viper-mode~, vim emulations).
+- useless defaults :: we map to the statistically most frequently used/basic-navigational commands (since they are valuable top-level bindings). (see: [[http://xahlee.info/emacs/emacs/command-frequency.html][emacs command frequency statistics]]).
 - [[kbd:][L]] :: inverse of: [[kbd:][L]], ~electric-newline-and-indent~.  this is really convenient to eg. split function arguments onto newlines.
-- [[kbd:][C-j/k]] :: navigate by sections.  these bindings are implemented in ~magit~, ~info-mode~, ~man~, ~org-mode~.
-- [[kbd:][_]] :: default mapping is useless (use [[kbd:][^]]).  is mapped to the commonly used (but unergonomic) [[kbd:]["_d]] to delete into the ~null-register~.
-
-#+begin_src elisp
-(map! :after evil
-      :n  "L"   #'newline-and-indent
-      :n  "_"   (cmd! (evil-use-register ?_)
-		      (call-interactively #'evil-delete))
-
-      ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless anyways.
-      :n  "+"   #'evil-numbers/inc-at-pt
-      :n  "-"   #'evil-numbers/dec-at-pt
-      :n  "g+"  #'evil-numbers/inc-at-pt-incremental
-      :n  "g-"  #'evil-numbers/dec-at-pt-incremental)
-#+end_src
-
+- [[kbd:][_]] :: default mapping is useless (use [[kbd:][^]]).  commonly used (but unergonomic) [[kbd:]["_d]] to kill into the ~null-register~.  use when you don't want to preserve your register.
+- [[kbd:][+/-]] :: more sensible & ergonomic than [[kbd:][C-x/a]] [[kbd:][+/-]] in vim is useless anyways.
+- [[kbd:][TAB]] :: we frequently alternate between 2 bufers in rapid succession (especially since we don't use splits), and we follow the OS consistent binding.  (evil's [[kbd:][C-6]] is terribly unergonomic).
+  - in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, we should by using the evil fold-prefix: [[kbd:][z]].  this is more efficient and precise than cycling the fold levels with ~org-cycle~.
 - HACK :: map [[kbd:][C-h]] to [[kbd:][backspace]] consistently (some modes don't respect ~evil-want-C-h-delete~).
 #+begin_src elisp
+(map! :after evil
+      :n "L" #'newline-and-indent
+      :n "_" (cmd! (evil-use-register ?_)
+                   (call-interactively #'evil-delete))
+
+      :n "\\" (cmd! (save-excursion
+                      (->> '(mark-paragraph
+                             evil-indent)
+                           (mapc #'call-interactively))))
+
+      :n ","  #'basic-save-buffer
+
+      :n "+"  #'evil-numbers/inc-at-pt
+      :n "-"  #'evil-numbers/dec-at-pt
+      :n "g+" #'evil-numbers/inc-at-pt-incremental
+      :n "g-" #'evil-numbers/dec-at-pt-incremental)
+
+(map! :map 'override
+       ;; HACK :: must be <tab> not TAB to properly override
+      :nm "<tab>" #'evil-switch-to-windows-last-buffer
+      :nm "Z" #'kill-current-buffer
+      :nm "v" #'find-file
+      :nm "V" #'consult-buffer)
+
+(define-key! [remap +org/toggle-fold] #'org-cycle)
 (define-key! key-translation-map "C-h" "DEL")
 #+end_src
 
+- [[kbd:][C-j/k]] :: navigate by sections.  these bindings are implemented in ~magit~, ~info-mode~, ~man~, ~org-mode~.
 - we often use long lines in prose with ~visual-fill-column-mode~.
 - [[kbd:][gj, gk]] :: respect evil's fundamentally neccessary bindings.
 #+begin_src elisp
 (map! :map evil-org-mode-map :after evil-org
-      :n "gj"  #'evil-next-visual-line
-      :n "gk"  #'evil-previous-visual-line
+      :n "gj" #'evil-next-visual-line
+      :n "gk" #'evil-previous-visual-line
 
       :n "C-j" #'org-next-visible-heading
       :n "C-k" #'org-previous-visible-heading)
@@ -507,7 +499,6 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 
 - close popup window (eg. ~*lsp-help*~) from the main window with [[kbd:][escape]] in normal mode.  (ergonomic & fast)
 - since we don't split we only need to occasionally switch window, and [[kbd:][C-w]] is just one keypress to many.  (additionally we also want to jump in/out of minbuffer window if it is active).
-
 #+begin_src elisp
 (add-hook! 'doom-escape-hook #'delete-other-windows)
 
@@ -534,12 +525,12 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
   :repeat nil
   (interactive "<R>")
   (save-excursion
-   (goto-char end)
-   (set-mark (point))
-   (goto-char beg)
-   (condition-case nil
-       (call-interactively #'anzu-query-replace-regexp)
-     (t (deactivate-mark)))))
+    (goto-char end)
+    (set-mark (point))
+    (goto-char beg)
+    (condition-case nil
+	(call-interactively #'anzu-query-replace-regexp)
+      (t (deactivate-mark)))))
 #+end_src
 
 - get feedback when ~query-replacing~ (since we don't use evil's ~:s/~, but instead emac's native ~query-replace-regexp~)
@@ -563,15 +554,6 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 #+begin_src elisp
 (define-key! [remap evil-visual-char] #'ignore)
 (define-key! [remap evil-visual-line] #'ignore)
-#+end_src
-
-- we map the valuable top level key to the statistically most frequently used non-editing commands.
-  (see: [[http://xahlee.info/emacs/emacs/command-frequency.html][emacs command frequency statistics]]).
-- using ~find-file~ frequently.  to change dir's for the ~shell~/~dired~, jump to dired in current directory with it, creating new files ...
-#+begin_src elisp
-(map! :map 'override
-      :nm "v" #'basic-save-buffer
-      :nm "V" #'find-file)
 #+end_src
 
 *** surround
@@ -630,48 +612,62 @@ some selective mappings of disabled keythemes
       :nm ")" #'lispyville-up-list)
 #+end_src
 
-** harpoon
-- when in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers one finds themselves alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since we need to alternate between more than 2 file.
-- we are restrained to 4 files since that is all we'll need and generally, if we have more than that, we have too much mental overhead remembering which files are where.  4 seem's to be generally the limit for us, for which we can subconsiously switch back and forth inbetween.
-- we use [[kbd:][SPC m]] and [[kbd:][M]] since harpoon marks are conceptually similar to vim marks.  (harpoon hydra goes against emacs philosophy, use harpoon-toggle-file, is way more intuitive)
-- REPL-buffer :: for repl-coupled languages (python, shell, clojure) we already have efficient bindings to jump back and forth between the ~REPL~ / ~shell~ buffer and our file(s).  (on ~localleader~ map for the mode).
-- compilation-buffer :: in any projects that we compile, we frequently switch to the ~*compilation*~ buffer.  since this is a consistently repeating action, we make it efficient.
-- bindings are consistent with the webbrowser (switch tabs using [[kbd:][M-<number]])
+** global marks
+- when in a codebase/project, of no matter what size, this is the msot efficient way of navgating the files/buffers one finds themselves alternating between.  this is for when ~switch-to-buffer~, and fuzzy-finding are just too many keystrokes and repetetively used and ~evil-switch-to-windows-last-buffer~ just isn't enough, since we need to alternate between more than 2 buffers.
+- ~evil-set-mark~ on a file with evil's global-marks (UPPERCASE), and then jump back and forth between them.
+- we remap ~evil-goto-mark~ since you should use ~evil-goto-mark-line~ instead anyways.
+- we override ~evil-goto-mark-line~ binding, since it is redundant: for buffer-local marks, use ~evil-goto-mark~ binding instead.
+- usage example :: mark buffers: {source-files-xzy, compilation, manpage/devdocs, REPL} each mnemonically to their first letters.
 #+begin_src elisp
-(use-package! harpoon
-  :config
-  (setq harpoon-separate-by-branch nil) ;; simple repos
-  (map! :map 'override
-	:nm "M-1" #'harpoon-go-to-1
-	:nm "M-2" #'harpoon-go-to-2
-	:nm "M-3" #'harpoon-go-to-3
-	:nm "M-4" #'harpoon-go-to-4
+(defun u/global-mark-goto (char)
+  "go to the marker buffer specified by CHAR.
 
-	:nm "M-6" (cmd! (switch-to-buffer next-error-last-buffer)))
+this differs from `evil-goto-mark' in that it only goes to the marked buffer (not also the point in the buffer where the mark was set).  we use global marks to goto specific buffers.
 
-  (map! :n "M" #'harpoon-add-file) ;; works only in file-visiting-buffers
+(for ergonomics and speed we upcase the input char automatically.  (but to set the mark, you must still use UPPERCASE)."
 
-  (map! :leader "M" #'harpoon-toggle-file)
+  (interactive (list (read-char)))
+  (let ((char (upcase char))
+	(marker (evil-get-marker char)))
 
-  ;; exit like in help, magit, dired...
-  (map! :map harpoon-mode-map :after harpoon
-        :nm "q" #'kill-current-buffer)
+    (cond ((markerp marker) (switch-to-buffer (marker-buffer marker)))
+	  ((consp marker) (find-file (car marker)))
+	  ((numberp marker) (message "[global-mark] mark '%s' set in current buffer" mark-char))
+	  ((user-error "[global-mark] '%c' is not set" char)))))
 
-  ;; show abs. line numbers to indicate the bindings.
-  (setq-hook! 'harpoon-mode-hook display-line-numbers t))
-#+end_src
-
- - [[kbd:][TAB]] :: we frequently alternate between 2 bufers in rapid succession (especially since we don't use splits), and we follow the OS consistent binding.
- (additionally evil's [[kbd:][C-6]] is not mnemonic, nor ergonomic)
-
-in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, we should by using the more precise evil fold-prefix: [[kbd:][z]]
-#+begin_src elisp
 (map! :map 'override
-      :nm "<tab>" #'evil-switch-to-windows-last-buffer) ;; HACK :: must be <tab> not TAB to properly override
-
- ;; +org/toggle-fold ins incomplete (don't work with org-blocks/ LOG)
-(define-key! [remap +org/toggle-fold] #'org-cycle)
+      :nm "'" #'u/global-mark-goto)
 #+end_src
+
+- make evil's global markers persist across sessions (save state => reduce repetition, increase consistency).  this is default behaviour in vim.
+#+begin_src elisp
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (->> (cdr entry)
+		 markerp)
+	(setcdr entry
+		(cons (->> entry
+			   cdr
+			   marker-buffer
+			   buffer-file-name
+			   file-truename)
+		      (->> entry
+			   cdr
+			   marker-position))))))
+
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+#+end_src
+
+*** a note on package: harpoon
+we have no need don't for a package like harpoon, since it implements its own backend for switching buffers instead of leveraging emacs/evil native and already implemented marks.  this functionality was enven already available in vi, by just recording: ~:b buffer-x~ into register ~x~, and then subsequently using ~@x~ to jump to that buffer from anywhere with minimal keystrokes.
+marks are even more powerful, as they allow you to mark any buffer.  and if you desire to save them, save them in a ~.dir-locals~ file in the projects root, and load them explicitly when you reopen the project.
 
 * occur: emacs interactive grep
 - occur :: use it like grep, to compactly view only maching lines.  additionally it is a powerful interactive search & replace tool.  (edit the matching lines buffer interactively, for more power combined the editing using macros).
@@ -689,7 +685,7 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 - create new files/dir's using ~find-file~ instead of ~dired-create-empty-file~ (inserts filetemplate properly)
 - if we think we need a sidebar type file explorer, we are doing something terribly inefficient in our workflow.
 - use a fileexplorer mostly for getting an overview of a directory and to manipulate files in that directory.
-- it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding and using harpoon-marks, global-marks and bookmarks for switching to other directories and files.
+- it's more efficient, faster and extensible using search & completion tools, such as emacs: find-file, fuzzy finding, global-marks and bookmarks for switching to other directories and files.
 - ditch spamming [[kbd:hjkl][hjkl]] to navigate nested directories fore directly goto to the file we are looking for.
 - hide details & hidden files by default (visual distracting clutter).  show details explicitly if needed.
 
@@ -703,8 +699,9 @@ in modes like ~org~, ~magit~, where [[kbd:][TAB]] is normally used for folding, 
 (add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
 
 (map! :map dired-mode-map :localleader :after dired-x
-      :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
-					   (call-interactively #'dired-hide-details-mode)))
+      :desc "dired-hide-details" "h" (cmd! (->> '(dired-omit-mode
+						  dired-hide-details-mode)
+						(mapc #'call-interactively))))
 
 ;; open graphical files externally
 (setq dired-open-extensions (->> '((("mkv" "webm" "mp4" "mp3") "mpv")
@@ -891,10 +888,10 @@ since i often have todolists , where i don't want the newlines.  newlines are fo
 ** org/keybindings
 #+begin_src elisp
 (map! :map org-mode-map :after org
-	:localleader
-	"\\" #'org-latex-preview
-	"z"  #'org-add-note
-	:desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
+      :localleader
+      "\\" #'org-latex-preview
+      "z"  #'org-add-note
+      :desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
 #+end_src
 
@@ -1534,60 +1531,4 @@ we automate this repetetive task using a snippets.
 #+begin_src elisp
 (after! lsp-mode
   (setq lsp-restart 'ignore))
-#+end_src
-
-* harpoon bugfix (PR open, override until accepted)
-#+begin_src elisp
-(after! harpoon
-  (defadvice! u/harpoon-go-to (line-number)
-    "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
-    :override #'harpoon-go-to
-    (require 'project)
-
-    (let* ((harpoon-mode-p (eq major-mode 'harpoon-mode))
-
-           (harpoon-file (if harpoon-mode-p
-                             (file-truename (buffer-file-name))
-                           (harpoon--file-name)))
-
-           (file-name (s-replace-regexp "\n" ""
-                                        (with-temp-buffer
-                                          (insert-file-contents-literally harpoon-file)
-                                          (goto-char (point-min))
-                                          (forward-line (- line-number 1))
-                                          (buffer-substring-no-properties (line-beginning-position)
-                                                                          (line-end-position)))))
-
-           (full-file-name (if (and (fboundp 'project-root)
-                                    (harpoon--has-project))
-                               (concat (or harpoon--project-path
-                                           (harpoon-project-root-function))
-                                       file-name)
-
-                             file-name)))
-      (if harpoon-mode-p
-          (harpoon-find-file file-name)
-
-        (if (file-exists-p full-file-name)
-            (find-file full-file-name)
-
-          (message (concat full-file-name " not found."))))))
-
-  (defadvice! u/harpoon-find-file (&optional file-name)
-    "Visit file on `harpoon-mode'."
-    :override #'harpoon-find-file
-    (interactive)
-
-    (let* ((file-name (or file-name
-                          (buffer-substring-no-properties (point-at-bol)
-							  (point-at-eol))))
-           (full-file-name (concat harpoon--project-path
-				   file-name)))
-
-      (if (file-exists-p full-file-name)
-          (progn (save-buffer)
-                 (kill-buffer)
-                 (find-file full-file-name))
-
-        (message "[harpoon] File %s not found." full-file-name)))))
 #+end_src

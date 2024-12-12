@@ -70,38 +70,32 @@ bindsym $MOD+bracketleft $SHCMD playerctl previous
 bindsym $MOD+backslash $SHCMD $PLAYERCTL_PLAY_PAUSE
 
 bindsym $MOD+p focus left
-bindsym $MOD+shift+p move left
 bindsym $MOD+n focus right
-bindsym $MOD+shift+n move right
 bindsym $MOD+q kill
 bindsym $MOD+Tab workspace back_and_forth
-
-# find window (using xargs to abort if none picked)
-bindsym $MOD+f $SHCMD window-menu $DMENU_THEME
 
 bindsym $MOD+Return $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
 bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
 
-# 1920x1080 display, size fits a 100 wide fill-column textbuffer (+ margins) optimally.
 set $GAPSIZE 500
 bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 
 for_window [class="."] move container to workspace all
 bindsym $MOD+a workspace all
-
-workspace edit gaps horizontal $GAPSIZE
 for_window [class="Emacs"] move container to workspace edit
 bindsym $MOD+e workspace edit
 bindsym $MOD+shift+e $SHCMD emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
-
+workspace edit gaps horizontal $GAPSIZE
 for_window [class="Zathura"] move container to workspace read
 bindsym $MOD+r workspace read
-
+for_window [class="Xfce4-terminal"] move container to workspace terminal
+bindsym $MOD+t workspace terminal
+bindsym $MOD+shift+t $SHCMD xfce4-terminal
+workspace terminal gaps horizontal $GAPSIZE
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $SHCMD firefox
 
-# HACK :: must come last to apply to all workspaces.
 for_window [all] focus, title_window_icon no
 
 bindsym $MOD+space mode "leader"

@@ -128,6 +128,11 @@
 (setq display-line-numbers-type 'relative)
 ;; line numbers:1 ends here
 
+;; [[file:config.org::*cursor][cursor:1]]
+(after! evil
+  (setq evil-insert-state-cursor evil-normal-state-cursor))
+;; cursor:1 ends here
+
 ;; [[file:config.org::*rationale][rationale:1]]
 (defvar u/global-indent-width 8)
 
@@ -167,9 +172,6 @@
 
 ;; FIXME :: `+fold/previous` disabled, since it crashes emacs. (don't call it by accident via binding)
 (advice-add '+fold/previous :override #'ignore)
-
-;; HACK :: sometimes cursor stays int normal-mode (even though we are in insert mode).  this fixes the inconsistency.
-(setq-hook! 'minibuffer-setup-hook cursor-type 'bar)
 ;; evil-mode:2 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:3]]
@@ -205,33 +207,8 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 ;; evil-mode:4 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:5]]
-(after! savehist
-  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
-
-  (add-hook! 'savehist-save-hook
-    (kill-local-variable 'evil-markers-alist)
-    (dolist (entry evil-markers-alist)
-      (when (->> (cdr entry)
-		 markerp)
-	(setcdr entry
-		(cons (->> entry
-			   cdr
-			   marker-buffer
-			   buffer-file-name
-			   file-truename)
-		      (->> entry
-			   cdr
-			   marker-position))))))
-
-  (add-hook! 'savehist-mode-hook
-    (setq-default evil-markers-alist evil-markers-alist)
-    (kill-local-variable 'evil-markers-alist)
-    (make-local-variable 'evil-markers-alist)))
-;; evil-mode:5 ends here
-
-;; [[file:config.org::*evil-mode][evil-mode:6]]
 )
-;; evil-mode:6 ends here
+;; evil-mode:5 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
@@ -304,36 +281,48 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 
 ;; [[file:config.org::*editing][editing:1]]
 (map! :after evil
-      :n  "L"   #'newline-and-indent
-      :n  "_"   (cmd! (evil-use-register ?_)
-		      (call-interactively #'evil-delete))
+      :n "L" #'newline-and-indent
+      :n "_" (cmd! (evil-use-register ?_)
+                   (call-interactively #'evil-delete))
 
-      ;; more sensible & ergonomic than `C-x/C-a', `+-' in vim is useless anyways.
-      :n  "+"   #'evil-numbers/inc-at-pt
-      :n  "-"   #'evil-numbers/dec-at-pt
-      :n  "g+"  #'evil-numbers/inc-at-pt-incremental
-      :n  "g-"  #'evil-numbers/dec-at-pt-incremental)
+      :n "\\" (cmd! (save-excursion
+                      (->> '(mark-paragraph
+                             evil-indent)
+                           (mapc #'call-interactively))))
+
+      :n ","  #'basic-save-buffer
+
+      :n "+"  #'evil-numbers/inc-at-pt
+      :n "-"  #'evil-numbers/dec-at-pt
+      :n "g+" #'evil-numbers/inc-at-pt-incremental
+      :n "g-" #'evil-numbers/dec-at-pt-incremental)
+
+(map! :map 'override
+       ;; HACK :: must be <tab> not TAB to properly override
+      :nm "<tab>" #'evil-switch-to-windows-last-buffer
+      :nm "Z" #'kill-current-buffer
+      :nm "v" #'find-file
+      :nm "V" #'consult-buffer)
+
+(define-key! [remap +org/toggle-fold] #'org-cycle)
+(define-key! key-translation-map "C-h" "DEL")
 ;; editing:1 ends here
 
 ;; [[file:config.org::*editing][editing:2]]
-(define-key! key-translation-map "C-h" "DEL")
-;; editing:2 ends here
-
-;; [[file:config.org::*editing][editing:3]]
 (map! :map evil-org-mode-map :after evil-org
-      :n "gj"  #'evil-next-visual-line
-      :n "gk"  #'evil-previous-visual-line
+      :n "gj" #'evil-next-visual-line
+      :n "gk" #'evil-previous-visual-line
 
       :n "C-j" #'org-next-visible-heading
       :n "C-k" #'org-previous-visible-heading)
-;; editing:3 ends here
+;; editing:2 ends here
 
-;; [[file:config.org::*editing][editing:4]]
+;; [[file:config.org::*editing][editing:3]]
 (add-hook! 'doom-escape-hook #'delete-other-windows)
 
 (map! :after evil
       :nm "C-w" #'next-window-any-frame)
-;; editing:4 ends here
+;; editing:3 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:1]]
 (define-key! [remap evil-ex] #'execute-extended-command)
@@ -346,12 +335,12 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
   :repeat nil
   (interactive "<R>")
   (save-excursion
-   (goto-char end)
-   (set-mark (point))
-   (goto-char beg)
-   (condition-case nil
-       (call-interactively #'anzu-query-replace-regexp)
-     (t (deactivate-mark)))))
+    (goto-char end)
+    (set-mark (point))
+    (goto-char beg)
+    (condition-case nil
+	(call-interactively #'anzu-query-replace-regexp)
+      (t (deactivate-mark)))))
 ;; embrace emacs:1 ends here
 
 ;; [[file:config.org::*embrace emacs][embrace emacs:2]]
@@ -364,12 +353,6 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (define-key! [remap evil-visual-char] #'ignore)
 (define-key! [remap evil-visual-line] #'ignore)
 ;; no visual selections:1 ends here
-
-;; [[file:config.org::*no visual selections][no visual selections:2]]
-(map! :map 'override
-      :nm "v" #'basic-save-buffer
-      :nm "V" #'find-file)
-;; no visual selections:2 ends here
 
 ;; [[file:config.org::*surround][surround:1]]
 (map! :after evil
@@ -417,37 +400,51 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       :nm ")" #'lispyville-up-list)
 ;; lispy(ville): editing lisp in vim:2 ends here
 
-;; [[file:config.org::*harpoon][harpoon:1]]
-(use-package! harpoon
-  :config
-  (setq harpoon-separate-by-branch nil) ;; simple repos
-  (map! :map 'override
-	:nm "M-1" #'harpoon-go-to-1
-	:nm "M-2" #'harpoon-go-to-2
-	:nm "M-3" #'harpoon-go-to-3
-	:nm "M-4" #'harpoon-go-to-4
+;; [[file:config.org::*global marks][global marks:1]]
+(defun u/global-mark-goto (char)
+  "go to the marker buffer specified by CHAR.
 
-	:nm "M-6" (cmd! (switch-to-buffer next-error-last-buffer)))
+this differs from `evil-goto-mark' in that it only goes to the marked buffer (not also the point in the buffer where the mark was set).  we use global marks to goto specific buffers.
 
-  (map! :n "M" #'harpoon-add-file) ;; works only in file-visiting-buffers
+(for ergonomics and speed we upcase the input char automatically.  (but to set the mark, you must still use UPPERCASE)."
 
-  (map! :leader "M" #'harpoon-toggle-file)
+  (interactive (list (read-char)))
+  (let ((char (upcase char))
+	(marker (evil-get-marker char)))
 
-  ;; exit like in help, magit, dired...
-  (map! :map harpoon-mode-map :after harpoon
-        :nm "q" #'kill-current-buffer)
+    (cond ((markerp marker) (switch-to-buffer (marker-buffer marker)))
+	  ((consp marker) (find-file (car marker)))
+	  ((numberp marker) (message "[global-mark] mark '%s' set in current buffer" mark-char))
+	  ((user-error "[global-mark] '%c' is not set" char)))))
 
-  ;; show abs. line numbers to indicate the bindings.
-  (setq-hook! 'harpoon-mode-hook display-line-numbers t))
-;; harpoon:1 ends here
-
-;; [[file:config.org::*harpoon][harpoon:2]]
 (map! :map 'override
-      :nm "<tab>" #'evil-switch-to-windows-last-buffer) ;; HACK :: must be <tab> not TAB to properly override
+      :nm "'" #'u/global-mark-goto)
+;; global marks:1 ends here
 
- ;; +org/toggle-fold ins incomplete (don't work with org-blocks/ LOG)
-(define-key! [remap +org/toggle-fold] #'org-cycle)
-;; harpoon:2 ends here
+;; [[file:config.org::*global marks][global marks:2]]
+(after! savehist
+  (add-to-list 'savehist-additional-variables 'evil-markers-alist)
+
+  (add-hook! 'savehist-save-hook
+    (kill-local-variable 'evil-markers-alist)
+    (dolist (entry evil-markers-alist)
+      (when (->> (cdr entry)
+		 markerp)
+	(setcdr entry
+		(cons (->> entry
+			   cdr
+			   marker-buffer
+			   buffer-file-name
+			   file-truename)
+		      (->> entry
+			   cdr
+			   marker-position))))))
+
+  (add-hook! 'savehist-mode-hook
+    (setq-default evil-markers-alist evil-markers-alist)
+    (kill-local-variable 'evil-markers-alist)
+    (make-local-variable 'evil-markers-alist)))
+;; global marks:2 ends here
 
 ;; [[file:config.org::*occur: emacs interactive grep][occur: emacs interactive grep:1]]
 (map! :map occur-mode-map :after replace
@@ -467,8 +464,9 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (add-hook! 'wdired-mode-hook (dired-hide-details-mode -1)) ;; prevent hidden edits
 
 (map! :map dired-mode-map :localleader :after dired-x
-      :desc "dired-hide-details" "h" (cmd! (call-interactively #'dired-omit-mode)
-					   (call-interactively #'dired-hide-details-mode)))
+      :desc "dired-hide-details" "h" (cmd! (->> '(dired-omit-mode
+						  dired-hide-details-mode)
+						(mapc #'call-interactively))))
 
 ;; open graphical files externally
 (setq dired-open-extensions (->> '((("mkv" "webm" "mp4" "mp3") "mpv")
@@ -621,10 +619,10 @@ since i often have todolists , where i don't want the newlines.  newlines are fo
 
 ;; [[file:config.org::*org/keybindings][org/keybindings:1]]
 (map! :map org-mode-map :after org
-	:localleader
-	"\\" #'org-latex-preview
-	"z"  #'org-add-note
-	:desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
+      :localleader
+      "\\" #'org-latex-preview
+      "z"  #'org-add-note
+      :desc "toggle-checkbox" "["  (cmd! (let ((current-prefix-arg 4))
                                            (call-interactively #'org-toggle-checkbox))))
 ;; org/keybindings:1 ends here
 
@@ -1134,58 +1132,3 @@ legibility."
 (after! lsp-mode
   (setq lsp-restart 'ignore))
 ;; lsp (unused):1 ends here
-
-;; [[file:config.org::*harpoon bugfix (PR open, override until accepted)][harpoon bugfix (PR open, override until accepted):1]]
-(after! harpoon
-  (defadvice! u/harpoon-go-to (line-number)
-    "Go to specific file on harpoon (by line order). LINE-NUMBER: Line to go."
-    :override #'harpoon-go-to
-    (require 'project)
-
-    (let* ((harpoon-mode-p (eq major-mode 'harpoon-mode))
-
-           (harpoon-file (if harpoon-mode-p
-                             (file-truename (buffer-file-name))
-                           (harpoon--file-name)))
-
-           (file-name (s-replace-regexp "\n" ""
-                                        (with-temp-buffer
-                                          (insert-file-contents-literally harpoon-file)
-                                          (goto-char (point-min))
-                                          (forward-line (- line-number 1))
-                                          (buffer-substring-no-properties (line-beginning-position)
-                                                                          (line-end-position)))))
-
-           (full-file-name (if (and (fboundp 'project-root)
-                                    (harpoon--has-project))
-                               (concat (or harpoon--project-path
-                                           (harpoon-project-root-function))
-                                       file-name)
-
-                             file-name)))
-      (if harpoon-mode-p
-          (harpoon-find-file file-name)
-
-        (if (file-exists-p full-file-name)
-            (find-file full-file-name)
-
-          (message (concat full-file-name " not found."))))))
-
-  (defadvice! u/harpoon-find-file (&optional file-name)
-    "Visit file on `harpoon-mode'."
-    :override #'harpoon-find-file
-    (interactive)
-
-    (let* ((file-name (or file-name
-                          (buffer-substring-no-properties (point-at-bol)
-							  (point-at-eol))))
-           (full-file-name (concat harpoon--project-path
-				   file-name)))
-
-      (if (file-exists-p full-file-name)
-          (progn (save-buffer)
-                 (kill-buffer)
-                 (find-file full-file-name))
-
-        (message "[harpoon] File %s not found." full-file-name)))))
-;; harpoon bugfix (PR open, override until accepted):1 ends here

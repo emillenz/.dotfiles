@@ -115,9 +115,8 @@ echo 'KERNEL=="uinput", GROUP="input", TAG+="uaccess"' | sudo tee /etc/udev/rule
 #+end_src
 
 * editor: doom emacs
-- fd, rg :: improve performance of doom emacs ~occur~ and find commands.
 #+begin_src sh
-dnf install emacs-gtk+x11 fd-find ripgrep
+dnf install emacs-gtk+x11
 
 # HACK :: supress pure emacs-gtk warning (fedora problem)
 sudo alternatives --set emacs /usr/bin/emacs-gtk+x11

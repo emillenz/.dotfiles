@@ -28,7 +28,7 @@
                 [name addr])))
        (into {})))
 
-(def off-cmd "/off")
+(def off-cmd "!off")
 
 (defn selected-device [addresses=>devices]
   (->> (apply shell
