@@ -2,7 +2,7 @@
 #+author: emil lenz
 #+email:  emillenz@protonmail.com
 #+date:   [2024-12-01] (moved arch->fedora: [2023-05-28])
-#+property:  header-args:sh :tangle yes :shebang #!/bin/bash
+#+property:  header-args:sh :tangle yes :shebang #!/usr/bin/env sh
 
 * info
 - if you use a different distro you ensure to install at least these packages for the system config to be able to work. (no guarantees...)
@@ -35,6 +35,11 @@ cd ~/Dotfiles
 stow --target=$HOME/.config config
 stow home
 stow --target=/usr/local/bin bin
+#+end_src
+
+* zsh: minimalist shell
+#+begin_src sh
+dnf install zsh
 #+end_src
 
 * never sudo-password-prompt
