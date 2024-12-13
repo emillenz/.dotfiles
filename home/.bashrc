@@ -27,10 +27,14 @@ alias mv="mv --verbose"
 alias cp="cp --recursive --verbose"
 alias echo="echo -e"
 alias dnf="sudo dnf --assumeyes"
+alias vi="vi -c 'set relativenumber'"
 
 shopt -s nocaseglob
 shopt -s histappend
-export HISTCONTROL=ignoredups
 
 # minimal, functional prompt, (no visual sugar.  same as emacs).  using empty line to clearly separate commands in history.
-PS1='\n \W > '
+FG_BOLD=$(tput bold)
+FG_NORM=$(tput sgr0)
+PS1='\n${FG_BOLD}[\W] > ${FG_NORM}'
+
+set -o vi
