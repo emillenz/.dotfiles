@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 #  ---
-#  title:  minimal bashrc
+#  title:  minimal zshrc
 #  author: emil lenz
 #  email:  emillenz@protonmail.com
 #  date:   2024-11-30
@@ -21,7 +21,7 @@ export EDITOR="vi"
 export VISUAL="vi"
 export BROWSER="firefox"
 
-alias ls="ls --human-readable --group-directories-first --color=never"
+alias ls="ls -la --human-readable --group-directories-first --color=never"
 alias rm="rm --recursive --verbose"
 alias du="du --human-readable"
 alias mv="mv --verbose"
@@ -30,13 +30,12 @@ alias echo="echo -e"
 alias dnf="sudo dnf --assumeyes"
 alias vi="vi -c 'set relativenumber'"
 
+set -o vi
 shopt -s nocaseglob
 shopt -s histappend
 export HISTCONTROL=ignoredups
-set -o vi
 
 # minimal, functional prompt :: 
-# - empty line to clearly separate commands in history 
-# - gray-bg to make prompts unabiguous from shell outputs
+# - newline to separate command outputs in history
+# - bold to make prompts more visually distinct
 PS1=$'\n\[\033[1m\][\W] > \[\033[0m\]'
-
