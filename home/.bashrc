@@ -33,16 +33,9 @@ alias vi="vi -c 'set relativenumber'"
 shopt -s nocaseglob
 shopt -s histappend
 
-<<<<<<< HEAD
 # minimal, functional prompt :: 
 # - empty line to clearly separate commands in history 
 # - gray-bg to make prompts unabiguous from shell outputs
 PS1='\n\[\033[47m\] [\W] > \[\033[0m\] '
-=======
-# minimal, functional prompt, (no visual sugar.  same as emacs).  using empty line to clearly separate commands in history.
-FG_BOLD=$(tput bold)
-FG_NORM=$(tput sgr0)
-PS1='\n${FG_BOLD}[\W] > ${FG_NORM}'
->>>>>>> 99b9e7e83799196d1aaa630b4ffb5097164074ac
 
 set -o vi
