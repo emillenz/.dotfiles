@@ -158,6 +158,7 @@ we only ever use a single window (no splits) in our editor/terminal, thus for te
 - line wrap :: command outputs or browser webpages are often not fixed to some width, instead displayed across the entire available width, thus making it very hard to not loose focus of the current line.  using gaps, it makes the text easier to read.
 - no manual adjustment :: you should never manually resize gaps, find an optimal setting for your setup (hence the lack of bindings).  in special cases you may toggle fullscreen to get rid of gaps.
 - gaps :: depend on screen resolution.  optimized for editor (100pts fill margin) and termina output.
+- toggle gaps for special casses :: somtimes you have a unformatted website, toggle gaps on.  sometimes you have special output in terminal that requires fullscreen etc...
 
 #+begin_src conf
 set $GAPSIZE 500
