@@ -184,7 +184,7 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 		   "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"
 		   t)
 		  ("read" "Zathura")
-		  ("terminal" "Xfce4-terminal" "xfce4-terminal" t)
+		  ("term" "Xfce4-terminal" "xfce4-terminal" t)
 		  ("web" "firefox" "firefox"))
 
 		(-map (lambda (tuple)
@@ -273,7 +273,7 @@ bar {
 	tray_output primary
 	status_command i3status
 	separator_symbol " | "
-	workspace_min_width 40
+	workspace_min_width 80
 
 	colors {
 		background $MODELINE_BG
