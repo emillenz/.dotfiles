@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 #  ---
-#  title:  minimal bashrc
+#  title:  minimal zshrc
 #  author: emil lenz
 #  email:  emillenz@protonmail.com
 #  date:   2024-11-30
@@ -36,7 +36,6 @@ export HISTCONTROL=ignoredups
 set -o vi
 
 # minimal, functional prompt :: 
-# - empty line to clearly separate commands in history 
-# - gray-bg to make prompts unabiguous from shell outputs
+# - empty line to clearly separate commands in history
+# - bold face to make prompts more unabibuous from shell command output
 PS1=$'\n\[\033[1m\][\W] > \[\033[0m\]'
-
