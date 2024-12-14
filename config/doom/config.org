@@ -540,7 +540,8 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
 (define-key! [remap query-replace-regexp] #'anzu-query-replace-regexp)
 #+end_src
 
-*** no visual selections
+*** disable inefficient bindings, enforce efficient editing
+no visual selections
 - efficiency :: after spending considerable amounts of time using emacs with ~viper-mode~ (~vi~ has no visual selections), i came to the conclusion that using ~visual-mode~ in ~vim~ actually encourages less efficient behaviour (manually selecting text even though a motion would have been more efficient).
 - motions :: we are faster & more efficient enforcing the usage of motions, prefix-number commands and ~evil-repeat~.  instead of visual line mode, use a number prefix argument like ~3dj, 3yap, 3ck~.  if we can't use a textobject (eg: braces, word, paragraph, sentence...).  just use ~<operator>~ + ~incsearch~ to act upto the position that we want.  (eg: ~d /~)
 - viper-mode compatibility :: additionally it comes with the benefit of making our workflow more compatible if we are working on a different setup without doom, and only vanilla emacs+viper-mode (or just ~vi~ on a server) is available.
@@ -551,9 +552,17 @@ in search/replace minibuffers we want C-p to work as in evil buffer's: to expand
   c. delete, paste, then use [[kbd:][C-p]] to cycle the kill ring back to the yanked text.
 - ~evil-visual-block~ :: still enabled, since this is still a efficient gap bridger between editin multiple lines before switching to macros.
 
+no paragraph navigation
+- unreliable since they directly depend on code formatting (sometimes you have dense code without emptylines).  
+- you are more efficient by just using: a single precise relative line jump or isearch, instead of spamming ~{, }~ and ~j, k~.
+
 #+begin_src elisp
-(define-key! [remap evil-visual-char] #'ignore)
-(define-key! [remap evil-visual-line] #'ignore)
+(->> '(evil-visual-char
+evil-visual-line
+evil-backward-paragraph
+evil-forward-paragraph)
+(mapc (lambda (fn)
+(define-key [remap fn] #'ignore))))
 #+end_src
 
 *** surround
