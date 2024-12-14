@@ -28,7 +28,7 @@ alias mv="mv --verbose"
 alias cp="cp --recursive --verbose"
 alias echo="echo -e"
 alias dnf="sudo dnf --assumeyes"
-alias vi="vi -c 'set relativenumber'"
+alias vi="vi -c 'set relativenumber' -c 'set hidden'"
 
 set -o vi
 shopt -s nocaseglob
