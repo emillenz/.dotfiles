@@ -31,8 +31,11 @@ alias dnf="sudo dnf --assumeyes"
 alias vi="vi -c 'set relativenumber' -c 'set hidden'"
 
 set -o vi
+shopt -s globstar
 shopt -s nocaseglob
 shopt -s histappend
+shopt -s checkjobs	
+shopt -s nocasematch
 export HISTCONTROL=ignoredups
 
 # minimal, functional prompt :: 
