@@ -185,7 +185,7 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 		   "emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"
 		   t)
 		  ("read" "Zathura")
-		  ("term" "Xfce4-terminal" "xfce4-terminal" t)
+		  ("term" "Alacritty" "alacritty" t)
 		  ("web" "firefox" "firefox"))
 
 		(-map (lambda (tuple)

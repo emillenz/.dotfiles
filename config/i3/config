@@ -88,9 +88,9 @@ bindsym $MOD+shift+e $SHCMD emacsclient --reuse-frame || (emacs --daemon && emac
 workspace edit gaps horizontal $GAPSIZE
 for_window [class="Zathura"] move container to workspace read
 bindsym $MOD+r workspace read
-for_window [class="Xfce4-terminal"] move container to workspace term
+for_window [class="Alacritty"] move container to workspace term
 bindsym $MOD+t workspace term
-bindsym $MOD+shift+t $SHCMD xfce4-terminal
+bindsym $MOD+shift+t $SHCMD alacritty
 workspace term gaps horizontal $GAPSIZE
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web

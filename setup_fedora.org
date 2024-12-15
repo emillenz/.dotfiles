@@ -134,8 +134,9 @@ sudo systemctl enable sshd
 - sometimes i like to walk minimalist pure shell+vi path.  (shell jobs, vi editing + vi coreutils)
 - rlwrap :: use vi bindings for REPLS
 - xclip :: to pipe stuff into clipboard
+- alacritty :: terminal
 #+begin_src sh
-dnf install rlwrap vim-minimal xclip
+dnf install alacritty rlwrap vim-minimal xclip
 #+end_src
 
 * sync tools

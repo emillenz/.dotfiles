@@ -20,6 +20,7 @@ set smartcase
 set nobackup
 set autoread
 set incsearch
+set path+=**
 
 nnoremap v <nop>
 nnoremap V <nop>
