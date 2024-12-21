@@ -752,7 +752,7 @@ marks are even more powerful, as they allow you to mark any buffer.  and if you 
 			      (file-relative-name file)
 			      file-name-sans-extension)
 
-			 "_archived_"
+			 ".archived_"
 			 (format-time-string "%F_T%H-%M-%S")
 			 (when (file-name-extension file)
 			   (->> file
