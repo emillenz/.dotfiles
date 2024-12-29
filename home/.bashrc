@@ -5,38 +5,39 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2024-11-30
+# info:
+#   - case insesitive :: configured if available (grep, find...)
+#   - theme :: minimalist
+#     - reduce colors
+#     - no angry fruit-salad command output
+#     - no syntax highlighting.
 # ---
 
-export GOPATH="$HOME/.local/share/go"
+alias ls="ls --group-directories-first --color=never --format=single-column --classify=auto"
+alias rm="rm --verbose --recursive"
+alias mv="mv --interactive --verbose"
+alias cp="cp --interactive --verbose --recursive"
+alias mkdir="mkdir --verbose --parents"
+alias grep="grep --extended-regexp --ignore-case --color=never"
 
-export PATH="$PATH:$GOPATH"
-export PATH="$PATH:$HOME/.config/emacs/bin"
-export PATH="$PATH:$HOME/.cargo/bin"
+ # no hidden-files by default
+find() { command find "$@" -not -path '*/.*'; }
 
-export BROWSER="firefox"
-export EDITOR="vi"
-export VISUAL="vi"
-alias vi="vi -u ~/.vimrc" # HACK :: using vim-minimal => must explicitly source vimrc file
+# parsed json in `*js*` variable
+bbq() { BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb "$@"; }
 
-alias ls="ls --human-readable --group-directories-first --color=always"
-alias rm="rm --recursive --verbose"
-alias du="du --human-readable"
-alias mv="mv --verbose"
-alias cp="cp --recursive --verbose"
-alias echo="echo -e"
-alias dnf="sudo dnf --assumeyes"
+export EDITOR=vi
+export VISUAL=vi
 
 shopt -s globstar
-shopt -s histappend
 shopt -s checkjobs
-export HISTCONTROL=ignoredups
-
-# case insensitive matching by default
 shopt -s nocaseglob
 shopt -s nocasematch
-alias grep="grep --ignore-case"
+shopt -s histappend
 
-# minimal, functional prompt :: 
-# - newline to separate command outputs in history
-# - bold to make prompts more visually distinct
-PS1=$'\n\[\033[1m\][\W] > \[\033[0m\]'
+export HISTCONTROL=ignoredups:erasedups
+export HISTSIZE=10000 # default: 500, too smol
+
+export PS1=$'\n\[\033[1m\][\W] > \[\033[0m\]' # prompt :: [newline: more clearly separate command outputs in history], [bold: make prompt visually distinctive from commands/output]
+
+export TERM=xterm

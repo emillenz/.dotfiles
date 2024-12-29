@@ -3,29 +3,28 @@
 #+author: emil lenz
 #+email:  emillenz@protonmail.com
 #+date:   2024-01-19
-#+info:
-# - minimalist setup.
-# - the bar is visible except when explicitly toggled to view system info.
+#+info:   minimalist, display only vital information.
 # ---
 
 general {
         colors = true
         interval = 5
 
-        # modus-operandi theme
-        color_good = "#006800"
-        color_degraded = "#6f5500"
-        color_bad = "#a60000"
+        # no coloring, no angry fruit salad (stausbar should never grab attention)
+        color_good = "#000000"
+        color_degraded = "#000000"
+        color_bad = "#000000"
 }
 
-order += "wireless _first_"
 order += "ethernet _first_"
+order += "wireless _first_"
+order += "path_exists VPN"
 order += "battery all"
 order += "volume master"
 order += "tztime local"
 
 wireless _first_ {
-        format_up = "WIFI: %essid %quality"
+        format_up = "WIFI %essid %quality"
         format_down = ""
 }
 
@@ -35,27 +34,34 @@ ethernet _first_ {
 }
 
 battery all {
-        format = "BAT: %status %percentage %emptytime"
+        format = "BAT %status%percentage %emptytime"
         integer_battery_capacity = true
         last_full_capacity = true
         hide_seconds = true
         threshold_type = percentage
         low_threshold = 20
         format_down = ""
-        status_full = "+"
         status_chr = "+"
         status_bat = "-"
-        status_unk = "??"
+        status_full = "*"
+        status_unk = "?"
 }
 
 volume master {
-        format = "%devicename: %volume"
-        format_muted = "%devicename: mute"
+        format = "%devicename %volume"
+        format_muted = "%devicename mute"
         device = "default"
         mixer = "Master"
         mixer_idx = 0
 }
 
 tztime local {
-        format = "%F %a %R" # ISO formatted
+        format = "%F %a %R" # ISO format
+}
+
+path_exists VPN {
+        # path exists when a VPN tunnel launched by nmcli/nm-applet is active
+	format = "VPN"
+	format_down = ""
+        path = "/proc/sys/net/ipv4/conf/tun0"
 }

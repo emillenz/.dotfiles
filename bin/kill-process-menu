@@ -1,0 +1,49 @@
+#!/usr/bin/env bb
+
+;; ---
+;; title:  kill running ps/processes menu
+;; author: emil lenz
+;; email:  emillenz@protonmail.com
+;; date:   [2023-05-08] ([2023-05-08] initial ruby version)
+;; info: 
+;;   - intended for use with a WM
+;;   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
+;; dependencies: dunst
+;; ---
+
+(require '[babashka.process :as ps]
+ '[clojure.string :as str])
+
+(defn names=>ids []
+  (->> (ps/shell {:out :string} "ps -e -o pid,comm")
+	ps/check
+       :out
+       str/split-lines
+       rest
+       (map (fn [line]
+	     (let [[padding id name] (str/split line #"\s+")]
+                [name id])))
+       (into {})))
+
+(defn select-ps [names=>ids]
+  (->> (apply ps/process
+              {:in (->> names=>ids
+                        keys
+                        (map name)
+                        (str/join "\n"))
+               :out :string}
+              "dmenu"
+              "-p" "kill-ps/process >"
+              *command-line-args*)
+       ps/check
+       :out
+       str/trim))
+
+(defn main []
+  (let [names=>ids (names=>ids)
+        selected-ps (select-ps names=>ids)]
+
+    (ps/shell "kill" (get names=>ids selected-ps))
+    (ps/shell "dunstify" "kill-process" selected-ps)))
+
+(main)

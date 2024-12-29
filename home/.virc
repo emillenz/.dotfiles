@@ -1,0 +1,33 @@
+" ---
+" title:  vim-minimal configuration file
+" author: emil lenz
+" email:  emilllenz@protonmail.com
+" date:   [2024-12-14]
+" info:
+" - intended for usage with vim-minimal
+" - no plugins, no custom bindings :: use macros, registers and shell commands
+" - no syntax highlighting
+" ---
+
+set nocompatible
+set hidden
+set relativenumber
+set autoindent
+set autowriteall
+set smartcase
+set autoread
+set incsearch
+set path=** " enable `:find` for opening file under root dir
+set completeopt= " no distracting popup (faste without visual confirmation)
+set ruler
+
+set backupdir=~/.vim//,/tmp//
+set directory=~/.vim//,/tmp//
+
+" disable inefficient keybindings :: enforce using motions + relative line jumping [[file: ~Dotfiles/config/doom/config.org::*evil keybindings][rationale]]
+nnoremap v <nop>
+nnoremap V <nop>
+nnoremap } <nop>
+nnoremap { <nop>
+nnoremap Y y$ " consistent with: D, C
+

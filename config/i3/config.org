@@ -2,11 +2,16 @@
 #+author: emil lenz
 #+email:  emillenz@protonmail.com
 #+date:   [2023-05-15] <- ([2024-11-15] version: marks & literate style)
-#+property: header-args:conf :tangle config :comments no
+#+property: header-args:conf :tangle config :noweb yes :comments link
+
+* [ ] revise structure
+put media bindings after leader
+* [ ] separate XF86 & mouse bindings into sep. blocks
+* [ ] add: no notifications (for minimalism, no distractions)
 
 * preface
 - [[https://i3wm.org/docs/userguide.html][i3 user-guide]]
-- doing changes in system (eg. volume change / internet connection change) are displayed via notifications.  so we don't need the statusbar (only for leadermode indication) for a more focused workflow and more/clean screenspace.
+- doing changes in system (eg. volume change / internet connection change) are displayed via :otifications.  so we don't need the statusbar (only for leadermode indication) for a more focused workflow and more/clean screenspace.
 - i3 exhibits the usual elitism amongst minimal window managers: don’t be bloated, don’t be fancy (simple borders are the most decoration it has).  do not add further complexity when it can be avoided.
 - manual tiling wm ::  which superior to an autotiling wm, (or god forbid a desktop-environment), since we always use all windows maximized.
 - the windowmanager follows the philosopy of eliminating mental overhead and the neccessity to arrange windows or layouts.
@@ -19,6 +24,7 @@
 - strictly avoid multitasking => always work in maximized-mode to never have to resize a window => one workspace per window, to not get distracted by other open windows.
 - if at work and forced to use a desktop environment, just use [[kbd:][M-<tab>]] to switch windows and resize your emacs/webbrowser in a similar fashion to get 90% of the benefits of i3.
 - we use i3's leadermode in combination with ~dmenu~ to extend our efficient, extensible and fast emacs workflow of using global keybindings in leadermode and minibuffer prompts for interactive commands & input.  dmenu is visually and functionally similar to emacs minibuffer (also in flat mode, same keybindings).
+- implement only high-usage-frequency top-level bindigs as the user might be an emacs user, hence using [[kbd:][Meta]].  otherwise ~<leader>~ is used (for infrequent bindings).
 
 ** single monitor only
 :PROPERTIES:
@@ -37,7 +43,7 @@ set $MV move container to workspace
 set $SHCMD exec --no-startup-id
 set $ESC mode "default"
 set $START_SHCMD exec_always --no-startup-id
-set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
+set $DMENU_THEME -b -i -fn 'Comic Code-9' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
 
 set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
 set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
@@ -79,7 +85,7 @@ $START_SHCMD xset r off
 #+end_src
 
 * opts
-- minimalist borders
+- minimalist (to none) border
 - force all windows into tabbed mode, never allow floating windows.
 - no widow icons (bloat)
 #+begin_src conf
@@ -88,10 +94,10 @@ workspace_layout tabbed
 force_focus_wrapping no
 default_orientation horizontal
 # <pixel> hides titlebars when it's the only window on the workspace
-default_border pixel 1
-hide_edge_borders smart_no_gaps
+default_border none
+default_floating_border pixel 1
 title_align left
-font pango: Iosevka Comfy 10
+font pango: Comic Code 10
 focus_on_window_activation focus
 smart_gaps inverse_outer
 #+end_src
@@ -135,6 +141,7 @@ bindsym $MOD+backslash $SHCMD $PLAYERCTL_PLAY_PAUSE
 * navigational bindings
 provide minimal navigational bindings, all you need for the workflow.
 - dmenu :: you can pass flags/args to programs as neccessary (eg. ~emacs -Q~)
+- use the application native quit shortcut (shell: [[kbd:][C_d]], [[kbd:][C-q/C-w]] in GTK-apps).  allow the process to exit as intended (eg. caching data for next time.  eg:shell: requiring confirmation if jobs are still running).  only use ~kill~ & ~kill-process-menu~ as a last resort.
 #+begin_src conf
 bindsym $MOD+p focus left
 bindsym $MOD+n focus right
@@ -201,6 +208,25 @@ bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
 	   "\n")
 #+end_src
 
+#+RESULTS: workspaces
+#+begin_example
+for_window [class="."] move container to workspace all
+bindsym $MOD+a workspace all
+for_window [class="Emacs"] move container to workspace edit
+bindsym $MOD+e workspace edit
+bindsym $MOD+shift+e $SHCMD emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
+workspace edit gaps horizontal $GAPSIZE
+for_window [class="Zathura"] move container to workspace read
+bindsym $MOD+r workspace read
+for_window [class="Alacritty"] move container to workspace term
+bindsym $MOD+t workspace term
+bindsym $MOD+shift+t $SHCMD alacritty
+workspace term gaps horizontal $GAPSIZE
+for_window [class="firefox"] move container to workspace web
+bindsym $MOD+w workspace web
+bindsym $MOD+shift+w $SHCMD firefox
+#+end_example
+
 (read: ~M-x info-display-manual org~ chapter: =16 working with source code=, if you don't know what this magic is doing)
 #+begin_src conf
 <<workspaces()>>
@@ -220,7 +246,6 @@ mode "leader" {
 	bindsym $MOD+a $ESC; $SHCMD audio-output-menu $DMENU_THEME
 	bindsym $MOD+b $ESC; $SHCMD bluetooth-menu $DMENU_THEME
 	bindsym $MOD+k $ESC; $SHCMD kill-menu $DMENU_THEME
-	bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
 
 	# screenshot
 	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
@@ -274,7 +299,7 @@ bar {
 	tray_output primary
 	status_command i3status
 	separator_symbol " | "
-	workspace_min_width 80
+	workspace_min_width 40
 
 	colors {
 		background $MODELINE_BG

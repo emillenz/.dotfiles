@@ -17,7 +17,7 @@ alias dnf="dnf --assumeyes"
 - update all packages before doing anything (+ install basic dependecies)
 #+begin_src sh
 dnf upgrade
-dnf install git
+dnf install git curl
 #+end_src
 
 * clone dotfiles
@@ -30,11 +30,13 @@ git clone --depth=1 https://github.com/emillenz/config ~/Dotfiles
 - backup your own config directory if neccessary since this will override any previous configuration.
 #+begin_src sh
 dnf install stow
+
+stow --target ~/.config config
+stow --target ~ home
+
 mkdir ~/.local/bin
-cd ~/Dotfiles
-stow --target=$HOME/.config config
-stow home
-stow --target=/usr/local/bin bin
+stow --target ~/.local/bin bin
+ls ~/Dotfiles/bin | xargs sudo chmod +x
 #+end_src
 
 * never sudo-password-prompt
@@ -49,24 +51,20 @@ echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
 - arandr :: output configurations
 - unclutter :: hide mouse cursor after inactivity  @autostart script
 - firefox :: browser
-- playerctl :: used to control media via keybindings
 - bluetoothctl :: setup/manage bluetooth devices
 - dunst :: desktop notifications
 - feh :: images
 - xset :: keyboard settings (repeat off, etc.) @autostart script
 - xsetroot :: set wm background to fixed color (=modus-operandi-bg=)
 - pamixer :: configure audio
-- keepassxc :: passwordmanager.  install browser extension + configure it's settings: run on startup, minimize to systray, don't kill on close.
+- keepassxc :: passwordmanager. 
+  - TODO :: install browser extension. enable settings: [run on startup, minimize to systray, don't kill on close]
 - zathura :: minmalist pdf viewer (with vim-bindings )
 - terminal :: using emacs ~M-x shell~.
 - scrot :: screenshots
+- autorandr :: manage output configuration from cmdline
 #+begin_src sh
-dnf install i3 xdg-utils arandr mpv brightnessctl unclutter firefox playerctl bluetoothctl dunst feh maim xset xsetroot keepassxc scrot
-
-dnf install zathura zathura-pdf-mupdf
-
-# dependency for fedorea preinstalled volume control
-dnf install mesa-libEGL-devel
+dnf install i3 xdg-utils mpv brightnessctl unclutter firefox bluetoothctl dunst feh xsetroot keepassxc scrot {zathura,zathura-pdf-mupdf} {arandr,autorandr}
 #+end_src
 
 ** systemwide font
@@ -77,34 +75,20 @@ git clone --depth 1 https://github.com/protesilaos/iosevka-comfy $HOME/.local/sh
 ** batsignal
 - battery notifications (since we have statusbar turned off) @autostart script
 #+begin_src sh
-# dependency
 dnf install libnotify-devel
 
-git clone --depth=1 https://github.com/electrickite/batsignal && cd batsignal
+git clone --depth=1 https://github.com/electrickite/batsignal
+cd batsignal
 make
 sudo make install
 #+end_src
 
-** make scripts executeable
-#+begin_src sh
-find ~/Dotfiles/bin/.local/bin -type f -exec chmod +x {} \;
-#+end_src
-
-** scripting: babashka (clojure)
-- required since scripts are written in it.
-
-#+begin_src sh
-dnf install clojure curl
-
-bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
-#+end_src
-
-* keybindings
+* remaps & keyboard settings
 - [[https://github.com/xremap/xremap][xremap]]
 - configure it to run without ~sudo~ (works after reboot)
 #+begin_src sh
 dnf copr enable blakegardner/xremap
-dnf install xremap-x11 # must be x11 version since we use i3
+dnf install xset xremap-x11 # must be x11 version since we use i3
 
 # Make sure uinput is loaded
 /sbin/lsmod | grep uinput || echo uinput | sudo tee /etc/modules-load.d/uinput.conf
@@ -133,17 +117,24 @@ sudo systemctl enable sshd
 * shell
 - sometimes i like to walk minimalist pure shell+vi path.  (shell jobs, vi editing + vi coreutils)
 - rlwrap :: use vi bindings for REPLS
-- xclip :: to pipe stuff into clipboard
-- alacritty :: terminal
+- xclip :: pipe from terminal to clipboard
+- alacritty :: minimalist terminal
+- curl :: downloading files from the WWW
 #+begin_src sh
-dnf install alacritty rlwrap vim-minimal xclip
+dnf install alacritty rlwrap vim-minimal xclip curl
+#+end_src
+
+** scripting: babashka
+shell-scripts & one-liners (replaces ~bash-scripts~, ~awk~, ~sed~, ~wc~, ~cut~, ...)
+#+begin_src sh
+bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
 #+end_src
 
 * sync tools
 - syncthing :: for keeping filesystem in sync across multiple machines (daily usage).  started manually when sync is required.
 - restic :: backup the userfiles (redundency for when harddrive is destroyed / newinstall required / accidental ~rm~).  manually backed up to an external HDD weekly.
 #+begin_src sh
-dnf install syncthing restic
+dnf install restic syncthing
 #+end_src
 
 - timeshift :: backup & restore system configuration (when system breaks)
@@ -151,10 +142,18 @@ dnf install syncthing restic
 #+Begin_src sh
 dnf install timeshift
 echo '1 0 system-backup sudo timeshift --create' | sudo tee --append /etc/anacrontab
-systemctl enable crond && systemctl start crond
+systemctl enable crond
+systemctl start crond
+#+end_src
+
+* VPN
+- A full-featured TLS VPN solution (configure it to be used with nmcli from the commandline).
+- autoconnect with nmcli on system startup
+#+begin_src sh
+dnf install openvpn NetworkManager-openvpn
 #+end_src
 
 * c, c++
 #+begin_src sh
-dnf install cmake gcc clang clang-tools-extra
+dnf install gcc clang clang-tools-extra
 #+end_src

@@ -1,1 +1,11 @@
 set editing-mode vi
+set completion-ignore-case On
+set show-all-if-ambiguous on
+set enable-bracketed-paste on
+
+# HIST SEARCH BASED ON CURRENT INPUT
+$if mode=vi
+set keymap vi-command
+j: history-search-forward
+k: history-search-backward
+$endif

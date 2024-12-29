@@ -101,8 +101,9 @@ Iosevka Comfy optimises for inter-glyph and inter-style consistency within the o
 the aim is to be able to run software for years without it breaking or bugging.
 learning a tool is an investment and you wouldn't want to sink your time into soemthing that will be useless in a short time.
 this is why secure and fast languages such as rust and go are preferred over inconsistent and hacky languages such as perl or python, that require constant maintaining.
-i'm very opinionated and have high standards regarding design process and the philosophy behind the tools focused on, hence the selection undergoes a rigorous coparison and selection process.
+we're very opinionated and have high standards regarding design process and the philosophy behind the tools focused on, hence the selection undergoes a rigorous coparison and selection process.
 we favor cli shells, and ~dmenu-scripts~ over GUI applications (eg. using bluetoothctl to setup/manage bluetooth devices and ~bluetooth-menu~ to connect to them after once setup.)
+we don't care about 'rewritten in rust' tools that add colours to everything.  instead we use the GNU-coreutils (with aliases at most).
 
 ** webbrowser: firefox
 *** install & configure extensions manually
@@ -110,7 +111,7 @@ we favor cli shells, and ~dmenu-scripts~ over GUI applications (eg. using blueto
 - theming (light)
 - font set all font choices to the system wide font: iosevka comfy 10 and set: don't allow webpages to custom fonts.  that way it will always look uniform.
 
-*** useage
+*** usage
 - pin tabs that you want to assign to fixed hotkeys ([[kbd:][M-<number>]]), such as [[https://chatgpt.com]] or [[https://spotify.com]].  they will automatically open and you cant't accidentally close them with [[kbd:][C-w]].
 - bookmarks: name them hierarchically w keywords (syntax like ~org-mode-tags~), ex: ~cs:math:exercises~
   - quickly open website using bookmark searching

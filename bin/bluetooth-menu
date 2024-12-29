@@ -1,25 +1,22 @@
 #!/usr/bin/env bb
 
 ;; ---
-;; title:  bluetooth device menu
+;; title:  connect to paired bluetooth device menu
 ;; author: emil lenz
 ;; email:  emillenz@protonmail.com
-;; date:   [2024-12-07] <- (initial ruby version: [2024-05-26]
-;; info:
-;; - intended for use with a WM.
-;; - any provided arguments are directly passed on to dmenu (use dmenu's flags to customize the prompt/theme)
-;; dependecies:
-;; - dunst
-;; - bluetoothctl
-;; - dmenu
+;; date:   [2024-12-07] ([2024-05-26] initial ruby version)
+;; info: 
+;;   - intended for use with a WM
+;;   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
+;; dependecies: bluetoothctl, dmenu, dunst
 ;; ---
 
-(require '[babashka.process :refer [shell process check]])
-(require '[clojure.string :as str])
+(require '[babashka.process :as ps]
+ '[clojure.string :as str])
 
 (defn addresses=>devices []
-  (->> (shell {:out :string} "bluetoothctl devices")
-       check
+  (->> (ps/shell {:out :string} "bluetoothctl devices")
+       ps/check
        :out
        str/split-lines
        (map (fn [line]
@@ -31,29 +28,29 @@
 (def off-cmd "!off")
 
 (defn selected-device [addresses=>devices]
-  (->> (apply shell
+  (->> (apply ps/shell
               {:in (->> (conj (keys addresses=>devices) off-cmd)
                         (str/join "\n"))
                :out :string}
               "dmenu"
               "-p" "bluetooth-device >"
               *command-line-args*)
-       check
+       ps/check
        :out
        str/trim))
 
 (defn connect [addresses=>devices selected-device]
-  (shell "bluetoothctl" "power" "on")
-  (try (->> (shell "bluetoothctl" "connect" (get addresses=>devices selected-device))
-              check)
-         (shell "dunstify" "bluetooth: connected" selected-device)
+  (ps/shell "bluetoothctl" "power" "on")
+  (try (->> (ps/shell "bluetoothctl" "connect" (get addresses=>devices selected-device))
+              ps/check)
+         (ps/shell "dunstify" "bluetooth: connected" selected-device)
        (catch Exception e
-         (shell "dunstify" "bluetooth" (format "[error] failed to connect to device: %s" selected-device)))))
+         (ps/shell "dunstify" "bluetooth: error" (format "failed to connect to device: %s" selected-device)))))
 
 (defn off []
-  (->> (shell "bluetoothctl" "power" "off")
-       check)
-  (shell "dunstify" "bluetooth: off"))
+  (->> (ps/shell "bluetoothctl" "power" "off")
+       ps/check)
+  (ps/shell "dunstify" "bluetooth: off"))
 
 (defn main []
   (let [addresses=>devices (addresses=>devices)

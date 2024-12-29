@@ -1,72 +1,64 @@
 #!/usr/bin/env bb
 
 ;; ---
-;; title:  audio output menu
+;; title:  switch audio output menu
 ;; author: emil lenz
 ;; email:  emillenz@protonmail.com
-;; date:   [2024-12-06] <- (init ruby version [2023-05-07])
-;; info:
-;; - intended for use with a WM.
-;; - any provided arguments are directly passed on to dmenu (use dmenu's flags to customize the prompt/theme)
-;; dependencies:
-;; - dmenu
-;; - pactl
-;; - dunst
+;; date:   [2024-12-06] ([2023-05-07] init ruby version)
+;; info: 
+;;   - intended for use with a WM
+;;   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
+;; dependencies: dmenu, pactl
 ;; ---
 
-(require '[babashka.process :refer [shell process check]])
-(require '[clojure.string :as str])
-(require '[cheshire.core :as json])
+(require '[babashka.process :as ps] 
+ '[clojure.string :as str] 
+ '[cheshire.core :as json])
 
 (defn sinks []
-  (->> (shell {:out :string} "pactl" "--format" "json" "list" "sinks")
-       deref
-       :out
-       json/parse-string))
+ (->> (ps/shell {:out :string} "pactl" "--format" "json" "list" "sinks")
+  ps/check
+  :out
+  json/parse-string))
 
 (defn sink-inputs []
-  (->> (shell {:out :string} "pactl" "--format" "json" "list" "sink-inputs")
-       check
-       :out
-       json/parse-string))
+ (->> (ps/shell {:out :string} "pactl" "--format" "json" "list" "sink-inputs")
+  ps/check
+  :out
+  json/parse-string))
 
 (defn select-sink [sinks]
-  (->> (apply process
-              {:in (->> sinks
-                        (map #(get % "description"))
-                        (str/join "\n"))
-               :out :string}
-              "dmenu"
-              "-p" "device >"
-              *command-line-args*)
-       check
-       :out
-       str/trim))
+ (->> (apply ps/process
+       {:in (->> sinks
+		       (map #(get % "description"))
+		       (str/join "\n"))
+       :out :string}
+       "dmenu"
+       "-p" "device >"
+       *command-line-args*)
+  ps/check
+  :out
+  str/trim))
 
 (defn sink-id [sinks selected-sink]
-  (get (->> sinks
-            (filter (fn [sink]
-                      (= (get sink "description")
-                         selected-sink)))
-            first)
-       "index"))
+ (get (->> sinks
+       (filter (fn [sink]
+		(= (get sink "description")
+		 selected-sink)))
+       first)
+  "index"))
 
 (defn main []
-  (let [sinks (sinks)
-        sink-inputs (sink-inputs)
-        selected-sink (select-sink sinks)
-        sink-id (sink-id sinks selected-sink)]
+ (let [sinks (sinks)
+  sink-inputs (sink-inputs)
+  selected-sink (select-sink sinks)
+  sink-id (sink-id sinks selected-sink)]
 
-    (->> (shell {:out :string} "pactl" "set-default-sink" sink-id)
-         check
-         :out)
+  (ps/shell "pactl" "set-default-sink" sink-id)
 
-    (doseq [sink sink-inputs]
-      (->> (shell {:out :string}
-                  "pactl" "move-sink-input" (get sink "index") sink-id)
-           check
-           :out))
+  (doseq [sink sink-inputs]
+   (ps/shell "pactl" "move-sink-input" (get sink "index") sink-id))
 
-    (shell "dunstify" "audio-output" (format "changed to: %s" selected-sink))))
+  (ps/shell "dunstify" "audio-output changed" selected-sink)))
 
 (main)

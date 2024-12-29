@@ -1,45 +1,51 @@
-set $MV move container to workspace
+# [[file:config.org::*macros][macros:1]]
 set $SHCMD exec --no-startup-id
 set $ESC mode "default"
 set $START_SHCMD exec_always --no-startup-id
-set $DMENU_THEME -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
 
-set $VOL_INC pamixer --unmute --increase 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
-set $VOL_DEC pamixer --unmute --decrease 5 && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
-set $VOL_MUTE pamixer --toggle-mute && dunstify --replace 69 "vol: $(pamixer --get-volume-human)"
-set $MIC_MUTE pamixer --default-source --toggle-mute && dunstify --replace 69 "mic-mute: $(pamixer --default-source --get-mute)"
-set $PLAYERCTL_PLAY_PAUSE playerctl play-pause && dunstify --replace 69 "$(sleep 0.1 && playerctl status)"
+set $BG #ffffff
+set $DMENU_ARGS -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
+# macros:1 ends here
 
-set $SYS_SLEEP i3lock --color ffffff && systemctl suspend
-
+# [[file:config.org::*start processes][start processes:1]]
 $START_SHCMD emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 $START_SHCMD pgrep firefox || firefox
-$START_SHCMD pgrep playerctld || playerctld
 $START_SHCMD pgrep unclutter || unclutter
 $START_SHCMD pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
 $START_SHCMD pgrep nm-applet || nm-applet
-$START_SHCMD pgrep keepassxc || keepassxc
+# start processes:1 ends here
 
-$START_SHCMD xsetroot -solid '#ffffff'
+# [[file:config.org::*start processes][start processes:2]]
+$START_SHCMD xsetroot -solid '$BG'
+# start processes:2 ends here
 
+# [[file:config.org::*start processes][start processes:3]]
 $START_SHCMD xset dpms 0 0 0
 $START_SHCMD xset s off
+# lock with i3lock when suspending, hibernating...
+$START_SHCMD pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color '$BG'
+# start processes:3 ends here
 
+# [[file:config.org::*start processes][start processes:4]]
 $START_SHCMD pgrep xremap || xremap --watch=device ~/.config/xremap/config.yml
 $START_SHCMD xset r off
+# start processes:4 ends here
 
+# [[file:config.org::*opts][opts:1]]
 workspace_auto_back_and_forth no
 workspace_layout tabbed
 force_focus_wrapping no
 default_orientation horizontal
 # <pixel> hides titlebars when it's the only window on the workspace
-default_border pixel 1
-hide_edge_borders smart_no_gaps
+default_border none
+default_floating_border pixel 1
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 smart_gaps inverse_outer
+# opts:1 ends here
 
+# [[file:config.org::*keybindings][keybindings:1]]
 set $MOD Mod1
 floating_modifier $MOD
 # we don't tile
@@ -48,38 +54,30 @@ bindsym button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
 bindsym button4 nop
 bindsym button5 nop
-
 bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
 bindsym XF86MonBrightnessUp $SHCMD brightnessctl set 5%+
-# to reset screenlayouts when disconnecting laptop from external output
-bindsym XF86Display $SHCMD xrandr --auto
-bindsym XF86Sleep $SHCMD $SYS_SLEEP
-bindsym XF86AudioPlay $SHCMD $PLAYERCTL_PLAY_PAUSE
-bindsym XF86AudioPause $SHCMD $PLAYERCTL_PLAY_PAUSE
-bindsym XF86AudioNext $SHCMD playerctl next
-bindsym XF86AudioPrev $SHCMD playerctl previous
-bindsym XF86AudioLowerVolume $SHCMD $VOL_DEC
-bindsym XF86AudioRaiseVolume $SHCMD $VOL_INC
-bindsym XF86AudioMute $SHCMD $VOL_MUTE
-bindsym XF86AudioMicMute $SHCMD $MIC_MUTE
+bindsym XF86Display $SHCMD autorandr --change
+bindsym XF86Sleep $SHCMD systemctl suspend 
+bindsym XF86AudioLowerVolume $SHCMD pamixer --unmute --decrease 5
+bindsym XF86AudioRaiseVolume $SHCMD pamixer --unmute --increase 5
+bindsym XF86AudioMute $SHCMD pamixer --toggle-mute
+bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
+# keybindings:1 ends here
 
-bindsym $MOD+minus $SHCMD $VOL_DEC
-bindsym $MOD+equal $SHCMD $VOL_INC
-bindsym $MOD+bracketright $SHCMD playerctl next
-bindsym $MOD+bracketleft $SHCMD playerctl previous
-bindsym $MOD+backslash $SHCMD $PLAYERCTL_PLAY_PAUSE
-
+# [[file:config.org::*navigational bindings][navigational bindings:1]]
 bindsym $MOD+p focus left
 bindsym $MOD+n focus right
-bindsym $MOD+q kill
 bindsym $MOD+Tab workspace back_and_forth
 
-bindsym $MOD+Return $SHCMD i3-dmenu-desktop --dmenu="dmenu -p 'desktop-run >' $DMENU_THEME"
-bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_THEME
+bindsym $MOD+Return $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'desktop-run >' $DMENU_ARGS"
+bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_ARGS
+# navigational bindings:1 ends here
 
+# [[file:config.org::*gaps][gaps:1]]
 set $GAPSIZE 500
-bindsym $MOD+z gaps horizontal current toggle $GAPSIZE
+# gaps:1 ends here
 
+# [[file:config.org::*workspaces][workspaces:2]]
 for_window [class="."] move container to workspace all
 bindsym $MOD+a workspace all
 for_window [class="Emacs"] move container to workspace edit
@@ -95,30 +93,38 @@ workspace term gaps horizontal $GAPSIZE
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $SHCMD firefox
+# workspaces:2 ends here
 
+# [[file:config.org::*workspaces][workspaces:3]]
 for_window [all] focus, title_window_icon no
+# workspaces:3 ends here
 
-bindsym $MOD+space mode "leader"
+# [[file:config.org::*leader][leader:1]]
+set $MODE_LEADER "<leader>"
+bindsym $MOD+space mode $MODE_LEADER
 
-mode "leader" {
-	bindsym $MOD+a $ESC; $SHCMD audio-output-menu $DMENU_THEME
-	bindsym $MOD+b $ESC; $SHCMD bluetooth-menu $DMENU_THEME
-	bindsym $MOD+k $ESC; $SHCMD kill-menu $DMENU_THEME
-	bindsym $MOD+d $ESC; $SHCMD sh $HOME/.screenlayout/$(ls $HOME/.screenlayout | dmenu -p 'screenlayout > ' $DMENU_THEME)
-
-	# screenshot
-	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
-
-	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
-	bindsym $MOD+q $ESC; $SHCMD $SYS_SLEEP
+mode $MODE_LEADER {
 	bindsym $MOD+o $ESC; move workspace to output next
-	bindsym $MOD+m $ESC; $SHCMD $VOL_MUTE
-	bindsym $MOD+shift+m $ESC; $SHCMD $MIC_MUTE
+	bindsym $MOD+z $ESC; gaps horizontal current toggle $GAPSIZE
+	bindsym $MOD+k $ESC; kill
+	bindsym $MOD+shift+k $ESC; $SHCMD kill-process-menu $DMENU_ARGS
+
+	bindsym $MOD+equal $SHCMD pamixer --unmute --increase 5
+	bindsym $MOD+minus $SHCMD pamixer --unmute --decrease 5
+	bindsym $MOD+0 $SHCMD pamixer --toggle-mute
+	bindsym $MOD+a $ESC; $SHCMD audio-output-menu $DMENU_ARGS
+
+	bindsym $MOD+b $ESC; $SHCMD bluetooth-menu $DMENU_ARGS
+	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
+	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
+	bindsym $MOD+q $ESC; $SHCMD systemctl suspend
+	bindsym $MOD+d $ESC; $SHCMD autorandr --change
 
 	bindsym Escape $ESC
 }
+# leader:1 ends here
 
-set $BG          #ffffff
+# [[file:config.org::*modus-operandi theme][modus-operandi theme:1]]
 set $FG          #000000
 set $MODELINE_BG #c8c8c8
 set $BORDER      #9f9f9f
@@ -131,7 +137,9 @@ client.focused_inactive $BORDER    $MODELINE_BG $FG $FG   $BORDER
 client.unfocused        $BORDER    $MODELINE_BG $FG $FG   $BORDER
 client.urgent           $URGENT_BG $URGENT_BG   $FG $FG   $URGENT_BG
 client.background       $BG
+# modus-operandi theme:1 ends here
 
+# [[file:config.org::*modeline / tabbar][modeline / tabbar:1]]
 bar {
 	mode hide
 	workspace_buttons yes
@@ -139,18 +147,21 @@ bar {
 	modifier none
 	tray_output primary
 	status_command i3status
+
+	# some padding for more clarity
 	separator_symbol " | "
-	workspace_min_width 80
+	workspace_min_width 40
 
 	colors {
 		background $MODELINE_BG
 		statusline $FG
 		separator $FG
 		#class             $border      $bg          $fg
-		binding_mode       $MODELINE_BG $MODELINE_BG $MODELINE_BG
+		binding_mode       $MODELINE_BG $MODELINE_BG $FG
 		focused_workspace  $BORDER      $ACTIVE_BG   $FG
 		active_workspace   $BORDER      $MODELINE_BG $FG
 		inactive_workspace $BORDER      $MODELINE_BG $FG
 		urgent_workspace   $BORDER      $URGENT_BG   $FG
 	}
 }
+# modeline / tabbar:1 ends here
