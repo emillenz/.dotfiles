@@ -1,4 +1,4 @@
-#+title:  functional and efficiency focused computing workflow
+/+title:  functional and efficiency focused computing workflow
 #+author: emil lenz
 #+email:  emillenz@protonmail.com
 #+date:   [2023-05-16]
@@ -103,7 +103,6 @@ learning a tool is an investment and you wouldn't want to sink your time into so
 this is why secure and fast languages such as rust and go are preferred over inconsistent and hacky languages such as perl or python, that require constant maintaining.
 we're very opinionated and have high standards regarding design process and the philosophy behind the tools focused on, hence the selection undergoes a rigorous coparison and selection process.
 we favor cli shells, and ~dmenu-scripts~ over GUI applications (eg. using bluetoothctl to setup/manage bluetooth devices and ~bluetooth-menu~ to connect to them after once setup.)
-we don't care about 'rewritten in rust' tools that add colours to everything.  instead we use the GNU-coreutils (with aliases at most).
 
 ** webbrowser: firefox
 *** install & configure extensions manually
@@ -141,6 +140,7 @@ babashka has a fast startup and since it's clojure, can be compiled for even mor
 - typing technique :: get into the habit of proper technique in touch typing.  staying on the homerow, typing with little pressure as needed and not using excess force.  this includes touchtyping all numberrow symbols, brackets & braces.  to enforce this, spraypaint the keycaps blank in order to force you to never look at the keyboard again.  force yourself to use the right finger for the right key (right side symbols :: all with the pinky)
 - key-repetition :: disabled.  it empowers bad habits of you holding down a key instead of moving intelligently and fast using the appropriate motion (not holding down [[kbd:][j, k]] instead using [[kbd:][C-u/d]]  not spamming delete, instead using [[kbd:][d-<motion>]]
 - remaps :: [[file:config/.config/xremap/config.org][remapping tool (xremap) configuration file]]
+- for GUI applications (excluding emacs & terminal) use the CUA bindings (C-w, C-q, C-t, etc...)
 
 ***  workflow
 when you need to navigate to a different file/tab, this should be your order of modus-operandi ::

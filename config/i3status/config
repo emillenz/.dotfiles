@@ -24,17 +24,17 @@ order += "volume master"
 order += "tztime local"
 
 wireless _first_ {
-        format_up = "WIFI %essid %quality"
+        format_up = "[WIFI %essid %quality]"
         format_down = ""
 }
 
 ethernet _first_ {
-        format_up = "ETH" # %ip to leak it
+        format_up = "[ETH]" # %ip to leak it
         format_down = ""
 }
 
 battery all {
-        format = "BAT %status%percentage %emptytime"
+        format = "[BAT %status%percentage %emptytime]"
         integer_battery_capacity = true
         last_full_capacity = true
         hide_seconds = true
@@ -48,20 +48,20 @@ battery all {
 }
 
 volume master {
-        format = "%devicename %volume"
-        format_muted = "%devicename mute"
+        format = "[%devicename %volume]"
+        format_muted = "[%devicename mute]"
         device = "default"
         mixer = "Master"
         mixer_idx = 0
 }
 
 tztime local {
-        format = "%F %a %R" # ISO format
+        format = "[%F %a %R]" # ISO format
 }
 
 path_exists VPN {
         # path exists when a VPN tunnel launched by nmcli/nm-applet is active
-	format = "VPN"
+	format = "[VPN]"
 	format_down = ""
         path = "/proc/sys/net/ipv4/conf/tun0"
 }

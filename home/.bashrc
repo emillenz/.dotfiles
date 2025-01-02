@@ -7,24 +7,21 @@
 # date:   2024-11-30
 # info:
 #   - case insesitive :: configured if available (grep, find...)
-#   - theme :: minimalist
-#     - reduce colors
-#     - no angry fruit-salad command output
-#     - no syntax highlighting.
+#   - no colors, no syntax hilighting :: minimalist (no colorful fruit-salad)
+#   - no "rewritten in rust" tools that add colours to everything.  we use the minimalist, readily available GNU coreutils (no unneccessary dependecies).  we use of aliases & functions for more ergonomic default behaviour.
 # ---
 
-alias ls="ls --group-directories-first --color=never --format=single-column --classify=auto"
-alias rm="rm --verbose --recursive"
-alias mv="mv --interactive --verbose"
-alias cp="cp --interactive --verbose --recursive"
-alias mkdir="mkdir --verbose --parents"
+alias ls="ls --group-directories-first --format=single-column --classify=auto --color=never"
 alias grep="grep --extended-regexp --ignore-case --color=never"
+alias rm="rm --verbose --recursive --interactive=once" # require confirmation (can't be undone)
+alias mkdir="mkdir --verbose --parents"
+alias bb-js="BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb" # parsed json in `*js*` variable
+alias bb="rlwrap bb"
 
- # no hidden-files by default
-find() { command find "$@" -not -path '*/.*'; }
+function mv { mkdir "$(dirname "${@: -1}")"; command mv --interactive --verbose "$@"; } # create neccessary target dirs
+function cp { mkdir "$(dirname "${@: -1}")"; command cp --interactive --verbose --recursive "$@"; } # create neccessary target dirs
 
-# parsed json in `*js*` variable
-bbq() { BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb "$@"; }
+function find { command find "$@" -not -path '*/.*'; }  # better defaults: no dirs, no dotfiles
 
 export EDITOR=vi
 export VISUAL=vi
@@ -35,9 +32,9 @@ shopt -s nocaseglob
 shopt -s nocasematch
 shopt -s histappend
 
-export HISTCONTROL=ignoredups:erasedups
+export HISTCONTROL=ignoredups:erasedups # no duplicates
 export HISTSIZE=10000 # default: 500, too smol
 
-export PS1=$'\n\[\033[1m\][\W] > \[\033[0m\]' # prompt :: [newline: more clearly separate command outputs in history], [bold: make prompt visually distinctive from commands/output]
+export PS1=$'\n\[\033[1m\][%\j] [\W] > \[\033[0m\]' # prompt :: [newline: more clearly separate command outputs in history], [bold: make prompt visually distinctive from commands/output]
 
 export TERM=xterm

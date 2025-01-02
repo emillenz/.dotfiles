@@ -57,7 +57,7 @@ bindsym button5 nop
 bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
 bindsym XF86MonBrightnessUp $SHCMD brightnessctl set 5%+
 bindsym XF86Display $SHCMD autorandr --change
-bindsym XF86Sleep $SHCMD systemctl suspend 
+bindsym XF86Sleep $SHCMD systemctl suspend
 bindsym XF86AudioLowerVolume $SHCMD pamixer --unmute --decrease 5
 bindsym XF86AudioRaiseVolume $SHCMD pamixer --unmute --increase 5
 bindsym XF86AudioMute $SHCMD pamixer --toggle-mute
@@ -80,16 +80,20 @@ set $GAPSIZE 500
 # [[file:config.org::*workspaces][workspaces:2]]
 for_window [class="."] move container to workspace all
 bindsym $MOD+a workspace all
+
 for_window [class="Emacs"] move container to workspace edit
 bindsym $MOD+e workspace edit
 bindsym $MOD+shift+e $SHCMD emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 workspace edit gaps horizontal $GAPSIZE
+
 for_window [class="Zathura"] move container to workspace read
 bindsym $MOD+r workspace read
+
 for_window [class="Alacritty"] move container to workspace term
 bindsym $MOD+t workspace term
 bindsym $MOD+shift+t $SHCMD alacritty
 workspace term gaps horizontal $GAPSIZE
+
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $SHCMD firefox
@@ -115,7 +119,8 @@ mode $MODE_LEADER {
 	bindsym $MOD+a $ESC; $SHCMD audio-output-menu $DMENU_ARGS
 
 	bindsym $MOD+b $ESC; $SHCMD bluetooth-menu $DMENU_ARGS
-	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f"'
+	# save scrot to disk & clipboard
+	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f" && xclip -selection clipboard -t=image/png < "$f"'
 	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 	bindsym $MOD+q $ESC; $SHCMD systemctl suspend
 	bindsym $MOD+d $ESC; $SHCMD autorandr --change
@@ -149,7 +154,7 @@ bar {
 	status_command i3status
 
 	# some padding for more clarity
-	separator_symbol " | "
+	separator_symbol " "
 	workspace_min_width 40
 
 	colors {

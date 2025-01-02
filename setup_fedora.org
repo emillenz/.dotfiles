@@ -39,9 +39,9 @@ stow --target ~/.local/bin bin
 ls ~/Dotfiles/bin | xargs sudo chmod +x
 #+end_src
 
-* never sudo-password-prompt
+* use our (sane) virc systemwide (sudo)
 #+begin_src sh
-echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
+sudo ln --force --symbolic ~/Dotfiles/home/.virc /etc/virc
 #+end_src
 
 * wm & programs
@@ -53,18 +53,17 @@ echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER"
 - firefox :: browser
 - bluetoothctl :: setup/manage bluetooth devices
 - dunst :: desktop notifications
-- feh :: images
 - xset :: keyboard settings (repeat off, etc.) @autostart script
 - xsetroot :: set wm background to fixed color (=modus-operandi-bg=)
 - pamixer :: configure audio
 - keepassxc :: passwordmanager. 
-  - TODO :: install browser extension. enable settings: [run on startup, minimize to systray, don't kill on close]
+  - TODO :: install browser extension. configure settings: [run on startup, minimize to systray, don't kill on close]
 - zathura :: minmalist pdf viewer (with vim-bindings )
 - terminal :: using emacs ~M-x shell~.
 - scrot :: screenshots
 - autorandr :: manage output configuration from cmdline
 #+begin_src sh
-dnf install i3 xdg-utils mpv brightnessctl unclutter firefox bluetoothctl dunst feh xsetroot keepassxc scrot {zathura,zathura-pdf-mupdf} {arandr,autorandr}
+dnf install i3 xdg-utils mpv brightnessctl unclutter firefox bluetoothctl dunst xsetroot keepassxc scrot {zathura,zathura-pdf-mupdf} {arandr,autorandr}
 #+end_src
 
 ** systemwide font
@@ -117,7 +116,7 @@ sudo systemctl enable sshd
 * shell
 - sometimes i like to walk minimalist pure shell+vi path.  (shell jobs, vi editing + vi coreutils)
 - rlwrap :: use vi bindings for REPLS
-- xclip :: pipe from terminal to clipboard
+- xclip :: pipe from terminal to clipboard (screenshots, vi...)
 - alacritty :: minimalist terminal
 - curl :: downloading files from the WWW
 #+begin_src sh
@@ -148,7 +147,7 @@ systemctl start crond
 
 * VPN
 - A full-featured TLS VPN solution (configure it to be used with nmcli from the commandline).
-- autoconnect with nmcli on system startup
+- autoconnect with nmcli on system startup (using `man networkmanager-dispatcher`
 #+begin_src sh
 dnf install openvpn NetworkManager-openvpn
 #+end_src

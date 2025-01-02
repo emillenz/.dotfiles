@@ -1,4 +1,3 @@
-# [[file:config.org::*info][info:1]]
 modmap:
   - name: global
     remap:
@@ -18,4 +17,3 @@ keymap:
     remap:
       C-n: down # vim :: navigate completion candidates (suggested urls...)
       C-p: up
-# info:1 ends here
