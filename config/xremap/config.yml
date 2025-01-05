@@ -1,19 +1,22 @@
 modmap:
   - name: global
     remap:
-      capslock:
-        held: ctrl_l
-        alone: esc
-        one_timeout_milis: 100
-      ctrl_l: # hack :: support physical ctrl -> caps remaps
-        held: ctrl_l
-        alone: esc
+       # when user has mapped caps->backspace on keyboard-hardware
+      backspace:
+        held: super_l
+        alone: backspace
         one_timeout_milis: 100
 
+      capslock: 
+        held: super_l
+        alone: backspace
+        one_timeout_milis: 100
+      
 keymap:
   - name: browser
     application:
-      only: firefox
+      not: [Emacs, Alacritty]
     remap:
-      C-n: down # vim :: navigate completion candidates (suggested urls...)
+      M-backspace: C-backspace # consistency with emacs
+      C-n: down # completion candidates (suggested urls ...)
       C-p: up

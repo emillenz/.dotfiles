@@ -1,11 +1,7 @@
-set editing-mode vi
 set completion-ignore-case on
 set show-all-if-ambiguous on
 set enable-bracketed-paste on
 
 # navigate history candidates based on present input
-$if mode=vi
-	set keymap vi-command
-	j: history-search-forward
-	k: history-search-backward
-$endif
+C-n: history-search-forward
+C-p: history-search-backward

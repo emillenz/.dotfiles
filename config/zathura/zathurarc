@@ -22,8 +22,6 @@ set recolor-keephue true
 map z snap_to_page # vim
 map = zoom in
 map - zoom out
-map w adjust_window best-fit # mnemonic: width/window
-map W adjust_window width # mnemonic: width/window
 
 # MODUS OPERANDI THEME
 set notification-error-bg       "#c8c8c8"

@@ -46,7 +46,7 @@ smart_gaps inverse_outer
 # opts:1 ends here
 
 # [[file:config.org::*keybindings][keybindings:1]]
-set $MOD Mod1
+set $MOD Mod4
 floating_modifier $MOD
 # we don't tile
 tiling_drag off
@@ -89,11 +89,6 @@ workspace edit gaps horizontal $GAPSIZE
 for_window [class="Zathura"] move container to workspace read
 bindsym $MOD+r workspace read
 
-for_window [class="Alacritty"] move container to workspace term
-bindsym $MOD+t workspace term
-bindsym $MOD+shift+t $SHCMD alacritty
-workspace term gaps horizontal $GAPSIZE
-
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $SHCMD firefox
@@ -105,7 +100,7 @@ for_window [all] focus, title_window_icon no
 
 # [[file:config.org::*leader][leader:1]]
 set $MODE_LEADER "<leader>"
-bindsym $MOD+space mode $MODE_LEADER
+bindsym $MOD+x mode $MODE_LEADER
 
 mode $MODE_LEADER {
 	bindsym $MOD+o $ESC; move workspace to output next
@@ -125,7 +120,7 @@ mode $MODE_LEADER {
 	bindsym $MOD+q $ESC; $SHCMD systemctl suspend
 	bindsym $MOD+d $ESC; $SHCMD autorandr --change
 
-	bindsym Escape $ESC
+	bindsym $MOD+g $ESC
 }
 # leader:1 ends here
 

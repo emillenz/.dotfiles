@@ -21,10 +21,10 @@ alias bb="rlwrap bb"
 function mv { mkdir "$(dirname "${@: -1}")"; command mv --interactive --verbose "$@"; } # create neccessary target dirs
 function cp { mkdir "$(dirname "${@: -1}")"; command cp --interactive --verbose --recursive "$@"; } # create neccessary target dirs
 
-function find { command find "$@" -not -path '*/.*'; }  # better defaults: no dirs, no dotfiles
+function find { command find "$@" -not -path '*/.*'; } # better defaults: no dirs, no dotfiles
 
-export EDITOR=vi
-export VISUAL=vi
+export EDITOR="emacsclient -nw --alternate-editor 'emacs -nw'"
+export VISUAL="emacsclient --alternate-editor 'emacs'"
 
 shopt -s globstar
 shopt -s checkjobs
@@ -35,6 +35,6 @@ shopt -s histappend
 export HISTCONTROL=ignoredups:erasedups # no duplicates
 export HISTSIZE=10000 # default: 500, too smol
 
-export PS1=$'\n\[\033[1m\][%\j] [\W] > \[\033[0m\]' # prompt :: [newline: more clearly separate command outputs in history], [bold: make prompt visually distinctive from commands/output]
+export PS1=$'\n\[\033[1m\] [\W] > \[\033[0m\]' # prompt :: newline: more clearly separate command outputs in history, bold: make prompt visually distinctive from commands/output
 
 export TERM=xterm
