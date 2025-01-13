@@ -5,7 +5,8 @@
 # date:   2023-11-22
 # ---
 
-# OPTS
+# options
+
 set statusbar-h-padding 0
 set statusbar-v-padding 0
 set page-padding 1
@@ -18,12 +19,15 @@ set window-title-page true
 set render-loading true
 set recolor-keephue true
 
-# KEYBINDINGS :: more sensible, ergnomic (u/d, i/o without ctrl needed)
-map z snap_to_page # vim
+# bindings :: don't use ctrl if not have to (use SPC/S-SPC for scrolling).
+
 map = zoom in
 map - zoom out
+map o jumplist backward
+map i jumplist forward
 
-# MODUS OPERANDI THEME
+# modus operandi theme
+
 set notification-error-bg       "#c8c8c8"
 set notification-error-fg       "#7f0000"
 set notification-warning-bg     "#c8c8c8"
@@ -52,5 +56,6 @@ set recolor-lightcolor          "#ffffff"
 set recolor-darkcolor           "#000000"
 
 # NOTE :: currently broken
+
 # set highlight-color             "#a4d5f9"
 # set highlight-active-color      "#f3d000"

@@ -27,7 +27,7 @@ $START_SHCMD pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork
 # start processes:3 ends here
 
 # [[file:config.org::*start processes][start processes:4]]
-$START_SHCMD pgrep xremap || xremap --watch=device ~/.config/xremap/config.yml
+$START_SHCMD pgrep xremap || xremap --watch=device --watch=config ~/.config/xremap/config.yml
 $START_SHCMD xset r off
 # start processes:4 ends here
 
@@ -83,11 +83,8 @@ bindsym $MOD+a workspace all
 
 for_window [class="Emacs"] move container to workspace edit
 bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e $SHCMD emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
+bindsym $MOD+shift+e $SHCMD emacsclient --alternate-editor='' --reuse-frame
 workspace edit gaps horizontal $GAPSIZE
-
-for_window [class="Zathura"] move container to workspace read
-bindsym $MOD+r workspace read
 
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
@@ -115,12 +112,13 @@ mode $MODE_LEADER {
 
 	bindsym $MOD+b $ESC; $SHCMD bluetooth-menu $DMENU_ARGS
 	# save scrot to disk & clipboard
-	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f" && xclip -selection clipboard -t=image/png < "$f"'
+	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f" && xclip -selection clipboard -t=image/png < " $f"'
 	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 	bindsym $MOD+q $ESC; $SHCMD systemctl suspend
 	bindsym $MOD+d $ESC; $SHCMD autorandr --change
 
 	bindsym $MOD+g $ESC
+	bindsym Escape $ESC
 }
 # leader:1 ends here
 

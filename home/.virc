@@ -18,8 +18,17 @@ set smartcase
 set autoread
 set incsearch
 set path=** " enable `:find` for opening file under root dir
+set wildignore=*.o,*.obj,*.bak,*.exe,*.py[co],*.swp,*~,*.pyc,.svn
 set completeopt= " no distracting popup (faste without visual confirmation)
-set ruler
+set wildmenu
+set noesckeys
+set smarttab
+set bs=indent,eol,start
+set confirm
+
+" use C-g if you explicitly need to know cursor pos/filename (no statusbar neccessary)
+set noruler
+set laststatus=0 " 
 
 set backupdir=~/.vim//,/tmp//
 set directory=~/.vim//,/tmp//
@@ -27,8 +36,8 @@ set directory=~/.vim//,/tmp//
 " disable inefficient keybindings :: make motions & relative line jumping the habit (key repeat disabled!)
 nnoremap v <nop>
 nnoremap V <nop>
-nnoremap } <nop>
 nnoremap { <nop>
+nnoremap } <nop>
 
 " use x, C instead
 nnoremap s <nop>

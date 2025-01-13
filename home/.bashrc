@@ -23,8 +23,8 @@ function cp { mkdir "$(dirname "${@: -1}")"; command cp --interactive --verbose 
 
 function find { command find "$@" -not -path '*/.*'; } # better defaults: no dirs, no dotfiles
 
-export EDITOR="emacsclient -nw --alternate-editor 'emacs -nw'"
-export VISUAL="emacsclient --alternate-editor 'emacs'"
+export EDITOR="emacsclient --alternate-editor='' -nw"
+export VISUAL="emacsclient --alternate-editor='' -nw"
 
 shopt -s globstar
 shopt -s checkjobs

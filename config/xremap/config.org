@@ -13,16 +13,13 @@
    - when bill-joy orignially developed VI, the terminal's keyboard, had [[kbd:][esc]] on todays [[kbd:][tab]] and [[kbd:][ctrl]] on [[kbd:][caps]]  this is where [[kbd:][ctrl]] should have always stayed at.
  - deleting characters :: instead of spamming unergonomic [[kbd:][backspace]], get in the habit of always directly using [[kbd:][C-h/w/u]] instead.  these bindings are implemented for all gtk apps using the gtk-emacs-keytheme.
  - browser :: use same keybindings [[kbd:][C-n/p]] as in emacs/dmenu to navigate completion (suggested urls,...)
+ - primitive alternative :: ~setxkbmap -option ctrl:ralt_rctrl~
 
 #+begin_src yaml
 modmap:
   - name: global
     remap:
       capslock:
-        held: ctrl_l
-        alone: esc
-        one_timeout_milis: 100
-      ctrl_l: # hack :: support physical ctrl -> caps remaps
         held: ctrl_l
         alone: esc
         one_timeout_milis: 100

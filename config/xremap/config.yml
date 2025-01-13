@@ -1,13 +1,8 @@
 modmap:
   - name: global
     remap:
-       # when user has mapped caps->backspace on keyboard-hardware
-      backspace:
-        held: super_l
-        alone: backspace
-        one_timeout_milis: 100
-
-      capslock: 
+      alt_r: ctrl_r
+      capslock:
         held: super_l
         alone: backspace
         one_timeout_milis: 100
@@ -15,8 +10,8 @@ modmap:
 keymap:
   - name: browser
     application:
-      not: [Emacs, Alacritty]
+      not: [Emacs-gtk+x11, Emacs, Alacritty]
     remap:
-      M-backspace: C-backspace # consistency with emacs
+      M-backspace: C-backspace # consistency with emacs/shell
       C-n: down # completion candidates (suggested urls ...)
       C-p: up
