@@ -8,22 +8,20 @@ set $DMENU_ARGS -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c
 # macros:1 ends here
 
 # [[file:config.org::*start processes][start processes:1]]
-$START_SHCMD emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
-$START_SHCMD pgrep firefox || firefox
 $START_SHCMD pgrep unclutter || unclutter
 $START_SHCMD pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
 $START_SHCMD pgrep nm-applet || nm-applet
 # start processes:1 ends here
 
 # [[file:config.org::*start processes][start processes:2]]
-$START_SHCMD xsetroot -solid '$BG'
+$START_SHCMD xsetroot -solid "$BG"
 # start processes:2 ends here
 
 # [[file:config.org::*start processes][start processes:3]]
 $START_SHCMD xset dpms 0 0 0
 $START_SHCMD xset s off
 # lock with i3lock when suspending, hibernating...
-$START_SHCMD pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color '$BG'
+$START_SHCMD pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color "$BG"
 # start processes:3 ends here
 
 # [[file:config.org::*start processes][start processes:4]]
