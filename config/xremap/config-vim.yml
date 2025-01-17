@@ -4,12 +4,12 @@ modmap:
       capslock:
         held: ctrl_l
         alone: esc
-        one_timeout_milis: 50
+        one_timeout_milis: 100
 
 keymap:
   - name: browser
     application:
-      not: [Emacs-gtk+x11, Emacs, Alacritty]
+      only: firefox
     remap:
-      C-n: down # vim completion bindings
-      C-p: up up
+      C-n: down # vim :: navigate completion candidates (suggested urls...)
+      C-p: up

@@ -12,53 +12,53 @@
 ;; ---
 
 (require '[babashka.process :as ps] 
- '[clojure.string :as str] 
- '[cheshire.core :as json])
+	 '[clojure.string :as str] 
+	 '[cheshire.core :as json])
 
 (defn sinks []
- (->> (ps/shell {:out :string} "pactl" "--format" "json" "list" "sinks")
-  ps/check
-  :out
-  json/parse-string))
+      (->> (ps/shell {:out :string} "pactl" "--format" "json" "list" "sinks")
+	   ps/check
+	   :out
+	   json/parse-string))
 
 (defn sink-inputs []
- (->> (ps/shell {:out :string} "pactl" "--format" "json" "list" "sink-inputs")
-  ps/check
-  :out
-  json/parse-string))
+      (->> (ps/shell {:out :string} "pactl" "--format" "json" "list" "sink-inputs")
+	   ps/check
+	   :out
+	   json/parse-string))
 
 (defn select-sink [sinks]
- (->> (apply ps/process
-       {:in (->> sinks
-		       (map #(get % "description"))
-		       (str/join "\n"))
-       :out :string}
-       "dmenu"
-       "-p" "device >"
-       *command-line-args*)
-  ps/check
-  :out
-  str/trim))
+      (->> (apply ps/process
+		  {:in (->> sinks
+			    (map #(get % "description"))
+			    (str/join "\n"))
+		  :out :string}
+		  "dmenu"
+		  "-p" "device >"
+		  *command-line-args*)
+	   ps/check
+	   :out
+	   str/trim))
 
 (defn sink-id [sinks selected-sink]
- (get (->> sinks
-       (filter (fn [sink]
-		(= (get sink "description")
-		 selected-sink)))
-       first)
-  "index"))
+      (get (->> sinks
+		(filter (fn [sink]
+			    (= (get sink "description")
+			       selected-sink)))
+		first)
+	   "index"))
 
 (defn main []
- (let [sinks (sinks)
-  sink-inputs (sink-inputs)
-  selected-sink (select-sink sinks)
-  sink-id (sink-id sinks selected-sink)]
+      (let [sinks (sinks)
+		  sink-inputs (sink-inputs)
+		  selected-sink (select-sink sinks)
+		  sink-id (sink-id sinks selected-sink)]
 
-  (ps/shell "pactl" "set-default-sink" sink-id)
+	(ps/shell "pactl" "set-default-sink" sink-id)
 
-  (doseq [sink sink-inputs]
-   (ps/shell "pactl" "move-sink-input" (get sink "index") sink-id))
+	(doseq [sink sink-inputs]
+	       (ps/shell "pactl" "move-sink-input" (get sink "index") sink-id))
 
-  (ps/shell "dunstify" "audio-output changed" selected-sink)))
+	(ps/shell "dunstify" "audio-output changed" selected-sink)))
 
 (main)

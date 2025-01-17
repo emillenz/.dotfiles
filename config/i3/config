@@ -46,7 +46,7 @@ smart_gaps inverse_outer
 # opts:1 ends here
 
 # [[file:config.org::*keybindings][keybindings:1]]
-set $MOD Mod4
+set $MOD Mod1
 floating_modifier $MOD
 # we don't tile
 tiling_drag off
@@ -81,10 +81,14 @@ set $GAPSIZE 500
 for_window [class="."] move container to workspace all
 bindsym $MOD+a workspace all
 
-for_window [class="Emacs"] move container to workspace edit
+for_window [class="Alacritty"] move container to workspace edit
 bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e $SHCMD emacsclient --alternate-editor='' --reuse-frame
+bindsym $MOD+shift+e $SHCMD pgrep alacritty || alacritty
 workspace edit gaps horizontal $GAPSIZE
+
+for_window [class="Zathura"] move container to workspace read
+bindsym $MOD+r workspace read
+bindsym $MOD+shift+r $SHCMD zathura
 
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
@@ -97,11 +101,11 @@ for_window [all] focus, title_window_icon no
 
 # [[file:config.org::*leader][leader:1]]
 set $MODE_LEADER "<leader>"
-bindsym $MOD+x mode $MODE_LEADER
+bindsym $MOD+space mode $MODE_LEADER
 
 mode $MODE_LEADER {
 	bindsym $MOD+o $ESC; move workspace to output next
-	bindsym $MOD+z $ESC; gaps horizontal current toggle $GAPSIZE
+	bindsym $MOD+g $ESC; gaps horizontal current toggle $GAPSIZE
 	bindsym $MOD+k $ESC; kill
 	bindsym $MOD+shift+k $ESC; $SHCMD kill-process-menu $DMENU_ARGS
 
@@ -117,7 +121,6 @@ mode $MODE_LEADER {
 	bindsym $MOD+q $ESC; $SHCMD systemctl suspend
 	bindsym $MOD+d $ESC; $SHCMD autorandr --change
 
-	bindsym $MOD+g $ESC
 	bindsym Escape $ESC
 }
 # leader:1 ends here

@@ -16,15 +16,15 @@ alias grep="grep --extended-regexp --ignore-case --color=never"
 alias rm="rm --verbose --recursive --interactive=once" # require confirmation (can't be undone)
 alias mkdir="mkdir --verbose --parents"
 alias bb-js="BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb" # parsed json in `*js*` variable
-alias bb="rlwrap bb"
+alias bv="rlwrap bb"
 
-function mv { mkdir "$(dirname "${@: -1}")"; command mv --interactive --verbose "$@"; } # create neccessary target dirs
-function cp { mkdir "$(dirname "${@: -1}")"; command cp --interactive --verbose --recursive "$@"; } # create neccessary target dirs
+function mv { mkdir "$(dirname "${@: -1}")" && command mv --interactive --verbose "$@"; } # create neccessary target dirs
+function cp { mkdir "$(dirname "${@: -1}")" && command cp --interactive --verbose --recursive "$@"; } # create neccessary target dirs
 
-function find { command find "$@" -not -path '*/.*'; } # better defaults: no dirs, no dotfiles
+function find { command find "$@" -type f -not -path '*/.*'; } # better defaults: no dirs, no dotfiles, only files
 
-export EDITOR="emacsclient --alternate-editor='' -nw"
-export VISUAL="emacsclient --alternate-editor='' -nw"
+export EDITOR="vi"
+export VISUAL="vi"
 
 shopt -s globstar
 shopt -s checkjobs

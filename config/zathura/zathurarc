@@ -25,6 +25,11 @@ map = zoom in
 map - zoom out
 map o jumplist backward
 map i jumplist forward
+map z snap_to_page
+
+# double-page-view :: change to odd-even splits (if default: even-odd gives the wrong formatting)
+map v set "first-page-column 1:1"
+map V set "first-page-column 1:2"
 
 # modus operandi theme
 
