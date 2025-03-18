@@ -1,21 +1,21 @@
 [Default Applications]
-image/jpeg=feh.desktop
-image/png=feh.desktop;
-application/octet-stream=emacsclient.desktop;emacs.desktop;
+image/jpeg=sxiv.desktop
+image/png=sxiv.desktop;
+application/octet-stream=vi.desktop;
 application/pdf=org.pwmt.zathura.desktop;firefox.desktop;
 application/mp4=mpv.desktop
-application/octet-stream=emacsclient.desktop;emacs.desktop;
+application/octet-stream=vi.desktop;
 video/x-matroska=mpv.desktop
 audio/mpeg=mpv.desktop
-application/epub+zip=emacsclient.desktop;emacs.desktop;;
+application/epub+zip=vi.desktop;
 x-scheme-handler/http=firefox.desktop
 x-scheme-handler/https=firefox.desktop
 x-scheme-handler/chrome=firefox.desktop
 text/html=firefox.desktop
-text/plain=emacsclient.desktop;emacs.desktop;
-text/markdown=emacsclient.desktop;emacs.desktop;;
-text/org=emacsclient.desktop;emacs.desktop;
-text/plain=emacsclient.desktop;emacs.desktop;
+text/plain=vi.desktop;
+text/markdown=vi.desktop;
+text/org=vi.desktop;
+text/plain=vi.desktop;
 application/x-extension-htm=firefox.desktop
 application/x-extension-html=firefox.desktop
 application/x-extension-shtml=firefox.desktop
@@ -25,8 +25,8 @@ application/x-extension-xht=firefox.desktop
 
 [Added Associations]
 video/x-matroska=mpv.desktop;
-text/x-java=emacsclient.desktop;emacs.desktop;
-application/rtf=libreoffice-writer.desktop;emacsclient.desktop;emacs.desktop;
+text/x-java=vi.desktop;
+application/rtf=libreoffice-writer.desktop;vi.desktop;
 x-scheme-handler/http=firefox.desktop;
 x-scheme-handler/https=firefox.desktop;
 x-scheme-handler/chrome=firefox.desktop;

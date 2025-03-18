@@ -13,8 +13,8 @@
         async-shell-command-width width
         visual-fill-column-width width))
 
-(global-visual-fill-column-mode)
-(global-visual-line-mode)
+(global-visual-fill-column-mode 1)
+(global-visual-line-mode 1)
 ;; global options:1 ends here
 
 ;; [[file:config.org::*global options][global options:2]]
@@ -28,14 +28,14 @@
       ;; for looking up docs/help while in minibuffer
       enable-recursive-minibuffers t)
 
-(save-place-mode)
+(save-place-mode 1)
 
-(global-subword-mode)
+(global-subword-mode 1)
 
 (add-hook! 'prog-mode-hook #'rainbow-delimiters-mode)
 
 (setq global-auto-revert-non-file-buffers t)
-(global-auto-revert-mode)
+(global-auto-revert-mode 1)
 ;; global options:2 ends here
 
 ;; [[file:config.org::*global options][global options:3]]
@@ -182,7 +182,7 @@
 		 +lookup/implementations
 		 +default/search-buffer
 		 consult-imenu))
-  (evil-add-command-properties cmd :jump t))
+  (evil-set-command-property cmd :jump t))
 
 (dolist (cmd '(evil-backward-section-begin
 		 evil-forward-section-begin
@@ -190,10 +190,16 @@
 		 evil-backward-paragraph
 		 evil-forward-paragraph
 		 evil-forward-section-end))
-  (evil-remove-command-properties cmd :jump))
+  (evil-set-command-property cmd :jump nil))
 ;; evil-mode:3 ends here
 
 ;; [[file:config.org::*evil-mode][evil-mode:4]]
+(dolist (cmd '(evil-downcase
+	       evil-upcase))
+	     (evil-set-command-property cmd :move-point nil))
+;; evil-mode:4 ends here
+
+;; [[file:config.org::*evil-mode][evil-mode:5]]
 (defadvice! u/update-last-macro-register (fn &rest args)
   "when a macro was recorded and `evil-last-register' is still `nil' (no macro was executed yet),
   set it to the just recorded macro.
@@ -204,11 +210,11 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
   :after #'evil-record-macro
   (when (not evil-last-register)
     (setq-local evil-last-register evil-last-recorded-register)))
-;; evil-mode:4 ends here
-
-;; [[file:config.org::*evil-mode][evil-mode:5]]
-)
 ;; evil-mode:5 ends here
+
+;; [[file:config.org::*evil-mode][evil-mode:6]]
+)
+;; evil-mode:6 ends here
 
 ;; [[file:config.org::*leaderkey][leaderkey:1]]
 (setq doom-leader-key "SPC"
@@ -260,7 +266,8 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       :im "C-f" #'consult-dir-jump-file)
 
 (map! :map comint-mode-map :after comint
-      :i "C-r" #'comint-history-isearch-backward-regexp)
+      :i "C-r" #'comint-history-isearch-backward-regexp
+      :n "RET" #'comint-send-input)
 
 ;; not defined :(
 (map! :map cider-repl-mode-map :after cider-repl
@@ -349,10 +356,14 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
 (define-key! [remap query-replace-regexp] #'anzu-query-replace-regexp)
 ;; embrace emacs:2 ends here
 
-;; [[file:config.org::*no visual selections][no visual selections:1]]
-(define-key! [remap evil-visual-char] #'ignore)
-(define-key! [remap evil-visual-line] #'ignore)
-;; no visual selections:1 ends here
+;; [[file:config.org::*disable inefficient bindings, enforce efficient editing][disable inefficient bindings, enforce efficient editing:1]]
+(->> '(evil-visual-char
+	evil-visual-line
+	evil-backward-paragraph
+	evil-forward-paragraph)
+     (mapc (lambda (fn)
+	     (define-key! [remap fn] #'ignore))))
+;; disable inefficient bindings, enforce efficient editing:1 ends here
 
 ;; [[file:config.org::*surround][surround:1]]
 (map! :after evil
@@ -505,7 +516,7 @@ this differs from `evil-goto-mark' in that it only goes to the marked buffer (no
 			      (file-relative-name file)
 			      file-name-sans-extension)
 
-			 "_archived_"
+			 ".archived_"
 			 (format-time-string "%F_T%H-%M-%S")
 			 (when (file-name-extension file)
 			   (->> file
@@ -1106,7 +1117,7 @@ legibility."
 
 ;; [[file:config.org::*autocomplete: corfu][autocomplete: corfu:2]]
 (define-key! [remap +corfu/dabbrev-or-last] #'evil-complete-previous)
-(define-key! [remap +corfu/dabbrev-or-first] #'evil-complete-previous)
+(define-key! [remap +corfu/dabbrev-or-next] #'evil-complete-next)
 ;; autocomplete: corfu:2 ends here
 
 ;; [[file:config.org::*file templates][file templates:1]]

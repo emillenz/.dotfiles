@@ -12,4 +12,4 @@ keymap:
       not: [Emacs-gtk+x11, Emacs, Alacritty]
     remap:
       C-n: down # vim completion bindings
-      C-p: up up
+      C-p: up

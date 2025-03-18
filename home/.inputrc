@@ -1,4 +1,5 @@
 set editing-mode vi
+set keymap vi-command
 set keyseq-timeout 1
 set completion-ignore-case on
 set show-all-if-ambiguous on
@@ -7,6 +8,7 @@ set enable-bracketed-paste on
 # navigate history candidates based on present input
 $if mode=vi
 	set keymap vi-command
+	z: clear-screen
 	j: history-search-forward
 	k: history-search-backward
 $endif

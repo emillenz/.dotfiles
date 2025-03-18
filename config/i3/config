@@ -1,52 +1,35 @@
-# [[file:config.org::*macros][macros:1]]
 set $SHCMD exec --no-startup-id
 set $ESC mode "default"
 set $START_SHCMD exec_always --no-startup-id
-
 set $BG #ffffff
 set $DMENU_ARGS -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
-# macros:1 ends here
 
-# [[file:config.org::*start processes][start processes:1]]
 $START_SHCMD pgrep unclutter || unclutter
 $START_SHCMD pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
 $START_SHCMD pgrep nm-applet || nm-applet
-# start processes:1 ends here
 
-# [[file:config.org::*start processes][start processes:2]]
 $START_SHCMD xsetroot -solid "$BG"
-# start processes:2 ends here
 
-# [[file:config.org::*start processes][start processes:3]]
 $START_SHCMD xset dpms 0 0 0
 $START_SHCMD xset s off
-# lock with i3lock when suspending, hibernating...
 $START_SHCMD pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color "$BG"
-# start processes:3 ends here
 
-# [[file:config.org::*start processes][start processes:4]]
 $START_SHCMD pgrep xremap || xremap --watch=device --watch=config ~/.config/xremap/config.yml
 $START_SHCMD xset r off
-# start processes:4 ends here
 
-# [[file:config.org::*opts][opts:1]]
 workspace_auto_back_and_forth no
 workspace_layout tabbed
 force_focus_wrapping no
 default_orientation horizontal
-# <pixel> hides titlebars when it's the only window on the workspace
 default_border none
 default_floating_border pixel 1
 title_align left
 font pango: Iosevka Comfy 10
 focus_on_window_activation focus
 smart_gaps inverse_outer
-# opts:1 ends here
 
-# [[file:config.org::*keybindings][keybindings:1]]
 set $MOD Mod1
 floating_modifier $MOD
-# we don't tile
 tiling_drag off
 bindsym button2 kill
 bindsym --whole-window $MOD+button2 floating toggle
@@ -60,50 +43,47 @@ bindsym XF86AudioLowerVolume $SHCMD pamixer --unmute --decrease 5
 bindsym XF86AudioRaiseVolume $SHCMD pamixer --unmute --increase 5
 bindsym XF86AudioMute $SHCMD pamixer --toggle-mute
 bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
-# keybindings:1 ends here
 
-# [[file:config.org::*navigational bindings][navigational bindings:1]]
 bindsym $MOD+p focus left
 bindsym $MOD+n focus right
 bindsym $MOD+Tab workspace back_and_forth
 
 bindsym $MOD+Return $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'desktop-run >' $DMENU_ARGS"
-bindsym $MOD+shift+Return $SHCMD dmenu_run -p 'run > ' $DMENU_ARGS
-# navigational bindings:1 ends here
+bindsym $MOD+shift+Return $SHCMD dmenu_run -p "run > " $DMENU_ARGS
 
-# [[file:config.org::*gaps][gaps:1]]
 set $GAPSIZE 500
-# gaps:1 ends here
 
-# [[file:config.org::*workspaces][workspaces:2]]
-for_window [class="."] move container to workspace all
-bindsym $MOD+a workspace all
+for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
+bindsym $MOD+a workspace agenda
+bindsym $MOD+shift+a $SHCMD thunderbird
+
+for_window [class="Thunar"] move container to workspace files
+bindsym $MOD+v workspace files
+bindsym $MOD+shift+v $SHCMD thunar
 
 for_window [class="Alacritty"] move container to workspace edit
 bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e $SHCMD pgrep alacritty || alacritty
+bindsym $MOD+shift+e $SHCMD alacritty --command tmux new-session -A
 workspace edit gaps horizontal $GAPSIZE
 
 for_window [class="Zathura"] move container to workspace read
 bindsym $MOD+r workspace read
-bindsym $MOD+shift+r $SHCMD zathura
+bindsym $MOD+shift+r zathura
 
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $SHCMD firefox
-# workspaces:2 ends here
 
-# [[file:config.org::*workspaces][workspaces:3]]
-for_window [all] focus, title_window_icon no
-# workspaces:3 ends here
+# must be last directive (focus window after assigning it to workspace)
+for_window [all] focus
 
-# [[file:config.org::*leader][leader:1]]
 set $MODE_LEADER "<leader>"
 bindsym $MOD+space mode $MODE_LEADER
 
 mode $MODE_LEADER {
 	bindsym $MOD+o $ESC; move workspace to output next
 	bindsym $MOD+g $ESC; gaps horizontal current toggle $GAPSIZE
+
 	bindsym $MOD+k $ESC; kill
 	bindsym $MOD+shift+k $ESC; $SHCMD kill-process-menu $DMENU_ARGS
 
@@ -111,34 +91,28 @@ mode $MODE_LEADER {
 	bindsym $MOD+minus $SHCMD pamixer --unmute --decrease 5
 	bindsym $MOD+0 $SHCMD pamixer --toggle-mute
 	bindsym $MOD+a $ESC; $SHCMD audio-output-menu $DMENU_ARGS
+	bindsym $MOD+d $ESC; $SHCMD config=$(autorandr --list | dmenu -p 'display-config >' $DMENU_ARGS) && autorandr --change $config
 
+	bindsym $MOD+w $ESC; $SHCMD window-menu $DMENU_ARGS
 	bindsym $MOD+b $ESC; $SHCMD bluetooth-menu $DMENU_ARGS
-	# save scrot to disk & clipboard
 	bindsym $MOD+s $ESC; $SHCMD scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f" && xclip -selection clipboard -t=image/png < " $f"'
-	bindsym $MOD+e $ESC; $SHCMD emacsclient --eval "(emacs-everywhere)"
 	bindsym $MOD+q $ESC; $SHCMD systemctl suspend
-	bindsym $MOD+d $ESC; $SHCMD autorandr --change
 
 	bindsym Escape $ESC
 }
-# leader:1 ends here
 
-# [[file:config.org::*modus-operandi theme][modus-operandi theme:1]]
 set $FG          #000000
 set $MODELINE_BG #c8c8c8
 set $BORDER      #9f9f9f
 set $ACTIVE_BG   #c0deff
 set $URGENT_BG   #ff8f88
 
-## element              $border    $bg          $fg $mark $border (child)
 client.focused          $ACTIVE_BG $ACTIVE_BG   $FG $FG   $ACTIVE_BG
 client.focused_inactive $BORDER    $MODELINE_BG $FG $FG   $BORDER
 client.unfocused        $BORDER    $MODELINE_BG $FG $FG   $BORDER
 client.urgent           $URGENT_BG $URGENT_BG   $FG $FG   $URGENT_BG
 client.background       $BG
-# modus-operandi theme:1 ends here
 
-# [[file:config.org::*modeline / tabbar][modeline / tabbar:1]]
 bar {
 	mode hide
 	workspace_buttons yes
@@ -163,4 +137,3 @@ bar {
 		urgent_workspace   $BORDER      $URGENT_BG   $FG
 	}
 }
-# modeline / tabbar:1 ends here

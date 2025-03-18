@@ -13,15 +13,12 @@
 
 alias ls="ls --group-directories-first --format=single-column --classify=auto --color=never"
 alias grep="grep --extended-regexp --ignore-case --color=never"
-alias rm="rm --verbose --recursive --interactive=once" # require confirmation (can't be undone)
+alias rm="rm --verbose --recursive --interactive=once"
 alias mkdir="mkdir --verbose --parents"
 alias bb-js="BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb" # parsed json in `*js*` variable
-alias bv="rlwrap bb"
+alias pgrep="pgrep --ignore-case"
 
-function mv { mkdir "$(dirname "${@: -1}")" && command mv --interactive --verbose "$@"; } # create neccessary target dirs
-function cp { mkdir "$(dirname "${@: -1}")" && command cp --interactive --verbose --recursive "$@"; } # create neccessary target dirs
-
-function find { command find "$@" -type f -not -path '*/.*'; } # better defaults: no dirs, no dotfiles, only files
+function find { command find "${@: 2}" -iname "*$1*" -not -path './.*'; } # no directories, no hidden files, usage: `find <pattern> [<dir>...]
 
 export EDITOR="vi"
 export VISUAL="vi"

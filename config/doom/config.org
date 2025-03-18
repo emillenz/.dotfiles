@@ -113,8 +113,8 @@ the only reason for us to ever use a terminal is if we need to use a TUI.  (for 
         async-shell-command-width width
         visual-fill-column-width width))
 
-(global-visual-fill-column-mode)
-(global-visual-line-mode)
+(global-visual-fill-column-mode 1)
+(global-visual-line-mode 1)
 #+end_src
 
 #+begin_src elisp
@@ -128,14 +128,14 @@ the only reason for us to ever use a terminal is if we need to use a TUI.  (for 
       ;; for looking up docs/help while in minibuffer
       enable-recursive-minibuffers t)
 
-(save-place-mode)
+(save-place-mode 1)
 
-(global-subword-mode)
+(global-subword-mode 1)
 
 (add-hook! 'prog-mode-hook #'rainbow-delimiters-mode)
 
 (setq global-auto-revert-non-file-buffers t)
-(global-auto-revert-mode)
+(global-auto-revert-mode 1)
 #+end_src
 
 - HACK :: must disable, since it displays the ~flycheck~ inline warnings/errors incorrectly.
@@ -256,6 +256,7 @@ i like the minimalist, unambiguous look of a block cursor (mode switching is don
   (setq evil-insert-state-cursor evil-normal-state-cursor))
 #+end_src
 
+
 ** formatting
 don't format my file automatically on-save.  instead format by calling it manually.  sometimes a file needs manual alignment that a formatter destroys.  our old ass computer is to weak to be able to run a format each time the file is saved.
 
@@ -335,7 +336,7 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 		 +lookup/implementations
 		 +default/search-buffer
 		 consult-imenu))
-  (evil-add-command-properties cmd :jump t))
+  (evil-set-command-property cmd :jump t))
 
 (dolist (cmd '(evil-backward-section-begin
 		 evil-forward-section-begin
@@ -343,7 +344,13 @@ in short, 8-wide indents make things easier to read, and have the added benefit 
 		 evil-backward-paragraph
 		 evil-forward-paragraph
 		 evil-forward-section-end))
-  (evil-remove-command-properties cmd :jump))
+  (evil-set-command-property cmd :jump nil))
+#+end_src
+
+#+begin_src elisp
+(dolist (cmd '(evil-downcase
+	       evil-upcase))
+	     (evil-set-command-property cmd :move-point nil))
 #+end_src
 
 #+begin_src elisp
@@ -426,7 +433,8 @@ immediately call it with '@@', instead of getting an error, getting annoyed and 
       :im "C-f" #'consult-dir-jump-file)
 
 (map! :map comint-mode-map :after comint
-      :i "C-r" #'comint-history-isearch-backward-regexp)
+      :i "C-r" #'comint-history-isearch-backward-regexp
+      :n "RET" #'comint-send-input)
 
 ;; not defined :(
 (map! :map cider-repl-mode-map :after cider-repl
@@ -558,11 +566,11 @@ no paragraph navigation
 
 #+begin_src elisp
 (->> '(evil-visual-char
-evil-visual-line
-evil-backward-paragraph
-evil-forward-paragraph)
-(mapc (lambda (fn)
-(define-key [remap fn] #'ignore))))
+	evil-visual-line
+	evil-backward-paragraph
+	evil-forward-paragraph)
+     (mapc (lambda (fn)
+	     (define-key! [remap fn] #'ignore))))
 #+end_src
 
 *** surround
@@ -1488,7 +1496,7 @@ if neccessary we may request completion candidates explicitly.
 - don't use doom's "smart" ~+corfu~ functions for [[kbd:][C-n/p]]. use evil's default abbrev functions, they are more accurate, fast & unobtrusive.
 #+begin_src elisp
 (define-key! [remap +corfu/dabbrev-or-last] #'evil-complete-previous)
-(define-key! [remap +corfu/dabbrev-or-first] #'evil-complete-previous)
+(define-key! [remap +corfu/dabbrev-or-next] #'evil-complete-next)
 #+end_src
 
 * file templates
