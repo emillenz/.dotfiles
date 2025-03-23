@@ -16,6 +16,7 @@ alias grep="grep --extended-regexp --ignore-case --color=never"
 alias rm="rm --verbose --recursive --interactive=once"
 alias mkdir="mkdir --verbose --parents"
 alias bb-js="BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb" # parsed json in `*js*` variable
+alias bb="rlwrap bb"
 alias pgrep="pgrep --ignore-case"
 
 function find { command find "${@: 2}" -iname "*$1*" -not -path './.*'; } # no directories, no hidden files, usage: `find <pattern> [<dir>...]

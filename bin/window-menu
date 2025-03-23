@@ -13,49 +13,48 @@
 (require '[clojure.string :as str])
 
 (defn node->window-nodes [node]
-  (when node
-    (if (= (get node "window_type")
-           "normal")
-      node
-      (->> (map #(node->window-nodes %)
-                (get node "nodes"))
-           flatten))))
+      (when node
+	(if (= (get node "window_type") "normal")
+	  node
+	  (->> (map #(node->window-nodes %)
+		    (get node "nodes"))
+	       flatten))))
 
 (defn i3-tree []
-  (->> (shell {:out :string}
-              "i3-msg" "-t" "get_tree")
-       check
-       :out
-       json/parse-string))
+      (->> (shell {:out :string}
+		  "i3-msg" "-t" "get_tree")
+	   check
+	   :out
+	   json/parse-string))
 
 (defn window-node->window-title [window-node]
-  (-> window-node
-      (get "window_properties")
-      (get "title")))
+      (-> window-node
+	  (get "window_properties")
+	  (get "title")))
 
 (defn select-window [window-nodes]
-  (let [window-title (->> (apply process
-                                 {:in (->> (map #(window-node->window-title %) window-nodes)
-                                           (str/join "\n"))
-                                  :out :string}
-                                 "dmenu"
-                                 "-p" "window >"
-                                 *command-line-args*)
-                          check
-                          :out
-                          str/trim)]
+      (let [window-title (->> (apply process
+				     {:in (->> (map #(window-node->window-title %) window-nodes)
+					       (str/join "\n"))
+				     :out :string}
+				     "dmenu"
+				     "-p" "window >"
+				     *command-line-args*)
+			      check
+			      :out
+			      str/trim)]
 
-    (->> (filter #(= window-title (window-node->window-title %))
-                 window-nodes)
-         first)))
+	(->> (filter #(= window-title (window-node->window-title %))
+		     window-nodes)
+	     first)))
 
 (defn i3-focus-window [window]
-  (shell "i3-msg" (format "[con_id=%d] focus" (get window "id"))))
+      (shell "i3-msg" (format "[con_id=%d] focus" (get window "id"))))
 
 (defn main []
-  (->> (i3-tree)
-       node->window-nodes
-       select-window
-       i3-focus-window))
+      (->> (i3-tree)
+	   node->window-nodes
+	   select-window
+	   i3-focus-window))
 
 (main)

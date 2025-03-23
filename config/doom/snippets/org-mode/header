@@ -1,9 +1,0 @@
-# -*- mode: snippet -*-
-# name: header
-# key: header
-# --
-#+title:  ${1:`(replace-regexp-in-string "[-_.]" " " (file-name-base (or buffer-file-name "full title")))`}
-#+author: `user-full-name`
-#+email:  `user-mail-address`
-#+date:   `(format-time-string "%F")`
-#+filetags: ${3:filetags}

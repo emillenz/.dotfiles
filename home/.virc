@@ -29,8 +29,8 @@ set wildignore=*.o
 set completeopt=
 set wildmenu
 set gdefault
-
 set relativenumber
+
 set noruler
 set laststatus=0
 set fillchars=eob:\ "
@@ -40,5 +40,7 @@ nnoremap _ "_d
 
 nnoremap v <nop>
 nnoremap V <nop>
+nnoremap { <nop>
+nnoremap } <nop>
 
 inoremap {<cr> {<cr>}<esc>O<C-t>

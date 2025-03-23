@@ -4,6 +4,9 @@ set keyseq-timeout 1
 set completion-ignore-case on
 set show-all-if-ambiguous on
 set enable-bracketed-paste on
+set show-mode-in-prompt on
+set vi-ins-mode-string "\033[1m-\033]0m"
+set vi-cmd-mode-string "\033[1m \033]0m"
 
 # navigate history candidates based on present input
 $if mode=vi
