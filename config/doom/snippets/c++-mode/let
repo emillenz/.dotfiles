@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: let
-# key: let
-# --
-const auto $1 = [&]() {
-        $0
-}();

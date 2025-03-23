@@ -1,9 +1,13 @@
 set editing-mode vi
-set keymap vi-command
 set keyseq-timeout 1
 set completion-ignore-case on
 set show-all-if-ambiguous on
 set enable-bracketed-paste on
+
+set show-mode-in-prompt on
+set keymap vi-insert
+set vi-cmd-mode-string " "
+set vi-ins-mode-string "*"
 
 # navigate history candidates based on present input
 $if mode=vi

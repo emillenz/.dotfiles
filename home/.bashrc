@@ -16,6 +16,7 @@ alias grep="grep --extended-regexp --ignore-case --color=never"
 alias rm="rm --verbose --recursive --interactive=once"
 alias mkdir="mkdir --verbose --parents"
 alias bb-js="BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb" # parsed json in `*js*` variable
+alias bb="rlwrap bb"
 alias pgrep="pgrep --ignore-case"
 
 function find { command find "${@: 2}" -iname "*$1*" -not -path './.*'; } # no directories, no hidden files, usage: `find <pattern> [<dir>...]
@@ -33,5 +34,6 @@ export HISTCONTROL=ignoredups:erasedups # no duplicates
 export HISTSIZE=10000 # default: 500, too smol
 
 export PS1=$'\n\[\033[1m\] [\W] > \[\033[0m\]' # prompt :: newline: more clearly separate command outputs in history, bold: make prompt visually distinctive from commands/output
+PS0="\e[2 q"
 
 export TERM=xterm
