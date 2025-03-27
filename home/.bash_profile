@@ -1,7 +1,7 @@
-[ -f ~/.bashrc ] && . $HOME/.bashrc
+[ -f ~/.bashrc ] && source $HOME/.bashrc
 
 export GOPATH=$HOME/.local/share/go
-#export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/usr/include/eigen3
+# export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/usr/include/eigen3
 
 export PATH="\
 $PATH:\

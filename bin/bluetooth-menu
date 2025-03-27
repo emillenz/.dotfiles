@@ -1,63 +1,51 @@
-#!/usr/bin/env bb
+#!/usr/bin/env ruby
 
-;; ---
-;; title:  connect to paired bluetooth device menu
-;; author: emil lenz
-;; email:  emillenz@protonmail.com
-;; date:   [2024-12-07] ([2024-05-26] initial ruby version)
-;; info: 
-;;   - intended for use with a WM
-;;   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
-;; dependecies: bluetoothctl, dmenu, dunst
-;; ---
+# ---
+# title:  connect to paired bluetooth device menu
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   [2024-05-26]
+# info: 
+#   - intended for use with a WM
+#   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
+# dependecies: bluetoothctl, dmenu, dunst
+# ---
 
-(require '[babashka.process :as ps]
-	 '[clojure.string :as str])
+require "open3"
 
-(defn addresses=>devices []
-      (->> (ps/shell {:out :string} "bluetoothctl devices")
-	   ps/check
-	   :out
-	   str/split-lines
-	   (map (fn [line]
-		    (let [[dev addr name]
-			  (str/split line #"\s" 3)]
-		      [name addr])))
-	   (into {})))
+def main
+	devices_addrs = `bluetoothctl devices`.split("\n").map do |line|
+		words = line.split
+		device = words[2..].join(" ")
+		addr = words[1]
+		[device, addr]
+	end.to_h
 
-(def off-cmd "!off")
+	candidates = devices_addrs.keys.push("off")
 
-(defn selected-device [addresses=>devices]
-      (->> (apply ps/shell
-		  {:in (->> (conj (keys addresses=>devices) off-cmd)
-			    (str/join "\n"))
-		  :out :string}
-		  "dmenu"
-		  "-p" "bluetooth-device >"
-		  *command-line-args*)
-	   ps/check
-	   :out
-	   str/trim))
+	selected, status = Open3.capture2(
+		"dmenu", "-p", "bluetooth-device >", *ARGV,
+		stdin_data: candidates.join("\n")
+	)
+	selected = selected.chomp
+	exit(1) unless status.success? || !candidates.contains?(selected)
 
-(defn connect [addresses=>devices selected-device]
-      (ps/shell "bluetoothctl" "power" "on")
-      (try (->> (ps/shell "bluetoothctl" "connect" (get addresses=>devices selected-device))
-		ps/check)
-	   (ps/shell "dunstify" "bluetooth: connected" selected-device)
-	   (catch Exception e
-		  (ps/shell "dunstify" "bluetooth: error" (format "failed to connect to device: %s" selected-device)))))
+	if selected == "off"
+		poweroff 
+	else 
+		connect(selected, devices_addrs)
+	end
+end
 
-(defn off []
-      (->> (ps/shell "bluetoothctl" "power" "off")
-	   ps/check)
-      (ps/shell "dunstify" "bluetooth: off"))
+def connect(device, devices_addrs)
+	system("bluetoothctl power on", exception: true)
+	system("bluetoothctl connect '#{devices_addrs[device]}'", exception: true)
+	system("dunstify 'bluetooth connected' '#{device}'", exception: true)
+end
 
-(defn main []
-      (let [addresses=>devices (addresses=>devices)
-			       selected-device (selected-device addresses=>devices)]
+def poweroff
+	system("bluetoothctl power off", exception: true)
+	system("dunstify 'bluetooth: off'", exception: true)
+end
 
-	(if (= selected-device off-cmd)
-	  (off)
-	  (connect addresses=>devices selected-device))))
-
-(main)
+main

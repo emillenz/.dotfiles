@@ -84,8 +84,6 @@ mode $MODE_LEADER {
 	bindsym $MOD+o $ESC; move workspace to output next
 	bindsym $MOD+g $ESC; gaps horizontal current toggle $GAPSIZE
 
-	bindsym $MOD+k $ESC; kill
-	bindsym $MOD+shift+k $ESC; $EXEC kill-process-menu $DMENU_ARGS
 
 	bindsym $MOD+equal $EXEC pamixer --unmute --increase 5
 	bindsym $MOD+minus $EXEC pamixer --unmute --decrease 5
@@ -97,6 +95,7 @@ mode $MODE_LEADER {
 	bindsym $MOD+b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
 	bindsym $MOD+s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f" && xclip -selection clipboard -t=image/png < " $f"'
 	bindsym $MOD+q $ESC; $EXEC systemctl suspend
+	bindsym $MOD+k $ESC; kill
 
 	bindsym Escape $ESC
 }

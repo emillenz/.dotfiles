@@ -1,64 +1,38 @@
-#!/usr/bin/env bb
+#!/usr/bin/env ruby
 
-;; ---
-;; title:  switch audio output menu
-;; author: emil lenz
-;; email:  emillenz@protonmail.com
-;; date:   [2024-12-06] ([2023-05-07] init ruby version)
-;; info: 
-;;   - intended for use with a WM
-;;   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
-;; dependencies: dmenu, pactl
-;; ---
+# ---
+# title:  switch audio output menu
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   [2023-05-07]
+# info: 
+#   - intended for use with a WM
+#   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
+# dependencies: dmenu, pactl
+# ---
 
-(require '[babashka.process :as ps] 
-	 '[clojure.string :as str] 
-	 '[cheshire.core :as json])
+require "json"
+require "open3"
 
-(defn sinks []
-      (->> (ps/shell {:out :string} "pactl" "--format" "json" "list" "sinks")
-	   ps/check
-	   :out
-	   json/parse-string))
+def main
+	sinks = JSON.parse(`pactl --format json list sinks`)
+	sink_inputs = sinks.map { |sink| sink["description"] }.join("\n")
 
-(defn sink-inputs []
-      (->> (ps/shell {:out :string} "pactl" "--format" "json" "list" "sink-inputs")
-	   ps/check
-	   :out
-	   json/parse-string))
+	selected_sink, status = Open3.capture2(
+		"dmenu", "-p", "audio-output >", *ARGV,
+		stdin_data: sink_inputs
+	)
+	exit(1) unless status.success?
 
-(defn select-sink [sinks]
-      (->> (apply ps/process
-		  {:in (->> sinks
-			    (map #(get % "description"))
-			    (str/join "\n"))
-		  :out :string}
-		  "dmenu"
-		  "-p" "device >"
-		  *command-line-args*)
-	   ps/check
-	   :out
-	   str/trim))
+	sink_id = sinks.find { |sink| sink["description"] == selected_sink.chomp }["index"]
 
-(defn sink-id [sinks selected-sink]
-      (get (->> sinks
-		(filter (fn [sink]
-			    (= (get sink "description")
-			       selected-sink)))
-		first)
-	   "index"))
+	system("pactl set-default-sink #{sink_id}", exception: true)
 
-(defn main []
-      (let [sinks (sinks)
-		  sink-inputs (sink-inputs)
-		  selected-sink (select-sink sinks)
-		  sink-id (sink-id sinks selected-sink)]
+	JSON.parse(`pactl --format json list sink-inputs`).map do |sink|
+		system("pactl move-sink-input #{sink["index"]} #{sink_id}", exception: true)
+	end
 
-	(ps/shell "pactl" "set-default-sink" sink-id)
+	system("dunstify 'audio input changed' '#{selected_sink}'", exception: true)
+end
 
-	(doseq [sink sink-inputs]
-	       (ps/shell "pactl" "move-sink-input" (get sink "index") sink-id))
-
-	(ps/shell "dunstify" "audio-output changed" selected-sink)))
-
-(main)
+main

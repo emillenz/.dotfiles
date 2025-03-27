@@ -1,60 +1,43 @@
-#!/usr/bin/env bb
+#!/bin/env ruby
+#  ---
+#  title:  i3 focus window menu
+#  author: emil lenz
+#  email:  emillenz@protonmail.com
+#  date:   2024-05-15
+#  dependencies: i3, dmenu
+#  ---
 
-;;  ---
-;;  title:  i3 focus window menu
-;;  author: emil lenz
-;;  email:  emillenz@protonmail.com
-;;  date:   [2024-12-09] <- (ruby initial version: [2024-05-15])
-;;  dependencies: i3, dmenu
-;;  ---
+require 'json'
+require 'open3'
 
-(require '[babashka.process :refer [shell process check]])
-(require '[cheshire.core :as json])
-(require '[clojure.string :as str])
+# ARGV := arguments to pass to dmenu
+def main
+	window_nodes = window_nodes(JSON.parse(`i3-msg -t get_tree`))
+	window_titles = window_nodes.map { |win| win[:name] }.join("\n")
 
-(defn node->window-nodes [node]
-      (when node
-	(if (= (get node "window_type") "normal")
-	  node
-	  (->> (map #(node->window-nodes %)
-		    (get node "nodes"))
-	       flatten))))
+	selected_title, status = Open3.capture2(
+		'dmenu', '-p', "window-menu",
+		*ARGV,
+		stdin_data: window_titles
+	)
 
-(defn i3-tree []
-      (->> (shell {:out :string}
-		  "i3-msg" "-t" "get_tree")
-	   check
-	   :out
-	   json/parse-string))
+	status.success? || exit(1)
+	sel_window = window_nodes.find { |win| win[:name] == selected_title.chomp }
+	exec('i3-msg', "[con_id=#{sel_window[:id]}] focus")
+end
 
-(defn window-node->window-title [window-node]
-      (-> window-node
-	  (get "window_properties")
-	  (get "title")))
+def window_nodes(node)
+	return if node.nil?
 
-(defn select-window [window-nodes]
-      (let [window-title (->> (apply process
-				     {:in (->> (map #(window-node->window-title %) window-nodes)
-					       (str/join "\n"))
-				     :out :string}
-				     "dmenu"
-				     "-p" "window >"
-				     *command-line-args*)
-			      check
-			      :out
-			      str/trim)]
+	if node['window_type'] == 'normal'
+		{
+			id: node['id'],
+			name: node['window_properties']['title'],
+			class: node['window_properties']['class']
+		}
+	else
+		(node['nodes'] || []).flat_map { |child_node| window_nodes(child_node) }
+	end
+end
 
-	(->> (filter #(= window-title (window-node->window-title %))
-		     window-nodes)
-	     first)))
-
-(defn i3-focus-window [window]
-      (shell "i3-msg" (format "[con_id=%d] focus" (get window "id"))))
-
-(defn main []
-      (->> (i3-tree)
-	   node->window-nodes
-	   select-window
-	   i3-focus-window))
-
-(main)
+main

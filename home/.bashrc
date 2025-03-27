@@ -6,34 +6,42 @@
 # email:  emillenz@protonmail.com
 # date:   2024-11-30
 # info:
-#   - case insesitive :: configured if available (grep, find...)
-#   - no colors, no syntax hilighting :: minimalist (no colorful fruit-salad)
-#   - no "rewritten in rust" tools that add colours to everything.  we use the minimalist, readily available GNU coreutils (no unneccessary dependecies).  we use of aliases & functions for more ergonomic default behaviour.
+#   - case insesitivity
+#   - no colors, no syntax hilighting :: minimalism and focus (no unneccessary color fruit-salad).  only black/white and bold/regular.
+#   - no bloated, "rewritten in rust" tools, that only add colours to everything or provide features already available.  we use the minimalist, readily available GNU coreutils (no unneccessary dependecies).  we use of aliases & functions for more ergonomic default behaviour.
 # ---
 
-alias ls="ls --group-directories-first --format=single-column --classify=auto --color=never"
-alias grep="grep --extended-regexp --ignore-case --color=never"
-alias rm="rm --verbose --recursive --interactive=once"
-alias mkdir="mkdir --verbose --parents"
-alias bb-js="BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb" # parsed json in `*js*` variable
-alias bb="rlwrap bb"
-alias pgrep="pgrep --ignore-case"
+alias\
+	ls="ls --group-directories-first --format=single-column --file-type --color=never"\
+	grep="grep --extended-regexp --ignore-case"\
+	rm="rm --verbose --recursive --interactive=once"\
+	mkdir="mkdir --verbose --parents"\
+	bb-js="BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb"\
+	bb="rlwrap bb"\
+	pgrep="pgrep --ignore-case"\
+	less="less --ignore-case"
 
-function find { command find "${@: 2}" -iname "*$1*" -not -path './.*'; } # no directories, no hidden files, usage: `find <pattern> [<dir>...]
+# no directories, no hidden files
+# usage: `find [<pattern>] [<dirs>]*
+function find { ( (($# == 1)) && command find "$1" -not -path './.*' ) || command find "${@:2:$#}" -iname "*$1*" -not -path './.*'; }
 
-export EDITOR="vi"
-export VISUAL="vi"
+export\
+	EDITOR="vi"\
+	VISUAL="vi"
 
-shopt -s globstar
-shopt -s checkjobs
-shopt -s nocaseglob
-shopt -s nocasematch
-shopt -s histappend
+shopt -s\
+	globstar\
+	checkjobs\
+	nocaseglob\
+	nocasematch\
+	histappend\
+	patsub_replacement\
+	autocd
 
-export HISTCONTROL=ignoredups:erasedups # no duplicates
-export HISTSIZE=10000 # default: 500, too smol
+export HISTCONTROL=ignoredups:erasedups\
+	HISTSIZE=10000
 
-export PS1=$'\n\[\033[1m\] [\W] > \[\033[0m\]' # prompt :: newline: more clearly separate command outputs in history, bold: make prompt visually distinctive from commands/output
-PS0="\e[2 q"
-
-export TERM=xterm
+# newline (\n) :: more clearly separate command outputs in history
+# bold (\[\e]133;A\e\\\]) :: make prompt visually distinctive from commands/output
+# tmux (\[\e[1m\]) :: needed to enable {next,prev}-prompt navigation.
+export PS1=$'\n\[\e]133;A\\\]\[\e[1m\][\W] > \[\e[0m\]'
