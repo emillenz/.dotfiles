@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+# ---
+# title:  stow script
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   [2025-03-28]
+# ---
+
+stow config --restow --target "$HOME/.config"
+stow bin --restow --target "$HOME/.local/bin"
+stow home --restow --target "$HOME"
+stow X11 --restow --target "/etc/X11/xorg.conf.d/"

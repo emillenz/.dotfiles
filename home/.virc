@@ -16,7 +16,6 @@ set autoindent
 set autowriteall
 set ignorecase
 set smartcase
-set autoread
 set incsearch
 set noesckeys
 set notimeout
@@ -29,7 +28,9 @@ set wildignore=*.o
 set completeopt=
 set wildmenu
 set gdefault
+set autoread
 set relativenumber
+set showmatch
 
 set noruler
 set laststatus=0

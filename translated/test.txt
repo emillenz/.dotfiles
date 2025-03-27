@@ -1,1 +1,0 @@
-solves double colon, dash, detection, dollar sign, dash, bandwidth, estimation, dollar sign, dash, fairness, dollar sign.

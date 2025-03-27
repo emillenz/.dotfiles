@@ -6,14 +6,11 @@ set $DMENU_ARGS -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c
 $EXEC_ALWAYS pgrep unclutter || unclutter
 $EXEC_ALWAYS pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
 $EXEC_ALWAYS pgrep nm-applet || nm-applet
-
-$EXEC_ALWAYS xsetroot -solid "$BG"
-
-$EXEC_ALWAYS xset dpms 0 0 0
-$EXEC_ALWAYS xset s off
 $EXEC_ALWAYS pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color "$BG"
 
-$EXEC_ALWAYS setxkbmap -option caps:swapescape -option ctrl:ralt_rctrl
+$EXEC_ALWAYS xsetroot -solid "$BG"
+$EXEC_ALWAYS xset dpms 0 0 0
+$EXEC_ALWAYS xset s off
 $EXEC_ALWAYS xset r off
 
 workspace_auto_back_and_forth no
@@ -48,7 +45,7 @@ bindsym $MOD+n focus right
 bindsym $MOD+Tab workspace back_and_forth
 
 bindsym $MOD+Return $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'desktop-run >' $DMENU_ARGS"
-bindsym $MOD+shift+Return $EXEC dmenu_run -p "run > " $DMENU_ARGS
+bindsym $MOD+shift+Return $EXEC dmenu_run -p "run >" $DMENU_ARGS
 
 set $GAPSIZE 500
 
@@ -84,19 +81,18 @@ mode $MODE_LEADER {
 	bindsym $MOD+o $ESC; move workspace to output next
 	bindsym $MOD+g $ESC; gaps horizontal current toggle $GAPSIZE
 
-	bindsym $MOD+k $ESC; kill
-	bindsym $MOD+shift+k $ESC; $EXEC kill-process-menu $DMENU_ARGS
 
 	bindsym $MOD+equal $EXEC pamixer --unmute --increase 5
 	bindsym $MOD+minus $EXEC pamixer --unmute --decrease 5
 	bindsym $MOD+0 $EXEC pamixer --toggle-mute
 	bindsym $MOD+a $ESC; $EXEC audio-output-menu $DMENU_ARGS
-	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu -p 'display-config >' $DMENU_ARGS) && autorandr --change $config
+	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config >" $DMENU_ARGS) && autorandr --change $config
 
 	bindsym $MOD+w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym $MOD+b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
-	bindsym $MOD+s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify "screenshot" "$f" && xclip -selection clipboard -t=image/png < " $f"'
+	bindsym $MOD+s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f" && xclip -selection clipboard -t=image/png < "$f"'
 	bindsym $MOD+q $ESC; $EXEC systemctl suspend
+	bindsym $MOD+k $ESC; kill
 
 	bindsym Escape $ESC
 }
