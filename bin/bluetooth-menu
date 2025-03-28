@@ -21,14 +21,12 @@ def main
 		[device, addr]
 	end.to_h
 
-	candidates = devices_addrs.keys.push("off")
-
 	selected, status = Open3.capture2(
 		"dmenu", "-p", "bluetooth-device >", *ARGV,
-		stdin_data: candidates.join("\n")
+		stdin_data: devices_addrs.keys.push("off").join("\n")
 	)
 	selected = selected.chomp
-	exit(1) unless status.success? || !candidates.contains?(selected)
+	exit(1) unless status.success?
 
 	if selected == "off"
 		poweroff 

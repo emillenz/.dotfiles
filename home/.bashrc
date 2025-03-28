@@ -16,18 +16,22 @@ alias\
 	grep="grep --extended-regexp --ignore-case"\
 	rm="rm --verbose --recursive --interactive=once"\
 	mkdir="mkdir --verbose --parents"\
-	bb-js="BABASHKA_PRELOADS='(def *js* (->> *in* slurp json/parse-string))' bb"\
-	bb="rlwrap bb"\
 	pgrep="pgrep --ignore-case"\
-	less="less --ignore-case"
+	less="less --ignore-case"\
+	jb="jobs"\
+	lw="tmux list-windows"
 
 # no directories, no hidden files
 # usage: `find [<pattern>] [<dirs>]*
 function find { command find "${@:2:$#}" -iname "*$1*" -not -path './.*'; }
 
+function rjs { ruby -rjson -e 'in = JSON.parse(ARGF.read);'"$@" ; }
+
 export\
 	EDITOR="vi"\
-	VISUAL="vi"
+	VISUAL="vi"\
+	HISTCONTROL=ignoredups:erasedups\
+	HISTSIZE=10000
 
 shopt -s\
 	globstar\
@@ -38,10 +42,7 @@ shopt -s\
 	patsub_replacement\
 	autocd
 
-export HISTCONTROL=ignoredups:erasedups\
-	HISTSIZE=10000
-
-# newline (\n) :: more clearly separate command outputs in history
-# bold (\[\e]133;A\e\\\]) :: make prompt visually distinctive from commands/output
+# newline (\n) :: clearly separate command output from next prompt in history.
+# bold (\[\e]133;A\e\\\]) :: make prompt visually distinctive from the command & it's output.
 # tmux (\[\e[1m\]) :: needed to enable {next,prev}-prompt navigation.
 export PS1=$'\n\[\e]133;A\\\]\[\e[1m\][\W] > \[\e[0m\]'

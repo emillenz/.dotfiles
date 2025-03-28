@@ -16,20 +16,20 @@ require "open3"
 
 def main
 	sinks = JSON.parse(`pactl --format json list sinks`)
-	sink_inputs = sinks.map { |sink| sink["description"] }.join("\n")
+	sinks_desc = sinks.map { |s| s["description"] }.join("\n")
 
 	selected_sink, status = Open3.capture2(
 		"dmenu", "-p", "audio-output >", *ARGV,
-		stdin_data: sink_inputs
+		stdin_data: sinks_desc
 	)
 	exit(1) unless status.success?
 
-	sink_id = sinks.find { |sink| sink["description"] == selected_sink.chomp }["index"]
+	sink_id = sinks.find { |s| s["description"] == selected_sink.chomp }["index"]
 
 	system("pactl set-default-sink #{sink_id}", exception: true)
 
-	JSON.parse(`pactl --format json list sink-inputs`).map do |sink|
-		system("pactl move-sink-input #{sink["index"]} #{sink_id}", exception: true)
+	JSON.parse(`pactl --format json list sink-inputs`).map do |s|
+		system("pactl move-sink-input #{s["index"]} #{sink_id}", exception: true)
 	end
 
 	system("dunstify 'audio input changed' '#{selected_sink}'", exception: true)

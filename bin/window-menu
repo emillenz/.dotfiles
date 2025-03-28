@@ -1,4 +1,4 @@
-#!/bin/env ruby
+#!/usr/bin/env ruby
 
 # ---
 # title:  i3 window select menu
@@ -15,17 +15,15 @@ require 'open3'
 
 def main
 	window_nodes = window_nodes(JSON.parse(`i3-msg -t get_tree`))
-	window_titles = window_nodes.map { |win| win[:name] }.join("\n")
 
 	selected_title, status = Open3.capture2(
-		'dmenu', '-p', "window-menu",
-		*ARGV,
-		stdin_data: window_titles
+		'dmenu', '-p', "window-menu", *ARGV,
+		stdin_data: window_nodes.map { |w| w[:name] }.join("\n")
 	)
-
 	status.success? || exit(1)
-	sel_window = window_nodes.find { |win| win[:name] == selected_title.chomp }
-	exec('i3-msg', "[con_id=#{sel_window[:id]}] focus")
+
+	sel_window = window_nodes.find { |w| w[:name] == selected_title.chomp }
+	system("i3-msg [con_id=#{sel_window[:id]}] focus")
 end
 
 def window_nodes(node)
@@ -38,7 +36,7 @@ def window_nodes(node)
 			class: node['window_properties']['class']
 		}
 	else
-		(node['nodes'] || []).flat_map { |child_node| window_nodes(child_node) }
+		(node['nodes'] || []).flat_map { |node| window_nodes(node) }
 	end
 end
 
