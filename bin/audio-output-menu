@@ -9,7 +9,6 @@
 # info: 
 #   - intended for use with a WM
 #   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
-# ---
 
 require "json"
 require "open3"
