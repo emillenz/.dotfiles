@@ -18,11 +18,11 @@ def main
 
 	selected_title, status = Open3.capture2(
 		'dmenu', '-p', "window-menu", *ARGV,
-		stdin_data: window_nodes.map { |w| w[:name] }.join("\n")
+		stdin_data: window_nodes.map { _1[:name] }.join("\n")
 	)
 	status.success? || exit(1)
 
-	sel_window = window_nodes.find { |w| w[:name] == selected_title.chomp }
+	sel_window = window_nodes.find { _1[:name] == selected_title.chomp }
 	system("i3-msg [con_id=#{sel_window[:id]}] focus")
 end
 

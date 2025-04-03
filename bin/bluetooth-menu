@@ -14,8 +14,8 @@
 require "open3"
 
 def main
-	devices_addrs = `bluetoothctl devices`.split("\n").map do |line|
-		words = line.split
+	devices_addrs = `bluetoothctl devices`.split("\n").map do
+		words = _1.split
 		device = words[2..].join(" ")
 		addr = words[1]
 		[device, addr]

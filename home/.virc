@@ -1,13 +1,8 @@
 " ---
-" title:  vim-minimal configuration file
+" title:  vim-minimal config file
 " author: emil lenz
 " email:  emilllenz@protonmail.com
 " date:   [2024-12-14]
-" info:
-" - intended for usage with vim-minimal
-" - no plugins, no custom bindings :: use macros, registers and shell commands
-" - no statusbar, no fringe :: use C-g if you explicitly need to know cursor pos/filename (no statusbar neccessary)
-" - no syntax highlighting
 " ---
 
 set nocompatible
@@ -31,17 +26,21 @@ set gdefault
 set autoread
 set relativenumber
 set showmatch
-
 set noruler
+set noshowmode
 set laststatus=0
 set fillchars=eob:\ "
+" syntax off
 
+" consistency
 nnoremap Y y$
 nnoremap _ "_d
 
+" disable inefficies
 nnoremap v <nop>
 nnoremap V <nop>
 nnoremap { <nop>
 nnoremap } <nop>
 
-inoremap {<cr> {<cr>}<esc>O<C-t>
+" autoindent brace-block
+inoremap {<cr> {<cr>}<esc>O<tab>
