@@ -1,5 +1,3 @@
-;; -*- lexical-binding: t; -*-
-
 ;; ---
 ;; title: minimalist, focused emacs config.
 ;; date: [2025-04-08]
@@ -142,11 +140,13 @@
 	       (mapc (lambda (fn)
 		       (evil-set-command-property fn :jump nil))))
 
-  (dolist (fn '(evil-next-line evil-previous-line))
-    (advice-add fn :around
-		(lambda (fn count)
-		  (when count (evil-set-marker ?`))
-		  (call-interactively fn))))
+  (thread-last '(evil-next-line
+		 evil-previous-line)
+	       (mapc (lambda (fn)
+		       (advice-add fn :around
+				   (lambda (og-fn count)
+				     (when count (evil-set-marker ?`))
+				     (call-interactively og-fn))))))
 
   (advice-add 'evil-force-normal-state :after 'evil-ex-nohighlight)
 
@@ -186,16 +186,9 @@
   (general-define-key
    :states 'normal "!" 'evil-shell-cmd)
 
-  (evil-define-operator evil-eval (beg end type)
-    :repeat nil
-    :move-point nil
-    (interactive "<R>")
-    (eval-region beg end t))
-
   (defun evil-global-mark-goto (char)
     (interactive (list (read-char)))
-    (let ((char (upcase char))
-	  (marker (evil-get-marker char)))
+    (let ((marker (evil-get-marker (upcase char))))
       (cond ((markerp marker) (switch-to-buffer (marker-buffer marker)))
 	    ((consp marker) (find-file (car marker))))))
   (general-define-key [remap evil-goto-mark-line] 'evil-global-mark-goto))
@@ -262,6 +255,7 @@
     :states 'normal
     :keymaps 'override
     :prefix "SPC"
+    "h" help-map
     "g" 'magit-status
     "p" project-prefix-map
     "v" vc-prefix-map
@@ -271,12 +265,6 @@
     "E" 'dired-jump
     "s" 'save-buffer
     "!" 'shell-command)
-
-  (general-define-key
-    :states 'normal
-    :keymaps 'override
-    :prefix ","
-    "e" 'evil-eval)
 
   (general-define-key
    :states 'normal
@@ -296,7 +284,6 @@
    "]q" 'next-error
    "[Q" 'first-error
 
-   "C-<tab>" 'evil-switch-to-windows-last-buffer
    ":" 'execute-extended-command
    "g/" 'occur
    "_" (lambda ()
@@ -305,7 +292,9 @@
 	 (call-interactively 'evil-delete))
    "L" (lambda ()
 	 (interactive)
-	 (save-excursion (call-interactively 'newline-and-indent)))))
+	 (save-excursion (call-interactively 'newline-and-indent))))
+
+  (general-define-key :states 'normal :keymaps 'emacs-lisp-mode-map "\\" 'eval-last-sexp))
 
 (use-package comint
   :ensure nil
