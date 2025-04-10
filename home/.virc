@@ -26,7 +26,6 @@ set wildignorecase
 set gdefault
 set autoread
 set relativenumber
-set showmatch
 set noruler
 set noshowmode
 set laststatus=0
@@ -36,14 +35,17 @@ set ttimeoutlen=0
 
 nnoremap Y y$
 nnoremap _ "_d
-vnoremap _ "_d
+nnoremap v m`v
+
 nnoremap V <nop>
 
-vnoremap ( <esc>a)<esc>gvo<esc>i(<esc>
-vnoremap { <esc>a}<esc>gvo<esc>i{<esc>
-vnoremap [ <esc>a]<esc>gvo<esc>i[<esc>
-nnoremap ds( va(<esc>"_xgvo<esc>"_x
-nnoremap ds{ va{<esc>"_xgvo<esc>"_x
-nnoremap ds[ va{<esc>"_xgvo<esc>"_x
+" SURROUND
+vnoremap s( <esc>a)<esc>gvo<esc>i(<esc>
+vnoremap s{ <esc>a}<esc>gvo<esc>i{<esc>
+vnoremap s[ <esc>a]<esc>gvo<esc>i[<esc>
+nnoremap ds( m`va(<esc>"_xgvo<esc>"_x<c-o>
+nnoremap ds{ m`va{<esc>"_xgvo<esc>"_x<c-o>
+nnoremap ds[ m`va{<esc>"_xgvo<esc>"_x<c-o>
 
+" AUTOINDENT BRACES
 inoremap {<cr> {<cr>}<esc>O<tab>

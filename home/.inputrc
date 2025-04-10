@@ -3,7 +3,7 @@ set completion-ignore-case on
 set show-all-if-ambiguous on
 set enable-bracketed-paste on
 set show-mode-in-prompt off
-set blink-matching-paren on 
+# set blink-matching-paren on 
 
 set editing-mode vi
 set keymap vi-command

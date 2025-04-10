@@ -14,9 +14,7 @@ alias\
 	cp="cp --verbose --recursive"\
 	mkdir="mkdir --verbose --parents"\
 	pgrep="pgrep --ignore-case"\
-	less="less --ignore-case"\
-	jb="jobs"\
-	lsw="tmux list-windows"
+	less="less --ignore-case"
 
 # no directories, no hidden files
 # usage: `find [<pattern>] [<dirs>]*
