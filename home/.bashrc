@@ -5,10 +5,6 @@
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   2024-11-30
-# info:
-#   - case insesitivity
-#   - no colors, no syntax hilighting :: minimalism and focus (no unneccessary color fruit-salad).  only black/white and bold/regular.
-#   - no bloated, "rewritten in rust" tools, that only add colours to everything or provide features already available.  we use the minimalist, readily available GNU coreutils (no unneccessary dependecies).  we use of aliases & functions for more ergonomic default behaviour.
 # ---
 
 alias\
@@ -20,7 +16,7 @@ alias\
 	pgrep="pgrep --ignore-case"\
 	less="less --ignore-case"\
 	jb="jobs"\
-	lw="tmux list-windows"
+	lsw="tmux list-windows"
 
 # no directories, no hidden files
 # usage: `find [<pattern>] [<dirs>]*

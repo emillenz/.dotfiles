@@ -37,13 +37,8 @@ set ttimeoutlen=0
 nnoremap Y y$
 nnoremap _ "_d
 vnoremap _ "_d
-nnoremap V <nop>
 
-vnoremap ( <esc>a)<esc>gvo<esc>i(<esc>
-vnoremap { <esc>a}<esc>gvo<esc>i{<esc>
-vnoremap [ <esc>a]<esc>gvo<esc>i[<esc>
-nnoremap ds( va(<esc>"_xgvo<esc>"_x
-nnoremap ds{ va{<esc>"_xgvo<esc>"_x
-nnoremap ds[ va{<esc>"_xgvo<esc>"_x
+vnoremap ( <esc>a)<esc>gvo<esc>i(
+nnoremap ds( va(<esc>xgvo<esc>x
 
 inoremap {<cr> {<cr>}<esc>O<tab>
