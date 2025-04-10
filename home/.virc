@@ -36,7 +36,6 @@ set ttimeoutlen=0
 nnoremap Y y$
 nnoremap _ "_d
 nnoremap v m`v
-
 nnoremap V <nop>
 
 " SURROUND
