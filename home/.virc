@@ -1,5 +1,5 @@
 " ---
-" title:  vim-minimal config file
+" title:  vi config file (minimalist)
 " author: emil lenz
 " email:  emilllenz@protonmail.com
 " date:   [2024-12-14]
@@ -29,22 +29,29 @@ set relativenumber
 set noruler
 set noshowmode
 set laststatus=0
-set fillchars=eob:\ "
+set fillchars=eob:\ ,lastline:\ ,
 set timeoutlen=1000
 set ttimeoutlen=0
+set formatoptions+=jn
+set iskeyword+=-
+" syntax off
 
-nnoremap Y y$
+autocmd BufWritePre * :%s/\s\+$//e " rm trailing whitespace
+
+nnoremap <c-d> <c-d>zz
+nnoremap <c-u> <c-u>zz
 nnoremap _ "_d
-nnoremap v m`v
-nnoremap V <nop>
+nnoremap Q @q
+nnoremap Y y$
 
-" SURROUND
+" surround
 vnoremap s( <esc>a)<esc>gvo<esc>i(<esc>
 vnoremap s{ <esc>a}<esc>gvo<esc>i{<esc>
 vnoremap s[ <esc>a]<esc>gvo<esc>i[<esc>
-nnoremap ds( m`va(<esc>"_xgvo<esc>"_x<c-o>
-nnoremap ds{ m`va{<esc>"_xgvo<esc>"_x<c-o>
-nnoremap ds[ m`va{<esc>"_xgvo<esc>"_x<c-o>
+vnoremap s" <esc>a"<esc>gvo<esc>i"<esc>
+nnoremap ds( mzva(<esc>"_xgvo<esc>"_x`z
+nnoremap ds{ mzva{<esc>"_xgvo<esc>"_x`z
+nnoremap ds[ mzva[<esc>"_xgvo<esc>"_x`z
+nnoremap ds" mzva"<esc>"_xgvol<esc>"_x`z
 
-" AUTOINDENT BRACES
-inoremap {<cr> {<cr>}<esc>O<tab>
+inoremap {<cr> {<cr>}<esc>O<tab> " autoinsert brackets on newline

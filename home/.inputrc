@@ -3,11 +3,14 @@ set completion-ignore-case on
 set show-all-if-ambiguous on
 set enable-bracketed-paste on
 set show-mode-in-prompt off
-# set blink-matching-paren on 
+# set blink-matching-paren on
 
 set editing-mode vi
+
 set keymap vi-command
-z: clear-screen
 # navigate history based on current input
 j: history-search-forward
 k: history-search-backward
+
+set keymap vi-insert
+C-l: clear-screen
