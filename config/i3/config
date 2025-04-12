@@ -58,9 +58,9 @@ for_window [class="net.thunderbird.Thunderbird"] move container to workspace age
 bindsym $MOD+a workspace agenda
 bindsym $MOD+shift+a $EXEC thunderbird
 
-for_window [class="Thunar"] move container to workspace files
-bindsym $MOD+v workspace files
-bindsym $MOD+shift+v $EXEC thunar
+for_window [class="Thunar"] move container to workspace dir
+bindsym $MOD+b workspace dir
+bindsym $MOD+shift+b $EXEC thunar
 
 for_window [class="Alacritty"] move container to workspace edit
 bindsym $MOD+e workspace edit

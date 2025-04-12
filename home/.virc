@@ -22,7 +22,6 @@ set undofile
 set path=**
 set shortmess=a
 set completeopt=
-set wildmode=longest:full
 set wildignore=*.o
 set wildmenu
 set wildignorecase
