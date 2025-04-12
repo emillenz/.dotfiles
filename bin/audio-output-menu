@@ -6,7 +6,7 @@
 # email:  emillenz@protonmail.com
 # date:   [2023-05-07]
 # dependencies: dmenu, pactl
-# info: 
+# info:
 #   - intended for use with a WM
 #   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
 # ---
@@ -19,7 +19,7 @@ def main
 	sinks_desc = sinks.map { _1["description"] }.join("\n")
 
 	selected_sink, status = Open3.capture2(
-		"dmenu", "-p", "audio-output >", *ARGV,
+		"dmenu", "-p", "audio-output", *ARGV,
 		stdin_data: sinks_desc
 	)
 	exit(1) unless status.success?

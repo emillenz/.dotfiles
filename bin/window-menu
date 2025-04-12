@@ -6,7 +6,7 @@
 # email:  emillenz@protonmail.com
 # date:   [2024-05-15]
 # dependencies: i3, dmenu
-# info: 
+# info:
 #   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
 # ---
 

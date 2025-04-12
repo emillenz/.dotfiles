@@ -6,6 +6,7 @@
 " ---
 
 set nocompatible
+set showcmd
 set hidden
 set autoindent
 set autowriteall
@@ -15,7 +16,9 @@ set incsearch
 set smarttab
 set confirm
 set backupdir=~/.vim//,/tmp//
+set undodir=~/.vim//,/tmp//
 set directory=~/.vim//,/tmp//
+set undofile
 set path=**
 set shortmess=a
 set completeopt=
@@ -38,20 +41,28 @@ set iskeyword+=-
 
 autocmd BufWritePre * :%s/\s\+$//e " rm trailing whitespace
 
+nnoremap Y y$
+nnoremap _ "_d
+inoremap {<cr> {<cr>}<esc>O<tab>
+
 nnoremap <c-d> <c-d>zz
 nnoremap <c-u> <c-u>zz
-nnoremap _ "_d
-nnoremap Q @q
-nnoremap Y y$
 
-" surround
+vnoremap > >gv
+vnoremap < <gv
+
+nnoremap Q @q
+vnoremap Q :normal ^@q<cr>
+
+onoremap { V{
+onoremap } V}
+
 vnoremap s( <esc>a)<esc>gvo<esc>i(<esc>
 vnoremap s{ <esc>a}<esc>gvo<esc>i{<esc>
 vnoremap s[ <esc>a]<esc>gvo<esc>i[<esc>
 vnoremap s" <esc>a"<esc>gvo<esc>i"<esc>
+
 nnoremap ds( mzva(<esc>"_xgvo<esc>"_x`z
 nnoremap ds{ mzva{<esc>"_xgvo<esc>"_x`z
 nnoremap ds[ mzva[<esc>"_xgvo<esc>"_x`z
 nnoremap ds" mzva"<esc>"_xgvol<esc>"_x`z
-
-inoremap {<cr> {<cr>}<esc>O<tab> " autoinsert brackets on newline

@@ -9,8 +9,8 @@ set editing-mode vi
 
 set keymap vi-command
 # navigate history based on current input
-j: history-search-forward
-k: history-search-backward
+"j": history-search-forward
+"k": history-search-backward
 
 set keymap vi-insert
 C-l: clear-screen

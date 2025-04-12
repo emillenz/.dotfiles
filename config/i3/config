@@ -1,7 +1,12 @@
 set $EXEC exec --no-startup-id
 set $EXEC_ALWAYS exec_always --no-startup-id
-set $BG #ffffff
-set $DMENU_ARGS -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c0deff' -sf '#000000'
+set $DMENU_ARGS -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c8c8c8' -sf '#000000'
+
+set $BG		#ffffff
+set $FG		#000000
+set $BORDER	#9f9f9f
+set $URG	#ff8f88
+set $STATUS_BG	#c8c8c8
 
 $EXEC_ALWAYS pgrep unclutter || unclutter
 $EXEC_ALWAYS pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
@@ -44,8 +49,8 @@ bindsym $MOD+p focus left
 bindsym $MOD+n focus right
 bindsym $MOD+Tab workspace back_and_forth
 
-bindsym $MOD+semicolon $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'desktop-run >' $DMENU_ARGS"
-bindsym $MOD+shift+semicolon $EXEC dmenu_run -p "run >" $DMENU_ARGS
+bindsym $MOD+semicolon $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'desktop-run' $DMENU_ARGS"
+bindsym $MOD+shift+semicolon $EXEC dmenu_run -p "run" $DMENU_ARGS
 
 set $GAPSIZE 500
 
@@ -70,7 +75,7 @@ for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $EXEC firefox
 
-# must be last directive (focus window after assigning it to workspace)
+# must be after specific workspace assignments
 for_window [all] focus
 
 set $MODE_LEADER "<leader>"
@@ -86,7 +91,7 @@ mode $MODE_LEADER {
 	bindsym $MOD+minus $EXEC pamixer --unmute --decrease 5
 	bindsym $MOD+0 $EXEC pamixer --toggle-mute
 	bindsym $MOD+a $ESC; $EXEC audio-output-menu $DMENU_ARGS
-	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config >" $DMENU_ARGS) && autorandr --change $config
+	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) && autorandr --change $config
 
 	bindsym $MOD+w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym $MOD+b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
@@ -97,17 +102,12 @@ mode $MODE_LEADER {
 	bindsym Escape $ESC
 }
 
-set $FG          #000000
-set $MODELINE_BG #c8c8c8
-set $BORDER      #9f9f9f
-set $ACTIVE_BG   #c0deff
-set $URGENT_BG   #ff8f88
-
-client.focused          $ACTIVE_BG $ACTIVE_BG   $FG $FG   $ACTIVE_BG
-client.focused_inactive $BORDER    $MODELINE_BG $FG $FG   $BORDER
-client.unfocused        $BORDER    $MODELINE_BG $FG $FG   $BORDER
-client.urgent           $URGENT_BG $URGENT_BG   $FG $FG   $URGENT_BG
-client.background       $BG
+# class			border		bg		text	indicator	child_border
+client.focused		$BG 		$BG		$FG	$FG		$BG
+client.focused_inactive	$BORDER		$STATUS_BG	$FG	$FG		$BORDER
+client.unfocused	$BORDER    	$STATUS_BG	$FG	$FG		$BORDER
+client.urgent		$URGENT_BG 	$URGENT_BG	$FG	$FG		$URGENT_BG
+client.background	$BG
 
 bar {
 	mode hide
@@ -117,19 +117,18 @@ bar {
 	tray_output primary
 	status_command i3status
 
-	# some padding for more clarity
 	separator_symbol " "
 	workspace_min_width 40
 
 	colors {
-		background $MODELINE_BG
+		background $STATUS_BG
 		statusline $FG
 		separator $FG
-		#class             $border      $bg          $fg
-		binding_mode       $MODELINE_BG $MODELINE_BG $FG
-		focused_workspace  $BORDER      $ACTIVE_BG   $FG
-		active_workspace   $BORDER      $MODELINE_BG $FG
-		inactive_workspace $BORDER      $MODELINE_BG $FG
-		urgent_workspace   $BORDER      $URGENT_BG   $FG
+		#class			$border		$bg		$fg
+		binding_mode		$STATUS_BG	$STATUS_BG	$FG
+		focused_workspace	$BORDER		$BG		$FG
+		active_workspace	$BORDER		$STATUS_BG	$FG
+		inactive_workspace	$BORDER		$STATUS_BG	$FG
+		urgent_workspace	$BORDER		$URGENT_BG	$FG
 	}
 }

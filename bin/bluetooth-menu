@@ -6,7 +6,7 @@
 # email:  emillenz@protonmail.com
 # date:   [2024-05-26]
 # dependecies: bluetoothctl, dmenu, dunst
-# info: 
+# info:
 #   - intended for use with a WM
 #   - ARGV passed as args to dmenu (use it to customize dmenu appearance)
 # ---
@@ -22,15 +22,15 @@ def main
 	end.to_h
 
 	selected, status = Open3.capture2(
-		"dmenu", "-p", "bluetooth-device >", *ARGV,
+		"dmenu", "-p", "bluetooth-device", *ARGV,
 		stdin_data: devices_addrs.keys.push("off").join("\n")
 	)
 	selected = selected.chomp
 	exit(1) unless status.success?
 
 	if selected == "off"
-		poweroff 
-	else 
+		poweroff
+	else
 		connect(selected, devices_addrs)
 	end
 end
