@@ -1,5 +1,5 @@
 " ---
-" title:  vi config file (minimalist)
+" title:  minimalist vi config file
 " author: emil lenz
 " email:  emilllenz@protonmail.com
 " date:   [2024-12-14]
@@ -22,8 +22,10 @@ set undofile
 set path=**
 set shortmess=a
 set completeopt=
-set wildignore=*.o
+set wildignore=*.o,.*
 set wildmenu
+set wildmode=full
+set wildchar=<c-n>
 set wildignorecase
 set gdefault
 set autoread
@@ -44,6 +46,9 @@ nnoremap Y y$
 nnoremap _ "_d
 inoremap {<cr> {<cr>}<esc>O<tab>
 
+nnoremap go mzo<esc>`z
+nnoremap gO mzO<esc>`z
+
 nnoremap <c-d> <c-d>zz
 nnoremap <c-u> <c-u>zz
 
@@ -51,17 +56,17 @@ vnoremap > >gv
 vnoremap < <gv
 
 nnoremap Q @q
-vnoremap Q :normal ^@q<cr>
+vnoremap Q :normal @q<cr>
 
 onoremap { V{
 onoremap } V}
 
-vnoremap s( <esc>a)<esc>gvo<esc>i(<esc>
-vnoremap s{ <esc>a}<esc>gvo<esc>i{<esc>
-vnoremap s[ <esc>a]<esc>gvo<esc>i[<esc>
-vnoremap s" <esc>a"<esc>gvo<esc>i"<esc>
+vnoremap s( <esc>a)<esc>`<i(<esc>
+vnoremap s{ <esc>a}<esc>`<i{<esc>
+vnoremap s[ <esc>a]<esc>`<i[<esc>
+vnoremap s" <esc>a"<esc>`<i"<esc>
 
-nnoremap ds( mzva(<esc>"_xgvo<esc>"_x`z
+nnoremap ds( mzva(<esc>"_x`<"_x`z
 nnoremap ds{ mzva{<esc>"_xgvo<esc>"_x`z
 nnoremap ds[ mzva[<esc>"_xgvo<esc>"_x`z
 nnoremap ds" mzva"<esc>"_xgvol<esc>"_x`z

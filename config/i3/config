@@ -1,3 +1,10 @@
+# ---
+# title:  i3 minimalist config
+# author: emil lenz
+# email:  emillenz@protonmail.com
+# date:   [2023-05-15]
+# ---
+
 set $EXEC exec --no-startup-id
 set $EXEC_ALWAYS exec_always --no-startup-id
 set $DMENU_ARGS -b -i -fn 'Iosevka Comfy-10' -nb '#ffffff' -nf '#000000' -sb '#c8c8c8' -sf '#000000'

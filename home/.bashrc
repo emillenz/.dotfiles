@@ -4,7 +4,7 @@
 # title:  bash shell config
 # author: emil lenz
 # email:  emillenz@protonmail.com
-# date:   2024-11-30
+# date:   [2024-11-30]
 # ---
 
 alias\
@@ -17,6 +17,7 @@ alias\
 	less="less --ignore-case"
 
 export\
+	IFS=$'\n'\
 	EDITOR="vi"\
 	VISUAL="vi"\
 	HISTCONTROL=ignoredups:erasedups\
@@ -42,9 +43,9 @@ function find {
 function rjs { ruby -rjson -e 'in = JSON.parse(ARGF.read);'"$@" ; }
 
 function sesh {
-	local dir="${1:-"$(pwd)"}"
-	local cmd="${2:-"vi"}"
-	local name="$(basename $dir | tr '[:upper:]' '[:lower:]')"
+	local dir=${1:-$(pwd)}
+	local cmd=${2:-vi}
+	local name=$(basename $dir | tr '[:upper:]' '[:lower:]')
 
 	tmux has-session -t $name &>/dev/null || tmux new-session -d -c $dir -s $name $cmd
 	[ -n $TMUX ] && tmux switch-client -t $name || tmux attach-session -t $name

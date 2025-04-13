@@ -1,16 +1,15 @@
 # ---
-# title:  alacritty configuration file
+# title:  alacritty minimalistic config
 # author: emil lenz
 # email:  emillenz@protonmail.com
 # date:   [2022-02-25] (monochrome theme: [2024-12-15]
-# info:   C-S-<space> to enter scrollback (vi) mode.
 # ---
 
 [cursor]
 unfocused_hollow = false
 
 [env]
-WINIT_X11_SCALE_FACTOR = "1" # same fontsize across different dpi displays
+WINIT_X11_SCALE_FACTOR = "1"
 
 [font]
 normal = {family = "Iosevka Comfy"}
