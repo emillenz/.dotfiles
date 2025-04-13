@@ -24,8 +24,7 @@ set shortmess=a
 set completeopt=
 set wildignore=*.o,.*
 set wildmenu
-set wildmode=full
-set wildchar=<c-n>
+set wildmode=longest:full
 set wildignorecase
 set gdefault
 set autoread
@@ -61,12 +60,12 @@ vnoremap Q :normal @q<cr>
 onoremap { V{
 onoremap } V}
 
-vnoremap s( <esc>a)<esc>`<i(<esc>
-vnoremap s{ <esc>a}<esc>`<i{<esc>
+vnoremap sb <esc>a)<esc>`<i(<esc>
+vnoremap sB <esc>a}<esc>`<i{<esc>
 vnoremap s[ <esc>a]<esc>`<i[<esc>
 vnoremap s" <esc>a"<esc>`<i"<esc>
 
-nnoremap ds( mzva(<esc>"_x`<"_x`z
-nnoremap ds{ mzva{<esc>"_xgvo<esc>"_x`z
+nnoremap dsb mzva(<esc>"_x`<"_x`z
+nnoremap dsB mzva{<esc>"_xgvo<esc>"_x`z
 nnoremap ds[ mzva[<esc>"_xgvo<esc>"_x`z
 nnoremap ds" mzva"<esc>"_xgvol<esc>"_x`z
