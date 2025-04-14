@@ -10,7 +10,6 @@ general {
         colors = true
         interval = 5
 
-        # no coloring, no angry fruit salad (stausbar should never grab attention)
         color_good = "#000000"
         color_degraded = "#000000"
         color_bad = "#000000"
@@ -29,9 +28,9 @@ wireless _first_ {
 }
 
 ethernet _first_ {
-        format_up = "[ETH]" # %ip to leak it
+        format_up = "[ETH]"
         format_down = ""
-}
+	}
 
 battery all {
         format = "[BAT %status%percentage %emptytime]"
@@ -59,8 +58,8 @@ tztime local {
         format = "[%F %a %R]" # ISO format
 }
 
+# path exists when a VPN tunnel launched by nmcli/nm-applet is active
 path_exists VPN {
-        # path exists when a VPN tunnel launched by nmcli/nm-applet is active
 	format = "[VPN]"
 	format_down = ""
         path = "/proc/sys/net/ipv4/conf/tun0"

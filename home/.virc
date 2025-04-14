@@ -13,6 +13,7 @@ set autowriteall
 set ignorecase
 set smartcase
 set incsearch
+set nostartofline
 set smarttab
 set confirm
 set backupdir=~/.vim//,/tmp//
@@ -26,46 +27,51 @@ set wildignore=*.o,.*
 set wildmenu
 set wildmode=longest:full
 set wildignorecase
+set wildoptions="fuzzy,wild,pum"
 set gdefault
 set autoread
 set relativenumber
 set noruler
 set noshowmode
 set laststatus=0
-set fillchars=eob:\ ,lastline:\ ,
-set timeoutlen=1000
-set ttimeoutlen=0
+set fillchars=eob:\ ,
+set ttimeout
+set ttimeoutlen=50
 set formatoptions+=jn
 set iskeyword+=-
+set wrap
+set linebreak
 " syntax off
 
 autocmd BufWritePre * :%s/\s\+$//e " rm trailing whitespace
 
 nnoremap Y y$
 nnoremap _ "_d
-inoremap {<cr> {<cr>}<esc>O<tab>
 
 nnoremap go mzo<esc>`z
 nnoremap gO mzO<esc>`z
 
-nnoremap <c-d> <c-d>zz
-nnoremap <c-u> <c-u>zz
+onoremap { V{
+onoremap } V}
 
 vnoremap > >gv
 vnoremap < <gv
 
 nnoremap Q @q
-vnoremap Q :normal @q<cr>
+vnoremap Q :normal ^@q<cr>
+vnoremap @ :normal ^@
 
-onoremap { V{
-onoremap } V}
+inoremap {<cr> {<cr>}<esc>O<tab>
 
-vnoremap sb <esc>a)<esc>`<i(<esc>
-vnoremap sB <esc>a}<esc>`<i{<esc>
+nnoremap <c-d> <c-d>zz
+nnoremap <c-u> <c-u>zz
+
+vnoremap s( <esc>a)<esc>`<i(<esc>
+vnoremap s{ <esc>a}<esc>`<i{<esc>
 vnoremap s[ <esc>a]<esc>`<i[<esc>
 vnoremap s" <esc>a"<esc>`<i"<esc>
 
-nnoremap dsb mzva(<esc>"_x`<"_x`z
-nnoremap dsB mzva{<esc>"_xgvo<esc>"_x`z
+nnoremap ds( mzva(<esc>"_x`<"_x`z
+nnoremap ds{ mzva{<esc>"_xgvo<esc>"_x`z
 nnoremap ds[ mzva[<esc>"_xgvo<esc>"_x`z
 nnoremap ds" mzva"<esc>"_xgvol<esc>"_x`z
