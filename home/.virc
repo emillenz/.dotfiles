@@ -5,7 +5,6 @@
 " date:   [2024-12-14]
 " ---
 
-set nocompatible
 set showcmd
 set hidden
 set autoindent
