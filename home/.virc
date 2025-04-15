@@ -40,7 +40,6 @@ set formatoptions+=jn
 set iskeyword+=-
 set wrap
 set linebreak
-" syntax off
 
 " rm trailing whitespace
 autocmd BufWritePre * :silent %s/\s\+$//e
