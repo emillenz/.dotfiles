@@ -1,11 +1,9 @@
 # ---
-# title:  zathura document viewer configuration file
+# title:  zathura config file
 # author: emil lenz
 # email:  emillenz@protonmail.com
-# date:   2023-11-22
+# date:   [2023-11-22]
 # ---
-
-# options
 
 set statusbar-h-padding 0
 set statusbar-v-padding 0
@@ -19,20 +17,16 @@ set window-title-page true
 set render-loading true
 set recolor-keephue true
 
-# bindings :: don't use ctrl if not have to (use SPC/S-SPC for scrolling).
-
 map = zoom in
 map - zoom out
 map o jumplist backward
 map i jumplist forward
 map z snap_to_page
-
-# double-page-view :: change to odd-even splits (if default: even-odd gives the wrong formatting)
-map v set "first-page-column 1:1"
-map V set "first-page-column 1:2"
+map u scroll half-up
+map d scroll half-down
+map v toggle_page_mode
 
 # modus operandi theme
-
 set notification-error-bg       "#c8c8c8"
 set notification-error-fg       "#7f0000"
 set notification-warning-bg     "#c8c8c8"
@@ -59,8 +53,5 @@ set render-loading-fg           "#000000"
 set render-loading-bg           "#ffffff"
 set recolor-lightcolor          "#ffffff"
 set recolor-darkcolor           "#000000"
-
-# NOTE :: currently broken
-
 # set highlight-color             "#a4d5f9"
 # set highlight-active-color      "#f3d000"

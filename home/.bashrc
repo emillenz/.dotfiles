@@ -10,7 +10,8 @@
 alias\
 	ls="ls --group-directories-first --format=single-column --file-type --color=never"\
 	grep="grep --extended-regexp --ignore-case"\
-	rm="rm --verbose --recursive --interactive=once"\
+	rm="rm --verbose --line-number --recursive --interactive=once"\
+	less="less --ignore-case"\
 	cp="cp --verbose --recursive"\
 	mkdir="mkdir --verbose --parents"\
 	pgrep="pgrep --ignore-case"\

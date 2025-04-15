@@ -33,7 +33,7 @@ set relativenumber
 set noruler
 set noshowmode
 set laststatus=0
-set fillchars=eob:\ ,
+set fillchars=eob:\ ,lastline:\ ,
 set ttimeout
 set ttimeoutlen=50
 set formatoptions+=jn
@@ -42,10 +42,15 @@ set wrap
 set linebreak
 " syntax off
 
-autocmd BufWritePre * :%s/\s\+$//e " rm trailing whitespace
+" rm trailing whitespace
+autocmd BufWritePre * :silent %s/\s\+$//e
 
 nnoremap Y y$
 nnoremap _ "_d
+nnoremap s <nop>
+nnoremap S <nop>
+
+nnoremap : :silent! w<cr>:
 
 nnoremap go mzo<esc>`z
 nnoremap gO mzO<esc>`z
