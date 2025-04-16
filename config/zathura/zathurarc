@@ -22,9 +22,6 @@ map - zoom out
 map o jumplist backward
 map i jumplist forward
 map z snap_to_page
-map u scroll half-up
-map d scroll half-down
-map v toggle_page_mode
 
 # modus operandi theme
 set notification-error-bg       "#c8c8c8"
