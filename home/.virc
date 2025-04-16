@@ -5,10 +5,10 @@
 " date:   [2024-12-14]
 " ---
 
+set autowriteall
 set showcmd
 set hidden
 set autoindent
-set autowriteall
 set ignorecase
 set smartcase
 set incsearch
@@ -40,16 +40,17 @@ set formatoptions+=jn
 set iskeyword+=-
 set wrap
 set linebreak
+set shellcmdflag=-lc
 
 " rm trailing whitespace
 autocmd BufWritePre * :silent %s/\s\+$//e
 
 nnoremap Y y$
 nnoremap _ "_d
+
 nnoremap s <nop>
 nnoremap S <nop>
-
-nnoremap : :silent! w<cr>:
+cnoremap w<cr> sleep 2<cr>
 
 nnoremap go mzo<esc>`z
 nnoremap gO mzO<esc>`z
@@ -61,8 +62,8 @@ vnoremap > >gv
 vnoremap < <gv
 
 nnoremap Q @q
-vnoremap Q :normal ^@q<cr>
-vnoremap @ :normal ^@
+vnoremap Q :normal @q<cr>
+vnoremap @ :normal @
 
 inoremap {<cr> {<cr>}<esc>O<tab>
 

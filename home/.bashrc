@@ -9,7 +9,7 @@
 
 alias\
 	ls="ls --group-directories-first --format=single-column --file-type --color=never"\
-	grep="grep --extended-regexp --ignore-case"\
+	grep="grep --line-number --extended-regexp --ignore-case"\
 	rm="rm --verbose --line-number --recursive --interactive=once"\
 	less="less --ignore-case"\
 	cp="cp --verbose --recursive"\
@@ -31,6 +31,7 @@ shopt -s\
 	nocasematch\
 	histappend\
 	patsub_replacement\
+	expand_aliases\
 	autocd
 
 # bold (\[\e]133;A\e\\\])
