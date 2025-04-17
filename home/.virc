@@ -44,12 +44,11 @@ set shellcmdflag=-lc
 
 autocmd BufWritePre * :silent %s/\s\+$//e
 
-nnoremap v <nop>
-nnoremap V <nop>
-
 nnoremap Y y$
 nnoremap _ "_d
+
 nnoremap Q @q
+cnoremap @ normal @
 
 nnoremap go mzo<esc>`z
 nnoremap gO mzO<esc>`z
@@ -62,6 +61,8 @@ inoremap {<cr> {<cr>}<esc>O<tab>
 nnoremap <c-d> <c-d>zz
 nnoremap <c-u> <c-u>zz
 
+nnoremap v <nop>
+nnoremap V <nop>
 nnoremap s <nop>
 nnoremap S <nop>
 nnoremap s mzv
