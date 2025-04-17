@@ -30,10 +30,10 @@ wireless _first_ {
 ethernet _first_ {
         format_up = "[ETH]"
         format_down = ""
-	}
+}
 
 battery all {
-        format = "[BAT %status%percentage %emptytime]"
+        format = "[BAT %status %percentage %emptytime]"
         integer_battery_capacity = true
         last_full_capacity = true
         hide_seconds = true
@@ -55,7 +55,7 @@ volume master {
 }
 
 tztime local {
-        format = "[%F %a %R]" # ISO format
+        format = "[%F %a %R]"
 }
 
 # path exists when a VPN tunnel launched by nmcli/nm-applet is active

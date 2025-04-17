@@ -19,9 +19,9 @@ set recolor-keephue true
 
 map = zoom in
 map - zoom out
-map o jumplist backward
-map i jumplist forward
 map z snap_to_page
+map <Space> navigate next
+map <S-Space> navigate previous
 
 # modus operandi theme
 set notification-error-bg       "#c8c8c8"

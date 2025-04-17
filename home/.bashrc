@@ -7,22 +7,7 @@
 # date:   [2024-11-30]
 # ---
 
-alias\
-	ls="ls --group-directories-first --format=single-column --file-type --color=never"\
-	grep="grep --line-number --extended-regexp --ignore-case"\
-	rm="rm --verbose --line-number --recursive --interactive=once"\
-	less="less --ignore-case"\
-	cp="cp --verbose --recursive"\
-	mkdir="mkdir --verbose --parents"\
-	pgrep="pgrep --ignore-case"\
-	less="less --ignore-case"
-
-export\
-	IFS=$'\n'\
-	EDITOR="vi"\
-	VISUAL="vi"\
-	HISTCONTROL=ignoredups:erasedups\
-	HISTSIZE=10000
+export IFS=$'\n' # invoked scripts disregard this setting (doesn't break).
 
 shopt -s\
 	globstar\
@@ -38,11 +23,27 @@ shopt -s\
 # tmux (\[\e[1m\]) :: needed to enable {next,prev}-prompt navigation.
 export PS1='\n\[\e]133;A\\\]\[\e[1m\][\W] \[\e[0m\]'
 
+alias\
+	ls="ls --group-directories-first --format=single-column --file-type --color=never"\
+	grep="grep --line-number --extended-regexp --ignore-case"\
+	rm="rm --verbose --recursive --interactive=once"\
+	less="less --ignore-case"\
+	cp="cp --verbose --recursive"\
+	mkdir="mkdir --verbose --parents"\
+	pgrep="pgrep --ignore-case"\
+	less="less --ignore-case"
+
+export\
+	EDITOR="vi"\
+	VISUAL="vi"\
+	HISTCONTROL=ignoredups:erasedups\
+	HISTSIZE=10000
+
 function find {
-	command find $@ -not -path './.*'
+	command find $@ -type f -not -path './.*'
 }
 
-function rjs { ruby -rjson -e 'in = JSON.parse(ARGF.read);'"$@" ; }
+function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@ ; }
 
 function sesh {
 	local dir=${1:-$(pwd)}

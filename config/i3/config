@@ -82,7 +82,7 @@ for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $EXEC firefox
 
-# must be after specific workspace assignments
+# must come after specific workspace assignments
 for_window [all] focus
 
 set $MODE_LEADER "<leader>"

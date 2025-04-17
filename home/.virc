@@ -42,15 +42,14 @@ set wrap
 set linebreak
 set shellcmdflag=-lc
 
-" rm trailing whitespace
 autocmd BufWritePre * :silent %s/\s\+$//e
+
+nnoremap v <nop>
+nnoremap V <nop>
 
 nnoremap Y y$
 nnoremap _ "_d
-
-nnoremap s <nop>
-nnoremap S <nop>
-cnoremap w<cr> sleep 2<cr>
+nnoremap Q @q
 
 nnoremap go mzo<esc>`z
 nnoremap gO mzO<esc>`z
@@ -58,24 +57,20 @@ nnoremap gO mzO<esc>`z
 onoremap { V{
 onoremap } V}
 
-vnoremap > >gv
-vnoremap < <gv
-
-nnoremap Q @q
-vnoremap Q :normal @q<cr>
-vnoremap @ :normal @
-
 inoremap {<cr> {<cr>}<esc>O<tab>
 
 nnoremap <c-d> <c-d>zz
 nnoremap <c-u> <c-u>zz
 
-vnoremap s( <esc>a)<esc>`<i(<esc>
-vnoremap s{ <esc>a}<esc>`<i{<esc>
-vnoremap s[ <esc>a]<esc>`<i[<esc>
-vnoremap s" <esc>a"<esc>`<i"<esc>
-
-nnoremap ds( mzva(<esc>"_x`<"_x`z
-nnoremap ds{ mzva{<esc>"_xgvo<esc>"_x`z
-nnoremap ds[ mzva[<esc>"_xgvo<esc>"_x`z
-nnoremap ds" mzva"<esc>"_xgvol<esc>"_x`z
+nnoremap s <nop>
+nnoremap S <nop>
+nnoremap s mzv
+nnoremap ss mzV
+vnoremap ( <esc>`>a)<esc>`<i(<esc>`z
+vnoremap [ <esc>`>a]<esc>`<i[<esc>`z
+vnoremap { <esc>`>a}<esc>`<i{<esc>`z
+vnoremap " <esc>`>a"<esc>`<i"<esc>`z
+nnoremap ds( mzva(<esc>`>"_x`<"_x`z
+nnoremap ds[ mzva[<esc>`>"_x`<"_x`z
+nnoremap ds{ mzva{<esc>`>"_x`<"_x`z
+nnoremap ds" mzva"<esc>`>"_x`<"_x`z
