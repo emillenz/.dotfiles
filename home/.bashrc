@@ -24,7 +24,7 @@ shopt -s\
 export PS1='\n\[\e]133;A\\\]\[\e[1m\][\W] \[\e[0m\]'
 
 alias\
-	ls="ls --group-directories-first --format=single-column --file-type --color=never"\
+	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --format=single-column --file-type --color=never -F"\
 	grep="grep --line-number --extended-regexp --ignore-case"\
 	rm="rm --verbose --recursive --interactive=once"\
 	less="less --ignore-case"\
@@ -43,7 +43,13 @@ function find {
 	command find $@ -type f -not -path './.*'
 }
 
-function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@ ; }
+function cd {
+    command cd $@ && ls
+}
+
+function rjs {
+	ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@
+}
 
 function sesh {
 	local dir=${1:-$(pwd)}

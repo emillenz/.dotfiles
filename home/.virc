@@ -41,6 +41,7 @@ set iskeyword+=-
 set wrap
 set linebreak
 set shellcmdflag=-lc
+set background=light
 
 autocmd BufWritePre * :silent %s/\s\+$//e
 

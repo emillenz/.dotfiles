@@ -1,9 +1,14 @@
 set keyseq-timeout 1
 set completion-ignore-case on
+set visible-stats On
 set show-all-if-ambiguous on
 set enable-bracketed-paste on
 set show-mode-in-prompt off
-# set blink-matching-paren on
+
+# set colored-stats On
+# set mark-symlinked-directories On
+# set colored-completion-prefix On
+# set menu-complete-display-prefix On
 
 set editing-mode vi
 

@@ -85,7 +85,7 @@ bindsym $MOD+shift+w $EXEC firefox
 # must come after specific workspace assignments
 for_window [all] focus
 
-set $MODE_LEADER "<leader>"
+set $MODE_LEADER "[leader]"
 bindsym $MOD+space mode $MODE_LEADER
 
 set $ESC mode "default"
