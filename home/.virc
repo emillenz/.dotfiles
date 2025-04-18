@@ -19,12 +19,12 @@ set backupdir=~/.vim//,/tmp//
 set undodir=~/.vim//,/tmp//
 set directory=~/.vim//,/tmp//
 set undofile
-set path=**
+set path+=**/*
 set shortmess=a
 set completeopt=
-set wildignore=*.o,.*
+set wildignore=*.o,.*,.a,.so
 set wildmenu
-set wildmode=longest:full
+set wildmode=longest:full,full
 set wildignorecase
 set wildoptions="fuzzy,wild,pum"
 set gdefault
@@ -47,6 +47,7 @@ autocmd BufWritePre * :silent %s/\s\+$//e
 
 nnoremap Y y$
 nnoremap _ "_d
+nnoremap gf gF
 
 nnoremap Q @q
 cnoremap @ normal @

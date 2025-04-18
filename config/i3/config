@@ -109,12 +109,12 @@ mode $MODE_LEADER {
 	bindsym Escape $ESC
 }
 
-# class			border		bg		text	indicator	child_border
-client.focused		$BG 		$BG		$FG	$FG		$BG
+# class			border		bg		text	indicator	child_border/floating
+client.focused		$BG		$BG		$FG	$FG		$BORDER
 client.focused_inactive	$BORDER		$STATUS_BG	$FG	$FG		$BORDER
 client.unfocused	$BORDER    	$STATUS_BG	$FG	$FG		$BORDER
-client.urgent		$URGENT_BG 	$URGENT_BG	$FG	$FG		$URGENT_BG
-client.background	$BG
+client.urgent		$URGENT_BG	$URGENT_BG	$FG	$FG		$URGENT_BG
+client.background	$BORDER
 
 bar {
 	mode hide
