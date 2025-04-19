@@ -24,7 +24,7 @@ set shortmess=a
 set completeopt=
 set wildignore=*.o,.*,.a,.so
 set wildmenu
-set wildmode=longest:full
+set wildmode=longest:full,full
 set wildignorecase
 set wildoptions="fuzzy,wild,pum"
 set gdefault
@@ -45,41 +45,35 @@ set background=light
 
 autocmd BufWritePre * :silent %s/\s\+$//e
 
-nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
-nnoremap <c-c> <nop>
-
-nnoremap p ]p
-nnoremap P [p
-
-map [[ ?{<CR>w99[{
-map ][ /}<CR>b99]}
-map ]] j0[[%/{<CR>
-map [] k$][%?}<CR>
+nnoremap gf gF
 
 nnoremap Q @q
 cnoremap @ normal @
 
-nnoremap <c-d> <c-d>zz
-nnoremap <c-u> <c-u>zz
+nnoremap go mzo<esc>`z
+nnoremap gO mzO<esc>`z
+
+onoremap { V{
+onoremap } V}
 
 inoremap {<cr> {<cr>}<esc>O<tab>
 
-nnoremap go mxo<esc>`x
-nnoremap gO mxO<esc>`x
+nnoremap <c-d> <c-d>zz
+nnoremap <c-u> <c-u>zz
 
 nnoremap v <nop>
 nnoremap V <nop>
 nnoremap s <nop>
 nnoremap S <nop>
-nnoremap s mxv
-nnoremap ss mxV
-vnoremap ( <esc>`>a)<esc>`<i(<esc>`x
-vnoremap [ <esc>`>a]<esc>`<i[<esc>`x
-vnoremap { <esc>`>a}<esc>`<i{<esc>`x
-vnoremap " <esc>`>a"<esc>`<i"<esc>`x
-nnoremap ds( mxva(<esc>`>"_x`<"_x`x
-nnoremap ds[ mxva[<esc>`>"_x`<"_x`x
-nnoremap ds{ mxva{<esc>`>"_x`<"_x`x
-nnoremap ds" mxva"<esc>`>"_x`<"_x`x
+nnoremap s mzv
+nnoremap ss mzV
+vnoremap ( <esc>`>a)<esc>`<i(<esc>`z
+vnoremap [ <esc>`>a]<esc>`<i[<esc>`z
+vnoremap { <esc>`>a}<esc>`<i{<esc>`z
+vnoremap " <esc>`>a"<esc>`<i"<esc>`z
+nnoremap ds( mzva(<esc>`>"_x`<"_x`z
+nnoremap ds[ mzva[<esc>`>"_x`<"_x`z
+nnoremap ds{ mzva{<esc>`>"_x`<"_x`z
+nnoremap ds" mzva"<esc>`>"_x`<"_x`z
