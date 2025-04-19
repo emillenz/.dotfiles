@@ -1,8 +1,8 @@
 " ---
-" title:  minimalist vi config file
+" title: minimalist vim-minimal config file
 " author: emil lenz
-" email:  emilllenz@protonmail.com
-" date:   [2024-12-14]
+" email: emilllenz@protonmail.com
+" date: [2024-12-14]
 " ---
 
 set autowriteall
@@ -24,9 +24,10 @@ set shortmess=a
 set completeopt=
 set wildignore=*.o,.*,.a,.so
 set wildmenu
-set wildmode=longest:full
+set wildmode=full
 set wildignorecase
 set wildoptions="fuzzy,wild,pum"
+set wildchar=<c-n>
 set gdefault
 set autoread
 set relativenumber
@@ -49,6 +50,7 @@ nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
 nnoremap <c-c> <nop>
+inoremap {<cr> {<cr>}<esc>O<tab>
 
 nnoremap p ]p
 nnoremap P [p
@@ -64,22 +66,22 @@ cnoremap @ normal @
 nnoremap <c-d> <c-d>zz
 nnoremap <c-u> <c-u>zz
 
-inoremap {<cr> {<cr>}<esc>O<tab>
-
-nnoremap go mxo<esc>`x
-nnoremap gO mxO<esc>`x
+nnoremap go mqo<esc>`q
+nnoremap gO mqO<esc>`q
 
 nnoremap v <nop>
 nnoremap V <nop>
 nnoremap s <nop>
 nnoremap S <nop>
-nnoremap s mxv
-nnoremap ss mxV
-vnoremap ( <esc>`>a)<esc>`<i(<esc>`x
-vnoremap [ <esc>`>a]<esc>`<i[<esc>`x
-vnoremap { <esc>`>a}<esc>`<i{<esc>`x
-vnoremap " <esc>`>a"<esc>`<i"<esc>`x
-nnoremap ds( mxva(<esc>`>"_x`<"_x`x
-nnoremap ds[ mxva[<esc>`>"_x`<"_x`x
-nnoremap ds{ mxva{<esc>`>"_x`<"_x`x
-nnoremap ds" mxva"<esc>`>"_x`<"_x`x
+nnoremap s mqv
+nnoremap ss mqV
+vnoremap ( <esc>`>a)<esc>`<i(<esc>`q
+vnoremap [ <esc>`>a]<esc>`<i[<esc>`q
+vnoremap { <esc>`>a}<esc>`<i{<esc>`q
+vnoremap " <esc>`>a"<esc>`<i"<esc>`q
+vnoremap ' <esc>`>a'<esc>`<i'<esc>`q
+nnoremap ds( mqva(<esc>`>"_x`<"_x`q
+nnoremap ds[ mqva[<esc>`>"_x`<"_x`q
+nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
+nnoremap ds" mqva"<esc>`>"_x`<"_x`q
+nnoremap ds' mqva'<esc>`>"_x`<"_x`q

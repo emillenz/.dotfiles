@@ -1,9 +1,17 @@
+# ---
+# title: GNU readline config
+# author: emil lenz
+# email: emillenz@protonmail.com
+# date: [2024-11-30]
+# ---
+
 set keyseq-timeout 1
 set completion-ignore-case on
 set visible-stats On
 set show-all-if-ambiguous on
 set enable-bracketed-paste on
 set show-mode-in-prompt off
+set skip-completed-text on
 
 # set colored-stats On
 # set mark-symlinked-directories On
@@ -13,9 +21,9 @@ set show-mode-in-prompt off
 set editing-mode vi
 
 set keymap vi-command
-# navigate history based on current input
-"j": history-search-forward
-"k": history-search-backward
+j: history-search-forward
+k: history-search-backward
 
 set keymap vi-insert
 C-l: clear-screen
+C-n: complete

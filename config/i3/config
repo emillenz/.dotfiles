@@ -76,7 +76,7 @@ workspace edit gaps horizontal $GAPSIZE
 
 for_window [class="Zathura"] move container to workspace read
 bindsym $MOD+r workspace read
-bindsym $MOD+shift+r zathura
+bindsym $MOD+shift+r $EXEC zathura
 
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
