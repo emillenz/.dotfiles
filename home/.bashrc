@@ -36,7 +36,7 @@ alias\
 export\
 	EDITOR="vi"\
 	VISUAL="vi"\
-	HISTCONTROL=ignoredups:erasedups\
+	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=10000
 
 function find {
@@ -49,13 +49,4 @@ function cd {
 
 function rjs {
 	ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@
-}
-
-function sesh {
-	local dir=${1:-$(pwd)}
-	local cmd=${2:-vi}
-	local name=$(basename $dir | tr '[:upper:]' '[:lower:]')
-
-	tmux has-session -t $name &>/dev/null || tmux new-session -d -c $dir -s $name $cmd
-	[ -n $TMUX ] && tmux switch-client -t $name || tmux attach-session -t $name
 }

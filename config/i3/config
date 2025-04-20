@@ -71,7 +71,7 @@ bindsym $MOD+shift+v $EXEC thunar
 
 for_window [class="Alacritty"] move container to workspace edit
 bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e $EXEC alacritty --command tmux new-session -A
+bindsym $MOD+shift+e $EXEC alacritty --command sesh $HOME
 workspace edit gaps horizontal $GAPSIZE
 
 for_window [class="Zathura"] move container to workspace read
