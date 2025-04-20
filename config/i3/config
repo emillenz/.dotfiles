@@ -67,7 +67,7 @@ bindsym $MOD+shift+a $EXEC thunderbird
 
 for_window [class="Thunar"] move container to workspace dir
 bindsym $MOD+v workspace dir
-bindsym $MOD+vhift+v $EXEC thunar
+bindsym $MOD+shift+v $EXEC thunar
 
 for_window [class="Alacritty"] move container to workspace edit
 bindsym $MOD+e workspace edit

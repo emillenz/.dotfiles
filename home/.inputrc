@@ -26,4 +26,4 @@ k: history-search-backward
 
 set keymap vi-insert
 C-l: clear-screen
-C-n: complete
+C-@: complete
