@@ -12,7 +12,7 @@ unfocused_hollow = false
 WINIT_X11_SCALE_FACTOR = "1"
 
 [font]
-normal = {family = "Iosevka Comfy"}
+normal = {family = "Aporetic Sans mono"}
 size = 10
 
 [mouse]

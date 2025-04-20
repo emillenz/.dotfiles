@@ -9,7 +9,7 @@ offset = 16x16
 padding = 8
 horizontal_padding = 8
 transparency = 0
-font = Iosevka Comfy 10
+font = Aporetic Sans Mono 10
 format = "<b>%s %p</b>\n%b"
 
 # MODUS OPERANDI THEME

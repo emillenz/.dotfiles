@@ -11,7 +11,7 @@ set page-padding 1
 set selection-clipboard clipboard
 set window-title-basename true
 set statusbar-basename true
-set font "Iosevka Comfy 10"
+set font "Aporetic Sans Mono 10"
 set adjust-open "best-fit"
 set window-title-page true
 set render-loading true
@@ -20,8 +20,6 @@ set recolor-keephue true
 map = zoom in
 map - zoom out
 map z snap_to_page
-map <Space> navigate next
-map <S-Space> navigate previous
 
 # modus operandi theme
 set notification-error-bg       "#c8c8c8"
