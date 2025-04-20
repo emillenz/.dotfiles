@@ -55,8 +55,6 @@ nnoremap \ i<cr><esc>
 nnoremap <c-c> <nop>
 nnoremap s <nop>
 nnoremap S <nop>
-vnoremap x <nop>
-vnoremap X <nop>
 nnoremap v <nop>
 nnoremap V <nop>
 
