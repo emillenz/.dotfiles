@@ -54,7 +54,6 @@ bindsym XF86AudioMicMute $EXEC pamixer --default-source --toggle-mute
 
 bindsym $MOD+p focus left
 bindsym $MOD+n focus right
-bindsym $MOD+Tab workspace back_and_forth
 
 bindsym $MOD+semicolon $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'desktop-run' $DMENU_ARGS"
 bindsym $MOD+shift+semicolon $EXEC dmenu_run -p "run" $DMENU_ARGS
