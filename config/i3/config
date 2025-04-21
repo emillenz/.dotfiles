@@ -85,7 +85,7 @@ bindsym $MOD+shift+w $EXEC firefox
 # must come after specific workspace assignments
 for_window [all] focus
 
-set $MODE_LEADER "<leader>"
+set $MODE_LEADER "leader"
 bindsym $MOD+space mode $MODE_LEADER
 
 set $ESC mode "default"
@@ -131,8 +131,8 @@ bar {
 		background $STATUS_BG
 		statusline $FG
 		separator $FG
-		#class			$border		$bg		$fg
-		binding_mode		$STATUS_BG	$STATUS_BG	$FG
+		# class			border		bg		fg
+		binding_mode		$STATUS_BG	$STATUS_BG	$STATUS_BG
 		focused_workspace	$BORDER		$BG		$FG
 		active_workspace	$BORDER		$STATUS_BG	$FG
 		inactive_workspace	$BORDER		$STATUS_BG	$FG

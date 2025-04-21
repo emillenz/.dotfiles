@@ -44,8 +44,6 @@ set wrap
 set breakindent
 set linebreak
 set shellcmdflag=-lc
-set cpoptions+=J
-set joinspaces
 
 autocmd BufWritePre * :silent %s/\s\+$//e
 
@@ -54,12 +52,6 @@ nnoremap Y y$
 nnoremap _ "_d
 inoremap {<cr> {<cr>}<esc>O<tab>
 nnoremap \ i<cr><esc>
-
-nnoremap <c-c> <nop>
-nnoremap s <nop>
-nnoremap S <nop>
-nnoremap v <nop>
-nnoremap V <nop>
 
 onoremap { V{
 onoremap } V}
@@ -75,11 +67,19 @@ map [] k$][%?}<CR>
 nnoremap Q @q
 cnoremap @ normal @
 
-nnoremap <c-d> <c-d>zz
-nnoremap <c-u> <c-u>zz
-
 nnoremap go mqo<esc>`q
 nnoremap gO mqO<esc>`q
+
+nnoremap v <nop>
+nnoremap V <nop>
+nnoremap s <nop>
+nnoremap S <nop>
+nnoremap <c-e> <nop>
+nnoremap <c-y> <nop>
+nnoremap <c-d> <c-d>zz
+nnoremap <c-u> <c-u>zz
+nnoremap <c-o> <c-o>zz
+nnoremap <c-i> <c-i>zz
 
 nnoremap s mqv
 nnoremap ss mqV

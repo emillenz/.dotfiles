@@ -7,7 +7,7 @@
 # date:   [2024-11-30]
 # ---
 
-export IFS=$'\n' # invoked scripts disregard this setting (doesn't break).
+export IFS=$'\n' # scripts ignore this value (interactive only)
 
 shopt -s\
 	globstar\
@@ -40,5 +40,5 @@ export\
 	HISTSIZE=10000
 
 function find { command find $@ -type f -not -path './.*'; }
-function cd { command cd $@ && ls; }
+function cd { command cd $@ &>/dev/null && ls; }
 function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@; }
