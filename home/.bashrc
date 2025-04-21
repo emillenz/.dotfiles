@@ -39,14 +39,6 @@ export\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=10000
 
-function find {
-	command find $@ -type f -not -path './.*'
-}
-
-function cd {
-    command cd $@ && ls
-}
-
-function rjs {
-	ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@
-}
+function find { command find $@ -type f -not -path './.*'; }
+function cd { command cd $@ && ls; }
+function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@; }

@@ -5,6 +5,7 @@
 " date: [2024-12-14]
 " ---
 
+set nocompatible
 set hidden
 set showcmd
 set autoindent
@@ -14,26 +15,27 @@ set incsearch
 set nostartofline
 set smarttab
 set confirm
-set nobackup
-set undofile
-set undodir=~/.vim//,/tmp//
-set directory=~/.vim//,/tmp//
-set path+=**/*
 set shortmess=a
-set completeopt=
-set wildignore=*.o,.*,.a,.so
-set wildmenu
-set wildignorecase
-set wildoptions="fuzzy,wild,pum"
-set wildchar=<c-@>
-set wildmode=longest:full
 set gdefault
 set autoread
 set relativenumber
 set noruler
 set noshowmode
 set laststatus=0
+set background=light
 set fillchars=eob:\ ,lastline:\ ,
+set nobackup
+set undofile
+set undodir=~/.vim//,/tmp//
+set directory=~/.vim//,/tmp//
+set completeopt=
+set path+=**/*
+set wildignore=*.o,.*,.a,.so
+set wildmenu
+set wildignorecase
+set wildoptions="fuzzy,wild,pum"
+set wildchar=<c-@>
+set wildmode=longest:full
 set ttimeout
 set ttimeoutlen=50
 set formatoptions+=jn
@@ -42,7 +44,8 @@ set wrap
 set breakindent
 set linebreak
 set shellcmdflag=-lc
-set background=light
+set cpoptions+=J
+set joinspaces
 
 autocmd BufWritePre * :silent %s/\s\+$//e
 
