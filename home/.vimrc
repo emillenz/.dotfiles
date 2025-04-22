@@ -58,7 +58,6 @@ runtime ftplugin/man.vim
 
 autocmd BufWritePre * :silent %s/\s\+$//e
 
-
 let g:netrw_banner=0
 let g:netrw_keepdir=0
 let g:netrw_hide = 1
@@ -69,17 +68,16 @@ autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr>
 nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
+nnoremap <c-c> <c-c><c-c>
 nnoremap \ i<cr><esc>
 nnoremap <silent> <esc> <esc>:nohl<cr>
 
-autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd p<cr> | nmap <buffer><silent> j j<cr> | nmap <buffer><silent> k k<cr>
-nnoremap ]q :cnext<cr>
-nnoremap [q :cprevious<cr>
-nnoremap ]Q :crewind<cr>
-nnoremap [Q :clast<cr>
+autocmd FileType qf nnoremap <buffer><silent> j j<cr>:wincmd p<cr> | nnoremap <buffer><silent> k k<cr>:wincmd p<cr> | nnoremap <buffer><silent> <cr> <cr><c-w><c-o>
+nnoremap <silent> ]q :cnext<cr>
+nnoremap <silent> [q :cprevious<cr>
+nnoremap <silent> [Q :crewind<cr>
+nnoremap <silent> ]Q :clast<cr>
 
-nnoremap <c-w> <c-w><c-w>
-nnoremap <c-q> <c-w><c-q>
 cnoreabbrev term term ++curwin
 
 inoremap {<CR> {<CR>}<Esc>O
