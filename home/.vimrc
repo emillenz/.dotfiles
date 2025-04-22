@@ -1,5 +1,5 @@
 " ---
-" title: minimalist vim-minimal config file
+" title: minimalist vim config (no plugins, no vimscript)
 " author: emil lenz
 " email: emilllenz@protonmail.com
 " date: [2024-12-14]
@@ -14,6 +14,7 @@ set smartcase
 set incsearch
 set nostartofline
 set smarttab
+set smartindent
 set confirm
 set shortmess=a
 set gdefault
@@ -22,7 +23,6 @@ set relativenumber
 set noruler
 set noshowmode
 set laststatus=0
-set background=light
 set fillchars=eob:\ ,lastline:\ ,
 set nobackup
 set undofile
@@ -44,14 +44,31 @@ set wrap
 set breakindent
 set linebreak
 set shellcmdflag=-lc
+set shiftround
+set hlsearch
+set encoding=utf8
+set background=light
+
+syntax off
+filetype plugin indent on
+runtime ftplugin/man.vim
 
 autocmd BufWritePre * :silent %s/\s\+$//e
+
+let g:netrw_banner=0
+let g:netrw_keepdir=0
+let g:netrw_hide = 1
+let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
+let g:netrw_localcopydircmd = 'cp --recursive'
+autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr>
 
 nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
-inoremap {<cr> {<cr>}<esc>O<tab>
 nnoremap \ i<cr><esc>
+nnoremap <silent> <esc> <esc>:nohl<cr>
+
+inoremap {<CR> {<CR>}<Esc>O
 
 onoremap { V{
 onoremap } V}
@@ -82,7 +99,7 @@ nnoremap <c-o> <c-o>zz
 nnoremap <c-i> <c-i>zz
 
 nnoremap s mqv
-nnoremap ss mqV
+nnoremap ss mq^v$
 vnoremap ( <esc>`>a)<esc>`<i(<esc>`q
 vnoremap [ <esc>`>a]<esc>`<i[<esc>`q
 vnoremap { <esc>`>a}<esc>`<i{<esc>`q
@@ -93,3 +110,5 @@ nnoremap ds[ mqva[<esc>`>"_x`<"_x`q
 nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
 nnoremap ds" mqva"<esc>`>"_x`<"_x`q
 nnoremap ds' mqva'<esc>`>"_x`<"_x`q
+
+nnoremap <silent> ' :execute "normal! '" . toupper(nr2char(getchar())) . '`"'<cr>

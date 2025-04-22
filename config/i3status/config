@@ -17,23 +17,23 @@ general {
 
 order += "ethernet _first_"
 order += "wireless _first_"
-order += "path_exists VPN"
+order += "path_exists vpn"
 order += "battery all"
 order += "volume master"
 order += "tztime local"
 
 wireless _first_ {
-        format_up = "[WIFI %essid %quality]"
+        format_up = "[%essid %quality]"
         format_down = ""
 }
 
 ethernet _first_ {
-        format_up = "[ETH]"
+        format_up = "[eth]"
         format_down = ""
 }
 
 battery all {
-        format = "[BAT %status %percentage %emptytime]"
+        format = "[%status%percentage %emptytime]"
         integer_battery_capacity = true
         last_full_capacity = true
         hide_seconds = true
@@ -42,13 +42,13 @@ battery all {
         format_down = ""
         status_chr = "+"
         status_bat = "-"
-        status_full = "*"
+        status_full = ""
         status_unk = "?"
 }
 
 volume master {
         format = "[%devicename %volume]"
-        format_muted = "[%devicename mute]"
+        format_muted = "[%devicename: mute]"
         device = "default"
         mixer = "Master"
         mixer_idx = 0
@@ -59,8 +59,8 @@ tztime local {
 }
 
 # path exists when a VPN tunnel launched by nmcli/nm-applet is active
-path_exists VPN {
-	format = "[VPN]"
+path_exists vpn {
+	format = "[vpn]"
 	format_down = ""
         path = "/proc/sys/net/ipv4/conf/tun0"
 }

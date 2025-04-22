@@ -34,8 +34,8 @@ alias\
 	less="less --ignore-case"
 
 export\
-	EDITOR="vi"\
-	VISUAL="vi"\
+	EDITOR="vim"\
+	VISUAL="vim"\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=10000
 

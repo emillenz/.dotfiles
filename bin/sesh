@@ -12,5 +12,6 @@ dir=${1:-$(pwd)}
 cmd=${2:-$EDITOR}
 name=$(basename $dir | tr '[:upper:]' '[:lower:]')
 
-tmux has-session -t $name &>/dev/null || tmux new-session -d -c $dir -s $name $cmd
-[ -n $TMUX ] && tmux switch-client -t $name || tmux attach-session -t $name
+tmux has-session -t $name &>/dev/null || tmux new-session -d -c $dir -s $name $cmd && echo 2
+[ -n $TMUX ] && tmux switch-client -t $name && echo 3
+tmux attach-session -t $name && echo 4
