@@ -29,7 +29,7 @@ set undofile
 set undodir=~/.vim//,/tmp//
 set directory=~/.vim//,/tmp//
 set completeopt=
-set path+=**/*
+set path=.,,**/*
 set wildignore=*.o,.*,.a,.so
 set wildmenu
 set wildignorecase
@@ -46,14 +46,18 @@ set linebreak
 set shellcmdflag=-lc
 set shiftround
 set hlsearch
+set splitbelow
 set encoding=utf8
 set background=light
 
+set cursorline
+colorscheme shine
 syntax off
 filetype plugin indent on
 runtime ftplugin/man.vim
 
 autocmd BufWritePre * :silent %s/\s\+$//e
+autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd p<cr> | nmap <buffer><silent> j j<cr> | nmap <buffer><silent> k k<cr>
 
 let g:netrw_banner=0
 let g:netrw_keepdir=0
@@ -67,6 +71,14 @@ nnoremap Y y$
 nnoremap _ "_d
 nnoremap \ i<cr><esc>
 nnoremap <silent> <esc> <esc>:nohl<cr>
+
+nnoremap ]q :cnext<cr>
+nnoremap [q :cprevious<cr>
+nnoremap ]Q :crewind<cr>
+nnoremap [Q :clast<cr>
+
+nnoremap <c-w> <c-w><c-w>
+nnoremap <c-q> <c-w><c-q>
 
 inoremap {<CR> {<CR>}<Esc>O
 
