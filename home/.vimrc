@@ -57,7 +57,7 @@ filetype plugin indent on
 runtime ftplugin/man.vim
 
 autocmd BufWritePre * :silent %s/\s\+$//e
-autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd p<cr> | nmap <buffer><silent> j j<cr> | nmap <buffer><silent> k k<cr>
+
 
 let g:netrw_banner=0
 let g:netrw_keepdir=0
@@ -72,6 +72,7 @@ nnoremap _ "_d
 nnoremap \ i<cr><esc>
 nnoremap <silent> <esc> <esc>:nohl<cr>
 
+autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd p<cr> | nmap <buffer><silent> j j<cr> | nmap <buffer><silent> k k<cr>
 nnoremap ]q :cnext<cr>
 nnoremap [q :cprevious<cr>
 nnoremap ]Q :crewind<cr>
@@ -79,6 +80,7 @@ nnoremap [Q :clast<cr>
 
 nnoremap <c-w> <c-w><c-w>
 nnoremap <c-q> <c-w><c-q>
+cnoreabbrev term term ++curwin
 
 inoremap {<CR> {<CR>}<Esc>O
 
