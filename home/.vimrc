@@ -56,29 +56,30 @@ syntax off
 filetype plugin indent on
 runtime ftplugin/man.vim
 
-autocmd BufWritePre * :silent %s/\s\+$//e
-
 let g:netrw_banner=0
 let g:netrw_keepdir=0
 let g:netrw_hide = 1
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
 let g:netrw_localcopydircmd = 'cp --recursive'
-autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr>
+autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr> | nmap <buffer> e %
+command! R Rexplore
+
+autocmd BufWritePre * :silent %s/\s\+$//e
 
 nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
-nnoremap <c-c> <c-c><c-c>
-nnoremap \ i<cr><esc>
+nnoremap L i<cr><esc>
 nnoremap <silent> <esc> <esc>:nohl<cr>
+nnoremap <silent> ' :execute "normal! '" . toupper(nr2char(getchar())) . '`"'<cr>
 
-autocmd FileType qf nnoremap <buffer><silent> j j<cr>:wincmd p<cr> | nnoremap <buffer><silent> k k<cr>:wincmd p<cr> | nnoremap <buffer><silent> <cr> <cr><c-w><c-o>
+cnoreabbrev term term++curwin
+
+cnoreabbrev <silent> cw cw \| only
 nnoremap <silent> ]q :cnext<cr>
 nnoremap <silent> [q :cprevious<cr>
-nnoremap <silent> [Q :crewind<cr>
+nnoremap <silent> [Q :cfirst<cr>
 nnoremap <silent> ]Q :clast<cr>
-
-cnoreabbrev term term ++curwin
 
 inoremap {<CR> {<CR>}<Esc>O
 
@@ -103,6 +104,7 @@ nnoremap v <nop>
 nnoremap V <nop>
 nnoremap s <nop>
 nnoremap S <nop>
+nnoremap <c-c> <nop>
 nnoremap <c-e> <nop>
 nnoremap <c-y> <nop>
 nnoremap <c-d> <c-d>zz
@@ -122,5 +124,3 @@ nnoremap ds[ mqva[<esc>`>"_x`<"_x`q
 nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
 nnoremap ds" mqva"<esc>`>"_x`<"_x`q
 nnoremap ds' mqva'<esc>`>"_x`<"_x`q
-
-nnoremap <silent> ' :execute "normal! '" . toupper(nr2char(getchar())) . '`"'<cr>
