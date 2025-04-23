@@ -16,7 +16,7 @@ set nostartofline
 set smarttab
 set smartindent
 set confirm
-set shortmess=a
+set shortmess+=a
 set gdefault
 set autoread
 set relativenumber
@@ -78,10 +78,10 @@ cnoreabbrev term term++curwin
 
 cnoreabbrev <silent> cw cw \| silent only
 autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd o<cr>
-nnoremap <silent> ]q :silent cnext<cr>
-nnoremap <silent> [q :silent cprevious<cr>
-nnoremap <silent> [Q :silent cfirst<cr>
-nnoremap <silent> ]Q :silent clast<cr>
+nnoremap <silent> ]q :cnext<cr>
+nnoremap <silent> [q :cprevious<cr>
+nnoremap <silent> [Q :cfirst<cr>
+nnoremap <silent> ]Q :clast<cr>
 
 onoremap { V{
 onoremap } V}
