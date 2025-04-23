@@ -20,6 +20,7 @@ set shortmess=a
 set gdefault
 set autoread
 set relativenumber
+set number
 set noruler
 set noshowmode
 set laststatus=0
@@ -48,20 +49,17 @@ set shiftround
 set hlsearch
 set splitbelow
 set encoding=utf8
+set notermguicolors
 set background=light
-
-set cursorline
-colorscheme shine
+set nocursorline
 syntax off
 filetype plugin indent on
-runtime ftplugin/man.vim
 
 let g:netrw_banner=0
-let g:netrw_keepdir=0
 let g:netrw_hide = 1
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
 let g:netrw_localcopydircmd = 'cp --recursive'
-autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr> | nmap <buffer> e %
+autocmd FileType netrw nmap <buffer> h -^ <bar> nmap <buffer> l <cr> <bar> nmap <buffer> e %
 command! R Rexplore
 
 autocmd BufWritePre * :silent %s/\s\+$//e
@@ -71,17 +69,16 @@ nnoremap Y y$
 nnoremap _ "_d
 nnoremap L i<cr><esc>
 nnoremap <silent> <esc> <esc>:nohl<cr>
-nnoremap <silent> ' :execute "normal! '" . toupper(nr2char(getchar())) . '`"'<cr>
-
+nnoremap <expr><silent> ' feedkeys('`' . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))) . '`"', 'nt')
 cnoreabbrev term term++curwin
+inoremap {<CR> {<CR>}<Esc>O
 
-cnoreabbrev <silent> cw cw \| only
+cnoreabbrev <silent> cw cw <bar> silent only
+autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd o<cr>
 nnoremap <silent> ]q :cnext<cr>
 nnoremap <silent> [q :cprevious<cr>
 nnoremap <silent> [Q :cfirst<cr>
 nnoremap <silent> ]Q :clast<cr>
-
-inoremap {<CR> {<CR>}<Esc>O
 
 onoremap { V{
 onoremap } V}
@@ -107,6 +104,7 @@ nnoremap S <nop>
 nnoremap <c-c> <nop>
 nnoremap <c-e> <nop>
 nnoremap <c-y> <nop>
+
 nnoremap <c-d> <c-d>zz
 nnoremap <c-u> <c-u>zz
 nnoremap <c-o> <c-o>zz
