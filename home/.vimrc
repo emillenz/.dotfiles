@@ -34,7 +34,7 @@ set path=.,,**/*
 set wildignore=*.o,.*,.a,.so
 set wildmenu
 set wildignorecase
-set wildoptions="fuzzy,wild,pum"
+set wildoptions="fuzzy,wild"
 set wildchar=<c-@>
 set wildmode=longest:full
 set ttimeout
@@ -58,12 +58,10 @@ filetype plugin indent on
 
 let g:netrw_banner=0
 let g:netrw_hide = 1
-let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
-let g:netrw_localcopydircmd = 'cp --recursive'
+let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
+let g:netrw_localcopydircmd = "cp --recursive"
 let g:netrw_cursor = 5
-autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr> |
-nmap <buffer> e %
-command! R Rexplore
+autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr> | nmap <buffer> e %
 
 autocmd BufWritePre * :silent %s/\s\+$//e
 
@@ -73,7 +71,12 @@ nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<CR> {<CR>}<Esc>O
 nnoremap <silent> <esc> <esc>:nohl<cr>
-nnoremap <expr><silent> ' feedkeys('`' . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))) . '`"zz', 'nt')
+
+" OG
+" nnoremap <expr><silent> ' feedkeys("`" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))) . '`"zz', "nt")
+
+nnoremap <silent> ' :execute "edit " .  fnameescape(bufname(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0]))<cr>
+
 cnoreabbrev term term++curwin
 
 cnoreabbrev <silent> cw cw \| silent only
