@@ -37,7 +37,8 @@ export\
 	EDITOR="vim"\
 	VISUAL="vim"\
 	HISTCONTROL=ignoreboth:erasedups\
-	HISTSIZE=10000
+	HISTSIZE=1000\
+	PYTHON_BASIC_REPL=1
 
 function find { command find $@ -type f -not -path './.*'; }
 function cd { command cd $@ &>/dev/null && ls; }

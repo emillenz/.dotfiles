@@ -49,6 +49,7 @@ set shiftround
 set hlsearch
 set splitbelow
 set encoding=utf8
+
 set notermguicolors
 set background=light
 set nocursorline
@@ -59,7 +60,9 @@ let g:netrw_banner=0
 let g:netrw_hide = 1
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
 let g:netrw_localcopydircmd = 'cp --recursive'
-autocmd FileType netrw nmap <buffer> h -^ <bar> nmap <buffer> l <cr> <bar> nmap <buffer> e %
+let g:netrw_cursor = 5
+autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr> |
+nmap <buffer> e %
 command! R Rexplore
 
 autocmd BufWritePre * :silent %s/\s\+$//e
@@ -68,17 +71,17 @@ nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
 nnoremap L i<cr><esc>
-nnoremap <silent> <esc> <esc>:nohl<cr>
-nnoremap <expr><silent> ' feedkeys('`' . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))) . '`"', 'nt')
-cnoreabbrev term term++curwin
 inoremap {<CR> {<CR>}<Esc>O
+nnoremap <silent> <esc> <esc>:nohl<cr>
+nnoremap <expr><silent> ' feedkeys('`' . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))) . '`"zz', 'nt')
+cnoreabbrev term term++curwin
 
-cnoreabbrev <silent> cw cw <bar> silent only
+cnoreabbrev <silent> cw cw \| silent only
 autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd o<cr>
-nnoremap <silent> ]q :cnext<cr>
-nnoremap <silent> [q :cprevious<cr>
-nnoremap <silent> [Q :cfirst<cr>
-nnoremap <silent> ]Q :clast<cr>
+nnoremap <silent> ]q :silent cnext<cr>
+nnoremap <silent> [q :silent cprevious<cr>
+nnoremap <silent> [Q :silent cfirst<cr>
+nnoremap <silent> ]Q :silent clast<cr>
 
 onoremap { V{
 onoremap } V}
@@ -101,7 +104,7 @@ nnoremap v <nop>
 nnoremap V <nop>
 nnoremap s <nop>
 nnoremap S <nop>
-nnoremap <c-c> <nop>
+nnoremap <c-w> <nop>
 nnoremap <c-e> <nop>
 nnoremap <c-y> <nop>
 
