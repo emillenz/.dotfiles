@@ -30,15 +30,15 @@ set nobackup
 set undofile
 set undodir=~/.vim//,/tmp//
 set directory=~/.vim//,/tmp//
-set completeopt=
 set path=.,,**/*
 set wildignore=*.o,.*,.a,.so
 set wildmenu
 set wildignorecase
-set wildoptions=tagfile,pum
-set pumheight=10
 set wildchar=<c-@>
 set wildmode=longest:full
+set wildoptions=tagfile,pum
+set pumheight=8
+set completeopt=
 set ttimeout
 set ttimeoutlen=50
 set formatoptions+=jn
@@ -51,6 +51,7 @@ set shiftround
 set hlsearch
 set splitbelow
 set encoding=utf8
+set cmdwinheight=1
 
 set notermguicolors
 set background=light

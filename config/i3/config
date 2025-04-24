@@ -7,7 +7,7 @@
 
 set $EXEC exec --no-startup-id
 set $EXEC_ALWAYS exec_always --no-startup-id
-set $DMENU_ARGS -b -i -fn 'Aporetic Sans Mono-10' -nb '#c8c8c8' -nf '#000000' -sb '#ffffff' -sf '#000000'
+set $DMENU_ARGS -b -l 8 -i -fn 'Aporetic Sans Mono-10' -nb '#ffffff' -nf '#000000' -sb '#c8c8c8' -sf '#000000'
 
 set $BG		#ffffff
 set $FG		#000000
