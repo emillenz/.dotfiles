@@ -24,6 +24,7 @@ set number
 set noruler
 set noshowmode
 set laststatus=0
+set showtabline=0
 set fillchars=eob:\ ,lastline:\ ,
 set nobackup
 set undofile
@@ -34,7 +35,8 @@ set path=.,,**/*
 set wildignore=*.o,.*,.a,.so
 set wildmenu
 set wildignorecase
-set wildoptions="fuzzy,wild"
+set wildoptions=tagfile,pum
+set pumheight=10
 set wildchar=<c-@>
 set wildmode=longest:full
 set ttimeout
@@ -56,12 +58,12 @@ set nocursorline
 syntax off
 filetype plugin indent on
 
-let g:netrw_banner=0
-let g:netrw_hide = 1
-let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
-let g:netrw_localcopydircmd = "cp --recursive"
+let g:netrw_banner = 0
+let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
+let g:netrw_localcopydircmd = 'cp --recursive'
 let g:netrw_cursor = 5
-autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr> | nmap <buffer> e %
+let g:netrw_altfile = 1
+autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
 
 autocmd BufWritePre * :silent %s/\s\+$//e
 
@@ -72,19 +74,19 @@ nnoremap L i<cr><esc>
 inoremap {<CR> {<CR>}<Esc>O
 nnoremap <silent> <esc> <esc>:nohl<cr>
 
-nnoremap <silent> ' :execute "buffer " .  getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0]<cr>
+nnoremap <silent> ' :execute 'buffer ' .  fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])<cr>
 
 cnoreabbrev term term++curwin
 
-cnoreabbrev <silent> cw cw \| silent only
 autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd o<cr>
+cnoreabbrev <silent> cw cw \| silent only
+cnoreabbrev <silent> lw lw \| silent only
+autocmd QuickFixCmdPost [^l]* call feedkeys(':cw\<cr>')
+autocmd QuickFixCmdPost l* call feedkeys(':lw\<cr>')
 nnoremap <silent> ]q :cnext<cr>
 nnoremap <silent> [q :cprevious<cr>
 nnoremap <silent> [Q :cfirst<cr>
 nnoremap <silent> ]Q :clast<cr>
-
-onoremap { V{
-onoremap } V}
 
 nnoremap p ]p
 nnoremap P [p
@@ -120,8 +122,10 @@ vnoremap [ <esc>`>a]<esc>`<i[<esc>`q
 vnoremap { <esc>`>a}<esc>`<i{<esc>`q
 vnoremap " <esc>`>a"<esc>`<i"<esc>`q
 vnoremap ' <esc>`>a'<esc>`<i'<esc>`q
+vnoremap ` <esc>`>a`<esc>`<i`<esc>`q
 nnoremap ds( mqva(<esc>`>"_x`<"_x`q
 nnoremap ds[ mqva[<esc>`>"_x`<"_x`q
 nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
-nnoremap ds" mqva"<esc>`>"_x`<"_x`q
-nnoremap ds' mqva'<esc>`>"_x`<"_x`q
+nnoremap ds" mqva"h<esc>`>"_x`<"_x`q
+nnoremap ds' mqva'h<esc>`>"_x`<"_x`q
+nnoremap ds` mqva`h<esc>`>"_x`<"_x`q

@@ -34,7 +34,6 @@ default_floating_border pixel 1
 title_align left
 font pango: Aporetic Sans Mono 10
 focus_on_window_activation focus
-smart_gaps inverse_outer
 
 set $MOD Mod1
 floating_modifier $MOD

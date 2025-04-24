@@ -12,6 +12,7 @@ set show-all-if-ambiguous on
 set enable-bracketed-paste on
 set show-mode-in-prompt off
 set skip-completed-text on
+set completion-display-width 1
 
 # set colored-stats On
 # set mark-symlinked-directories On
