@@ -1,5 +1,5 @@
 " ---
-" title: minimalist vim config (no plugins, no vimscript)
+" title: minimalist vim config (no plugins)
 " author: emil lenz
 " email: emilllenz@protonmail.com
 " date: [2024-12-14]
@@ -31,7 +31,7 @@ set undofile
 set undodir=~/.vim//,/tmp//
 set directory=~/.vim//,/tmp//
 set path=.,,**/*
-set wildignore=*.o,.*,.a,.so
+set wildignore=*.o,.a,.so,.*
 set wildmenu
 set wildignorecase
 set wildchar=<c-@>
@@ -52,21 +52,11 @@ set hlsearch
 set splitbelow
 set encoding=utf8
 set cmdwinheight=1
-
 set notermguicolors
 set background=light
 set nocursorline
 syntax off
 filetype plugin indent on
-
-let g:netrw_banner = 0
-let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
-let g:netrw_localcopydircmd = 'cp --recursive'
-let g:netrw_cursor = 5
-let g:netrw_altfile = 1
-autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
-
-autocmd BufWritePre * :silent %s/\s\+$//e
 
 nnoremap gf gF
 nnoremap Y y$
@@ -75,15 +65,6 @@ nnoremap L i<cr><esc>
 inoremap {<CR> {<CR>}<Esc>O
 nnoremap <silent> <esc> <esc>:nohl<cr>
 
-nnoremap <silent> ' :execute 'buffer ' .  fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])<cr>
-
-cnoreabbrev term term++curwin
-
-autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:wincmd o<cr>
-cnoreabbrev <silent> cw cw \| silent only
-cnoreabbrev <silent> lw lw \| silent only
-autocmd QuickFixCmdPost [^l]* call feedkeys(':cw\<cr>')
-autocmd QuickFixCmdPost l* call feedkeys(':lw\<cr>')
 nnoremap <silent> ]q :cnext<cr>
 nnoremap <silent> [q :cprevious<cr>
 nnoremap <silent> [Q :cfirst<cr>
@@ -130,3 +111,19 @@ nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
 nnoremap ds" mqva"h<esc>`>"_x`<"_x`q
 nnoremap ds' mqva'h<esc>`>"_x`<"_x`q
 nnoremap ds` mqva`h<esc>`>"_x`<"_x`q
+
+autocmd BufWritePre * :silent %s/\s\+$//e
+
+nnoremap <silent> ' :execute "buffer " .  fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
+
+autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:silent only<cr> | call feedkeys(":only\<cr>")
+autocmd QuickFixCmdPost [^l]* nested call feedkeys(":cwindow\<cr>") | redraw!
+cnoreabbrev make silent make
+cnoreabbrev grep silent grep
+
+let g:netrw_banner = 0
+let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
+let g:netrw_localcopydircmd = 'cp --recursive'
+let g:netrw_cursor = 5
+let g:netrw_altfile = 1
+autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
