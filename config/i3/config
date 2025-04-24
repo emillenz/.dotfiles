@@ -34,6 +34,7 @@ default_floating_border pixel 1
 title_align left
 font pango: Aporetic Sans Mono 10
 focus_on_window_activation focus
+smart_gaps inverse_outer
 
 set $MOD Mod1
 floating_modifier $MOD
@@ -70,7 +71,7 @@ bindsym $MOD+shift+v $EXEC thunar
 
 for_window [class="Alacritty"] move container to workspace edit
 bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e $EXEC alacritty --command sesh $HOME
+bindsym $MOD+shift+e $EXEC alacritty --command tmux new-session -A -s $(basename $HOME)
 workspace edit gaps horizontal $GAPSIZE
 
 for_window [class="Zathura"] move container to workspace read
