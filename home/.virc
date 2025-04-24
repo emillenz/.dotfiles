@@ -55,8 +55,8 @@ set cmdwinheight=1
 set notermguicolors
 set background=light
 set nocursorline
-syntax off
-filetype plugin indent on
+
+autocmd BufWritePre * :silent %s/\s\+$//e
 
 nnoremap gf gF
 nnoremap Y y$
@@ -64,11 +64,6 @@ nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<CR> {<CR>}<Esc>O
 nnoremap <silent> <esc> <esc>:nohl<cr>
-
-nnoremap <silent> ]q :cnext<cr>
-nnoremap <silent> [q :cprevious<cr>
-nnoremap <silent> [Q :cfirst<cr>
-nnoremap <silent> ]Q :clast<cr>
 
 nnoremap p ]p
 nnoremap P [p
@@ -88,7 +83,6 @@ nnoremap v <nop>
 nnoremap V <nop>
 nnoremap s <nop>
 nnoremap S <nop>
-nnoremap <c-w> <nop>
 nnoremap <c-e> <nop>
 nnoremap <c-y> <nop>
 
@@ -111,19 +105,3 @@ nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
 nnoremap ds" mqva"h<esc>`>"_x`<"_x`q
 nnoremap ds' mqva'h<esc>`>"_x`<"_x`q
 nnoremap ds` mqva`h<esc>`>"_x`<"_x`q
-
-autocmd BufWritePre * :silent %s/\s\+$//e
-
-nnoremap <silent> ' :execute "buffer " .  fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
-
-autocmd FileType qf nnoremap <buffer><silent> <cr> <cr>:silent only<cr> | call feedkeys(":only\<cr>")
-autocmd QuickFixCmdPost [^l]* nested call feedkeys(":cwindow\<cr>") | redraw!
-cnoreabbrev make silent make
-cnoreabbrev grep silent grep
-
-let g:netrw_banner = 0
-let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
-let g:netrw_localcopydircmd = 'cp --recursive'
-let g:netrw_cursor = 5
-let g:netrw_altfile = 1
-autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>

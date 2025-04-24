@@ -24,7 +24,7 @@ shopt -s\
 export PS1='\n\[\e]133;A\\\]\[\e[1m\][\W] \[\e[0m\]'
 
 alias\
-	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --format=single-column --file-type --color=never -F"\
+	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --file-type --format=single-column --color=never -F"\
 	grep="grep --line-number --extended-regexp --ignore-case"\
 	rm="rm --verbose --recursive --interactive=once"\
 	less="less --ignore-case"\
@@ -34,8 +34,8 @@ alias\
 	less="less --ignore-case"
 
 export\
-	EDITOR="vim"\
-	VISUAL="vim"\
+	EDITOR="vi"\
+	VISUAL="vi"\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=1000\
 	PYTHON_BASIC_REPL=1
