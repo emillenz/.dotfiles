@@ -72,10 +72,7 @@ nnoremap L i<cr><esc>
 inoremap {<CR> {<CR>}<Esc>O
 nnoremap <silent> <esc> <esc>:nohl<cr>
 
-" OG
-" nnoremap <expr><silent> ' feedkeys("`" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))) . '`"zz', "nt")
-
-nnoremap <silent> ' :execute "edit " .  fnameescape(bufname(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0]))<cr>
+nnoremap <silent> ' :execute "buffer " .  getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0]<cr>
 
 cnoreabbrev term term++curwin
 
