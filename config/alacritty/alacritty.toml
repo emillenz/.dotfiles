@@ -46,11 +46,3 @@ white =   "#a6a6a6"
 [colors.cursor]
 cursor     = "#000000"
 text       = "#ffffff"
-
-[colors.vi_mode_cursor]
-cursor     = "#000000"
-text       = "#ffffff"
-
-[colors.selection]
-background = "CellForeground"
-text       = "CellBackground"
