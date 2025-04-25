@@ -44,7 +44,6 @@ set breakindent
 set linebreak
 
 set relativenumber
-set number
 set noruler
 set noshowmode
 set laststatus=0
@@ -66,12 +65,19 @@ set smartcase
 autocmd BufWritePre * %s/\s\+$//e
 autocmd BufEnter * normal `"zz
 
+nnoremap v <nop>
+nnoremap V <nop>
+nnoremap s <nop>
+nnoremap S <nop>
+nnoremap <c-w> <nop>
+nnoremap <c-e> <nop>
+nnoremap <c-y> <nop>
+
 nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<CR> {<CR>}<Esc>O
-nnoremap <silent> <esc> <esc>:nohl<cr>
 
 nnoremap p ]p
 nnoremap P [p
@@ -86,13 +92,6 @@ map [[ ?{<CR>w99[{
 map ][ /}<CR>b99]}
 map ]] j0[[%/{<CR>
 map [] k$][%?}<CR>
-
-nnoremap v <nop>
-nnoremap V <nop>
-nnoremap s <nop>
-nnoremap S <nop>
-nnoremap <c-e> <nop>
-nnoremap <c-y> <nop>
 
 nnoremap <c-d> <c-d>zz
 nnoremap <c-u> <c-u>zz
