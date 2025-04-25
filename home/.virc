@@ -63,6 +63,8 @@ set ignorecase
 set smartcase
 
 autocmd BufWritePre * %s/\s\+$//e
+
+autocmd BufLeave * normal m"
 autocmd BufEnter * normal `"zz
 
 nnoremap v <nop>
@@ -77,7 +79,7 @@ nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
 nnoremap L i<cr><esc>
-inoremap {<CR> {<CR>}<Esc>O
+inoremap {<cr> {<cr>}<esc>O
 
 nnoremap p ]p
 nnoremap P [p
