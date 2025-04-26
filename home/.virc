@@ -64,7 +64,7 @@ set hlsearch
 set ignorecase
 set smartcase
 
-autocmd BufWritePre * %s/\s\+$//e | normal ``
+autocmd BufWritePre * mark ` | %s/\s\+$//e | normal ``
 
 autocmd BufLeave * normal m"
 autocmd BufEnter * normal `"zz
@@ -78,6 +78,7 @@ nnoremap <c-e> <nop>
 nnoremap <c-y> <nop>
 
 nnoremap gf gF
+nnoremap & :&<cr>
 nnoremap Y y$
 nnoremap _ "_d
 nnoremap L i<cr><esc>
