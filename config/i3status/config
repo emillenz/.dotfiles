@@ -1,9 +1,8 @@
 # ---
-#+title:  i3-status configuration file
+#+title:  minimalist i3-status config
 #+author: emil lenz
 #+email:  emillenz@protonmail.com
 #+date:   2024-01-19
-#+info:   minimalist, display only vital information.
 # ---
 
 general {
@@ -41,7 +40,7 @@ battery all {
         low_threshold = 20
         format_down = ""
 	status_idle = ""
-	status_full = ""
+	status_full = "+"
         status_chr = "+"
         status_bat = "-"
         status_unk = "?"
@@ -56,7 +55,7 @@ volume master {
 }
 
 tztime local {
-        format = "[%F %a %R]"
+        format = "%F %a %R"
 }
 
 path_exists vpn {
