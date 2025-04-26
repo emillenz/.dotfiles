@@ -16,6 +16,11 @@ set confirm
 set autoread
 set ttimeout
 set ttimeoutlen=50
+set fillchars=eob:\ ,lastline:\ ,
+set cmdwinheight=1
+set showcmd
+set shortmess+=a
+set notermguicolors
 
 set autoindent
 set smarttab
@@ -48,13 +53,10 @@ set noruler
 set noshowmode
 set laststatus=0
 set showtabline=0
-set fillchars=eob:\ ,lastline:\ ,
-set notermguicolors
-set background=light
 set nocursorline
-set cmdwinheight=1
-set showcmd
-set shortmess+=a
+set background=light
+highlight Pmenu ctermbg=white
+highlight PmenuSel ctermbg=grey
 
 set gdefault
 set incsearch
