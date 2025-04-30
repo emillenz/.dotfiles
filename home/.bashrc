@@ -31,6 +31,7 @@ alias\
 	cp="cp --verbose --recursive"\
 	mkdir="mkdir --verbose --parents"\
 	pgrep="pgrep --ignore-case"\
+	dmenu="dmenu -b -l 8 -i -fn 'Aporetic Sans Mono-10' -nb '#ffffff' -nf '#000000' -sb '#c8c8c8' -sf '#000000'"\
 	less="less --ignore-case"
 
 export\
@@ -38,6 +39,7 @@ export\
 	VISUAL="vi"\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=1000\
+	FZF_DEFAULT_ARGS="--height 10 --style minimal"\
 	PYTHON_BASIC_REPL=1
 
 function find { command find $@ -type f -not -path './.*'; }

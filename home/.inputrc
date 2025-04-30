@@ -12,8 +12,8 @@ set show-all-if-ambiguous on
 set enable-bracketed-paste on
 set show-mode-in-prompt off
 set skip-completed-text on
+set completion-display-width 1
 set page-completions off
-# set completion-display-width 1
 
 # set colored-stats On
 # set mark-symlinked-directories On
@@ -30,3 +30,7 @@ set keymap vi-insert
 C-l: clear-screen
 C-@: complete
 C-i: self-insert
+
+set bind-tty-special-chars off
+set keymap vi-insert
+C-w: backward-kill-word
