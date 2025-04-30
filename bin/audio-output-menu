@@ -18,10 +18,7 @@ def main
 	sinks = JSON.parse(`pactl --format json list sinks`)
 	sinks_desc = sinks.map { _1["description"] }.join("\n")
 
-	selected_sink, status = Open3.capture2(
-		"dmenu", "-p", "audio-output", *ARGV,
-		stdin_data: sinks_desc
-	)
+	selected_sink, status = Open3.capture2( "dmenu", *ARGV, stdin_data: sinks_desc)
 	exit(1) unless status.success?
 
 	sink_id = sinks.find { _1["description"] == selected_sink.chomp }["index"]

@@ -16,10 +16,7 @@ require 'open3'
 def main
 	window_nodes = window_nodes(JSON.parse(`i3-msg -t get_tree`))
 
-	selected_title, status = Open3.capture2(
-		'dmenu', '-p', "window-menu", *ARGV,
-		stdin_data: window_nodes.map { _1[:name] }.join("\n")
-	)
+	selected_title, status = Open3.capture2('dmenu', *ARGV, stdin_data: window_nodes.map { _1[:name] }.join("\n"))
 	status.success? || exit(1)
 
 	sel_window = window_nodes.find { _1[:name] == selected_title.chomp }

@@ -21,10 +21,7 @@ def main
 		[device, addr]
 	end.to_h
 
-	selected, status = Open3.capture2(
-		"dmenu", "-p", "bluetooth-device", *ARGV,
-		stdin_data: devices_addrs.keys.push("off").join("\n")
-	)
+	selected, status = Open3.capture2( "dmenu", *ARGV, stdin_data: devices_addrs.keys.push("off").join("\n"))
 	selected = selected.chomp
 	exit(1) unless status.success?
 

@@ -56,36 +56,36 @@ bindsym $MOD+p focus left
 bindsym $MOD+n focus right
 bindsym $MOD+Tab workspace back_and_forth
 
-bindsym $MOD+semicolon $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'desktop-run' $DMENU_ARGS"
-bindsym $MOD+shift+semicolon $EXEC dmenu_run -p "run" $DMENU_ARGS
+bindsym $MOD+semicolon $EXEC i3-dmenu-desktop --dmenu "dmenu $DMENU_ARGS"
+bindsym $MOD+shift+semicolon $EXEC dmenu_run $DMENU_ARGS
 
 set $GAPSIZE 500
 
-for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
-bindsym $MOD+a workspace agenda
+for_window [class="net.thunderbird.Thunderbird"] move container to workspace A
+bindsym $MOD+a workspace A
 bindsym $MOD+shift+a $EXEC thunderbird
 
-for_window [class="Thunar"] move container to workspace dir
-bindsym $MOD+v workspace dir
+for_window [class="Thunar"] move container to workspace V
+bindsym $MOD+v workspace V
 bindsym $MOD+shift+v $EXEC thunar
 
-for_window [class="Alacritty"] move container to workspace edit
-bindsym $MOD+e workspace edit
+for_window [class="Alacritty"] move container to workspace E
+bindsym $MOD+e workspace E
 bindsym $MOD+shift+e $EXEC alacritty --command sesh $HOME
-workspace edit gaps horizontal $GAPSIZE
+workspace E gaps horizontal $GAPSIZE
 
-for_window [class="Zathura"] move container to workspace read
-bindsym $MOD+r workspace read
-bindsym $MOD+shift+r $EXEC zathura
+foR_window [class="Zathura"] move container to workspace R
+bindsym $MOD+R workspace R
+bindsym $MOD+shift+R $EXEC R
 
-for_window [class="firefox"] move container to workspace web
-bindsym $MOD+w workspace web
+for_window [class="firefox"] move container to workspace W
+bindsym $MOD+w workspace W
 bindsym $MOD+shift+w $EXEC firefox
 
 # must come after specific workspace assignments
 for_window [all] focus
 
-set $MODE_LEADER "leader"
+set $MODE_LEADER "-"
 bindsym $MOD+space mode $MODE_LEADER
 
 set $ESC mode "default"
@@ -98,7 +98,7 @@ mode $MODE_LEADER {
 	bindsym $MOD+minus $EXEC pamixer --unmute --decrease 5
 	bindsym $MOD+0 $EXEC pamixer --toggle-mute
 	bindsym $MOD+a $ESC; $EXEC audio-output-menu $DMENU_ARGS
-	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) && autorandr --change $config
+	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu $DMENU_ARGS) && autorandr --change $config
 
 	bindsym $MOD+w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym $MOD+b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
@@ -126,14 +126,14 @@ bar {
 	status_command i3status
 
 	separator_symbol " | "
-	workspace_min_width 50
+	# workspace_min_width 50
 
 	colors {
 		background $STATUS_BG
 		statusline $FG
 		separator $FG
 		# class			border		bg		fg
-		binding_mode		$STATUS_BG	$STATUS_BG	$STATUS_BG
+		binding_mode		$STATUS_BG	$STATUS_BG	$FG
 		focused_workspace	$BORDER		$BG		$FG
 		active_workspace	$BORDER		$STATUS_BG	$FG
 		inactive_workspace	$BORDER		$STATUS_BG	$FG
