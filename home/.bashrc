@@ -21,7 +21,7 @@ shopt -s\
 
 # bold (\[\e]133;A\e\\\])
 # tmux (\[\e[1m\]) :: needed to enable {next,prev}-prompt navigation.
-export PS1='\n\[\e]133;A\\\]\[\e[1m\]\W | \[\e[0m\]'
+export PS1='\n\[\e]133;A\\\]\[\e[1m\][\W] \[\e[0m\]'
 
 alias\
 	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --file-type --format=single-column --color=never -F"\
@@ -31,7 +31,6 @@ alias\
 	cp="cp --verbose --recursive"\
 	mkdir="mkdir --verbose --parents"\
 	pgrep="pgrep --ignore-case"\
-	dmenu="dmenu -b -l 8 -i -fn 'Aporetic Sans Mono-10' -nb '#ffffff' -nf '#000000' -sb '#c8c8c8' -sf '#000000'"\
 	less="less --ignore-case"
 
 export\
@@ -39,7 +38,6 @@ export\
 	VISUAL="vi"\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=1000\
-	FZF_DEFAULT_ARGS="--height 10 --style minimal"\
 	PYTHON_BASIC_REPL=1
 
 function find { command find $@ -type f -not -path './.*'; }

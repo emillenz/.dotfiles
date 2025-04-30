@@ -61,25 +61,25 @@ bindsym $MOD+shift+semicolon $EXEC dmenu_run $DMENU_ARGS
 
 set $GAPSIZE 500
 
-for_window [class="net.thunderbird.Thunderbird"] move container to workspace A
-bindsym $MOD+a workspace A
+for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
+bindsym $MOD+a workspace agenda
 bindsym $MOD+shift+a $EXEC thunderbird
 
-for_window [class="Thunar"] move container to workspace V
-bindsym $MOD+v workspace V
+for_window [class="Thunar"] move container to workspace dir
+bindsym $MOD+v workspace dir
 bindsym $MOD+shift+v $EXEC thunar
 
-for_window [class="Alacritty"] move container to workspace E
-bindsym $MOD+e workspace E
+for_window [class="Alacritty"] move container to workspace edit
+bindsym $MOD+e workspace edit
 bindsym $MOD+shift+e $EXEC alacritty --command sesh $HOME
-workspace E gaps horizontal $GAPSIZE
+workspace edit gaps horizontal $GAPSIZE
 
-foR_window [class="Zathura"] move container to workspace R
-bindsym $MOD+R workspace R
-bindsym $MOD+shift+R $EXEC R
+for_window [class="Zathura"] move container to workspace r
+bindsym $MOD+r workspace read
+bindsym $MOD+shift+r $EXEC read
 
-for_window [class="firefox"] move container to workspace W
-bindsym $MOD+w workspace W
+for_window [class="firefox"] move container to workspace web
+bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $EXEC firefox
 
 # must come after specific workspace assignments
@@ -119,14 +119,14 @@ client.background	$BORDER
 bar {
 	mode hide
 	position bottom
-	workspace_buttons yes
+	workspace_buttons no
 	binding_mode_indicator yes
 	modifier none
 	tray_output primary
 	status_command i3status
 
 	separator_symbol " | "
-	# workspace_min_width 50
+	workspace_min_width 50
 
 	colors {
 		background $STATUS_BG
