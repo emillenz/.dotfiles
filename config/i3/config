@@ -7,7 +7,7 @@
 
 set $EXEC exec --no-startup-id
 set $EXEC_ALWAYS exec_always --no-startup-id
-set $DMENU_ARGS -l 8 -i -fn 'Aporetic Sans Mono-10' -nb '#ffffff' -nf '#000000' -sb '#c8c8c8' -sf '#000000'
+set $DMENU_ARGS -b -l 8 -i -fn 'Aporetic Sans Mono-10' -nb '#ffffff' -nf '#000000' -sb '#c8c8c8' -sf '#000000'
 
 set $BG		#ffffff
 set $FG		#000000
@@ -19,7 +19,7 @@ $EXEC_ALWAYS pgrep unclutter || unclutter
 $EXEC_ALWAYS pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
 $EXEC_ALWAYS pgrep nm-applet || nm-applet
 $EXEC_ALWAYS pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color "$BG"
-r> %s/\s\+$//e <bar> normal `q
+
 $EXEC_ALWAYS xsetroot -solid "$BG"
 $EXEC_ALWAYS xset dpms 0 0 0
 $EXEC_ALWAYS xset s off
@@ -118,7 +118,7 @@ client.background	$BORDER
 
 bar {
 	mode hide
-	position top
+	position bottom
 	workspace_buttons yes
 	binding_mode_indicator yes
 	modifier none

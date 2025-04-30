@@ -5,7 +5,8 @@
 " date: [2024-12-14]
 " ---
 
-set formatoptions+=jn
+set formatoptions+=n
+set cpoptions+=JM
 set iskeyword+=-
 set shellcmdflag=-lc
 set encoding=utf8
@@ -54,9 +55,11 @@ set noshowmode
 set laststatus=0
 set showtabline=0
 set nocursorline
+
 set background=light
 highlight Pmenu ctermbg=white
 highlight PmenuSel ctermbg=grey
+highlight LineNr ctermfg=grey
 
 set gdefault
 set incsearch
@@ -64,13 +67,17 @@ set hlsearch
 set ignorecase
 set smartcase
 
-autocmd BufWritePre * mark ` | %s/\s\+$//e | normal ``
+autocmd BufWritePre * normal mq
+autocmd BufWritePre * %s/\s\+$//e
+autocmd BufWritePost * normal `q
+
+autocmd ShellCmdPost * redraw!
 
 autocmd BufLeave * normal m"
 autocmd BufEnter * normal `"zz
 
 nnoremap v <nop>
-nnoremap V <nop>
+nnoremap S <nop>
 nnoremap s <nop>
 nnoremap S <nop>
 nnoremap <c-w> <nop>
@@ -84,14 +91,17 @@ nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 
+onoremap } V}
+onoremap { V{
+
 nnoremap p ]p
 nnoremap P [p
 
 nnoremap Q @q
 cnoremap @ normal @
 
-nnoremap go m`o<esc>``
-nnoremap gO m`O<esc>``
+nnoremap go mqo<esc>`q
+nnoremap gO mqO<esc>`q
 
 map [[ ?{<CR>w99[{
 map ][ /}<CR>b99]}
@@ -103,17 +113,17 @@ nnoremap <c-u> <c-u>zz
 nnoremap <c-o> <c-o>zz
 nnoremap <c-i> <c-i>zz
 
-nnoremap s m`v
-nnoremap ss m`^v$
-vnoremap ( <esc>`>a)<esc>`<i(<esc>``
-vnoremap [ <esc>`>a]<esc>`<i[<esc>``
-vnoremap { <esc>`>a}<esc>`<i{<esc>``
-vnoremap " <esc>`>a"<esc>`<i"<esc>``
-vnoremap ' <esc>`>a'<esc>`<i'<esc>``
-vnoremap ` <esc>`>a`<esc>`<i`<esc>``
-nnoremap ds( m`va(<esc>`>"_x`<"_x``
-nnoremap ds[ m`va[<esc>`>"_x`<"_x``
-nnoremap ds{ m`va{<esc>`>"_x`<"_x``
-nnoremap ds" m`va"h<esc>`>"_x`<"_x``
-nnoremap ds' m`va'h<esc>`>"_x`<"_x``
-nnoremap ds` m`va`h<esc>`>"_x`<"_x``
+nnoremap s mqv
+nnoremap ss mq^v$
+vnoremap ( <esc>`>a)<esc>`<i(<esc>`q
+vnoremap [ <esc>`>a]<esc>`<i[<esc>`q
+vnoremap { <esc>`>a}<esc>`<i{<esc>`q
+vnoremap " <esc>`>a"<esc>`<i"<esc>`q
+vnoremap ' <esc>`>a'<esc>`<i'<esc>`q
+vnoremap ` <esc>`>a`<esc>`<i`<esc>`q
+nnoremap ds( mqva(<esc>`>"_x`<"_x`q
+nnoremap ds[ mqva[<esc>`>"_x`<"_x`q
+nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
+nnoremap ds" mqvi"<esc>`>l"_x`<h"_x`q
+nnoremap ds' mqvi'<esc>`>l"_x`<h"_x`q
+nnoremap ds` mqvi`<esc>`>l"_x`<h"_x`q

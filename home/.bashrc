@@ -21,12 +21,12 @@ shopt -s\
 
 # bold (\[\e]133;A\e\\\])
 # tmux (\[\e[1m\]) :: needed to enable {next,prev}-prompt navigation.
-export PS1='\n\[\e]133;A\\\]\[\e[1m\][\W] \[\e[0m\]'
+export PS1='\n\[\e]133;A\\\]\[\e[1m\]\W | \[\e[0m\]'
 
 alias\
 	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --file-type --format=single-column --color=never -F"\
 	grep="grep --line-number --extended-regexp --ignore-case"\
-	rm="rm --verbose --recursive --interactive=once"\
+	rm="rm --verbose --recursive"\
 	less="less --ignore-case"\
 	cp="cp --verbose --recursive"\
 	mkdir="mkdir --verbose --parents"\
