@@ -21,7 +21,10 @@ def main
 		[device, addr]
 	end.to_h
 
-	selected, status = Open3.capture2( "dmenu", *ARGV, stdin_data: devices_addrs.keys.push("off").join("\n"))
+	selected, status = Open3.capture2(
+		"dmenu", "-p", "bt-device", *ARGV,
+		stdin_data: devices_addrs.keys.push("off").join("\n")
+	)
 	selected = selected.chomp
 	exit(1) unless status.success?
 
@@ -35,12 +38,12 @@ end
 def connect(device, devices_addrs)
 	system("bluetoothctl power on", exception: true)
 	system("bluetoothctl connect '#{devices_addrs[device]}'", exception: true)
-	system("dunstify 'bluetooth connected' '#{device}'", exception: true)
+	system("dunstify 'BT connected' '#{device}'", exception: true)
 end
 
 def poweroff
 	system("bluetoothctl power off", exception: true)
-	system("dunstify 'bluetooth: off'", exception: true)
+	system("dunstify 'BT off'", exception: true)
 end
 
 main

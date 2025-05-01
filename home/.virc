@@ -76,8 +76,10 @@ autocmd ShellCmdPost * redraw!
 autocmd BufLeave * normal m"
 autocmd BufEnter * normal `"zz
 
+command! -range Y silent <line1>,<line2>write !xsel --clipboard
+
 nnoremap v <nop>
-nnoremap S <nop>
+nnoremap V <nop>
 nnoremap s <nop>
 nnoremap S <nop>
 nnoremap <c-w> <nop>

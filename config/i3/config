@@ -56,8 +56,8 @@ bindsym $MOD+p focus left
 bindsym $MOD+n focus right
 bindsym $MOD+Tab workspace back_and_forth
 
-bindsym $MOD+semicolon $EXEC i3-dmenu-desktop --dmenu "dmenu $DMENU_ARGS"
-bindsym $MOD+shift+semicolon $EXEC dmenu_run $DMENU_ARGS
+bindsym $MOD+semicolon $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'drun' $DMENU_ARGS"
+bindsym $MOD+shift+semicolon $EXEC dmenu_run -p "run" $DMENU_ARGS
 
 set $GAPSIZE 500
 
@@ -74,9 +74,9 @@ bindsym $MOD+e workspace edit
 bindsym $MOD+shift+e $EXEC alacritty --command sesh $HOME
 workspace edit gaps horizontal $GAPSIZE
 
-for_window [class="Zathura"] move container to workspace r
+for_window [class="Zathura"] move container to workspace read
 bindsym $MOD+r workspace read
-bindsym $MOD+shift+r $EXEC read
+bindsym $MOD+shift+r $EXEC zathura
 
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
@@ -102,7 +102,7 @@ mode $MODE_LEADER {
 
 	bindsym $MOD+w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym $MOD+b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
-	bindsym $MOD+s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f" && xclip -selection clipboard -t=image/png < "$f"'
+	bindsym $MOD+s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f"
 	bindsym $MOD+q $ESC; $EXEC systemctl suspend
 	bindsym $MOD+k $ESC; kill
 
@@ -120,13 +120,12 @@ bar {
 	mode hide
 	position bottom
 	workspace_buttons no
+	workspace_min_width 50
 	binding_mode_indicator yes
 	modifier none
 	tray_output primary
 	status_command i3status
-
 	separator_symbol " | "
-	workspace_min_width 50
 
 	colors {
 		background $STATUS_BG
