@@ -19,9 +19,9 @@ shopt -s\
 	expand_aliases\
 	autocd
 
-# bold (\[\e]133;A\e\\\])
-# tmux (\[\e[1m\]) :: needed to enable {next,prev}-prompt navigation.
-export PS1='\n\[\e]133;A\\\]\[\e[1m\][\W] \[\e[0m\]'
+# tmux `]133;A` :: tmux/vim enable {next,prev}-prompt navigation.
+# bold `[1m`
+export PS1='\n\[\033[1m\007\][\W] \[\033[0m\007\033]133;A\007\]'
 
 alias\
 	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --file-type --format=single-column --color=never -F"\
@@ -34,8 +34,8 @@ alias\
 	less="less --ignore-case"
 
 export\
-	EDITOR="vi"\
-	VISUAL="vi"\
+	EDITOR="vim"\
+	VISUAL="vim"\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=1000\
 	PYTHON_BASIC_REPL=1

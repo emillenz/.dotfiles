@@ -20,6 +20,7 @@ set recolor-keephue true
 map = zoom in
 map - zoom out
 map z snap_to_page
+map ` mark_evaluate
 
 # modus operandi theme
 set notification-error-bg       "#c8c8c8"

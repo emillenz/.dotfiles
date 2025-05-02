@@ -28,8 +28,6 @@ k: history-search-backward
 
 set keymap vi-insert
 C-l: clear-screen
-C-@: complete
-C-i: self-insert
 
 set bind-tty-special-chars off
 set keymap vi-insert

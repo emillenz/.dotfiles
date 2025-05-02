@@ -1,10 +1,11 @@
 " ---
-" title: vim-minimal config
+" title: minimalist vim config (no plugins, no vimscripting)
 " author: emil lenz
 " email: emilllenz@protonmail.com
 " date: [2024-12-14]
 " ---
 
+set nocompatible
 set formatoptions+=n
 set cpoptions+=JM
 set iskeyword+=-
@@ -28,17 +29,17 @@ set smartindent
 set shiftround
 set noexpandtab
 set shiftwidth=8
+filetype plugin indent on
 
 set nobackup
 set undofile
-set undodir=~/.vim//,/tmp//
-set directory=~/.vim//,/tmp//
+set undodir=~/.vim/.undo/,/tmp/.viminfo
 
 set path=.,,**/*
 set wildignore=*.o,.a,.so,.*
 set wildmenu
 set wildignorecase
-set wildchar=<c-@>
+set wildchar=<c-i>
 set wildmode=longest:full
 set wildoptions=tagfile,pum
 set pumheight=8
@@ -55,6 +56,7 @@ set laststatus=0
 set showtabline=0
 set nocursorline
 
+syntax off
 set notermguicolors
 set background=light
 highlight Pmenu ctermbg=white
@@ -67,31 +69,20 @@ set hlsearch
 set ignorecase
 set smartcase
 
-autocmd BufWritePre * normal mq
-autocmd BufWritePre * %s/\s\+$//e
-autocmd BufWritePost * normal `q
-
-autocmd ShellCmdPost * redraw!
-
-autocmd BufLeave * normal m"
-autocmd BufEnter * normal `"zz
-
-command! -range Y silent <line1>,<line2>write !xsel --clipboard
-
-nnoremap v <nop>
-nnoremap V <nop>
-nnoremap s <nop>
-nnoremap S <nop>
-nnoremap <c-w> <nop>
-nnoremap <c-e> <nop>
-nnoremap <c-y> <nop>
+runtime! ftplugin/man.vim
 
 nnoremap gf gF
-nnoremap & :&<cr>
 nnoremap Y y$
 nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
+nnoremap <silent> <esc> :nohl<cr>
+nnoremap <silent> & :&<cr>
+nnoremap v <nop>
+nnoremap V <nop>
+nnoremap <c-w> <nop>
+nnoremap <c-e> <nop>
+nnoremap <c-y> <nop>
 
 onoremap } V}
 onoremap { V{
@@ -110,15 +101,11 @@ map ][ /}<CR>b99]}
 map ]] j0[[%/{<CR>
 map [] k$][%?}<CR>
 
-nnoremap <c-d> <c-d>zz
-nnoremap <c-u> <c-u>zz
-nnoremap <c-o> <c-o>zz
-nnoremap <c-i> <c-i>zz
-
+nnoremap s <nop>
+nnoremap S <nop>
 nnoremap s mqv
 nnoremap ss mq^v$
 vnoremap ( <esc>`>a)<esc>`<i(<esc>`q
-vnoremap [ <esc>`>a]<esc>`<i[<esc>`q
 vnoremap { <esc>`>a}<esc>`<i{<esc>`q
 vnoremap " <esc>`>a"<esc>`<i"<esc>`q
 vnoremap ' <esc>`>a'<esc>`<i'<esc>`q
@@ -129,3 +116,31 @@ nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
 nnoremap ds" mqvi"<esc>`>l"_x`<h"_x`q
 nnoremap ds' mqvi'<esc>`>l"_x`<h"_x`q
 nnoremap ds` mqvi`<esc>`>l"_x`<h"_x`q
+
+tnoremap <c-\> <nop>
+tnoremap <c-w> <c-w>.
+tnoremap <c-r> <c-w>"
+tnoremap <c-o> <c-w>N
+tnoremap <silent> <c-^> <c-w>:b#<cr>
+
+nnoremap <silent> ' :execute "buffer" fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
+
+command! -range Y silent <line1>,<line2>write !xsel --clipboard
+
+autocmd BufWritePre * %s/\s\+$//e
+
+autocmd ShellCmdPost * silent redraw!
+
+autocmd BufWinEnter * silent! only
+cnoreabbrev cw cwindow \| only
+autocmd QuickFixCmdPost * cwindow | only " only works if using `!` with `:grep`, `:make`, to not jump to first match
+autocmd FileType qf nmap <buffer> <cr> <cr>zz
+cnoreabbrev grep silent grep!
+cnoreabbrev make silent make!
+
+let g:netrw_banner = 0
+let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
+let g:netrw_localcopydircmd = "cp --recursive"
+let g:netrw_cursor = 5
+let g:netrw_altfile = 1
+autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
