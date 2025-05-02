@@ -5,8 +5,9 @@
 " date: [2024-12-14]
 " ---
 
-set nocompatible
 set formatoptions+=n
+set textwidth=0
+set wrapmargin=0
 set cpoptions+=JM
 set iskeyword+=-
 set shellcmdflag=-lc
@@ -19,6 +20,7 @@ set autoread
 set ttimeout
 set ttimeoutlen=50
 set fillchars=eob:\ ,lastline:\ ,
+set history=10000
 set cmdwinheight=1
 set showcmd
 set shortmess+=a
@@ -33,7 +35,8 @@ filetype plugin indent on
 
 set nobackup
 set undofile
-set undodir=~/.vim/.undo/,/tmp/.viminfo
+set viminfofile=~/.vim/viminfo
+set undodir=~/.vim
 
 set path=.,,**/*
 set wildignore=*.o,.a,.so,.*
@@ -122,21 +125,21 @@ tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
 tnoremap <c-o> <c-w>N
 tnoremap <silent> <c-^> <c-w>:b#<cr>
+command! T if bufexists('!/usr/bin/bash') | buffer /usr/bin/bash | else | execute 'term' | endif
 
-nnoremap <silent> ' :execute "buffer" fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
+nnoremap <silent> ' :execute "buffer" . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
 
 command! -range Y silent <line1>,<line2>write !xsel --clipboard
 
-autocmd BufWritePre * %s/\s\+$//e
-
-autocmd ShellCmdPost * silent redraw!
+autocmd BufWritePre * let b:_save_view = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:_save_view)
 
 autocmd BufWinEnter * silent! only
-cnoreabbrev cw cwindow \| only
 autocmd QuickFixCmdPost * cwindow | only " only works if using `!` with `:grep`, `:make`, to not jump to first match
 autocmd FileType qf nmap <buffer> <cr> <cr>zz
-cnoreabbrev grep silent grep!
-cnoreabbrev make silent make!
+command! C cwindow | only
+command! -nargs=+ G silent grep!<args>
+command! -nargs=+ M silent make!<args>
+autocmd ShellCmdPost * silent redraw!
 
 let g:netrw_banner = 0
 let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"

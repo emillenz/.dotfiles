@@ -2,7 +2,7 @@
 IFS=$'\n'
 
 # ---
-# title: tmux session menu
+# title: tmux session manager
 # author: emil lenz
 # email: emillenz@protonmail.com
 # date: [2025-04-10]
