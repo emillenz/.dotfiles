@@ -21,7 +21,6 @@ set fillchars=eob:\ ,lastline:\ ,
 set cmdwinheight=1
 set showcmd
 set shortmess+=a
-set notermguicolors
 
 set autoindent
 set smarttab
@@ -56,6 +55,7 @@ set laststatus=0
 set showtabline=0
 set nocursorline
 
+set notermguicolors
 set background=light
 highlight Pmenu ctermbg=white
 highlight PmenuSel ctermbg=grey
