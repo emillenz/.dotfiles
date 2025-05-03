@@ -31,6 +31,7 @@ alias\
 	cp="cp --verbose --recursive"\
 	mkdir="mkdir --verbose --parents"\
 	pgrep="pgrep --ignore-case"\
+	jb="jobs"\
 	less="less --ignore-case"
 
 export\

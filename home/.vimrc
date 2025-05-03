@@ -53,11 +53,12 @@ set breakindent
 set linebreak
 
 set relativenumber
+set number
 set noruler
 set noshowmode
-set laststatus=0
 set showtabline=0
 set nocursorline
+set laststatus=0
 
 syntax off
 set notermguicolors
@@ -125,21 +126,21 @@ tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
 tnoremap <c-o> <c-w>N
 tnoremap <silent> <c-^> <c-w>:b#<cr>
-command! T if bufexists('!/usr/bin/bash') | buffer /usr/bin/bash | else | execute 'term' | endif
+command! T if bufexists('!/usr/bin/bash') | buffer !/usr/bin/bash | else | execute 'term' | endif
 
 nnoremap <silent> ' :execute "buffer" . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
 
 command! -range Y silent <line1>,<line2>write !xsel --clipboard
 
-autocmd BufWritePre * let b:_save_view = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:_save_view)
+autocmd BufWritePre * let b:vw = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:vw)
+autocmd ShellCmdPost * silent redraw!
 
 autocmd BufWinEnter * silent! only
-autocmd QuickFixCmdPost * cwindow | only " only works if using `!` with `:grep`, `:make`, to not jump to first match
+autocmd QuickFixCmdPost * cwindow | only " must use `!` => don't jump to first match in file
 autocmd FileType qf nmap <buffer> <cr> <cr>zz
-command! C cwindow | only
-command! -nargs=+ G silent grep!<args>
-command! -nargs=+ M silent make!<args>
-autocmd ShellCmdPost * silent redraw!
+cnoreabbrev cw cwindow \| only
+cnoreabbrev grep sil grep!
+cnoreabbrev make sil make!
 
 let g:netrw_banner = 0
 let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
