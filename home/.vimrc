@@ -133,13 +133,12 @@ tnoremap <c-\> <nop>
 tnoremap <c-\> <c-w>N
 nnoremap <silent> <c-\> :if bufexists("!/usr/bin/bash") \| buffer /usr/bin/bash \| else \| execute "term" \| endif<cr>
 
-command! -range Y silent <line1>,<line2>write !xsel --clipboard
-
 autocmd BufWritePre * let b:v = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:v)
 autocmd ShellCmdPost * silent redraw!
+command! Copy call system("xsel --clipboard --input", @")
 
 autocmd BufWinEnter * silent! only
-autocmd QuickFixCmdPost * cwindow | only " must use `!` => don't jump to first match in file
+autocmd QuickFixCmdPost * cwindow | only
 autocmd FileType qf nmap <buffer> <cr> <cr>zz
 cnoreabbrev cw cwindow \| only
 cnoreabbrev grep sil grep!
