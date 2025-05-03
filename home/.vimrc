@@ -161,7 +161,7 @@ function! SessionLoad()
 endfunction
 
 function! SessionMake(new)
-	if (a:new) || filereadable(".vimsession")
+	if a:new || filereadable(".vimsession")
 		mksession! .vimsession
 		wviminfo! .viminfo
 	endif
