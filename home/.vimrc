@@ -1,5 +1,5 @@
 " ---
-" title: minimalist vim config (no plugins, only oneliners)
+" title: minimalist vim config (no plugins, no vimscripting)
 " author: emil lenz
 " email: emilllenz@protonmail.com
 " date: [2024-12-14]
@@ -153,5 +153,5 @@ let g:netrw_altfile = 1
 autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
 
 command! Mks mksession! .vimsession | wviminfo! .viminfo
-autocmd VimEnter * if filereadable(".vimsession") | rviminfo! .viminfo | source .vimsession endif
+autocmd VimEnter * if filereadable(".vimsession") | rviminfo! .viminfo | source .vimsession | endif
 autocmd VimLeavePre * Mks
