@@ -131,8 +131,6 @@ tnoremap <c-r> <c-w>"
 tnoremap <c-o> <c-w>N
 tnoremap <silent> <c-^> <c-w>:b#<cr>
 
-nnoremap <silent> ' :execute "buffer" . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
-
 command! -range Y silent <line1>,<line2>write !xsel --clipboard
 
 autocmd BufWritePre * let b:v = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:v)
@@ -152,6 +150,8 @@ let g:netrw_cursor = 5
 let g:netrw_altfile = 1
 autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
 
+nnoremap <silent> ' :execute "buffer" . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
+autocmd VimEnter * delmarks A-Z
+autocmd VimEnter * if filereadable(".vimsession") | source .vimsession | rviminfo! .viminfo | endif
+autocmd VimLeavePre * if filereadable(".vimsession") | mksession! .vimsession | wviminfo! .viminfo | endif
 command! Mks mksession! .vimsession | wviminfo! .viminfo
-autocmd VimEnter * if filereadable(".vimsession") | rviminfo! .viminfo | source .vimsession | endif
-autocmd VimLeavePre * Mks
