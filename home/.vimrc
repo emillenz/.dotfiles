@@ -1,5 +1,5 @@
 " ---
-" title: minimalist vim config (no plugins, no vimscripting)
+" title: minimalist vim config (no plugins, only oneliners)
 " author: emil lenz
 " email: emilllenz@protonmail.com
 " date: [2024-12-14]
@@ -35,8 +35,9 @@ filetype plugin indent on
 
 set nobackup
 set undofile
-set viminfofile=~/.vim/viminfo
+set viminfofile=~/.vim/.viminfo
 set undodir=~/.vim
+set directory=~/.vim//,/tmp//
 
 set path=.,,**/*
 set wildignore=*.o,.a,.so,.*
@@ -80,10 +81,13 @@ nnoremap Y y$
 nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
-nnoremap <silent> <esc> :nohl<cr>
+nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
+
 nnoremap v <nop>
 nnoremap V <nop>
+nnoremap H <nop>
+nnoremap M <nop>
 nnoremap <c-w> <nop>
 nnoremap <c-e> <nop>
 nnoremap <c-y> <nop>
@@ -126,13 +130,12 @@ tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
 tnoremap <c-o> <c-w>N
 tnoremap <silent> <c-^> <c-w>:b#<cr>
-command! T if bufexists('!/usr/bin/bash') | buffer !/usr/bin/bash | else | execute 'term' | endif
 
 nnoremap <silent> ' :execute "buffer" . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
 
 command! -range Y silent <line1>,<line2>write !xsel --clipboard
 
-autocmd BufWritePre * let b:vw = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:vw)
+autocmd BufWritePre * let b:v = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:v)
 autocmd ShellCmdPost * silent redraw!
 
 autocmd BufWinEnter * silent! only
@@ -148,3 +151,7 @@ let g:netrw_localcopydircmd = "cp --recursive"
 let g:netrw_cursor = 5
 let g:netrw_altfile = 1
 autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
+
+command! Mks mksession! .vimsession | wviminfo! .viminfo
+autocmd VimEnter * if filereadable(".vimsession") | rviminfo! .viminfo | source .vimsession endif
+autocmd VimLeavePre * Mks
