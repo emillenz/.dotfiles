@@ -44,6 +44,7 @@ set wildignore=*.o,.a,.so,.*
 set wildmenu
 set wildignorecase
 set wildchar=<c-i>
+set wildcharm=<c-i>
 set wildmode=longest:full
 set wildoptions=tagfile,pum
 set pumheight=8
@@ -74,8 +75,6 @@ set hlsearch
 set ignorecase
 set smartcase
 
-runtime! ftplugin/man.vim
-
 nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
@@ -83,6 +82,8 @@ nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
+nnoremap Q @q
+cnoremap <expr> <c-i> wildmenumode() ? "\<c-y>\<c-i>" : "\<c-i>"
 
 nnoremap v <nop>
 nnoremap V <nop>
@@ -98,16 +99,17 @@ onoremap { V{
 nnoremap p ]p
 nnoremap P [p
 
-nnoremap Q @q
-cnoremap @ normal @
-
 nnoremap go mqo<esc>`q
 nnoremap gO mqO<esc>`q
 
 map [[ ?{<CR>w99[{
 map ][ /}<CR>b99]}
-map ]] j0[[%/{<CR>
-map [] k$][%?}<CR>
+map ]] j0[[%/{<cr>
+map [] k$][%?}<cr>
+nnoremap [q :cprevious<cr>
+nnoremap ]q :cnext<cr>
+nnoremap [Q :cfirst<cr>
+nnoremap ]Q :clast<cr>
 
 nnoremap s <nop>
 nnoremap S <nop>
@@ -133,40 +135,50 @@ tnoremap <c-\> <nop>
 tnoremap <c-\> <c-w>N
 nnoremap <silent> <c-\> :if bufexists("!/usr/bin/bash") \| buffer /usr/bin/bash \| else \| execute "term" \| endif<cr>
 
+nnoremap <silent> ' :execute "buffer " . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
+
 autocmd BufWritePre * let b:v = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:v)
-autocmd ShellCmdPost * silent redraw!
-command! Copy call system("xsel --clipboard --input", @")
+command! Cb call system("xsel --clipboard --input", @")
 
 autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
 autocmd FileType qf nmap <buffer> <cr> <cr>zz
-cnoreabbrev cw cwindow \| only
-cnoreabbrev grep sil grep!
-cnoreabbrev make sil make!
+autocmd ShellCmdPost * silent redraw!
+command! C cwindow | only
+command! -nargs=+ Make silent make! <args>
+command! -nargs=+ Grep silent grep! <args>
+command! -nargs=1 G silent grep! <args> %
 
-let g:netrw_banner = 0
-let g:netrw_hide = 1
-let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
-let g:netrw_localcopydircmd = "cp --recursive"
-let g:netrw_cursor = 5
-autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
+
+let g:session_dir = expand("~/.vim/")
+function! SessionFile(type)
+	return g:session_dir . substitute(getcwd(), "/", "_", "g") . "." . (a:type ? "vim" : "viminfo")
+endfunction
 
 function! SessionLoad()
 	delmarks A-Z
-	if filereadable(".vimsession")
-		source .vimsession
-		rviminfo! .viminfo
+	if filereadable(SessionFile(1))
+		execute "source" SessionFile(1)
+		execute "rviminfo!" SessionFile(0)
+		echo 1
 	endif
 endfunction
+
+function! SessionRm()
+	call system("rm " . SessionFile(1) . " " . SessionFile(0))
+endfunction
+command! Srm call SessionRm()
 
 function! SessionMake(new)
-	if a:new || filereadable(".vimsession")
-		mksession! .vimsession
-		wviminfo! .viminfo
+	if a:new || filereadable(SessionFile(1))
+		execute "mksession!" SessionFile(1)
+		execute "wviminfo!" SessionFile(0)
 	endif
 endfunction
+command! Smk call SessionMake(1)
 
-nnoremap <silent><expr> ' ":buffer " . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0]) . "<cr>"
 autocmd VimEnter * call SessionLoad()
 autocmd VimLeavePre * call SessionMake(0)
-command! Mks call SessionMake(1)
+
+let g:loaded_netrwPlugin = 1
+runtime! ftplugin/man.vim
