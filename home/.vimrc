@@ -125,11 +125,13 @@ nnoremap ds" mqvi"<esc>`>l"_x`<h"_x`q
 nnoremap ds' mqvi'<esc>`>l"_x`<h"_x`q
 nnoremap ds` mqvi`<esc>`>l"_x`<h"_x`q
 
-tnoremap <c-\> <nop>
+tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
-tnoremap <c-o> <c-w>N
-tnoremap <silent> <c-^> <c-w>:b#<cr>
+tnoremap <silent> <c-^> <c-w>:buffer #<cr>
+tnoremap <c-\> <nop>
+tnoremap <c-\> <c-w>N
+nnoremap <silent> <c-\> :if bufexists("!/usr/bin/bash") \| buffer /usr/bin/bash \| else \| execute "term" \| endif<cr>
 
 command! -range Y silent <line1>,<line2>write !xsel --clipboard
 
@@ -144,14 +146,28 @@ cnoreabbrev grep sil grep!
 cnoreabbrev make sil make!
 
 let g:netrw_banner = 0
+let g:netrw_hide = 1
 let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
 let g:netrw_localcopydircmd = "cp --recursive"
 let g:netrw_cursor = 5
-let g:netrw_altfile = 1
 autocmd FileType netrw nmap <buffer> h - | nmap <buffer> l <cr>
 
-nnoremap <silent> ' :execute "buffer" . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
-autocmd VimEnter * delmarks A-Z
-autocmd VimEnter * if filereadable(".vimsession") | source .vimsession | rviminfo! .viminfo | endif
-autocmd VimLeavePre * if filereadable(".vimsession") | mksession! .vimsession | wviminfo! .viminfo | endif
-command! Mks mksession! .vimsession | wviminfo! .viminfo
+function! SessionLoad()
+	delmarks A-Z
+	if filereadable(".vimsession")
+		source .vimsession
+		rviminfo! .viminfo
+	endif
+endfunction
+
+function! SessionMake(new)
+	if (a:new) || filereadable(".vimsession")
+		mksession! .vimsession
+		wviminfo! .viminfo
+	endif
+endfunction
+
+nnoremap <silent><expr> ' ":buffer " . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0]) . "<cr>"
+autocmd VimEnter * call SessionLoad()
+autocmd VimLeavePre * call SessionMake(0)
+command! Mks call SessionMake(1)
