@@ -80,6 +80,8 @@ filetype plugin indent on
 
 nnoremap v <nop>
 nnoremap V <nop>
+nnoremap s <nop>
+nnoremap S <nop>
 nnoremap H <nop>
 nnoremap M <nop>
 nnoremap <c-w> <nop>
@@ -109,22 +111,8 @@ nnoremap [q :cprevious<cr>
 nnoremap ]q :cnext<cr>
 nnoremap [Q :cfirst<cr>
 nnoremap ]Q :clast<cr>
-
-nnoremap s <nop>
-nnoremap S <nop>
-nnoremap s mqv
-nnoremap ss mq^v$
-vnoremap ( <esc>`>a)<esc>`<i(<esc>`q
-vnoremap { <esc>`>a}<esc>`<i{<esc>`q
-vnoremap " <esc>`>a"<esc>`<i"<esc>`q
-vnoremap ' <esc>`>a'<esc>`<i'<esc>`q
-vnoremap ` <esc>`>a`<esc>`<i`<esc>`q
-nnoremap ds( mqva(<esc>`>"_x`<"_x`q
-nnoremap ds[ mqva[<esc>`>"_x`<"_x`q
-nnoremap ds{ mqva{<esc>`>"_x`<"_x`q
-nnoremap ds" mqvi"<esc>`>l"_x`<h"_x`q
-nnoremap ds' mqvi'<esc>`>l"_x`<h"_x`q
-nnoremap ds` mqvi`<esc>`>l"_x`<h"_x`q
+nnoremap [<c-Q> :cnfile<cr>
+nnoremap ]<c-Q> :cpfile<cr>
 
 function! Shell()
 	let b:bufname = 'shell'
@@ -149,7 +137,6 @@ command! Copy call system('xsel --clipboard --input', @")
 
 autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
-autocmd FileType qf nmap <buffer> <cr> <cr>zz
 autocmd ShellCmdPost * silent redraw!
 command! Cwindow cwindow | only
 command! -nargs=* Make silent make! <args>
