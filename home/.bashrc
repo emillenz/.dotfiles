@@ -39,5 +39,7 @@ export\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=1000
 
+stty -ixon
+
 function find { command find $@ -type f -not -path './.*'; }
 function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@; }

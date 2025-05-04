@@ -14,7 +14,6 @@ set show-mode-in-prompt off
 set skip-completed-text on
 set completion-display-width 1
 set page-completions off
-
 # set colored-stats On
 # set mark-symlinked-directories On
 # set colored-completion-prefix On
