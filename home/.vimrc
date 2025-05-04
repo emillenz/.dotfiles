@@ -101,8 +101,8 @@ for x in ['y', 'gu', 'gU', 'g~', '!', '=', '<', '>']
 	execute 'nnoremap' x 'm`' . x
 endfor
 
-nnoremap go m`gO<esc>``
-nnoremap gO m`gO<esc>``
+nnoremap go m`o<esc>``
+nnoremap gO m`O<esc>``
 
 nnoremap [q :cprevious<cr>
 nnoremap ]q :cnext<cr>
