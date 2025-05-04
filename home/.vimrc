@@ -76,19 +76,19 @@ set hlsearch
 set ignorecase
 set smartcase
 
-filetype plugin indent on
-
-let s:nop_bindings = ["v", "V", "<c-v>", "s", "S", "H", "M", "L", "v", "V", "<c-w>", "<c-e>", "<c-y>"]
+let s:nop_bindings = ["gv", "v", "V", "<c-v>", "s", "S", "H", "M", "L", "v", "V", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "g~"]
 for o in s:nop_bindings
 	execute 'nnoremap' o '<nop>'
 endfor
+inoremap <c-o> <nop>
 
 nnoremap <space> mvv
+nnoremap g<space> gv
 vnoremap <space> V
 nnoremap <c-@> mv<c-v>
 vnoremap <c-@> <c-v>
 vnoremap <esc> <esc>`v
-let s:operators = ['d', 'y', 'c', '=', 'gw', 'gq', 'g~', 'gu', 'gU']
+let s:operators = ['d', 'y', 'c', '=', 'gw', 'gq']
 for o in s:operators
 	execute 'nnoremap' o o[0] == 'g' ? o[0] . o[1] . o[1] :  o . o
 	if o !~ '[dc]'
@@ -112,7 +112,6 @@ nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
 cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
 
-" *, # search for selection in visual-mode
 vnoremap <silent> * :<C-U>
   \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
   \gvy/<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
@@ -204,5 +203,6 @@ command! SeshMake call SeshMake(1)
 autocmd VimEnter * call SeshLoad()
 autocmd VimLeavePre * call SeshMake(0)
 
+filetype plugin indent on
 let g:loaded_netrwPlugin = 1
 runtime! ftplugin/man.vim
