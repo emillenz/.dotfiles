@@ -23,7 +23,8 @@ set fillchars=eob:\ ,lastline:\ ,
 set history=10000
 set cmdwinheight=1
 set showcmd
-set shortmess+=a
+set shortmess+=aF
+set shortmess-=S
 
 set autoindent
 set smarttab
@@ -31,7 +32,6 @@ set smartindent
 set shiftround
 set noexpandtab
 set shiftwidth=8
-filetype plugin indent on
 
 set nobackup
 set undofile
@@ -64,6 +64,7 @@ set laststatus=0
 
 syntax off
 set notermguicolors
+set guicursor=
 set background=light
 highlight Pmenu ctermbg=white
 highlight PmenuSel ctermbg=grey
@@ -75,6 +76,16 @@ set hlsearch
 set ignorecase
 set smartcase
 
+filetype plugin indent on
+
+nnoremap v <nop>
+nnoremap V <nop>
+nnoremap H <nop>
+nnoremap M <nop>
+nnoremap <c-w> <nop>
+nnoremap <c-e> <nop>
+nnoremap <c-y> <nop>
+
 nnoremap gf gF
 nnoremap Y y$
 nnoremap _ "_d
@@ -84,14 +95,6 @@ nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
 nnoremap Q @q
 cnoremap <expr> <c-i> wildmenumode() ? "\<c-y>\<c-i>" : "\<c-i>"
-
-nnoremap v <nop>
-nnoremap V <nop>
-nnoremap H <nop>
-nnoremap M <nop>
-nnoremap <c-w> <nop>
-nnoremap <c-e> <nop>
-nnoremap <c-y> <nop>
 
 onoremap } V}
 onoremap { V{
@@ -127,15 +130,23 @@ nnoremap ds" mqvi"<esc>`>l"_x`<h"_x`q
 nnoremap ds' mqvi'<esc>`>l"_x`<h"_x`q
 nnoremap ds` mqvi`<esc>`>l"_x`<h"_x`q
 
+function! Term()
+	let b:bufname = "term"
+	if bufloaded(b:bufname)
+		execute "buffer" b:bufname
+	else
+		execute term_start($SHELL, {"term_name": b:bufname})
+	endif
+endfunction
+command! T call Term()
 tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
 tnoremap <silent> <c-^> <c-w>:buffer #<cr>
 tnoremap <c-\> <nop>
 tnoremap <c-\> <c-w>N
-nnoremap <silent> <c-\> :if bufexists("!/usr/bin/bash") \| buffer /usr/bin/bash \| else \| execute "term" \| endif<cr>
 
-nnoremap <silent> ' :execute "buffer " . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
+nnoremap <silent> ' :execute "buffer" fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
 
 autocmd BufWritePre * let b:v = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:v)
 command! Cb call system("xsel --clipboard --input", @")
@@ -147,12 +158,10 @@ autocmd ShellCmdPost * silent redraw!
 command! C cwindow | only
 command! -nargs=+ Make silent make! <args>
 command! -nargs=+ Grep silent grep! <args>
-command! -nargs=1 G silent grep! <args> %
-
 
 let g:session_dir = expand("~/.vim/")
 function! SessionFile(type)
-	return g:session_dir . substitute(getcwd(), "/", "_", "g") . "." . (a:type ? "vim" : "viminfo")
+	return g:session_dir . substitute(getcwd(), "/", "_", "g") . (a:type ? ".vim" : ".viminfo")
 endfunction
 
 function! SessionLoad()
@@ -160,17 +169,16 @@ function! SessionLoad()
 	if filereadable(SessionFile(1))
 		execute "source" SessionFile(1)
 		execute "rviminfo!" SessionFile(0)
-		echo 1
 	endif
 endfunction
 
 function! SessionRm()
-	call system("rm " . SessionFile(1) . " " . SessionFile(0))
+	call system("rm" SessionFile(1) SessionFile(0))
 endfunction
 command! Srm call SessionRm()
 
-function! SessionMake(new)
-	if a:new || filereadable(SessionFile(1))
+function! SessionMake(make)
+	if a:make || filereadable(SessionFile(1))
 		execute "mksession!" SessionFile(1)
 		execute "wviminfo!" SessionFile(0)
 	endif
