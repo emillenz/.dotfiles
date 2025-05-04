@@ -1,5 +1,5 @@
 " ---
-" title: minimalist vim config (no plugins, no vimscripting)
+" title: minimalist vim config (no plugins)
 " author: emil lenz
 " email: emilllenz@protonmail.com
 " date: [2024-12-14]
@@ -78,35 +78,57 @@ set smartcase
 
 filetype plugin indent on
 
-nnoremap v <nop>
-nnoremap V <nop>
-nnoremap s <nop>
-nnoremap S <nop>
-nnoremap H <nop>
-nnoremap M <nop>
-nnoremap <c-w> <nop>
-nnoremap <c-e> <nop>
-nnoremap <c-y> <nop>
+let s:nop_bindings = ["v", "V", "<c-v>", "s", "S", "H", "M", "L", "v", "V", "<c-w>", "<c-e>", "<c-y>"]
+for o in s:nop_bindings
+	execute 'nnoremap' o '<nop>'
+endfor
+
+nnoremap <space> mvv
+vnoremap <space> V
+nnoremap <c-@> mv<c-v>
+vnoremap <c-@> <c-v>
+vnoremap <esc> <esc>`v
+let s:operators = ['d', 'y', 'c', '=', 'gw', 'gq', 'g~', 'gu', 'gU']
+for o in s:operators
+	execute 'nnoremap' o o[0] == 'g' ? o[0] . o[1] . o[1] :  o . o
+	execute 'vnoremap' o o . '`v'
+endfor
+nnoremap > >>^
+nnoremap < <<^
+vnoremap < <gv^
+vnoremap > >gv^
+
+vnoremap Q :normal @q<cr>
+vnoremap @ :normal @
+nnoremap Q @q
 
 nnoremap gf gF
 nnoremap Y y$
-nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
-nnoremap Q @q
-
-onoremap } V}
-onoremap { V{
-
 cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
+
+" *, # search for selection in visual-mode
+vnoremap <silent> * :<C-U>
+  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+  \gvy/<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
+  \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+  \gVzv:call setreg('"', old_reg, old_regtype)<CR>
+vnoremap <silent> # :<C-U>
+  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+  \gvy?<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
+  \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+  \gVzv:call setreg('"', old_reg, old_regtype)<CR>
 
 nnoremap p ]p
 nnoremap P [p
+vnoremap p ]p
+vnoremap P [p
 
-nnoremap go mqo<esc>`q
-nnoremap gO mqO<esc>`q
+nnoremap go mvo<esc>`v
+nnoremap gO mvO<esc>`v
 
 nnoremap [q :cprevious<cr>
 nnoremap ]q :cnext<cr>
@@ -115,25 +137,34 @@ nnoremap ]Q :clast<cr>
 nnoremap [<c-Q> :cnfile<cr>
 nnoremap ]<c-Q> :cpfile<cr>
 
-function! Shell()
-	let b:bufname = 'shell'
-	if bufloaded(b:bufname)
-		execute 'buffer ' . b:bufname
-	else
-		call term_start($SHELL, {'term_name': b:bufname})
-	endif
-endfunction
-command! Shell call Shell()
 tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
-tnoremap <c-r> <c-w>"
+tnoremap <c-v> <c-w>""
 tnoremap <silent> <c-^> <c-w>:buffer #<cr>
 tnoremap <c-\> <nop>
 tnoremap <c-\> <c-w>N
 
-nnoremap <silent> ' :execute 'buffer ' . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])<cr>
+function! Shell()
+	let bufname = 'shell'
+	if bufloaded(bufname)
+		execute 'buffer' bufname
+	else
+		call term_start($SHELL, {'term_name': bufname})
+	endif
+endfunction
+command! Shell call Shell()
 
-autocmd BufWritePre * let b:v = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:v)
+function! GlobalMarkGoto()
+	execute 'buffer' fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])
+endfunction
+nnoremap <silent> ' :call GlobalMarkGoto()<cr>
+
+function! TrimWhitespace()
+	let v = winsaveview()
+	keeppatterns %s/\s\+$//e
+	call winrestview(v)
+endfunction
+autocmd BufWritePre * call TrimWhitespace()
 command! Copy call system('xsel --clipboard --input', @")
 
 autocmd BufWinEnter * silent! only
@@ -143,30 +174,27 @@ command! Cwindow cwindow | only
 command! -nargs=* Make silent make! <args>
 command! -nargs=+ Grep silent grep! <args>
 
-let g:sesh_dir = expand('~/.vim/')
 function! SeshFile(type)
-	return g:sesh_dir . substitute(getcwd(), '/', '_', 'g') . (a:type ? '.vim' : '.viminfo')
+	return expand('~/.vim/') . substitute(getcwd(), '/', '_', 'g') . (a:type ? '.vim' : '.viminfo')
 endfunction
 
 function! SeshLoad()
 	if filereadable(SeshFile(1))
 		delmarks A-Z
-		execute 'source ' . SeshFile(1)
-		execute 'rviminfo! ' . SeshFile(0)
-		echo '[sesh] loaded'
+		execute 'source' SeshFile(1)
+		execute 'rviminfo!' SeshFile(0)
 	endif
 endfunction
 
 function! SeshRemove()
 	call system('rm ' . SeshFile(1) . ' ' . SeshFile(0))
-	echo '[sesh] removed'
 endfunction
 command! SeshRm call SeshRemove()
 
 function! SeshMake(make)
 	if a:make || filereadable(SeshFile(1))
-		execute 'mksession! ' . SeshFile(1)
-		execute 'wviminfo! ' . SeshFile(0)
+		execute 'mksession!' SeshFile(1)
+		execute 'wviminfo!' SeshFile(0)
 	endif
 endfunction
 command! SeshMake call SeshMake(1)
