@@ -14,13 +14,22 @@ set show-mode-in-prompt off
 set skip-completed-text on
 set completion-display-width 1
 set page-completions off
+
 # set colored-stats On
 # set mark-symlinked-directories On
 # set colored-completion-prefix On
 # set menu-complete-display-prefix On
 
-C-n: history-search-forward
-C-p: history-search-backward
+set editing-mode vi
+
+set keymap vi-command
+j: history-search-forward
+k: history-search-backward
+
+set keymap vi-insert
+C-l: clear-screen
+C-a: insert-completions
 
 set bind-tty-special-chars off
+set keymap vi-insert
 C-w: backward-kill-word

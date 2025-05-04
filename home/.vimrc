@@ -76,58 +76,29 @@ set hlsearch
 set ignorecase
 set smartcase
 
-let s:nop_bindings = ["s", "S", "H", "M", "L", "v", "V", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "g~"]
-for x in s:nop_bindings
-	execute 'nnoremap' x '<nop>'
+for m in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>"]
+	execute 'nnoremap' m '<nop>'
 endfor
-
-let s:selection_bindings = ["v", "V", "<c-v>"]
-for x in s:selection_bindings
-	execute 'nnoremap' x 'mv' . x
-endfor
-
-vnoremap <esc> <esc>`v
-let s:operators = ['d', 'y', 'c', '=', 'gw', 'gq']
-for x in s:operators
-	execute 'nnoremap' x x[0] == 'g' ? x[0] . x[1] . x[1] :  x . x
-	if x !~ '[dc]'
-		execute 'vnoremap' x x . '`v'
-	endif
-endfor
-nnoremap > >>^
-nnoremap < <<^
-vnoremap < <gv^
-vnoremap > >gv^
-
-vnoremap Q :normal @q<cr>
-vnoremap @ :normal @
-nnoremap Q @q
 
 nnoremap gf gF
 nnoremap Y y$
+nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
+nnoremap Q @q
 
-vnoremap <silent> * :<C-U>
-  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
-  \gvy/<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
-  \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
-  \gVzv:call setreg('"', old_reg, old_regtype)<CR>
-vnoremap <silent> # :<C-U>
-  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
-  \gvy?<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
-  \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
-  \gVzv:call setreg('"', old_reg, old_regtype)<CR>
+onoremap } V}
+onoremap { V{
+
+cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
 
 nnoremap p ]p
 nnoremap P [p
-vnoremap p ]p
-vnoremap P [p
 
-nnoremap go mvo<esc>`v
-nnoremap gO mvO<esc>`v
+nnoremap go mqo<esc>`q
+nnoremap gO mqO<esc>`q
 
 nnoremap [q :cprevious<cr>
 nnoremap ]q :cnext<cr>
@@ -136,36 +107,34 @@ nnoremap ]Q :clast<cr>
 nnoremap [<c-Q> :cnfile<cr>
 nnoremap ]<c-Q> :cpfile<cr>
 
-tnoremap <c-w> <nop>
-tnoremap <c-w> <c-w>.
-tnoremap <c-v> <c-w>""
-tnoremap <silent> <c-^> <c-w>:buffer #<cr>
-tnoremap <c-\> <nop>
-tnoremap <c-o> <c-w>N
-
-cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
-
 function! Shell()
-	let bufname = 'shell'
-	if bufloaded(bufname)
-		execute 'buffer' bufname
+	let b:bufname = 'shell'
+	if bufloaded(b:bufname)
+		execute 'buffer ' . b:bufname
 	else
-		call term_start($SHELL, {'term_name': bufname})
+		call term_start($SHELL, {'term_name': b:bufname})
 	endif
 endfunction
 command! Shell call Shell()
+tnoremap <c-w> <nop>
+tnoremap <c-w> <c-w>.
+tnoremap <c-r> <c-w>"
+tnoremap <silent> <c-^> <c-w>:buffer #<cr>
+tnoremap <c-\> <nop>
+tnoremap <c-\> <c-w>N
 
 function! GlobalMarkGoto()
-	execute 'buffer' fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])
+       execute 'buffer' fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])
 endfunction
 nnoremap <silent> ' :call GlobalMarkGoto()<cr>
 
 function! TrimWhitespace()
-	let v = winsaveview()
-	keeppatterns %s/\s\+$//e
-	call winrestview(v)
+       let v = winsaveview()
+       keeppatterns %s/\s\+$//e
+       call winrestview(v)
 endfunction
 autocmd BufWritePre * call TrimWhitespace()
+
 command! Copy call system('xsel --clipboard --input', @")
 
 autocmd BufWinEnter * silent! only
@@ -175,6 +144,7 @@ command! Cwindow cwindow | only
 command! -nargs=* Make silent make! <args>
 command! -nargs=+ Grep silent grep! <args>
 
+let g:sesh_dir = expand('~/.vim/')
 function! SeshFile(type)
 	return expand('~/.vim/') . substitute(getcwd(), '/', '_', 'g') . (a:type ? '.vim' : '.viminfo')
 endfunction
@@ -182,8 +152,8 @@ endfunction
 function! SeshLoad()
 	if filereadable(SeshFile(1))
 		delmarks A-Z
-		execute 'source' SeshFile(1)
-		execute 'rviminfo!' SeshFile(0)
+		execute 'source ' . SeshFile(1)
+		execute 'rviminfo! ' . SeshFile(0)
 	endif
 endfunction
 
@@ -194,8 +164,8 @@ command! SeshRm call SeshRemove()
 
 function! SeshMake(make)
 	if a:make || filereadable(SeshFile(1))
-		execute 'mksession!' SeshFile(1)
-		execute 'wviminfo!' SeshFile(0)
+		execute 'mksession! ' . SeshFile(1)
+		execute 'wviminfo! ' . SeshFile(0)
 	endif
 endfunction
 command! SeshMake call SeshMake(1)
