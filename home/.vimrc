@@ -43,11 +43,11 @@ set path=.,,**/*
 set wildignore=*.o,.a,.so,.*
 set wildmenu
 set wildignorecase
+set wildoptions=tagfile,pum
+set pumheight=8
 set wildchar=<c-i>
 set wildcharm=<c-i>
 set wildmode=longest:full
-set wildoptions=tagfile,pum
-set pumheight=8
 set completeopt=
 
 set wrap
@@ -94,7 +94,7 @@ inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
 nnoremap Q @q
-cnoremap <expr> <c-i> wildmenumode() ? "\<c-y>\<c-i>" : "\<c-i>"
+cnoremap <expr> <c-y> wildmenumode() ? '<c-y><c-i>' : '<c-y>'
 
 onoremap } V}
 onoremap { V{
@@ -105,10 +105,6 @@ nnoremap P [p
 nnoremap go mqo<esc>`q
 nnoremap gO mqO<esc>`q
 
-map [[ ?{<CR>w99[{
-map ][ /}<CR>b99]}
-map ]] j0[[%/{<cr>
-map [] k$][%?}<cr>
 nnoremap [q :cprevious<cr>
 nnoremap ]q :cnext<cr>
 nnoremap [Q :cfirst<cr>
@@ -131,11 +127,11 @@ nnoremap ds' mqvi'<esc>`>l"_x`<h"_x`q
 nnoremap ds` mqvi`<esc>`>l"_x`<h"_x`q
 
 function! Shell()
-	let b:bufname = "shell"
+	let b:bufname = 'shell'
 	if bufloaded(b:bufname)
-		execute "buffer" b:bufname
+		execute 'buffer ' . b:bufname
 	else
-		execute term_start($SHELL, {"term_name": b:bufname})
+		call term_start($SHELL, {'term_name': b:bufname})
 	endif
 endfunction
 command! Shell call Shell()
@@ -146,10 +142,10 @@ tnoremap <silent> <c-^> <c-w>:buffer #<cr>
 tnoremap <c-\> <nop>
 tnoremap <c-\> <c-w>N
 
-nnoremap <silent> ' :execute "buffer" fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
+nnoremap <silent> ' :execute 'buffer ' . fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])<cr>
 
 autocmd BufWritePre * let b:v = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:v)
-command! Copy call system("xsel --clipboard --input", @")
+command! Copy call system('xsel --clipboard --input', @")
 
 autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
@@ -159,34 +155,36 @@ command! Cwindow cwindow | only
 command! -nargs=* Make silent make! <args>
 command! -nargs=+ Grep silent grep! <args>
 
-let g:session_dir = expand("~/.vim/")
-function! SessionFile(type)
-	return g:session_dir . substitute(getcwd(), "/", "_", "g") . (a:type ? ".vim" : ".viminfo")
+let g:sesh_dir = expand('~/.vim/')
+function! SeshFile(type)
+	return g:sesh_dir . substitute(getcwd(), '/', '_', 'g') . (a:type ? '.vim' : '.viminfo')
 endfunction
 
-function! SessionLoad()
-	delmarks A-Z
-	if filereadable(SessionFile(1))
-		execute "source" SessionFile(1)
-		execute "rviminfo!" SessionFile(0)
+function! SeshLoad()
+	if filereadable(SeshFile(1))
+		delmarks A-Z
+		execute 'source ' . SeshFile(1)
+		execute 'rviminfo! ' . SeshFile(0)
+		echo '[sesh] loaded'
 	endif
 endfunction
 
-function! SessionRm()
-	call system("rm" SessionFile(1) SessionFile(0))
+function! SeshRemove()
+	call system('rm ' . SeshFile(1) . ' ' . SeshFile(0))
+	echo '[sesh] removed'
 endfunction
-command! Srm call SessionRm()
+command! SeshRm call SeshRemove()
 
-function! SessionMake(make)
-	if a:make || filereadable(SessionFile(1))
-		execute "mksession!" SessionFile(1)
-		execute "wviminfo!" SessionFile(0)
+function! SeshMake(make)
+	if a:make || filereadable(SeshFile(1))
+		execute 'mksession! ' . SeshFile(1)
+		execute 'wviminfo! ' . SeshFile(0)
 	endif
 endfunction
-command! Smk call SessionMake(1)
+command! SeshMake call SeshMake(1)
 
-autocmd VimEnter * call SessionLoad()
-autocmd VimLeavePre * call SessionMake(0)
+autocmd VimEnter * call SeshLoad()
+autocmd VimLeavePre * call SeshMake(0)
 
 let g:loaded_netrwPlugin = 1
 runtime! ftplugin/man.vim
