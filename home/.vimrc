@@ -91,7 +91,9 @@ vnoremap <esc> <esc>`v
 let s:operators = ['d', 'y', 'c', '=', 'gw', 'gq', 'g~', 'gu', 'gU']
 for o in s:operators
 	execute 'nnoremap' o o[0] == 'g' ? o[0] . o[1] . o[1] :  o . o
-	execute 'vnoremap' o o . '`v'
+	if o !~ '[dc]'
+		execute 'vnoremap' o o . '`v'
+	endif
 endfor
 nnoremap > >>^
 nnoremap < <<^
