@@ -76,8 +76,8 @@ set hlsearch
 set ignorecase
 set smartcase
 
-for m in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>"]
-	execute 'nnoremap' m '<nop>'
+for x in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>"]
+	execute 'nnoremap' x '<nop>'
 endfor
 
 nnoremap gf gF
@@ -97,8 +97,12 @@ cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
 nnoremap p ]p
 nnoremap P [p
 
-nnoremap go mqo<esc>`q
-nnoremap gO mqO<esc>`q
+for x in ['y', 'gu', 'gU', 'g~', '!', '=', '<', '>']
+	execute 'nnoremap' x 'm`' . x
+endfor
+
+nnoremap go m`gO<esc>``
+nnoremap gO m`gO<esc>``
 
 nnoremap [q :cprevious<cr>
 nnoremap ]q :cnext<cr>
@@ -121,7 +125,7 @@ tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
 tnoremap <silent> <c-^> <c-w>:buffer #<cr>
 tnoremap <c-\> <nop>
-tnoremap <c-\> <c-w>N
+tnoremap <c-o> <c-w>N
 
 function! GlobalMarkGoto()
        execute 'buffer' fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])
