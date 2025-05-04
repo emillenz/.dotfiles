@@ -138,7 +138,7 @@ function! Term()
 		execute term_start($SHELL, {"term_name": b:bufname})
 	endif
 endfunction
-command! T call Term()
+command! Term call Term()
 tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
@@ -155,7 +155,7 @@ autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
 autocmd FileType qf nmap <buffer> <cr> <cr>zz
 autocmd ShellCmdPost * silent redraw!
-command! C cwindow | only
+command! Cw cwindow | only
 command! -nargs=+ Make silent make! <args>
 command! -nargs=+ Grep silent grep! <args>
 
