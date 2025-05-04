@@ -96,10 +96,11 @@ inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
 nnoremap Q @q
-cnoremap <expr> <c-y> wildmenumode() ? '<c-y><c-i>' : '<c-y>'
 
 onoremap } V}
 onoremap { V{
+
+cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
 
 nnoremap p ]p
 nnoremap P [p
