@@ -76,23 +76,22 @@ set hlsearch
 set ignorecase
 set smartcase
 
-let s:nop_bindings = ["gv", "v", "V", "<c-v>", "s", "S", "H", "M", "L", "v", "V", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "g~"]
-for o in s:nop_bindings
-	execute 'nnoremap' o '<nop>'
+let s:nop_bindings = ["s", "S", "H", "M", "L", "v", "V", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "g~"]
+for x in s:nop_bindings
+	execute 'nnoremap' x '<nop>'
 endfor
-inoremap <c-o> <nop>
 
-nnoremap <space> mvv
-nnoremap g<space> gv
-vnoremap <space> V
-nnoremap <c-@> mv<c-v>
-vnoremap <c-@> <c-v>
+let s:selection_bindings = ["v", "V", "<c-v>"]
+for x in s:selection_bindings
+	execute 'nnoremap' x 'mv' . x
+endfor
+
 vnoremap <esc> <esc>`v
 let s:operators = ['d', 'y', 'c', '=', 'gw', 'gq']
-for o in s:operators
-	execute 'nnoremap' o o[0] == 'g' ? o[0] . o[1] . o[1] :  o . o
-	if o !~ '[dc]'
-		execute 'vnoremap' o o . '`v'
+for x in s:operators
+	execute 'nnoremap' x x[0] == 'g' ? x[0] . x[1] . x[1] :  x . x
+	if x !~ '[dc]'
+		execute 'vnoremap' x x . '`v'
 	endif
 endfor
 nnoremap > >>^
@@ -110,7 +109,6 @@ nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
-cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
 
 vnoremap <silent> * :<C-U>
   \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
@@ -143,7 +141,9 @@ tnoremap <c-w> <c-w>.
 tnoremap <c-v> <c-w>""
 tnoremap <silent> <c-^> <c-w>:buffer #<cr>
 tnoremap <c-\> <nop>
-tnoremap <c-\> <c-w>N
+tnoremap <c-o> <c-w>N
+
+cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
 
 function! Shell()
 	let bufname = 'shell'
