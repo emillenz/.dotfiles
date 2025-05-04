@@ -130,15 +130,15 @@ nnoremap ds" mqvi"<esc>`>l"_x`<h"_x`q
 nnoremap ds' mqvi'<esc>`>l"_x`<h"_x`q
 nnoremap ds` mqvi`<esc>`>l"_x`<h"_x`q
 
-function! Term()
-	let b:bufname = "term"
+function! Shell()
+	let b:bufname = "shell"
 	if bufloaded(b:bufname)
 		execute "buffer" b:bufname
 	else
 		execute term_start($SHELL, {"term_name": b:bufname})
 	endif
 endfunction
-command! Term call Term()
+command! Shell call Shell()
 tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
@@ -149,14 +149,14 @@ tnoremap <c-\> <c-w>N
 nnoremap <silent> ' :execute "buffer" fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])<cr>
 
 autocmd BufWritePre * let b:v = winsaveview() | keeppatterns %s/\s\+$//e | call winrestview(b:v)
-command! Cb call system("xsel --clipboard --input", @")
+command! Copy call system("xsel --clipboard --input", @")
 
 autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
 autocmd FileType qf nmap <buffer> <cr> <cr>zz
 autocmd ShellCmdPost * silent redraw!
-command! Cw cwindow | only
-command! -nargs=+ Make silent make! <args>
+command! Cwindow cwindow | only
+command! -nargs=* Make silent make! <args>
 command! -nargs=+ Grep silent grep! <args>
 
 let g:session_dir = expand("~/.vim/")
