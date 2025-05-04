@@ -120,6 +120,7 @@ function! Shell()
 	endif
 endfunction
 command! Shell call Shell()
+
 tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
 tnoremap <c-r> <c-w>"
@@ -178,5 +179,11 @@ autocmd VimEnter * call SeshLoad()
 autocmd VimLeavePre * call SeshMake(0)
 
 filetype plugin indent on
-let g:loaded_netrwPlugin = 1
 runtime! ftplugin/man.vim
+
+let g:netrw_banner = 0
+let g:netrw_hide = 1
+let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
+let g:netrw_localcopydircmd = "cp --recursive"
+let g:netrw_cursor = 5
+autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr>
