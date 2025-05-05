@@ -25,7 +25,7 @@ export PROMPT_COMMAND='printf "\033]133;A\007"' # `]133;A` :: enable {next,prev}
 
 alias\
 	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --file-type --format=single-column --color=never -F"\
-	grep="grep --line-number --extended-regexp --ignore-case"\
+	grep="grep --ignore-case"\
 	rm="rm --verbose --recursive"\
 	less="less --ignore-case"\
 	cp="cp --verbose --recursive"\

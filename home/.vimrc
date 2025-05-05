@@ -150,7 +150,7 @@ autocmd ShellCmdPost * silent redraw!
 command! Cwindow cwindow | only
 command! -nargs=* -complete=shellcmd Make silent make! <args>
 command! -nargs=+ -complete=shellcmd Grep silent grep! <args>
-command! -nargs=+ -complete=shellcmdline Cget cgetexpr system('<args>')
+command! -nargs=+ -complete=shellcmdline Qcmd cgetexpr system('<args>')
 
 let g:sesh_dir = expand('~/.vim/')
 function! SeshFile(type)
