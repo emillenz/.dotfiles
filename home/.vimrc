@@ -92,17 +92,19 @@ nnoremap Q @q
 onoremap } V}
 onoremap { V{
 
+nnoremap <silent> { :keepjumps normal! {<cr>
+nnoremap <silent> } :keepjumps normal! }<cr>
+
+nnoremap <silent><expr> j (v:count > 0 ? 'm`' . v:count : '') . 'j'
+nnoremap <silent><expr> k (v:count > 0 ? 'm`' . v:count : '') . 'k'
+
 cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
 
 nnoremap p ]p
 nnoremap P [p
 
-for x in ['y', 'gu', 'gU', 'g~', '!', '=', '<', '>']
-	execute 'nnoremap' x 'm`' . x
-endfor
-
-nnoremap go m`o<esc>``
-nnoremap gO m`O<esc>``
+nnoremap <silent> go :call append(line('.'), '')<cr>
+nnoremap <silent> gO :call append(line('.') - 1, '')<cr>
 
 nnoremap [q :cprevious<cr>
 nnoremap ]q :cnext<cr>
@@ -182,8 +184,14 @@ filetype plugin indent on
 runtime! ftplugin/man.vim
 
 let g:netrw_banner = 0
-let g:netrw_hide = 1
-let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
+let g:netrw_list_hide= '\(^\|\s\s\)\zs\.\S\+'
 let g:netrw_localcopydircmd = "cp --recursive"
 let g:netrw_cursor = 5
-autocmd FileType netrw nmap <buffer> h -^ | nmap <buffer> l <cr>
+
+function! NetrwAutocmd()
+	setlocal bufhidden=wipe
+	nmap <buffer> h -^
+	nmap <buffer> l <cr>
+	nmap <buffer> <tab> mfj
+endfunction
+autocmd FileType netrw call NetrwAutocmd()
