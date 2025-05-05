@@ -20,7 +20,7 @@ set autoread
 set ttimeout
 set ttimeoutlen=50
 set fillchars=eob:\ ,lastline:\ ,
-	set history=10000
+set history=10000
 set cmdwinheight=1
 set showcmd
 set shortmess+=aF
@@ -114,6 +114,13 @@ nnoremap ]Q :clast<cr>
 nnoremap [<c-Q> :cnfile<cr>
 nnoremap ]<c-Q> :cpfile<cr>
 
+tnoremap <c-w> <nop>
+tnoremap <c-w> <c-w>.
+tnoremap <c-r> <c-w>"
+tnoremap <silent> <c-^> <c-w>:buffer #<cr>
+tnoremap <c-\> <nop>
+tnoremap <c-o> <c-w>N
+
 function! Shell()
 	let b:bufname = 'shell'
 	if bufloaded(b:bufname)
@@ -123,13 +130,6 @@ function! Shell()
 	endif
 endfunction
 command! Shell call Shell()
-
-tnoremap <c-w> <nop>
-tnoremap <c-w> <c-w>.
-tnoremap <c-r> <c-w>"
-tnoremap <silent> <c-^> <c-w>:buffer #<cr>
-tnoremap <c-\> <nop>
-tnoremap <c-o> <c-w>N
 
 function! GlobalMarkGoto()
        execute 'buffer' fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])
@@ -186,14 +186,15 @@ filetype plugin indent on
 runtime! ftplugin/man.vim
 
 let g:netrw_banner = 0
-let g:netrw_list_hide= '\(^\|\s\s\)\zs\.\S\+'
+let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
 let g:netrw_localcopydircmd = "cp --recursive"
 let g:netrw_cursor = 5
+let g:netrw_altfile = 1
 
-function! NetrwAutocmd()
+function! NetrwSetup()
 	setlocal bufhidden=wipe
 	nmap <buffer> h -^
 	nmap <buffer> l <cr>
 	nmap <buffer> <tab> mfj
 endfunction
-autocmd FileType netrw call NetrwAutocmd()
+autocmd FileType netrw call NetrwSetup()
