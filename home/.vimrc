@@ -20,7 +20,7 @@ set autoread
 set ttimeout
 set ttimeoutlen=50
 set fillchars=eob:\ ,lastline:\ ,
-set history=10000
+	set history=10000
 set cmdwinheight=1
 set showcmd
 set shortmess+=aF
@@ -76,7 +76,7 @@ set hlsearch
 set ignorecase
 set smartcase
 
-for x in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>"]
+for x in ['v', 'V', 's', 'S', 'H', 'M', '<c-w>', '<c-e>', '<c-y>']
 	execute 'nnoremap' x '<nop>'
 endfor
 
@@ -92,8 +92,9 @@ nnoremap Q @q
 onoremap } V}
 onoremap { V{
 
-nnoremap <silent> { :keepjumps normal! {<cr>
-nnoremap <silent> } :keepjumps normal! }<cr>
+for x in ['{','}','(',')']
+	execute 'nnoremap' x ':keepjumps normal!' x . '<cr>'
+endfor
 
 nnoremap <silent><expr> j (v:count > 0 ? 'm`' . v:count : '') . 'j'
 nnoremap <silent><expr> k (v:count > 0 ? 'm`' . v:count : '') . 'k'
@@ -136,9 +137,9 @@ endfunction
 nnoremap <silent> ' :call GlobalMarkGoto()<cr>
 
 function! TrimWhitespace()
-       let v = winsaveview()
-       keeppatterns %s/\s\+$//e
-       call winrestview(v)
+	let v = winsaveview()
+	keeppatterns %s/\s\+$//e
+	call winrestview(v)
 endfunction
 autocmd BufWritePre * call TrimWhitespace()
 
