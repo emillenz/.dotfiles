@@ -25,6 +25,7 @@ set cmdwinheight=1
 set showcmd
 set shortmess+=aF
 set shortmess-=S
+set matchpairs+=<:>
 
 set autoindent
 set smarttab
@@ -82,12 +83,14 @@ endfor
 
 nnoremap gf gF
 nnoremap Y y$
-nnoremap _ "_d
 nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
 nnoremap Q @q
+nnoremap _ "_d
+nnoremap x "_x
+nnoremap X "_X
 
 onoremap } V}
 onoremap { V{
@@ -149,9 +152,9 @@ autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
 autocmd ShellCmdPost * silent redraw!
 command! Cwindow cwindow | only
-command! -nargs=* -complete=shellcmd Make silent make! <args>
-command! -nargs=+ -complete=shellcmd Grep silent grep! <args>
-command! -nargs=+ -complete=shellcmdline Ccmd cgetexpr system('<args>')
+command! -nargs=* Make silent make! <args>
+command! -nargs=+ -complete=file_in_path Grep silent grep! <args>
+command! -nargs=+ -complete=file_in_path Cprg cgetexpr system('<args>')
 
 let g:sesh_dir = expand('~/.vim/')
 function! SeshFile(type)
