@@ -67,7 +67,6 @@ set guicursor=
 set background=light
 highlight Pmenu ctermbg=white
 highlight PmenuSel ctermbg=grey
-highlight LineNr ctermfg=grey
 
 set gdefault
 set incsearch
@@ -80,8 +79,10 @@ for x in ["s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "g~"]
 	execute "vnoremap" x "<nop>"
 endfor
 
-autocmd ModeChanged n:[vV\x16] let g:pos = getpos('.')
-autocmd ModeChanged [vV\x16]:n call setpos('.', g:pos)
+" note: using mark explicitly => when region position not valid anymore (text
+" changed => doesn't go there)
+autocmd ModeChanged n:[vV\x16] normal! mv
+autocmd ModeChanged [vV\x16]:n normal! `v
 
 for x in ["d", "c", "y", "=", "<", ">", "gw"]
 	execute "nnoremap" x  x . x
@@ -113,14 +114,11 @@ nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap _ "_d
+nnoremap J mqJ`q
 
 nnoremap x "_x
+vnoremap x "_d
 nnoremap X "_X
-
-nnoremap <silent><expr> j (v:count > 0 ? "m`" . v:count : "") . "j"
-nnoremap <silent><expr> k (v:count > 0 ? "m`" . v:count : "") . "k"
-vnoremap <silent><expr> j (v:count > 0 ? "m`" . v:count : "") . "j"
-vnoremap <silent><expr> k (v:count > 0 ? "m`" . v:count : "") . "k"
 
 for x in ["{", "}", "(", ")"]
 	execute "nnoremap <silent>" x ":keepjumps normal!" x . "<cr>"
@@ -183,7 +181,7 @@ function! TrimWhitespace()
 endfunction
 autocmd BufWritePre * call TrimWhitespace()
 
-command! Copy call system("xsel --clipboard --input", @")
+command! Clipboard call system("xsel --clipboard --input", @")
 
 autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
@@ -229,12 +227,10 @@ let g:netrw_banner = 0
 let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
 let g:netrw_localcopydircmd = "cp --recursive"
 let g:netrw_cursor = 5
-let g:netrw_altfile = 1
 
 function! NetrwSetup()
-	setlocal bufhidden=wipe
 	nmap <buffer> h -^
-	nmap <buffer> l <cr>
+	nmap <buffer> l :<cr>
 	nmap <buffer> v mfj
 	nmap <buffer> e %
 endfunction
