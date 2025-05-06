@@ -22,7 +22,6 @@ set ttimeoutlen=50
 set fillchars=eob:\ ,lastline:\ ,
 set history=10000
 set cmdwinheight=1
-set showcmd
 set shortmess+=aF
 set shortmess-=S
 set matchpairs+=<:>
@@ -56,6 +55,7 @@ set breakindent
 set linebreak
 
 set noruler
+set noshowcmd
 set noshowmode
 set showtabline=0
 set nocursorline
@@ -80,15 +80,14 @@ for x in ["s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "~"]
 	execute "vnoremap" x "<nop>"
 endfor
 
-autocmd ModeChanged n:[vV\x16] normal! mv
-autocmd ModeChanged [vV\x16]:n normal! `v
-let s:operator_maps = ["d", "c", "y", "=", "<", ">", "gw", "gq"]
-for x in s:operator_maps
-	execute "nnoremap" x  "mv" . x . x . "`v"
-endfor
+autocmd ModeChanged n:[vV\x16] let g:pos = getpos('.')
+autocmd ModeChanged [vV\x16]:n call setpos('.', g:pos)
 
-vnoremap < <gv
-vnoremap > >gv
+for x in ["d", "c", "y", "=", "<", ">", "gw"]
+	execute "nnoremap" x  x . x
+endfor
+vnoremap < <gvh
+vnoremap > >gvl
 
 vnoremap <silent> * :<C-U>
   \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
@@ -101,7 +100,7 @@ vnoremap <silent> # :<C-U>
   \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
   \gVzv:call setreg('"', old_reg, old_regtype)<CR>
 
-vnoremap <silent><expr> @ ":'\<lt>,'>normal @" . nr2char(getchar(-1, {'cursor': 'keep'})) . "\<lt>cr>"
+vnoremap <silent><expr> @ ":normal @" . nr2char(getchar(-1, {"cursor": "keep"})) . "\<lt>cr>"
 nnoremap Q @q
 vnoremap <silent> Q :normal @q<cr>
 
@@ -155,12 +154,12 @@ cnoremap <esc>* <c-a>
 cnoremap <c-e> <end>
 cnoremap <c-f> <right>
 cnoremap <c-d> <del>
-cnoremap <c-o> <c-F>
+cnoremap <c-o> <c-f>
 cnoremap <c-b> <left>
 cnoremap <esc>f <c-right>
 cnoremap <esc>b <c-left>
 cnoremap <esc>d <c-right><c-w>
-cnoremap <c-k> <c-\>e getcmdpos() == 1 ? '' : getcmdline()[:getcmdpos()-2]<cr>
+cnoremap <c-k> <c-\>e getcmdpos() == 1 ? "" : getcmdline()[:getcmdpos()-2]<cr>
 
 function! Shell()
 	let b:bufname = "shell"
