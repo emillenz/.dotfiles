@@ -199,5 +199,6 @@ function! NetrwSetup()
 	nmap <buffer> h -^
 	nmap <buffer> l <cr>
 	nmap <buffer> <tab> mfj
+	nmap <buffer> e %
 endfunction
 autocmd FileType netrw call NetrwSetup()
