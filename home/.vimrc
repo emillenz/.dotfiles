@@ -77,7 +77,7 @@ set hlsearch
 set ignorecase
 set smartcase
 
-for x in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>"]
+for x in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "q:", "q/", "q?"]
 	execute "nnoremap" x "<nop>"
 endfor
 
@@ -137,6 +137,7 @@ tnoremap <c-\> <nop>
 tnoremap <c-o> <c-w>N
 
 cnoremap <expr> <c-i> wildmenumode() ? "<c-y><c-i>" : "<c-i>"
+cnoremap <esc> <c-f>
 
 function! Shell()
 	let b:bufname = "shell"
