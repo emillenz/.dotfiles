@@ -55,8 +55,6 @@ set wrap
 set breakindent
 set linebreak
 
-set relativenumber
-set number
 set noruler
 set noshowmode
 set showtabline=0
@@ -77,9 +75,32 @@ set hlsearch
 set ignorecase
 set smartcase
 
-for x in ['v', 'V', 's', 'S', 'H', 'M', '<c-w>', '<c-e>', '<c-y>']
+for x in ['s', 'S', 'H', 'M', '<c-w>', '<c-e>', '<c-y>']
 	execute 'nnoremap' x '<nop>'
 endfor
+
+let s:visual_maps = ["v", "V", "<c-v>", "gv"]
+for x in s:visual_maps
+	execute 'nnoremap' x 'mv' . x
+endfor
+
+vnoremap <esc> <esc>``
+let s:operator_maps = ['d', 'y', 'c', '=', 'gw', 'gq', 'g~', 'gu', 'gU']
+for x in s:operator_maps
+	execute 'nmap' x 'V' . x . '`v'
+	if x !~ '[dc]'
+		execute 'vnoremap' x x . '`v'
+	endif
+endfor
+nmap > V>
+nmap < V<
+vmap < <gv^
+vmap > >gv^
+
+vnoremap Q :normal @q<cr>
+vnoremap @ :normal @
+vnoremap & :normal &<cr>
+nnoremap Q @q
 
 nnoremap gf gF
 nnoremap Y y$
@@ -87,25 +108,22 @@ nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
-nnoremap Q @q
 nnoremap _ "_d
-nnoremap x "_x
-nnoremap X "_X
 
 onoremap } V}
 onoremap { V{
 
-for x in ['{','}','(',')']
-	execute 'nnoremap' x ':keepjumps normal!' x . '<cr>'
-endfor
-
 nnoremap <silent><expr> j (v:count > 0 ? 'm`' . v:count : '') . 'j'
 nnoremap <silent><expr> k (v:count > 0 ? 'm`' . v:count : '') . 'k'
+vnoremap <silent><expr> j (v:count > 0 ? 'm`' . v:count : '') . 'j'
+vnoremap <silent><expr> k (v:count > 0 ? 'm`' . v:count : '') . 'k'
 
 cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
 
 nnoremap p ]p
 nnoremap P [p
+vnoremap p ]p
+vnoremap P [p
 
 nnoremap <silent> go :call append(line('.'), '')<cr>
 nnoremap <silent> gO :call append(line('.') - 1, '')<cr>
