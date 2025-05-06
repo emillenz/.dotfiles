@@ -112,6 +112,9 @@ nnoremap ]Q :clast<cr>
 nnoremap [<c-Q> :cnfile<cr>
 nnoremap ]<c-Q> :cpfile<cr>
 
+nnoremap <silent><expr> j (v:count > 0 ? 'm`' . v:count : '') . 'j'
+nnoremap <silent><expr> k (v:count > 0 ? 'm`' . v:count : '') . 'k'
+
 for x in ["{", "}", "(", ")", "n", "N"]
 	execute "nnoremap <silent>" x ":keepjumps normal!" x . "<cr>"
 endfor
@@ -126,7 +129,7 @@ function! CommandOperator(type)
 endfunction
 nnoremap <silent> v :set operatorfunc=CommandOperator<cr>g@
 
-tnoremap <c-v> <c-w>""
+tnoremap <c-r> <c-w>"
 tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
 tnoremap <silent> <c-^> <c-w>:buffer #<cr>
