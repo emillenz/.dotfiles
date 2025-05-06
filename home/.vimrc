@@ -147,7 +147,7 @@ function! TrimWhitespace()
 endfunction
 autocmd BufWritePre * call TrimWhitespace()
 
-command! Clipboard call system("xsel --clipboard --input", @")
+command! Clip call system("xsel --clipboard --input", @")
 
 autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
