@@ -137,7 +137,17 @@ tnoremap <c-\> <nop>
 tnoremap <c-o> <c-w>N
 
 cnoremap <expr> <c-i> wildmenumode() ? "<c-y><c-i>" : "<c-i>"
-cnoremap <esc> <c-f>
+cnoremap <c-a> <home>
+cnoremap <esc>* <c-a>
+cnoremap <c-e> <end>
+cnoremap <c-f> <right>
+cnoremap <c-d> <del>
+cnoremap <c-o> <c-F>
+cnoremap <c-b> <left>
+cnoremap <esc>f <c-right>
+cnoremap <esc>b <c-left>
+cnoremap <esc>d <c-right><c-w>
+cnoremap <c-k> <c-\>e getcmdpos() == 1 ? '' : getcmdline()[:getcmdpos()-2]<cr>
 
 function! Shell()
 	let b:bufname = "shell"

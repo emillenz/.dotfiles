@@ -93,7 +93,7 @@ mode $MODE_LEADER {
 	bindsym $MOD+minus $EXEC pamixer --unmute --decrease 5
 	bindsym $MOD+0 $EXEC pamixer --toggle-mute
 	bindsym $MOD+a $ESC; $EXEC audio-output-menu $DMENU_ARGS
-	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu $DMENU_ARGS) && autorandr --change $config
+	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) && autorandr --change $config
 
 	bindsym $MOD+w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym $MOD+b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
