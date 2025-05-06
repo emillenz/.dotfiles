@@ -226,7 +226,7 @@ filetype plugin indent on
 runtime! ftplugin/man.vim
 
 let g:netrw_banner = 0
-let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
+let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
 let g:netrw_localcopydircmd = "cp --recursive"
 let g:netrw_cursor = 5
 let g:netrw_altfile = 1
@@ -235,7 +235,7 @@ function! NetrwSetup()
 	setlocal bufhidden=wipe
 	nmap <buffer> h -^
 	nmap <buffer> l <cr>
-	nmap <buffer> <tab> mfj
+	nmap <buffer> v mfj
 	nmap <buffer> e %
 endfunction
 autocmd FileType netrw call NetrwSetup()
