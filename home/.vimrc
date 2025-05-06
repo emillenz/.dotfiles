@@ -96,10 +96,6 @@ nnoremap x "_x
 nnoremap X "_X
 nnoremap _ "_d
 
-for x in ["{", "}", "(", ")", "n", "N"]
-	execute "nnoremap <silent>" x ":keepjumps normal!" x . "<cr>"
-endfor
-
 onoremap { V{
 onoremap } V}
 
@@ -115,6 +111,20 @@ nnoremap [Q :cfirst<cr>
 nnoremap ]Q :clast<cr>
 nnoremap [<c-Q> :cnfile<cr>
 nnoremap ]<c-Q> :cpfile<cr>
+
+for x in ["{", "}", "(", ")", "n", "N"]
+	execute "nnoremap <silent>" x ":keepjumps normal!" x . "<cr>"
+endfor
+
+function! MacroLineOperator(type)
+	call feedkeys(":'[,']normal @" . nr2char(getchar(-1, {"cursor": "keep"})) . "\<cr>", "n")
+endfunction
+nnoremap <silent> g@ :set operatorfunc=MacroLineOperator<cr>g@
+
+function! CommandOperator(type)
+	call feedkeys(":'[,']", "n")
+endfunction
+nnoremap <silent> v :set operatorfunc=CommandOperator<cr>g@
 
 tnoremap <c-v> <c-w>""
 tnoremap <c-w> <nop>
