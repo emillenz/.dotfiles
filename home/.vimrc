@@ -54,6 +54,8 @@ set wrap
 set breakindent
 set linebreak
 
+set relativenumber
+set number
 set noruler
 set noshowcmd
 set noshowmode
@@ -67,6 +69,7 @@ set guicursor=
 set background=light
 highlight Pmenu ctermbg=white
 highlight PmenuSel ctermbg=grey
+highlight LineNr ctermfg=grey
 
 set gdefault
 set incsearch
@@ -74,60 +77,35 @@ set hlsearch
 set ignorecase
 set smartcase
 
-for x in ["s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "g~"]
+for x in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>"]
 	execute "nnoremap" x "<nop>"
-	execute "vnoremap" x "<nop>"
 endfor
 
-" note: using mark explicitly => when region position not valid anymore (text
-" changed => doesn't go there)
-autocmd ModeChanged n:[vV\x16] normal! mv
-autocmd ModeChanged [vV\x16]:n normal! `v
+autocmd ModeChanged n:no let g:pos = getpos(".")
+autocmd ModeChanged n:i let g:pos = getpos(".")
+autocmd ModeChanged no:n if v:operator !~ "[dc]" | call setpos(".", g:pos) | endif
 
-for x in ["d", "c", "y", "=", "<", ">", "gw"]
-	execute "nnoremap" x  x . x
-endfor
-vnoremap < <gvh
-vnoremap > >gvl
-
-vnoremap <silent> * :<C-U>
-  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
-  \gvy/<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
-  \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
-  \gVzv:call setreg('"', old_reg, old_regtype)<CR>
-vnoremap <silent> # :<C-U>
-  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
-  \gvy?<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
-  \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
-  \gVzv:call setreg('"', old_reg, old_regtype)<CR>
-
-vnoremap <silent><expr> @ ":normal @" . nr2char(getchar(-1, {"cursor": "keep"})) . "\<lt>cr>"
 nnoremap Q @q
-vnoremap <silent> Q :normal @q<cr>
-
-vnoremap <silent> & :normal &<cr>
-nnoremap <silent> & :&<cr>
-
 nnoremap gf gF
 nnoremap Y y$
 nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
-nnoremap _ "_d
-nnoremap J mqJ`q
+nnoremap <silent> & :&<cr>
 
 nnoremap x "_x
-vnoremap x "_d
 nnoremap X "_X
+nnoremap _ "_d
 
-for x in ["{", "}", "(", ")"]
+for x in ["{", "}", "(", ")", "n", "N"]
 	execute "nnoremap <silent>" x ":keepjumps normal!" x . "<cr>"
 endfor
 
+onoremap { V{
+onoremap } V}
+
 nnoremap p ]p
 nnoremap P [p
-vnoremap p ]p
-vnoremap P [p
 
 nnoremap <silent> go :call append(line("."), "")<cr>
 nnoremap <silent> gO :call append(line(".") - 1, "")<cr>
@@ -147,17 +125,7 @@ tnoremap <c-\> <nop>
 tnoremap <c-o> <c-w>N
 
 cnoremap <expr> <c-i> wildmenumode() ? "<c-y><c-i>" : "<c-i>"
-cnoremap <c-a> <home>
-cnoremap <esc>* <c-a>
-cnoremap <c-e> <end>
-cnoremap <c-f> <right>
-cnoremap <c-d> <del>
-cnoremap <c-o> <c-f>
-cnoremap <c-b> <left>
-cnoremap <esc>f <c-right>
-cnoremap <esc>b <c-left>
-cnoremap <esc>d <c-right><c-w>
-cnoremap <c-k> <c-\>e getcmdpos() == 1 ? "" : getcmdline()[:getcmdpos()-2]<cr>
+cnoremap <esc> <c-f>h
 
 function! Shell()
 	let b:bufname = "shell"
@@ -230,7 +198,7 @@ let g:netrw_cursor = 5
 
 function! NetrwSetup()
 	nmap <buffer> h -^
-	nmap <buffer> l :<cr>
+	nmap <buffer> l <cr>
 	nmap <buffer> v mfj
 	nmap <buffer> e %
 endfunction

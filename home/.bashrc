@@ -38,8 +38,7 @@ export\
 	VISUAL="vim"\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=1000\
+	PYTHON_BASIC_REPL=1
 
 function find { command find $@ -type f -not -path './.*'; }
 function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@; }
-
-stty -ixon
