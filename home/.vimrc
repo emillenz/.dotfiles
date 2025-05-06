@@ -75,7 +75,7 @@ set hlsearch
 set ignorecase
 set smartcase
 
-for x in ["s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "~"]
+for x in ["s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "g~"]
 	execute "nnoremap" x "<nop>"
 	execute "vnoremap" x "<nop>"
 endfor
