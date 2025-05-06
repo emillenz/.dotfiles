@@ -75,29 +75,33 @@ set hlsearch
 set ignorecase
 set smartcase
 
-for x in ['s', 'S', 'H', 'M', '<c-w>', '<c-e>', '<c-y>']
-	execute 'nnoremap' x '<nop>'
+for x in ["s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "gu", "gU", "~"]
+	execute "nnoremap" x "<nop>"
+	execute "vnoremap" x "<nop>"
 endfor
 
-let s:visual_maps = ["v", "V", "<c-v>", "gv"]
-for x in s:visual_maps
-	execute 'nnoremap' x 'mv' . x
-endfor
-
-vnoremap <esc> <esc>``
-let s:operator_maps = ['y', '=', '!', 'gw', 'gq', 'g~', 'gu', 'gU']
+autocmd ModeChanged n:[vV\x16] normal! mv
+autocmd ModeChanged [vV\x16]:n normal! `v
+let s:operator_maps = ["d", "c", "y", "=", "<", ">", "gw", "gq"]
 for x in s:operator_maps
-	execute 'nnoremap' x 'mv' . x . x . '`v'
-	execute 'vnoremap' x x . '`v'
+	execute "nnoremap" x  "mv" . x . x . "`v"
 endfor
-nnoremap d dd
-nnoremap c cc
-nnoremap > mv>>`v
-nnoremap < mv<<`v
+
 vnoremap < <gv
 vnoremap > >gv
 
-vnoremap @ :normal @
+vnoremap <silent> * :<C-U>
+  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+  \gvy/<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
+  \escape(@", '/\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+  \gVzv:call setreg('"', old_reg, old_regtype)<CR>
+vnoremap <silent> # :<C-U>
+  \let old_reg=getreg('"')<Bar>let old_regtype=getregtype('"')<CR>
+  \gvy?<C-R>=&ic?'\c':'\C'<CR><C-R><C-R>=substitute(
+  \escape(@", '?\.*$^~['), '\_s\+', '\\_s\\+', 'g')<CR><CR>
+  \gVzv:call setreg('"', old_reg, old_regtype)<CR>
+
+vnoremap <silent><expr> @ ":'\<lt>,'>normal @" . nr2char(getchar(-1, {'cursor': 'keep'})) . "\<lt>cr>"
 nnoremap Q @q
 vnoremap <silent> Q :normal @q<cr>
 
@@ -114,23 +118,22 @@ nnoremap _ "_d
 nnoremap x "_x
 nnoremap X "_X
 
-onoremap } V}
-onoremap { V{
+nnoremap <silent><expr> j (v:count > 0 ? "m`" . v:count : "") . "j"
+nnoremap <silent><expr> k (v:count > 0 ? "m`" . v:count : "") . "k"
+vnoremap <silent><expr> j (v:count > 0 ? "m`" . v:count : "") . "j"
+vnoremap <silent><expr> k (v:count > 0 ? "m`" . v:count : "") . "k"
 
-nnoremap <silent><expr> j (v:count > 0 ? 'm`' . v:count : '') . 'j'
-nnoremap <silent><expr> k (v:count > 0 ? 'm`' . v:count : '') . 'k'
-vnoremap <silent><expr> j (v:count > 0 ? 'm`' . v:count : '') . 'j'
-vnoremap <silent><expr> k (v:count > 0 ? 'm`' . v:count : '') . 'k'
-
-cnoremap <expr> <c-i> wildmenumode() ? '<c-y><c-i>' : '<c-i>'
+for x in ["{", "}", "(", ")"]
+	execute "nnoremap <silent>" x ":keepjumps normal!" x . "<cr>"
+endfor
 
 nnoremap p ]p
 nnoremap P [p
 vnoremap p ]p
 vnoremap P [p
 
-nnoremap <silent> go :call append(line('.'), '')<cr>
-nnoremap <silent> gO :call append(line('.') - 1, '')<cr>
+nnoremap <silent> go :call append(line("."), "")<cr>
+nnoremap <silent> gO :call append(line(".") - 1, "")<cr>
 
 nnoremap [q :cprevious<cr>
 nnoremap ]q :cnext<cr>
@@ -146,18 +149,31 @@ tnoremap <silent> <c-^> <c-w>:buffer #<cr>
 tnoremap <c-\> <nop>
 tnoremap <c-o> <c-w>N
 
+cnoremap <expr> <c-i> wildmenumode() ? "<c-y><c-i>" : "<c-i>"
+cnoremap <c-a> <home>
+cnoremap <esc>* <c-a>
+cnoremap <c-e> <end>
+cnoremap <c-f> <right>
+cnoremap <c-d> <del>
+cnoremap <c-o> <c-F>
+cnoremap <c-b> <left>
+cnoremap <esc>f <c-right>
+cnoremap <esc>b <c-left>
+cnoremap <esc>d <c-right><c-w>
+cnoremap <c-k> <c-\>e getcmdpos() == 1 ? '' : getcmdline()[:getcmdpos()-2]<cr>
+
 function! Shell()
-	let b:bufname = 'shell'
+	let b:bufname = "shell"
 	if bufloaded(b:bufname)
-		execute 'buffer ' . b:bufname
+		execute "buffer" b:bufname
 	else
-		call term_start($SHELL, {'term_name': b:bufname})
+		call term_start($SHELL, {"term_name": b:bufname})
 	endif
 endfunction
 command! Shell call Shell()
 
 function! GlobalMarkGoto()
-       execute 'buffer' fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {'cursor': 'keep'}))))[0])
+       execute "buffer" fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])
 endfunction
 nnoremap <silent> ' :call GlobalMarkGoto()<cr>
 
@@ -168,7 +184,7 @@ function! TrimWhitespace()
 endfunction
 autocmd BufWritePre * call TrimWhitespace()
 
-command! Copy call system('xsel --clipboard --input', @")
+command! Copy call system("xsel --clipboard --input", @")
 
 autocmd BufWinEnter * silent! only
 autocmd QuickFixCmdPost * cwindow | only
@@ -176,30 +192,30 @@ autocmd ShellCmdPost * silent redraw!
 command! Cwindow cwindow | only
 command! -nargs=* Make silent make! <args>
 command! -nargs=+ -complete=file_in_path Grep silent grep! <args>
-command! -nargs=+ -complete=file_in_path Cprg cgetexpr system('<args>')
+command! -nargs=+ -complete=file_in_path Cprg cgetexpr system("<args>")
 
-let g:sesh_dir = expand('~/.vim/')
+let g:sesh_dir = expand("~/.vim/")
 function! SeshFile(type)
-	return expand('~/.vim/') . substitute(getcwd(), '/', '_', 'g') . (a:type ? '.vim' : '.viminfo')
+	return expand("~/.vim/") . substitute(getcwd(), "/", "_", "g") . (a:type ? ".vim" : ".viminfo")
 endfunction
 
 function! SeshLoad()
 	if filereadable(SeshFile(1))
 		delmarks A-Z
-		execute 'source ' . SeshFile(1)
-		execute 'rviminfo! ' . SeshFile(0)
+		execute "source" SeshFile(1)
+		execute "rviminfo!" SeshFile(0)
 	endif
 endfunction
 
 function! SeshRemove()
-	call system('rm ' . SeshFile(1) . ' ' . SeshFile(0))
+	call system("rm " . SeshFile(1) . " " . SeshFile(0))
 endfunction
 command! SeshRm call SeshRemove()
 
 function! SeshMake(make)
 	if a:make || filereadable(SeshFile(1))
-		execute 'mksession! ' . SeshFile(1)
-		execute 'wviminfo! ' . SeshFile(0)
+		execute "mksession!" SeshFile(1)
+		execute "wviminfo!" SeshFile(0)
 	endif
 endfunction
 command! SeshMake call SeshMake(1)
@@ -211,7 +227,7 @@ filetype plugin indent on
 runtime! ftplugin/man.vim
 
 let g:netrw_banner = 0
-let g:netrw_list_hide = '\(^\|\s\s\)\zs\.\S\+'
+let g:netrw_list_hide = "\(^\|\s\s\)\zs\.\S\+"
 let g:netrw_localcopydircmd = "cp --recursive"
 let g:netrw_cursor = 5
 let g:netrw_altfile = 1
