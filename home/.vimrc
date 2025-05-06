@@ -82,7 +82,6 @@ for x in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>"]
 endfor
 
 autocmd ModeChanged n:no let g:pos = getpos(".")
-autocmd ModeChanged n:i let g:pos = getpos(".")
 autocmd ModeChanged no:n if v:operator !~ "[dc]" | call setpos(".", g:pos) | endif
 
 nnoremap Q @q
@@ -125,7 +124,6 @@ tnoremap <c-\> <nop>
 tnoremap <c-o> <c-w>N
 
 cnoremap <expr> <c-i> wildmenumode() ? "<c-y><c-i>" : "<c-i>"
-cnoremap <esc> <c-f>h
 
 function! Shell()
 	let b:bufname = "shell"
