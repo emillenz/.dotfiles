@@ -85,7 +85,7 @@ for x in s:visual_maps
 endfor
 
 vnoremap <esc> <esc>``
-let s:operator_maps = ['y', '=', 'gw', 'gq', 'g~', 'gu', 'gU']
+let s:operator_maps = ['y', '=', '!', 'gw', 'gq', 'g~', 'gu', 'gU']
 for x in s:operator_maps
 	execute 'nnoremap' x 'mv' . x . x . '`v'
 	execute 'vnoremap' x x . '`v'
@@ -97,11 +97,11 @@ nnoremap < mv<<`v
 vnoremap < <gv
 vnoremap > >gv
 
-vnoremap Q :normal @q<cr>
 vnoremap @ :normal @
 nnoremap Q @q
+vnoremap <silent> Q :normal @q<cr>
 
-vnoremap & :normal &<cr>
+vnoremap <silent> & :normal &<cr>
 nnoremap <silent> & :&<cr>
 
 nnoremap gf gF
@@ -110,6 +110,9 @@ nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap _ "_d
+
+nnoremap x "_x
+nnoremap X "_X
 
 onoremap } V}
 onoremap { V{
