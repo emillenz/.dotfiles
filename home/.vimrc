@@ -85,29 +85,30 @@ for x in s:visual_maps
 endfor
 
 vnoremap <esc> <esc>``
-let s:operator_maps = ['d', 'y', 'c', '=', 'gw', 'gq', 'g~', 'gu', 'gU']
+let s:operator_maps = ['y', '=', 'gw', 'gq', 'g~', 'gu', 'gU']
 for x in s:operator_maps
-	execute 'nmap' x 'V' . x . '`v'
-	if x !~ '[dc]'
-		execute 'vnoremap' x x . '`v'
-	endif
+	execute 'nnoremap' x 'mv' . x . x . '`v'
+	execute 'vnoremap' x x . '`v'
 endfor
-nmap > V>
-nmap < V<
-vmap < <gv^
-vmap > >gv^
+nnoremap d dd
+nnoremap c cc
+nnoremap > mv>>`v
+nnoremap < mv<<`v
+vnoremap < <gv
+vnoremap > >gv
 
 vnoremap Q :normal @q<cr>
 vnoremap @ :normal @
-vnoremap & :normal &<cr>
 nnoremap Q @q
+
+vnoremap & :normal &<cr>
+nnoremap <silent> & :&<cr>
 
 nnoremap gf gF
 nnoremap Y y$
 nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
-nnoremap <silent> & :&<cr>
 nnoremap _ "_d
 
 onoremap } V}
@@ -135,9 +136,9 @@ nnoremap ]Q :clast<cr>
 nnoremap [<c-Q> :cnfile<cr>
 nnoremap ]<c-Q> :cpfile<cr>
 
+tnoremap <c-v> <c-w>""
 tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
-tnoremap <c-r> <c-w>"
 tnoremap <silent> <c-^> <c-w>:buffer #<cr>
 tnoremap <c-\> <nop>
 tnoremap <c-o> <c-w>N

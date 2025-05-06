@@ -22,8 +22,6 @@ shopt -s\
 export PS1='\n\[\033[1m\007\][\W] \[\033[0m\007\]' # `[1m` :: bold
 export PROMPT_COMMAND='printf "\033]133;A\007"' # `]133;A` :: enable {next,prev}-prompt navigation in tmux/vim.
 
-stty -ixon
-
 alias\
 	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --file-type --format=single-column --color=never -F"\
 	grep="grep --ignore-case"\
@@ -43,3 +41,5 @@ export\
 
 function find { command find $@ -type f -not -path './.*'; }
 function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@; }
+
+stty -ixon

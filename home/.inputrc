@@ -21,7 +21,7 @@ set page-completions off
 # set menu-complete-display-prefix On
 
 C-n: history-search-forward
-C-n: history-search-backward
+C-p: history-search-backward
 
 set bind-tty-special-chars off
 C-w: backward-kill-word
