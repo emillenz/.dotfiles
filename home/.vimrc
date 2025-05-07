@@ -45,10 +45,10 @@ set wildmenu
 set wildignorecase
 set wildoptions=tagfile,pum
 set pumheight=8
-set wildchar=<c-i>
-set wildcharm=<c-i>
 set wildmode=longest:full
 set completeopt=
+set wildchar=<c-i>
+set wildcharm=<c-i>
 
 set wrap
 set breakindent
@@ -136,11 +136,11 @@ nnoremap <silent> v :set operatorfunc=CommandOperator<cr>g@
 tnoremap <c-r> <c-w>"
 tnoremap <c-w> <nop>
 tnoremap <c-w> <c-w>.
+tnoremap <c-\> <c-w>N
 tnoremap <silent> <c-^> <c-w>:buffer #<cr>
-tnoremap <c-\> <nop>
-tnoremap <c-o> <c-w>N
 
 cnoremap <expr> <c-i> wildmenumode() ? "<c-y><c-i>" : "<c-i>"
+cnoremap <esc> <c-f>h
 
 function! Shell()
 	let b:bufname = "shell"
@@ -167,12 +167,12 @@ autocmd BufWritePre * call TrimWhitespace()
 command! Clip call system("xsel --clipboard --input", @")
 
 autocmd BufWinEnter * silent! only
-autocmd QuickFixCmdPost * cwindow | only
+autocmd QuickFixCmdPost * copen | only
 autocmd ShellCmdPost * silent redraw!
-command! Cwindow cwindow | only
+command! Copen copen | only
 command! -nargs=* Make silent make! <args>
 command! -nargs=+ -complete=file_in_path Grep silent grep! <args>
-command! -nargs=+ -complete=file_in_path Cprg cgetexpr system("<args>")
+command! -nargs=+ -complete=file_in_path Qcmd cgetexpr system('<args>')
 
 let g:sesh_dir = expand("~/.vim/")
 function! SeshFile(type)
