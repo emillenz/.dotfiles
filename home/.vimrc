@@ -82,11 +82,7 @@ for x in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "q:", "q/", "
 endfor
 
 autocmd ModeChanged n:no let g:pos = getpos(".")
-autocmd ModeChanged n:i let g:pos = getpos(".")
 autocmd ModeChanged no:n if v:operator !~ "[dc]" | call setpos(".", g:pos) | endif
-for x in ["u", "U", "<c-r>"]
-	execute "nnoremap <silent>" x x . ":call setpos('.', g:pos)<cr>"
-endfor
 
 nnoremap Q @q
 nnoremap gf gF

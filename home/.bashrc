@@ -42,5 +42,3 @@ export\
 
 function find { command find $@ -type f -not -path './.*'; }
 function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@; }
-
-stty -ixon
