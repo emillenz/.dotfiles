@@ -324,21 +324,28 @@
 
 (use-package desktop
   :config
-  (progn
-    (defvar evil-global-markers-alist)
+  (desktop-save-mode 1)
+  (defvar evil-global-markers-alist)
 
-    (defun evil-global-markers-save ()
-      (interactive)
-      (kill-local-variable 'evil-markers-alist)
-      (dolist (entry evil-markers-alist)
-	(when (markerp (cdr entry))
-	  (setcdr entry (cons (buffer-file-name (marker-buffer (cdr entry)))
-			      (marker-position (cdr entry))))))
-      (setq-default evil-global-markers-alist evil-markers-alist))
+  (defun evil-global-markers-serialize ()
+    (mapcar (lambda (it)
+	      (if (markerp (cdr it))
+		  (let ((marker-file (file-truename (buffer-file-name (marker-buffer (cdr it))))))
+		    (when marker-file     ;; only if marker associated with a file
+		      (cons (car it)
+			    (cons marker-file
+				  (marker-position (cdr it))))))
+		it))
+	    (default-value 'evil-markers-alist)))
 
-    (defun evil-global-markers-restore ()
-      (setq-default evil-markers-alist evil-global-markers-alist))
+  (defun evil-global-markers-write ()
+    (setq-default evil-global-markers-alist (evil-global-markers-serialize)))
 
-    (add-to-list 'desktop-globals-to-save 'evil-global-markers-alist)
-    (add-hook 'desktop-save-hook 'evil-global-markers-save)
-    (add-hook 'desktop-after-read-hook 'evil-global-markers-restore)))
+  (defun evil-global-markers-read ()
+    (setq-default evil-markers-alist evil-global-markers-alist))
+
+  (add-to-list 'desktop-globals-to-save 'evil-global-markers-alist)
+  (add-to-list 'desktop-globals-to-clear 'evil-markers-alist)
+  (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
+  (add-hook 'desktop-save-hook 'evil-global-markers-write)
+  (add-hook 'desktop-after-read-hook 'evil-global-markers-read))
