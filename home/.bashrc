@@ -20,11 +20,11 @@ shopt -s\
 	autocd
 
 export PS1='\n\[\033[1m\007\][\W] \[\033[0m\007\]' # `[1m` :: bold
-export PROMPT_COMMAND='printf "\033]133;A\007"' # `]133;A` :: enable {next,prev}-prompt navigation in tmux/vim.
+# export PROMPT_COMMAND='printf "\033]133;A\007"' # `]133;A` :: enable {next,prev}-prompt navigation in tmux/vim.
 
 alias\
 	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --file-type --format=single-column --color=never -F"\
-	grep="grep --line-number --ignore-case"\
+	grep="grep --ignore-case"\
 	rm="rm --verbose --recursive"\
 	less="less --ignore-case"\
 	cp="cp --verbose --recursive"\

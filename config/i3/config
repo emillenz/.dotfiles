@@ -65,9 +65,9 @@ for_window [class="net.thunderbird.Thunderbird"] move container to workspace age
 bindsym $MOD+a workspace agenda
 bindsym $MOD+shift+a $EXEC thunderbird
 
-for_window [class="Alacritty"] move container to workspace edit
+for_window [class="Emacs"] move container to workspace edit
 bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e $EXEC alacritty
+bindsym $MOD+shift+e $EXEC emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 workspace edit gaps horizontal $GAPSIZE
 
 for_window [class="Zathura"] move container to workspace read

@@ -77,12 +77,12 @@ set hlsearch
 set ignorecase
 set smartcase
 
-for x in ["v", "V", "s", "S", "H", "M", "<c-w>", "<c-e>", "<c-y>", "q:", "q/", "q?"]
+for x in ["v", "V", "<c-v>", "s", "S", "H", "M", "q:", "q/", "q?", "<c-w>", "<c-e>", "<c-y>"]
 	execute "nnoremap" x "<nop>"
 endfor
 
-autocmd ModeChanged n:no let g:pos = getpos(".")
-autocmd ModeChanged no:n if v:operator !~ "[dc]" | call setpos(".", g:pos) | endif
+autocmd ModeChanged n:\(no\|noV\|noCTRL-V\) let g:pos = getpos(".")
+autocmd ModeChanged \(no\|noV\|noCTRL-V\):n if v:operator !~ "[dc]" | call setpos(".", g:pos) | endif
 
 nnoremap Q @q
 nnoremap gf gF
@@ -91,9 +91,6 @@ nnoremap L i<cr><esc>
 inoremap {<cr> {<cr>}<esc>O
 nnoremap <silent> <esc> :nohlsearch<cr>
 nnoremap <silent> & :&<cr>
-
-nnoremap x "_x
-nnoremap X "_X
 nnoremap _ "_d
 
 onoremap { V{
@@ -120,7 +117,7 @@ for x in ["{", "}", "(", ")", "n", "N"]
 endfor
 
 function! MacroLineOperator(type)
-	call feedkeys(":'[,']normal @" . nr2char(getchar(-1, {"cursor": "keep"})) . "\<cr>", "n")
+	call feedkeys(":silent '[,']normal @" . nr2char(getchar(-1, {"cursor": "keep"})) . "\<cr>", "n")
 endfunction
 nnoremap <silent> g@ :set operatorfunc=MacroLineOperator<cr>g@
 
@@ -146,7 +143,7 @@ function! Shell()
 		call term_start($SHELL, {"term_name": b:bufname})
 	endif
 endfunction
-command! Shell call Shell()
+command! Sh call Shell()
 
 function! GlobalMarkGoto()
        execute "buffer" fnameescape(getpos("'" . toupper(nr2char(getchar(-1, {"cursor": "keep"}))))[0])
@@ -163,12 +160,13 @@ autocmd BufWritePre * call TrimWhitespace()
 command! Clip call system("xsel --clipboard --input", @")
 
 autocmd BufWinEnter * silent! only
-autocmd QuickFixCmdPost * copen | only
 autocmd ShellCmdPost * silent redraw!
-command! Copen copen | only
-command! -nargs=* Make silent make! <args>
-command! -nargs=+ -complete=file_in_path Grep silent grep! <args>
-command! -nargs=+ -complete=file_in_path Qcmd cgetexpr system('<args>')
+autocmd QuickFixCmdPost * cwindow | only
+command! Copen cwindow | only
+command! -bar -nargs=* Remake silent make! <args>
+command! -bar -nargs=+ -complete=shellcmd Make execute "set makeprg=" . escape(<q-args>, ' \"') | Remake
+command! -bar -nargs=+ -complete=file_in_path Grep silent grep! <args>
+command! -bar -nargs=+ -complete=file_in_path Qcmd cgetexpr system(join(map(split(<q-args>), {_, v -> expand(v)}), " "))
 
 let g:sesh_dir = expand("~/.vim/")
 function! SeshFile(type)
@@ -186,7 +184,7 @@ endfunction
 function! SeshRemove()
 	call system("rm " . SeshFile(1) . " " . SeshFile(0))
 endfunction
-command! SeshRm call SeshRemove()
+command! Seshrm call SeshRemove()
 
 function! SeshMake(make)
 	if a:make || filereadable(SeshFile(1))
@@ -194,7 +192,7 @@ function! SeshMake(make)
 		execute "wviminfo!" SeshFile(0)
 	endif
 endfunction
-command! SeshMake call SeshMake(1)
+command! Seshmk call SeshMake(1)
 
 autocmd VimEnter * call SeshLoad()
 autocmd VimLeavePre * call SeshMake(0)
