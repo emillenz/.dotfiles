@@ -252,19 +252,22 @@
 				  replace))
 
   (general-define-key
-    :states 'normal
-    :keymaps 'override
-    :prefix "SPC"
-    "h" help-map
-    "g" 'magit-status
-    "p" project-prefix-map
-    "v" vc-prefix-map
-    "b" 'switch-to-buffer
-    "k" 'kill-current-buffer
-    "e" 'find-file
-    "E" 'dired-jump
-    "s" 'save-buffer
-    "!" 'shell-command)
+   :states 'normal
+   :keymaps 'override
+   :prefix "SPC"
+   "h" help-map
+   "g" 'magit-status
+   "p" project-prefix-map
+   "v" vc-prefix-map
+   "b" 'switch-to-buffer
+   "k" 'kill-current-buffer
+   "e" 'find-file
+   "E" 'dired-jump
+   "s" 'save-buffer
+   "!" 'shell-command
+   ":" 'eval-expression
+   "=" 'global-text-scale-adjust
+   "-" 'global-text-scale-adjust)
 
   (general-define-key
    :states 'normal
@@ -272,7 +275,8 @@
    "j" 'next-history-element
    "k" 'previous-history-element
    "/" 'previous-matching-history-element
-   "RET" 'exit-minibuffer)
+   "RET" 'exit-minibuffer
+   [remap evil-force-normal-state] 'abort-minibuffers)
 
   (general-define-key
    :states 'normal
@@ -317,3 +321,24 @@
   :ensure t
   :init
   (setq evil-collection-magit-use-z-for-folds t))
+
+(use-package desktop
+  :config
+  (progn
+    (defvar evil-global-markers-alist)
+
+    (defun evil-global-markers-save ()
+      (interactive)
+      (kill-local-variable 'evil-markers-alist)
+      (dolist (entry evil-markers-alist)
+	(when (markerp (cdr entry))
+	  (setcdr entry (cons (buffer-file-name (marker-buffer (cdr entry)))
+			      (marker-position (cdr entry))))))
+      (setq-default evil-global-markers-alist evil-markers-alist))
+
+    (defun evil-global-markers-restore ()
+      (setq-default evil-markers-alist evil-global-markers-alist))
+
+    (add-to-list 'desktop-globals-to-save 'evil-global-markers-alist)
+    (add-hook 'desktop-save-hook 'evil-global-markers-save)
+    (add-hook 'desktop-after-read-hook 'evil-global-markers-restore)))
