@@ -36,7 +36,7 @@ font pango: Aporetic Sans Mono 10
 focus_on_window_activation focus
 smart_gaps inverse_outer
 
-set $MOD Mod1
+set $MOD Mod4
 floating_modifier $MOD
 tiling_drag off
 bindsym button2 kill
@@ -56,8 +56,8 @@ bindsym $MOD+p focus left
 bindsym $MOD+n focus right
 bindsym $MOD+Tab workspace back_and_forth
 
-bindsym $MOD+semicolon $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'drun' $DMENU_ARGS"
-bindsym $MOD+shift+semicolon $EXEC dmenu_run -p "run" $DMENU_ARGS
+bindsym $MOD+x $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
+bindsym $MOD+shift+x $EXEC dmenu_run -p "run" $DMENU_ARGS
 
 set $GAPSIZE 500
 
@@ -81,11 +81,11 @@ bindsym $MOD+shift+w $EXEC firefox
 # must come after specific workspace assignments
 for_window [all] focus
 
-set $MODE_LEADER "leader"
-bindsym $MOD+space mode $MODE_LEADER
+set $MODE_PREFIX "-"
+bindsym $MOD+c mode $MODE_PREFIX
 
 set $ESC mode "default"
-mode $MODE_LEADER {
+mode $MODE_PREFIX {
 	bindsym $MOD+o $ESC; move workspace to output next
 	bindsym $MOD+g $ESC; gaps horizontal current toggle $GAPSIZE
 
@@ -97,10 +97,11 @@ mode $MODE_LEADER {
 
 	bindsym $MOD+w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym $MOD+b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
-	bindsym $MOD+s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f"
+	bindsym $MOD+s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f"'
 	bindsym $MOD+q $ESC; $EXEC systemctl suspend
 	bindsym $MOD+k $ESC; kill
 
+	bindsym Ctrl+g $ESC
 	bindsym Escape $ESC
 }
 

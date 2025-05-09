@@ -5,7 +5,8 @@
 ;; email: emillenz@protonmail.com
 ;; ---
 
-(progn
+(use-package emacs
+  :init
   (tool-bar-mode 0)
   (menu-bar-mode 0)
   (fringe-mode 1)
@@ -13,22 +14,24 @@
   (scroll-bar-mode 0)
   (horizontal-scroll-bar-mode 0)
   (global-hl-line-mode 0)
-  (global-display-line-numbers-mode 1)
-  (electric-indent-mode 1)
-  (electric-pair-mode 1)
+  (global-display-line-numbers-mode 0)
   (global-auto-revert-mode 1)
   (column-number-mode 1)
   (savehist-mode 1)
   (global-word-wrap-whitespace-mode 1)
+  (global-visual-line-mode 1)
   (save-place-mode 1)
   (global-subword-mode 1)
+  (delete-selection-mode 1)
+  (electric-pair-mode 1)
   (repeat-mode 1)
+  (fido-vertical-mode 1)
+  (desktop-save-mode 1)
 
-  (add-hook 'before-save-hook 'delete-trailing-whitespace)
-
-  (setq set-mark-command-repeat-pop t
+  (setq use-file-dialog nil
+	use-dialog-box nil
+	set-mark-command-repeat-pop t
 	history-length 1000
-	comment-empty-lines t
 	uniquify-buffer-name-style 'forward
 	delete-by-moving-to-trash t
 	ring-bell-function 'ignore
@@ -49,166 +52,143 @@
 	custom-file (expand-file-name "custom.el" user-emacs-directory)
 	inhibit-startup-screen t
 	initial-scratch-message nil
-	display-line-numbers-type 'relative
+	display-bine-numbers-type 'relative
 	vc-follow-symlinks t
 	create-lockfiles nil
-	make-backup-files nil))
+	make-backup-files nil
+	comint-input-ignoredups t
+	comint-prompt-read-only t
+	use-package-hook-name-suffix nil
+	comment-empty-lines nil
+	register-preview-delay nil)
 
-(progn (add-to-list 'default-frame-alist '(font . "Iosevka Comfy-10")))
+  (setq-default comment-column 0)
 
-(progn
-  (require-theme 'modus-themes)
-  (setq modus-themes-italic-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-common-palette-overrides '((fg-heading-1 fg-heading-0)
-                                                (bg-prose-block-contents bg-dim)))
-  (load-theme 'modus-operandi)
-  (global-font-lock-mode -1))
+  (global-font-lock-mode -1)
 
-(progn
-  (setq-default tab-always-indent 'complete
-		indent-tabs-mode t
-		tab-width 8
-		standard-indent 8)
-  (with-eval-after-load 'evil
-    (setq-default evil-shift-width 8))
-  (setq c-default-style "linux"))
+  (add-to-list 'default-frame-alist '(font . "Iosevka Comfy-10"))
 
-(progn
-  (setq display-buffer-base-action '(display-buffer-reuse-window display-buffer-same-window)
-	display-buffer-alist
-	`((,(rx (seq "*"
-		     (or "transient"
-			 (seq "Org " (or "Select" "todo"))
-			 "Agenda Commands"
-			 "Completions"
-			 (seq (opt "Async ") "Shell Command"))))
-	   display-buffer-at-bottom
-	   (window-height . fit-window-to-buffer))
-	  ("." (display-buffer-reuse-window display-buffer-same-window)
-	   (reuseable-frames . t))))
+  (progn
+    (require-theme 'modus-themes)
+    (setq modus-themes-italic-constructs t
+          modus-themes-bold-constructs t
+          modus-themes-common-palette-overrides '((fg-heading-1 fg-heading-0)
+                                                  (bg-prose-block-contents bg-dim)))
+    (load-theme 'modus-operandi))
 
-  (with-eval-after-load 'ediff (setq ediff-window-setup-function 'ediff-setup-windows-plain))
-  (with-eval-after-load 'org (setq org-src-window-setup 'current-window
-				   org-agenda-window-setup 'current-window))
-  (with-eval-after-load 'man (setq Man-notify-method 'pushy))
-  (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
-  (advice-add 'pop-to-buffer :override 'switch-to-buffer))
+  (progn
+    (electric-indent-mode 1)
+    (setq-default tab-always-indent 'complete
+		  indent-tabs-mode t
+		  tab-width 8
+		  standard-indent 8)
+    (setq c-default-style "linux"))
 
-(progn
-  (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-			   ("melpa" . "https://melpa.org/packages/")))
-  (package-initialize))
+  (progn
+    (setq display-buffer-base-action '(display-buffer-reuse-window display-buffer-same-window)
+	  display-buffer-alist
+	  `((,(rx (seq "*"
+		       (or "transient"
+			   (seq "Org " (or "Select" "todo"))
+			   "Agenda Commands"
+			   "Completions"
+			   (seq (opt "Async ") "Shell Command"))))
+	     display-buffer-at-bottom
+	     (window-height . fit-window-to-buffer))
+	    ("." (display-buffer-reuse-window display-buffer-same-window)
+	     (reuseable-frames . t))))
 
-(use-package evil
-  :ensure t
-  :after general
-  :init
-  (setq evil-search-module 'evil-search
-	evil-want-keybinding nil
-	evil-want-C-u-delete t
-	evil-want-C-u-scroll t
-	evil-want-C-h-delete t
-	evil-want-Y-yank-to-eol t
-	evil-repeat-move-cursor nil
-	evil-undo-system 'undo-redo)
-  (evil-mode 1)
+    (with-eval-after-load 'ediff (setq ediff-window-setup-function 'ediff-setup-windows-plain))
+    (with-eval-after-load 'org (setq org-src-window-setup 'current-window
+				     org-agenda-window-setup 'current-window))
+    (with-eval-after-load 'man (setq Man-notify-method 'pushy))
+    (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
+    (advice-add 'pop-to-buffer :override 'switch-to-buffer))
 
-  :config
-  (setq evil-mode-line-format nil
-	evil-insert-state-cursor '(box))
+  (progn
+    (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+			     ("melpa" . "https://melpa.org/packages/")))
+    (package-initialize))
 
-  (thread-last '(evil-yank
-		 evil-indent
-		 evil-shift-right
-		 evil-shift-left
-		 evil-downcase
-		 evil-upcase
-		 evil-invert-case)
+  (thread-last '(apply-macro-to-region-lines
+		 eval-region
+		 align
+		 align-entire)
 	       (mapc (lambda (fn)
-		       (advice-add fn :around
-				   (lambda (og-fn &rest args)
-				     (save-excursion (apply og-fn args))))
-		       (evil-set-command-property fn :move-point nil))))
+		       (advice-add fn :after
+				   (lambda (&rest r)
+				     (deactivate-mark))))))
 
-  (thread-last '(evil-ex-search-next
-		 evil-ex-search-previous
-		 evil-forward-paragraph
-		 evil-backward-paragraph
-		 evil-forward-sentence-begin
-		 evil-backward-sentence-begin)
-	       (mapc (lambda (fn)
-		       (evil-set-command-property fn :jump nil))))
+  (defun eval-last-sexp-dwim ()
+    (interactive)
+    (call-interactively (if (region-active-p)
+			    'eval-region
+			  'eval-last-sexp)))
 
-  (thread-last '(evil-next-line
-		 evil-previous-line)
-	       (mapc (lambda (fn)
-		       (advice-add fn :around
-				   (lambda (og-fn count)
-				     (when count (evil-set-marker ?`))
-				     (call-interactively og-fn))))))
-
-  (advice-add 'evil-force-normal-state :after 'evil-ex-nohighlight)
-
-  (defun evil-normal-insert-newline-above (count)
+  (defun indent-region-dwim (arg)
     (interactive "p")
-    (save-excursion (dotimes (_ count) (evil-insert-newline-above)))
-    (when (bolp) (forward-char count)))
+    (if (region-active-p)
+	(indent-region (point) (mark))
+      (save-mark-and-excursion
+	(mark-paragraph arg)
+	(indent-region (point) (mark)))))
 
-  (defun evil-normal-insert-newline-below (count)
+  (defun kill-ring-save-sexp (arg)
     (interactive "p")
-    (save-excursion (dotimes (_ count) (evil-insert-newline-below))))
+    (save-mark-and-excursion
+      (mark-sexp arg)
+      (kill-ring-save (point)
+		      (mark))))
 
-  (evil-define-operator evil-query-replace (beg end type)
-    :repeat t
-    :move-point nil
-    (interactive "<R>")
-    (save-excursion
-      (goto-char beg)
-      (set-mark (point))
-      (goto-char end)
-      (condition-case nil
-	  (call-interactively 'query-replace-regexp)
-	(t (deactivate-mark)))))
-  (general-define-key
-   :states 'normal
-   "&" 'evil-query-replace)
+  (defun open-line-indented (arg)
+    (interactive "p")
+    (save-mark-and-excursion
+      (open-line arg)
+      (forward-line arg)
+      (indent-according-to-mode)))
 
-  (evil-define-operator evil-shell-cmd (beg end type)
-    :repeat t
-    :move-point nil
-    (goto-char beg)
-    (set-mark (point))
-    (goto-char end)
-    (condition-case nil
-	(call-interactively 'shell-command-on-region)
-      (t (deactivate-mark))))
-  (general-define-key
-   :states 'normal "!" 'evil-shell-cmd)
+  (defun kmacro-call-macro-dwim (arg)
+    (interactive "p")
+    (call-interactively
+     (if (region-active-p)
+	 'apply-macro-to-region-lines
+       'kmacro-end-and-call-macro)))
 
-  (defun evil-global-mark-goto (char)
-    (interactive (list (read-char)))
-    (let ((marker (evil-get-marker (upcase char))))
-      (cond ((markerp marker) (switch-to-buffer (marker-buffer marker)))
-	    ((consp marker) (find-file (car marker))))))
-  (general-define-key [remap evil-goto-mark-line] 'evil-global-mark-goto))
+  :bind
+  (([remap downcase] . downcase-dwim)
+   ([remap upcase] . upcase-dwim)
+   ([remap list-buffers] . ibuffer)
+   ([remap dabbrev-expand] . hippie-expand)
+   ([remap eval-last-sexp] . eval-last-sexp-dwim)
+   ([remap capitalize-dwim] . capitalize-dwim)
+   ([remap indent-region] . indent-region-dwim)
+   ([remap open-line] . open-line-indented)
+   ([remap kmacro-end-and-call-macro] . kmacro-call-macro-dwim)
+   ([remap kill-buffer] . (lambda ()
+			    (interactive)
+			    (kill-buffer nil)))
 
-(use-package evil-collection
-  :after evil
-  :ensure t
-  :init
-  (setq evil-collection-setup-minibuffer t
-	evil-collection-want-unimpaired-p nil)
-  :config
-  (evil-collection-init))
+   ("C-u" . (lambda () (interactive) (set-mark-command 4)))
+   ("C-<tab>" . (lambda () (interactive) (switch-to-buffer nil)))
+
+   ("M-'" . jump-to-register)
+   ("M-#" . point-to-register)
+   ;; ("M-j" . jump-to-register-buffer) ;; TODO
+
+   ("C-M-y" . append-next-kill)
+   ("C-M-w" . kill-ring-save-sexp)
+
+   ("C-x o" . delete-window)
+   ("C-x f" . find-file)
+   ("C-x j" . dired-jump))
+
+  :hook
+  ((before-save-hook . delete-trailing-whitespace)))
 
 (use-package dired
-  :ensure nil
-  :after general
-  :config
+  :init
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   (add-hook 'dired-mode-hook 'dired-omit-mode)
-
   (setq dired-omit-files "^\\..*$"
 	dired-recursive-copies 'always
 	dired-recursive-deletes 'always
@@ -216,136 +196,40 @@
 	dired-create-destination-dirs 'ask
 	dired-vc-rename-file t)
 
-  (general-define-key
-   [remap dired-hide-details-mode] (lambda ()
-				     (interactive)
-				     (call-interactively 'dired-hide-details-mode)
-				     (call-interactively 'dired-omit-mode)))
-  (general-define-key
-   :states 'normal
-   :keymaps 'dired-mode-map
-   "h" 'dired-up-directory
-   "l" 'dired-find-file))
+  :bind
+  (:map dired-mode-map
+	("b" . dired-up-directory)
+	([remap dired-hide-details-mode] . (lambda ()
+					     (interactive)
+					     (thread-last '(dired-omit-mode 
+							    dired-hide-details-mode)
+							  (mapc 'call-interactively))))))
 
-(use-package icomplete
-  :after general
-  :init
-  (fido-vertical-mode 1)
+(use-package puni
+    :ensure t
+    :init (puni-global-mode 1)
+    :bind (("C-M-r" .	puni-raise)
+	   ("C-M-s" . puni-splice)
+	   ("C-{" . puni-slurp-backward)
+	   ("C-}" . puni-barf-backward)
+	   ("C-)" . puni-slurp-forward)
+	   ("C-(" . puni-barf-forward)
+	   ("C-c ?" . puni-convolute)))
 
-  (general-define-key
-   :states 'insert
-   :keymaps 'icomplete-fido-mode-map
-   "C-i" 'icomplete-fido-ret
-   "C-n" 'icomplete-forward-completions
-   "C-p" 'icomplete-backward-completions))
-
-(use-package general
+(use-package whole-line-or-region
   :ensure t
-  :init
-  (setq general-override-states '(insert
-				  emacs
-				  hybrid
-				  normal
-				  visual
-				  motion
-				  operator
-				  replace))
+  :after puni
+  :init (whole-line-or-region-global-mode 1)
 
-  (general-define-key
-   :states 'normal
-   :keymaps 'override
-   :prefix "SPC"
-   "h" help-map
-   "g" 'magit-status
-   "p" project-prefix-map
-   "v" vc-prefix-map
-   "b" 'switch-to-buffer
-   "k" 'kill-current-buffer
-   "e" 'find-file
-   "E" 'dired-jump
-   "s" 'save-buffer
-   "!" 'shell-command
-   ":" 'eval-expression
-   "=" 'global-text-scale-adjust
-   "-" 'global-text-scale-adjust)
-
-  (general-define-key
-   :states 'normal
-   :keymaps '(minibuffer-mode-map evil-ex-search-keymap)
-   "j" 'next-history-element
-   "k" 'previous-history-element
-   "/" 'previous-matching-history-element
-   "RET" 'exit-minibuffer
-   [remap evil-force-normal-state] 'abort-minibuffers)
-
-  (general-define-key
-   :states 'normal
-   :keymaps 'global
-   "go" 'evil-normal-insert-newline-below
-   "gO" 'evil-normal-insert-newline-above
-
-   "[q" 'previous-error
-   "]q" 'next-error
-   "[Q" 'first-error
-
-   ":" 'execute-extended-command
-   "g/" 'occur
-   "_" (lambda ()
-	 (interactive)
-	 (evil-use-register ?_)
-	 (call-interactively 'evil-delete))
-   "L" (lambda ()
-	 (interactive)
-	 (save-excursion (call-interactively 'newline-and-indent))))
-
-  (general-define-key :states 'normal :keymaps 'emacs-lisp-mode-map "\\" 'eval-last-sexp))
-
-(use-package comint
-  :ensure nil
-  :after general
   :config
-  (setq comint-input-ignoredups t
-	comint-prompt-read-only t)
-
-  (general-define-key
-   :states 'insert
-   :keymaps 'comint-mode-map
-   "C-r" 'comint-history-isearch-backward-regexp)
-
-  (general-define-key
-   :states 'normal
-   :keymaps 'comint-mode-map
-   "RET" 'comint-send-input))
+  (defun whole-line-or-puni-kill-region (arg)
+    (interactive "p")
+    (call-interactively
+     (if (region-active-p)
+	 'puni-kill-region
+       'whole-line-or-region-kill-region)))
+  :bind
+  (([remap puni-kill-region] . whole-line-or-puni-kill-region)))
 
 (use-package magit
-  :ensure t
-  :init
-  (setq evil-collection-magit-use-z-for-folds t))
-
-(use-package desktop
-  :config
-  (desktop-save-mode 1)
-  (defvar evil-global-markers-alist)
-
-  (defun evil-global-markers-serialize ()
-    (mapcar (lambda (it)
-	      (if (markerp (cdr it))
-		  (let ((marker-file (file-truename (buffer-file-name (marker-buffer (cdr it))))))
-		    (when marker-file     ;; only if marker associated with a file
-		      (cons (car it)
-			    (cons marker-file
-				  (marker-position (cdr it))))))
-		it))
-	    (default-value 'evil-markers-alist)))
-
-  (defun evil-global-markers-write ()
-    (setq-default evil-global-markers-alist (evil-global-markers-serialize)))
-
-  (defun evil-global-markers-read ()
-    (setq-default evil-markers-alist evil-global-markers-alist))
-
-  (add-to-list 'desktop-globals-to-save 'evil-global-markers-alist)
-  (add-to-list 'desktop-globals-to-clear 'evil-markers-alist)
-  (add-to-list 'desktop-locals-to-save 'evil-markers-alist)
-  (add-hook 'desktop-save-hook 'evil-global-markers-write)
-  (add-hook 'desktop-after-read-hook 'evil-global-markers-read))
+  :ensure t)

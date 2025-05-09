@@ -19,8 +19,7 @@ shopt -s\
 	expand_aliases\
 	autocd
 
-export PS1='\n\[\033[1m\007\][\W] \[\033[0m\007\]' # `[1m` :: bold
-# export PROMPT_COMMAND='printf "\033]133;A\007"' # `]133;A` :: enable {next,prev}-prompt navigation in tmux/vim.
+export PS1='\n[\W] '
 
 alias\
 	ls="ls --no-group --human-readable --group-directories-first --time-style=long-iso --file-type --format=single-column --color=never -F"\
@@ -34,11 +33,10 @@ alias\
 	less="less --ignore-case"
 
 export\
-	EDITOR="vim"\
-	VISUAL="vim"\
+	EDITOR="emacsclient --reuse-frame --alternate-editor=emacs -nw"\
+	VISUAL="emacsclient --reuse-frame --alternate-editor=emacs -nw"\
 	HISTCONTROL=ignoreboth:erasedups\
-	HISTSIZE=1000\
-	PYTHON_BASIC_REPL=1
+	HISTSIZE=1000
 
 function find { command find $@ -type f -not -path './.*'; }
 function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@; }
