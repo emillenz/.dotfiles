@@ -83,7 +83,6 @@
 	vc-follow-symlinks t
 	vc-make-backup-files nil
 
-	scroll-conservatively 101
 	scroll-preserve-screen-position t
 	scroll-error-top-bottom t
 
@@ -171,6 +170,11 @@
 		  (push-mark))
 		(apply fn args)))
 
+  (advice-add 'backward-up-list :around
+	      (lambda (fn &rest args)
+		(unless (eq last-command 'backward-up-list) (push-mark))
+		(apply fn args)))
+
   (defun set-mark-or-mark-line (arg)
     (interactive "p")
     (if (region-active-p)
@@ -195,11 +199,9 @@
     (interactive "p")
     (if (region-active-p)
 	(kill-ring-save (region-beginning) (region-end))
-      (lambda ()
-	(interactive)
-	(save-mark-and-excursion
-	  (mark-sexp arg)
-	  (kill-ring-save (region-beginning) (region-end))))))
+      (save-mark-and-excursion
+	(mark-sexp arg)
+	(kill-ring-save (region-beginning) (region-end)))))
 
   (defun open-line-indented (arg)
     (interactive "p")
@@ -229,26 +231,23 @@
       (kmacro-end-and-call-macro arg)))
 
   :bind
-  (([remap downcase] . downcase-dwim)
-   ([remap upcase] . upcase-dwim)
+  (([remap downcase-word] . downcase-dwim)
+   ([remap upcase-word] . upcase-dwim)
+   ([remap capitalize-word] . capitalize-dwim)
    ([remap dabbrev-expand] . hippie-expand)
    ([remap list-buffers] . ibuffer)
    ([remap eval-last-sexp] . eval-last-sexp-dwim)
-   ([remap capitalize-dwim] . capitalize-dwim)
    ([remap open-line] . open-line-indented)
    ([remap set-mark-command] . set-mark-or-mark-line)
    ([remap kill-buffer] . kill-buffer-and-window)
    ([remap indent-region] . indent-region-dwim)
    ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
 
-   ("C-u" . pop-to-mark-reversible)
+   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
    ("C-z" . repeat)
 
    ("M-'" . jump-to-register)
    ("M-#" . point-to-register)
-
-   ("C-M-w" . kill-ring-save-sexp)
-   ("C-M-y" . append-next-kill)
 
    ("C-x f" . find-file)
    ("C-x j" . dired-jump)
@@ -309,12 +308,9 @@
 	 ("C-)" . puni-slurp-forward)
 	 ("C-{" . puni-barf-backward)
 	 ("C-}" . puni-barf-forward)
-	 ([remap mark-sexp] . puni-expand-region)
 
-	 ("C-x C-v" . puni-convolute)
-	 ;; (nil . puni-squeeze)
-	 ("C-x C-a" . puni-mark-sexp-around-point)
-	 ("C-x C-i" . puni-mark-list-around-point)))
+	 :map lisp-mode-shared-map
+	 ("C-c v" . puni-convolute)))
 
 (use-package whole-line-or-region
   :ensure t
