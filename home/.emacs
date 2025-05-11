@@ -106,8 +106,6 @@
 
   (setq-default comment-column 0)
 
-  (global-font-lock-mode -1)
-
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
 
   (progn
@@ -125,7 +123,8 @@
 	  modus-themes-bold-constructs t
 	  modus-themes-common-palette-overrides '((fg-heading-1 fg-heading-0)
 						  (bg-prose-block-contents bg-dim)))
-    (load-theme 'modus-operandi))
+    (load-theme 'modus-operandi)
+    (global-font-lock-mode -1))
 
   (progn
     (setq-default tab-always-indent 'complete
@@ -165,17 +164,12 @@
 	  eval-region
 	  align
 	  align-entire))
-  (progn
-    (advice-add 'mark-paragraph :around
-		(lambda (fn &rest args)
-		  (unless (region-active-p)
-		    (push-mark))
-		  (apply fn args)))
 
-    (advice-add 'backward-up-list :around
-		(lambda (fn &rest args)
-		  (unless (eq last-command 'backward-up-list) (push-mark))
-		  (apply fn args))))
+  (advice-add 'mark-paragraph :around
+	      (lambda (fn &rest args)
+		(unless (region-active-p)
+		  (push-mark))
+		(apply fn args)))
 
   (defun kill-ring-save-region-or-next-kill ()
     (interactive)
@@ -239,6 +233,10 @@
 	(apply-macro-to-region-lines (region-beginning) (region-end))
       (kmacro-end-and-call-macro arg)))
 
+  (defun window-alternate-buffer ()
+    (interactive)
+    (switch-to-buffer (caar (window-prev-buffers))))
+
   :bind
   (([remap downcase-word] . downcase-dwim)
    ([remap yank] . yank-indent)
@@ -256,14 +254,18 @@
 
    ("C-u" . (lambda () (interactive) (set-mark-command 1)))
    ("C-z" . repeat)
-   ("C-<tab>" . (lambda () (interactive) (switch-to-buffer nil)))
+   ("C-<tab>" . window-alternate-buffer)
    ("M-w" . kill-ring-save-region-or-next-kill)
 
    ("M-'" . jump-to-register)
    ("M-#" . point-to-register)
 
-   ("C-x f" . find-file)
-   ("C-x j" . dired-jump)))
+   :map ctl-x-map
+   ("f" . find-file)
+   ("j" . dired-jump)
+
+   :map ctl-x-x-map
+   ("f" . global-font-lock-mode)))
 
 (use-package package
   :init
@@ -306,6 +308,10 @@
 	 (lambda () (interactive)
 	   (mapc 'call-interactively '(dired-omit-mode dired-hide-details-mode))))))
 
+(use-package org
+  :init
+  (setq org-tags-column 0))
+
 (use-package puni
   :ensure t
   :init (puni-global-mode 1)
@@ -326,8 +332,8 @@
 
 (use-package magit
   :ensure t
+  :hook
+  (magit-mode-hook . font-lock-mode)
   :bind
   (:map magit-mode-map
-	("C-<tab>" . (lambda ()
-		       (interactive)
-		       (switch-to-buffer nil)))))
+	("C-<tab>" . window-alternate-buffer)))
