@@ -10,23 +10,21 @@
       use-package-enable-imenu-support t)
 
 (use-package emacs
-  :hook
-  ((after-init-hook . fringe-mode)
-   (after-init-hook . global-auto-revert-mode)
-   (after-init-hook . column-number-mode)
-   (after-init-hook . global-word-wrap-whitespace-mode)
-   (after-init-hook . global-subword-mode)
-   (after-init-hook . delete-selection-mode)
-   (after-init-hook . electric-indent-mode)
-   (after-init-hook . electric-pair-mode)
-   (after-init-hook . repeat-mode)
-   (after-init-hook . fido-vertical-mode)
-   (after-init-hook . save-place-mode)
-   (after-init-hook . auto-revert-mode)
-   (after-init-hook . global-visual-line-mode)
-   (before-save-hook . delete-trailing-whitespace))
-
   :init
+  (fringe-mode 1)
+  (global-auto-revert-mode 1)
+  (column-number-mode 1)
+  (global-word-wrap-whitespace-mode 1)
+  (global-subword-mode 1)
+  (delete-selection-mode 1)
+  (electric-indent-mode 1)
+  (electric-pair-mode 1)
+  (repeat-mode 1)
+  (fido-vertical-mode 1)
+  (save-place-mode 1)
+  (auto-revert-mode 1)
+  (global-visual-line-mode 1)
+
   (tool-bar-mode -1)
   (menu-bar-mode -1)
   (blink-cursor-mode -1)
@@ -34,7 +32,6 @@
   (scroll-bar-mode -1)
   (horizontal-scroll-bar-mode -1)
   (tooltip-mode -1)
-
 
   (setq initial-scratch-message nil
 	inhibit-startup-echo-area-message user-login-name
@@ -94,7 +91,7 @@
 	isearch-motion-changes-direction t
 
 	frame-title-format "%b ― emacs"
-	icon-title-format "%b ― emacs"
+	icon-title-format frame-title-format
 	frame-inhibit-implied-resize t
 
 	comint-input-ignoredups t
@@ -105,6 +102,8 @@
     (put cmd 'disabled nil))
 
   (setq-default comment-column 0)
+
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
 
@@ -178,10 +177,9 @@
       (let ((buffer-read-only t))
 	(ignore-errors
 	  (save-mark-and-excursion
-	    (call-interactively (key-binding
-				 (read-key-sequence "[save next kill]"))))))))
+	    (call-interactively (key-binding (read-key-sequence "[save next kill]")) ))))))
 
-  (defun set-mark-or-mark-line (arg)
+  (defun set-mark-or-mark-line (n)
     (interactive "p")
     (if (region-active-p)
 	(if (< (point) (mark))
@@ -207,31 +205,33 @@
       (mapc 'call-interactively '(open-line forward-line))
       (indent-according-to-mode)))
 
-  (defun yank-indent ()
-    (interactive)
+  (defun yank-indent (n)
+    (interactive "p")
     (let ((pos (point)))
-      (call-interactively 'yank)
+      (if (and delete-selection-mode (region-active-p))
+	  (delete-region (region-beginning) (region-end)))
+      (yank n)
       (indent-region pos (point))))
 
-  (defun indent-region-dwim (arg)
-    (interactive "p")
+  (defun indent-region-dwim (n)
+      (interactive "p")
     (if (region-active-p)
 	(indent-region (region-beginning) (region-end))
       (save-mark-and-excursion
-	(mark-paragraph arg)
+	(mark-paragraph n)
 	(indent-region (region-beginning) (region-end)))))
 
-  (defun eval-last-sexp-dwim (arg)
+  (defun eval-last-sexp-dwim (n)
     (interactive "p")
     (if (region-active-p)
 	(eval-region (region-beginning) (region-end) t)
       (call-interactively 'eval-last-sexp)))
 
-  (defun kmacro-end-and-call-macro-dwim (arg)
+  (defun kmacro-end-and-call-macro-dwim (n)
     (interactive "p")
     (if (region-active-p)
 	(apply-macro-to-region-lines (region-beginning) (region-end))
-      (kmacro-end-and-call-macro arg)))
+      (kmacro-end-and-call-macro n)))
 
   (defun window-alternate-buffer ()
     (interactive)
@@ -299,10 +299,10 @@
 
   :bind
   (:map dired-mode-map
-   ("b" . dired-up-directory)
-   ([remap dired-hide-details-mode] .
-    (lambda () (interactive)
-      (mapc 'call-interactively '(dired-omit-mode dired-hide-details-mode))))))
+	("b" . dired-up-directory)
+	([remap dired-hide-details-mode] .
+	 (lambda () (interactive)
+	   (mapc 'call-interactively '(dired-omit-mode dired-hide-details-mode))))))
 
 (use-package org
   :init
