@@ -5,8 +5,6 @@
 ;; email: emillenz@protonmail.com
 ;; ---
 
-(setq debug-on-error t)
-
 (setq use-package-hook-name-suffix nil
       use-package-always-demand t
       use-package-enable-imenu-support t)
@@ -25,6 +23,7 @@
   (fido-vertical-mode 1)
   (save-place-mode 1)
   (auto-revert-mode 1)
+  (global-visual-line-mode 1)
 
   (tool-bar-mode -1)
   (menu-bar-mode -1)
@@ -33,7 +32,7 @@
   (scroll-bar-mode -1)
   (horizontal-scroll-bar-mode -1)
   (tooltip-mode -1)
-  (global-visual-line-mode -1)
+
 
   (setq initial-scratch-message nil
 	inhibit-startup-echo-area-message user-login-name
@@ -69,10 +68,11 @@
 	find-file-visit-truename t
 	comment-empty-lines nil
 	register-preview-delay nil
-	icomplete-compute-delay 0.01
+	icomplete-compute-delay 0
 	auto-window-vscroll nil
 	kill-do-not-save-duplicates t
 	show-paren-when-point-inside-paren t
+	kill-whole-line t
 
 	compilation-scroll-output t
 	next-error-recenter '(4)
@@ -86,11 +86,13 @@
 	scroll-preserve-screen-position t
 	scroll-error-top-bottom t
 
+	lazy-highlight-initial-delay 0
+	isearch-lazy-count t
 	isearch-allow-motion t
 	isearch-motion-changes-direction t
 
-	frame-title-format "%b ― Emacs"
-	icon-title-format "%b ― Emacs"
+	frame-title-format "%b ― emacs"
+	icon-title-format "%b ― emacs"
 	frame-inhibit-implied-resize t
 
 	comint-input-ignoredups t
@@ -102,20 +104,20 @@
 
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
+  (setq-default comment-column 0)
+
+  (global-font-lock-mode -1)
+
+  (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
+
   (progn
     (setq minibuffer-prompt-properties
 	  '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
     (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
 
   (progn
-    (set-language-environment "UTF-8")
+    (set-language-environment "utf-8")
     (setq default-input-method nil))
-
-  (setq-default comment-column 0)
-
-  (global-font-lock-mode -1)
-
-  (add-to-list 'default-frame-alist '(font . "Iosevka Comfy-10"))
 
   (progn
     (require-theme 'modus-themes)
@@ -138,9 +140,9 @@
 	  display-buffer-alist
 	  `((,(rx (seq "*"
 		       (or "transient"
-			   (seq "Org " (or "Select" "todo"))
-			   "Agenda Commands"
-			   "Completions")))
+			   (seq "org " (or "select" "todo"))
+			   "agenda commands"
+			   "completions")))
 	     display-buffer-at-bottom
 	     (window-height . fit-window-to-buffer))
 	    ("." ,display-buffer-base-action
@@ -151,7 +153,7 @@
       (setq org-src-window-setup 'current-window
 	    org-agenda-window-setup 'current-window))
     (with-eval-after-load 'man
-      (setq Man-notify-method 'pushy))
+      (setq man-notify-method 'pushy))
     (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
     (advice-add 'pop-to-buffer :override 'switch-to-buffer))
 
@@ -163,17 +165,27 @@
 	  eval-region
 	  align
 	  align-entire))
+  (progn
+    (advice-add 'mark-paragraph :around
+		(lambda (fn &rest args)
+		  (unless (region-active-p)
+		    (push-mark))
+		  (apply fn args)))
 
-  (advice-add 'mark-paragraph :around
-	      (lambda (fn &rest args)
-		(unless (region-active-p)
-		  (push-mark))
-		(apply fn args)))
+    (advice-add 'backward-up-list :around
+		(lambda (fn &rest args)
+		  (unless (eq last-command 'backward-up-list) (push-mark))
+		  (apply fn args))))
 
-  (advice-add 'backward-up-list :around
-	      (lambda (fn &rest args)
-		(unless (eq last-command 'backward-up-list) (push-mark))
-		(apply fn args)))
+  (defun kill-ring-save-region-or-next-kill ()
+    (interactive)
+    (if (region-active-p)
+	(call-interactively 'kill-ring-save)
+      (let ((buffer-read-only t))
+	(ignore-errors
+	  (save-mark-and-excursion
+	    (call-interactively (key-binding
+				 (read-key-sequence "[save next kill]"))))))))
 
   (defun set-mark-or-mark-line (arg)
     (interactive "p")
@@ -195,20 +207,17 @@
 	    (forward-char 1)))
       (call-interactively 'set-mark-command)))
 
-  (defun kill-ring-save-sexp (arg)
-    (interactive "p")
-    (if (region-active-p)
-	(kill-ring-save (region-beginning) (region-end))
-      (save-mark-and-excursion
-	(mark-sexp arg)
-	(kill-ring-save (region-beginning) (region-end)))))
-
-  (defun open-line-indented (arg)
-    (interactive "p")
+  (defun open-line-indent ()
+    (interactive)
     (save-mark-and-excursion
-      (open-line arg)
-      (forward-line arg)
+      (mapc 'call-interactively '(open-line forward-line))
       (indent-according-to-mode)))
+
+  (defun yank-indent ()
+    (interactive)
+    (let ((pos (point)))
+      (call-interactively 'yank)
+      (indent-region pos (point))))
 
   (defun indent-region-dwim (arg)
     (interactive "p")
@@ -232,30 +241,29 @@
 
   :bind
   (([remap downcase-word] . downcase-dwim)
+   ([remap yank] . yank-indent)
    ([remap upcase-word] . upcase-dwim)
    ([remap capitalize-word] . capitalize-dwim)
-   ([remap dabbrev-expand] . hippie-expand)
+   ([remap dabbrev-completion] . hippie-expand)
    ([remap list-buffers] . ibuffer)
    ([remap eval-last-sexp] . eval-last-sexp-dwim)
-   ([remap open-line] . open-line-indented)
+   ([remap open-line] . open-line-indent)
    ([remap set-mark-command] . set-mark-or-mark-line)
    ([remap kill-buffer] . kill-buffer-and-window)
    ([remap indent-region] . indent-region-dwim)
    ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
+   ([remap zap-to-char] . zap-up-to-char)
 
    ("C-u" . (lambda () (interactive) (set-mark-command 1)))
    ("C-z" . repeat)
+   ("C-<tab>" . (lambda () (interactive) (switch-to-buffer nil)))
+   ("M-w" . kill-ring-save-region-or-next-kill)
 
    ("M-'" . jump-to-register)
    ("M-#" . point-to-register)
 
    ("C-x f" . find-file)
-   ("C-x j" . dired-jump)
-   ("C-x O" . delete-other-windows)
-
-   ("C-<tab>" . (lambda ()
-		  (interactive)
-		  (switch-to-buffer (other-buffer))))))
+   ("C-x j" . dired-jump)))
 
 (use-package package
   :init
@@ -309,19 +317,12 @@
 	 ("C-{" . puni-barf-backward)
 	 ("C-}" . puni-barf-forward)
 
-	 :map lisp-mode-shared-map
-	 ("C-c v" . puni-convolute)))
+	 ("C-M-q" . puni-squeeze)
+	 :map emacs-lisp-mode-map
+	 ("C-M-q" . puni-squeeze)
 
-(use-package whole-line-or-region
-  :ensure t
-  :after puni
-  :init (whole-line-or-region-global-mode 1)
-  :bind
-  (([remap puni-kill-region] . (lambda (arg)
-				 (interactive "p")
-				 (if (region-active-p)
-				     (puni-kill-region)
-				   (whole-line-or-region-kill-region arg))))))
+	 :map lisp-mode-shared-map
+	 ("C-c C-?" . puni-convolute)))
 
 (use-package magit
   :ensure t
@@ -329,4 +330,4 @@
   (:map magit-mode-map
 	("C-<tab>" . (lambda ()
 		       (interactive)
-		       (switch-to-buffer (other-buffer nil))))))
+		       (switch-to-buffer nil)))))
