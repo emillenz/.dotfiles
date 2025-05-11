@@ -10,21 +10,23 @@
       use-package-enable-imenu-support t)
 
 (use-package emacs
-  :init
-  (fringe-mode 1)
-  (global-auto-revert-mode 1)
-  (column-number-mode 1)
-  (global-word-wrap-whitespace-mode 1)
-  (global-subword-mode 1)
-  (delete-selection-mode 1)
-  (electric-indent-mode 1)
-  (electric-pair-mode 1)
-  (repeat-mode 1)
-  (fido-vertical-mode 1)
-  (save-place-mode 1)
-  (auto-revert-mode 1)
-  (global-visual-line-mode 1)
+  :hook
+  ((after-init-hook . fringe-mode)
+   (after-init-hook . global-auto-revert-mode)
+   (after-init-hook . column-number-mode)
+   (after-init-hook . global-word-wrap-whitespace-mode)
+   (after-init-hook . global-subword-mode)
+   (after-init-hook . delete-selection-mode)
+   (after-init-hook . electric-indent-mode)
+   (after-init-hook . electric-pair-mode)
+   (after-init-hook . repeat-mode)
+   (after-init-hook . fido-vertical-mode)
+   (after-init-hook . save-place-mode)
+   (after-init-hook . auto-revert-mode)
+   (after-init-hook . global-visual-line-mode)
+   (before-save-hook . delete-trailing-whitespace))
 
+  :init
   (tool-bar-mode -1)
   (menu-bar-mode -1)
   (blink-cursor-mode -1)
@@ -53,8 +55,8 @@
 	global-auto-revert-non-file-buffers t
 	auto-save-include-big-deletions t
 	kill-buffer-delete-auto-save-files t
-	auto-save-list-file-prefix
-	(expand-file-name "autosave/" user-emacs-directory)
+	auto-save-list-file-prefix (expand-file-name "autosave/"
+						     user-emacs-directory)
 	use-short-answers t
 	save-interprogram-paste-before-kill t
 	require-final-newline t
@@ -64,7 +66,7 @@
 	backup-directory-alist `(("." .
 				  ,(concat user-emacs-directory "backups")))
 	custom-file (expand-file-name "custom.el" user-emacs-directory)
-	display-line-numbers-type 'relative
+	desktop-dirname user-emacs-directory
 	find-file-visit-truename t
 	comment-empty-lines nil
 	register-preview-delay nil
@@ -101,8 +103,6 @@
   (dolist (cmd '(list-timers narrow-to-region upcase-region downcase-region
                              erase-buffer scroll-left dired-find-alternate-file))
     (put cmd 'disabled nil))
-
-  (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   (setq-default comment-column 0)
 
@@ -267,11 +267,6 @@
    :map ctl-x-x-map
    ("f" . global-font-lock-mode)))
 
-(use-package package
-  :init
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (package-initialize))
-
 (use-package recentf
   :init
   (recentf-mode 1)
@@ -288,10 +283,11 @@
 	  search-ring regexp-search-ring)))
 
 (use-package dired
-  :init
-  (add-hook 'dired-mode-hook 'dired-hide-details-mode)
-  (add-hook 'dired-mode-hook 'dired-omit-mode)
+  :hook
+  ((dired-mode-hook . dired-hide-details-mode)
+   (dired-mode-hook . dired-omit-mode))
 
+  :init
   (setq dired-free-space nil
 	dired-omit-files "^\\..*$"
 	dired-clean-confirm-killing-deleted-buffers nil
@@ -303,37 +299,38 @@
 
   :bind
   (:map dired-mode-map
-	("b" . dired-up-directory)
-	([remap dired-hide-details-mode] .
-	 (lambda () (interactive)
-	   (mapc 'call-interactively '(dired-omit-mode dired-hide-details-mode))))))
+   ("b" . dired-up-directory)
+   ([remap dired-hide-details-mode] .
+    (lambda () (interactive)
+      (mapc 'call-interactively '(dired-omit-mode dired-hide-details-mode))))))
 
 (use-package org
   :init
   (setq org-tags-column 0))
 
+(use-package package
+  :init
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (package-initialize))
+
 (use-package puni
   :ensure t
   :init (puni-global-mode 1)
 
-  :bind (("C-M-r" . puni-raise)
-	 ("C-M-s" . puni-splice)
-	 ("C-(" . puni-slurp-backward)
-	 ("C-)" . puni-slurp-forward)
-	 ("C-{" . puni-barf-backward)
-	 ("C-}" . puni-barf-forward)
+  :bind
+  (("C-M-r" . puni-raise)
+   ("C-M-s" . puni-splice)
+   ("C-(" . puni-slurp-backward)
+   ("C-)" . puni-slurp-forward)
+   ("C-{" . puni-barf-backward)
+   ("C-}" . puni-barf-forward)
 
-	 ("C-M-q" . puni-squeeze)
-	 :map emacs-lisp-mode-map
-	 ("C-M-q" . puni-squeeze)
+   ("C-M-q" . puni-squeeze)
+   :map emacs-lisp-mode-map ("C-M-q" . puni-squeeze)
 
-	 :map lisp-mode-shared-map
-	 ("C-c C-?" . puni-convolute)))
+   :map lisp-mode-shared-map ("C-c C-?" . puni-convolute)))
 
 (use-package magit
   :ensure t
-  :hook
-  (magit-mode-hook . font-lock-mode)
-  :bind
-  (:map magit-mode-map
-	("C-<tab>" . window-alternate-buffer)))
+  :hook (magit-mode-hook . font-lock-mode)
+  :bind (:map magit-mode-map ("C-<tab>" . window-alternate-buffer)))
