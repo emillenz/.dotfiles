@@ -81,25 +81,25 @@ bindsym $MOD+shift+w $EXEC firefox
 # must come after specific workspace assignments
 for_window [all] focus
 
-set $MODE_PREFIX "-"
-bindsym $MOD+c mode $MODE_PREFIX
+set $PREFIX "-"
+bindsym $MOD+c mode $PREFIX
 
 set $ESC mode "default"
-mode $MODE_PREFIX {
-	bindsym $MOD+o $ESC; move workspace to output next
-	bindsym $MOD+g $ESC; gaps horizontal current toggle $GAPSIZE
+mode $PREFIX {
+	bindsym o $ESC; move workspace to output next
+	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
 
-	bindsym $MOD+equal $EXEC pamixer --unmute --increase 5
-	bindsym $MOD+minus $EXEC pamixer --unmute --decrease 5
-	bindsym $MOD+0 $EXEC pamixer --toggle-mute
-	bindsym $MOD+a $ESC; $EXEC audio-output-menu $DMENU_ARGS
-	bindsym $MOD+d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) && autorandr --change $config
+	bindsym equal $EXEC pamixer --unmute --increase 5
+	bindsym minus $EXEC pamixer --unmute --decrease 5
+	bindsym 0 $EXEC pamixer --toggle-mute
+	bindsym a $ESC; $EXEC audio-output-menu $DMENU_ARGS
+	bindsym d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) && autorandr --change $config
 
-	bindsym $MOD+w $ESC; $EXEC window-menu $DMENU_ARGS
-	bindsym $MOD+b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
-	bindsym $MOD+s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f"'
-	bindsym $MOD+q $ESC; $EXEC systemctl suspend
-	bindsym $MOD+k $ESC; kill
+	bindsym w $ESC; $EXEC window-menu $DMENU_ARGS
+	bindsym b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
+	bindsym s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f"'
+	bindsym q $ESC; $EXEC systemctl suspend
+	bindsym k $ESC; kill
 
 	bindsym Ctrl+g $ESC
 	bindsym Escape $ESC
