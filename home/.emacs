@@ -269,9 +269,8 @@
 
    (:map ctl-x-map
 	 ("C-b" . switch-to-buffer)
-	 ("b" . ibuffer)
-	 ("C-k" . kill-buffer-and-window)
-	 ("f" . recentf-open))
+	 ("C-c" . kill-buffer-and-window)
+	 ("b" . ibuffer))
 
    (:map ctl-x-x-map
 	 ("f" . global-font-lock-mode))
