@@ -251,6 +251,9 @@
    ([remap indent-region] . indent-region-dwim)
    ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
    ([remap zap-to-char] . zap-up-to-char)
+   ([remap list-buffers] . ibuffer)
+   ([remap kill-buffer] . kill-buffer-and-window)
+   ([remap dired] . dired-jump)
 
    ("C-u" . (lambda () (interactive) (set-mark-command 1)))
    ("C-z" . repeat)
@@ -265,9 +268,7 @@
 		("M-e" . end-of-defun))
 
    (:map ctl-x-map
-	 ("C-b" . switch-to-buffer)
-	 ("b" . ibuffer)
-	 ("C-c" . kill-buffer-and-window))
+	 ("f" . find-file))
 
    (:map ctl-x-x-map
 	 ("f" . global-font-lock-mode))
