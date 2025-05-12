@@ -233,9 +233,18 @@
     (interactive)
     (switch-to-buffer (caar (window-prev-buffers))))
 
+  (defun indent-rigidly-dwim ()
+    (interactive)
+    (unless (region-active-p)
+      (save-excursion
+	(beginning-of-line)
+	(push-mark))
+      (call-interactively 'indent-rigidly)))
+
   :bind
   (([remap downcase-word] . downcase-dwim)
    ([remap yank] . yank-indent)
+   ([remap indent-rigidly] . indent-rigidly-dwim)
    ([remap upcase-word] . upcase-dwim)
    ([remap capitalize-word] . capitalize-dwim)
    ([remap dabbrev-completion] . hippie-expand)
