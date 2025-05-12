@@ -103,10 +103,10 @@
 
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
 
-  (progn
-    (setq minibuffer-prompt-properties
-	  '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
-    (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
+  ;; (progn
+  ;;   (setq minibuffer-prompt-properties
+  ;; 	  '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+  ;;   (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
 
   (progn
     (set-language-environment "utf-8")
@@ -303,9 +303,11 @@
   :bind
   (:map dired-mode-map
 	("b" . dired-up-directory)
-	([remap dired-hide-details-mode] .
-	 (lambda () (interactive)
-	   (mapc 'call-interactively '(dired-omit-mode dired-hide-details-mode))))))
+	([remap dired-hide-details-mode] . (lambda ()
+					     (interactive)
+					     (mapc 'call-interactively
+						   '(dired-omit-mode
+						     dired-hide-details-mode))))))
 
 (use-package org
   :init
@@ -320,6 +322,24 @@
   :ensure t
   :init (puni-global-mode 1)
 
+  :config
+  (advice-add 'puni-mark-list-around-point :around
+	      (lambda (fn &rest args)
+		(unless (region-active-p)
+		  (push-mark))
+		(apply fn args)))
+
+  (defun puni-backward-kill-to-indentation ()
+    (interactive)
+    (let ((kill-whole-line nil))
+      (call-interactively 'puni-backward-kill-line))
+    (indent-according-to-mode))
+
+  (defun minibuffer-backward-kill-line ()
+    (interactive)
+    (let ((kill-whole-line nil))
+      (kill-line 0)))
+
   :bind
   (("C-M-r" . puni-raise)
    ("C-M-s" . puni-splice)
@@ -330,7 +350,11 @@
    ("C-}" . puni-barf-forward)
 
    :map lisp-mode-shared-map
-   ("C-c ?" . puni-convolute)))
+   ("C-c ?" . puni-convolute)
+
+   ("C-<backspace>" . puni-backward-kill-to-indentation)
+   :map minibuffer-mode-map
+   ("C-<backspace>" . minibuffer-backward-kill-line)))
 
 (use-package magit
   :ensure t
