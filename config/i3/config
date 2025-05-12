@@ -98,7 +98,7 @@ mode $PREFIX {
 	bindsym w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
 	bindsym s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f"'
-	bindsym c $ESC; $EXEC systemctl suspend
+	bindsym z $ESC; $EXEC systemctl suspend
 	bindsym k $ESC; kill
 
 	bindsym Ctrl+g $ESC

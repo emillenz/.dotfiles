@@ -16,7 +16,6 @@ set adjust-open "best-fit"
 set window-title-page true
 set render-loading true
 set recolor-keephue true
-set guioptions none
 
 # modus operandi theme
 set notification-error-bg       "#c8c8c8"

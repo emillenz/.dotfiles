@@ -212,10 +212,10 @@
   (defun indent-region-dwim (n)
       (interactive "p")
     (if (region-active-p)
-	(indent-region (region-beginning) (region-end))
+	(call-interactively 'indent-region)
       (save-mark-and-excursion
 	(mark-paragraph n)
-	(indent-region (region-beginning) (region-end)))))
+	(call-interactively 'indent-region))))
 
   (defun eval-last-sexp-dwim (n)
     (interactive "p")
@@ -223,28 +223,20 @@
 	(eval-region (region-beginning) (region-end) t)
       (call-interactively 'eval-last-sexp)))
 
-  (defun kmacro-end-and-call-macro-dwim (n)
+  (defun kmacro-end-or-call-macro-dwim (n)
     (interactive "p")
-    (if (region-active-p)
-	(apply-macro-to-region-lines (region-beginning) (region-end))
-      (kmacro-end-and-call-macro n)))
+    (call-interactively
+     (if (region-active-p)
+	 'apply-macro-to-region-lines
+       'kmacro-end-and-call-macro)))
 
   (defun window-alternate-buffer ()
     (interactive)
     (switch-to-buffer (caar (window-prev-buffers))))
 
-  (defun indent-rigidly-dwim ()
-    (interactive)
-    (unless (region-active-p)
-      (save-excursion
-	(beginning-of-line)
-	(push-mark))
-      (call-interactively 'indent-rigidly)))
-
   :bind
   (([remap downcase-word] . downcase-dwim)
    ([remap yank] . yank-indent)
-   ([remap indent-rigidly] . indent-rigidly-dwim)
    ([remap upcase-word] . upcase-dwim)
    ([remap capitalize-word] . capitalize-dwim)
    ([remap dabbrev-completion] . hippie-expand)
@@ -254,7 +246,7 @@
    ([remap set-mark-command] . set-mark-or-mark-line)
    ([remap kill-buffer] . kill-buffer-and-window)
    ([remap indent-region] . indent-region-dwim)
-   ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
+   ([remap kmacro-end-or-call-macro-repeat] . kmacro-end-or-call-macro-dwim)
    ([remap zap-to-char] . zap-up-to-char)
 
    ("C-u" . (lambda () (interactive) (set-mark-command 1)))
@@ -336,10 +328,9 @@
    ("C-{" . puni-barf-backward)
    ("C-}" . puni-barf-forward)
 
-   ("C-M-q" . puni-squeeze)
-   :map emacs-lisp-mode-map ("C-M-q" . puni-squeeze)
-
-   :map lisp-mode-shared-map ("C-c C-?" . puni-convolute)))
+   ("C-c ?" . puni-convolute)
+   ("C-c s" . puni-split)
+   ("C-c q" . puni-squeeze)))
 
 (use-package magit
   :ensure t
