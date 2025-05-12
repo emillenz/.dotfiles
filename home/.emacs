@@ -201,27 +201,26 @@
       (mapc 'call-interactively '(open-line forward-line))
       (indent-according-to-mode)))
 
-  (defun yank-indent (n)
-    (interactive "p")
+  (defun yank-indent ()
+    (interactive)
     (let ((pos (point)))
       (if (and delete-selection-mode (region-active-p))
-	  (delete-region (region-beginning) (region-end)))
-      (yank n)
+	  (call-interactively 'delete-region))
+      (call-interactively 'yank)
       (indent-region pos (point))))
 
-  (defun indent-region-dwim (n)
-      (interactive "p")
+  (defun indent-region-dwim ()
+      (interactive)
     (if (region-active-p)
 	(call-interactively 'indent-region)
       (save-mark-and-excursion
-	(mark-paragraph n)
-	(call-interactively 'indent-region))))
+	(mapc 'call-interactively '(indent-region mark-paragraph)))))
 
-  (defun eval-last-sexp-dwim (n)
-    (interactive "p")
-    (if (region-active-p)
-	(eval-region (region-beginning) (region-end) t)
-      (call-interactively 'eval-last-sexp)))
+  (defun eval-last-sexp-dwim ()
+    (interactive)
+    (call-interactively (if (region-active-p)
+			    'eval-region
+			  'eval-last-sexp)))
 
   (defun kmacro-end-or-call-macro-dwim (n)
     (interactive "p")
@@ -352,6 +351,7 @@
    :map lisp-mode-shared-map
    ("C-c ?" . puni-convolute)
 
+   :map global-map
    ("C-<backspace>" . puni-backward-kill-to-indentation)
    :map minibuffer-mode-map
    ("C-<backspace>" . minibuffer-backward-kill-line)))
