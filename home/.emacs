@@ -72,6 +72,7 @@
 	kill-do-not-save-duplicates t
 	show-paren-when-point-inside-paren t
 	kill-whole-line t
+	shift-select-mode nil
 
 	compilation-scroll-output t
 	next-error-recenter '(4)
@@ -222,7 +223,7 @@
 			    'eval-region
 			  'eval-last-sexp)))
 
-  (defun kmacro-end-or-call-macro-dwim (n)
+  (defun kmacro-end-and-call-macro-dwim (n)
     (interactive "p")
     (call-interactively
      (if (region-active-p)
@@ -246,13 +247,11 @@
    ([remap upcase-word] . upcase-dwim)
    ([remap capitalize-word] . capitalize-dwim)
    ([remap dabbrev-completion] . hippie-expand)
-   ([remap list-buffers] . ibuffer)
    ([remap eval-last-sexp] . eval-last-sexp-dwim)
    ([remap open-line] . open-line-indent)
    ([remap set-mark-command] . set-mark-or-mark-line)
-   ([remap kill-buffer] . kill-buffer-and-window)
    ([remap indent-region] . indent-region-dwim)
-   ([remap kmacro-end-or-call-macro-repeat] . kmacro-end-or-call-macro-dwim)
+   ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
    ([remap zap-to-char] . zap-up-to-char)
 
    ("C-u" . (lambda () (interactive) (set-mark-command 1)))
@@ -263,18 +262,25 @@
    ("M-'" . jump-to-register)
    ("M-#" . point-to-register)
 
-   :map ctl-x-map
-   ("f" . find-file)
-   ("j" . dired-jump)
+   (:map goto-map
+	 (:repeat-map function-navigation-repeat-map
+		      ("M-e" . end-of-defun)
+		      ("M-a" . beginning-of-defun)))
 
-   :map ctl-x-x-map
-   ("f" . global-font-lock-mode)
+   (:map ctl-x-map
+	 ("C-b" . switch-to-buffer)
+	 ("b" . ibuffer)
+	 ("C-k" . kill-buffer-and-window)
+	 ("f" . recentf-open))
 
-   :map indent-rigidly-map
-   ("C-i" . indent-rigidly-right-to-tab-stop)
-   ("C-S-i" . indent-rigidly-left-to-tab-stop)
-   ("SPC" . indent-rigidly-right)
-   ("DEL" . indent-rigidly-left)))
+   (:map ctl-x-x-map
+	 ("f" . global-font-lock-mode))
+
+   (:map indent-rigidly-map
+	 ("C-i" . indent-rigidly-right-to-tab-stop)
+	 ("C-S-i" . indent-rigidly-left-to-tab-stop)
+	 ("SPC" . indent-rigidly-right)
+	 ("DEL" . indent-rigidly-left))))
 
 (use-package recentf
   :init
@@ -355,13 +361,15 @@
    ("C-{" . puni-barf-backward)
    ("C-}" . puni-barf-forward)
 
-   :map lisp-mode-shared-map
-   ("C-c ?" . puni-convolute)
+   (:map lisp-mode-shared-map
+	 ("C-c ?" . puni-convolute))
 
-   :map global-map
-   ("C-<backspace>" . puni-backward-kill-to-indent)))
+   (:map global-map
+	 ("C-<backspace>" . puni-backward-kill-to-indent))))
 
 (use-package magit
   :ensure t
   :hook (magit-mode-hook . font-lock-mode)
-  :bind (:map magit-mode-map ("C-<tab>" . window-alternate-buffer)))
+  :bind
+  ((:map magit-mode-map
+	 ("C-<tab>" . window-alternate-buffer))))
