@@ -98,8 +98,6 @@
 	comint-input-ignoredups t
 	comint-prompt-read-only t)
 
-  (setq-default comment-column 0)
-
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
@@ -241,7 +239,7 @@
 			  'comment-line)))
 
   :bind
-  (([remap downcase-word] . downcase-dwim)
+  ([remap downcase-word] . downcase-dwim)
    ([remap comment-dwim] . comment-line-or-dwim)
    ([remap yank] . yank-indent)
    ([remap upcase-word] . upcase-dwim)
@@ -262,15 +260,14 @@
    ("M-'" . jump-to-register)
    ("M-#" . point-to-register)
 
-   (:map goto-map
-	 (:repeat-map function-navigation-repeat-map
-		      ("M-e" . end-of-defun)
-		      ("M-a" . beginning-of-defun)))
+   (:repeat-map goto-map
+		("M-a" . beginning-of-defun)
+		("M-e" . end-of-defun))
 
    (:map ctl-x-map
 	 ("C-b" . switch-to-buffer)
-	 ("C-c" . kill-buffer-and-window)
-	 ("b" . ibuffer))
+	 ("b" . ibuffer)
+	 ("C-c" . kill-buffer-and-window))
 
    (:map ctl-x-x-map
 	 ("f" . global-font-lock-mode))
@@ -279,7 +276,7 @@
 	 ("C-i" . indent-rigidly-right-to-tab-stop)
 	 ("C-S-i" . indent-rigidly-left-to-tab-stop)
 	 ("SPC" . indent-rigidly-right)
-	 ("DEL" . indent-rigidly-left))))
+	 ("DEL" . indent-rigidly-left)))
 
 (use-package recentf
   :init
