@@ -97,10 +97,6 @@
 	comint-input-ignoredups t
 	comint-prompt-read-only t)
 
-  (dolist (cmd '(list-timers narrow-to-region upcase-region downcase-region
-                             erase-buffer scroll-left dired-find-alternate-file))
-    (put cmd 'disabled nil))
-
   (setq-default comment-column 0)
 
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
@@ -177,7 +173,7 @@
       (let ((buffer-read-only t))
 	(ignore-errors
 	  (save-mark-and-excursion
-	    (call-interactively (key-binding (read-key-sequence "[save next kill]")) ))))))
+	    (call-interactively (key-binding (read-key-sequence "save next kill:")) ))))))
 
   (defun set-mark-or-mark-line (n)
     (interactive "p")
@@ -265,7 +261,13 @@
    ("j" . dired-jump)
 
    :map ctl-x-x-map
-   ("f" . global-font-lock-mode)))
+   ("f" . global-font-lock-mode)
+
+   :map indent-rigidly-map
+   ("C-i" . indent-rigidly-right-to-tab-stop)
+   ("C-S-i" . indent-rigidly-left-to-tab-stop)
+   ("SPC" . indent-rigidly-right)
+   ("DEL" . indent-rigidly-left)))
 
 (use-package recentf
   :init

@@ -1,6 +1,7 @@
 [ -f ~/.bashrc ] && source $HOME/.bashrc
 
 export PATH=$PATH:$HOME/.local/bin
+export XDG_CONFIG_HOME="$HOME/.config"
 
 # export GOPATH=$HOME/.local/share/go
 # export PATH=$PATH:$GOPATH

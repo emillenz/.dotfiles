@@ -10,21 +10,21 @@
 export IFS=$'\n'
 
 shopt -s\
-      globstar\
-      checkjobs\
-      nocaseglob\
-      nocasematch\
-      histappend\
-      patsub_replacement\
-      expand_aliases\
-      autocd
+	globstar\
+	checkjobs\
+	nocaseglob\
+	nocasematch\
+	histappend\
+	patsub_replacement\
+	expand_aliases\
+	autocd
 
 alias\
-    grep="grep --ignore-case"\
-    rm="rm --verbose --recursive"\
-    cp="cp --verbose --recursive"\
-    mkdir="mkdir --verbose --parents"\
-    pgrep="pgrep --ignore-case"
+	grep="grep --ignore-case"\
+	rm="rm --verbose --recursive"\
+	cp="cp --verbose --recursive"\
+	mkdir="mkdir --verbose --parents"\
+	pgrep="pgrep --ignore-case"
 
 export\
 	EDITOR="emacsclient --reuse-frame --alternate-editor=emacs -nw"\
