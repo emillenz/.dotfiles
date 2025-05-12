@@ -103,10 +103,10 @@
 
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
 
-  ;; (progn
-  ;;   (setq minibuffer-prompt-properties
-  ;; 	  '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
-  ;;   (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
+  (progn
+    (setq minibuffer-prompt-properties
+	  '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+    (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
 
   (progn
     (set-language-environment "utf-8")
@@ -233,8 +233,15 @@
     (interactive)
     (switch-to-buffer (caar (window-prev-buffers))))
 
+  (defun comment-line-or-dwim ()
+    (interactive)
+    (call-interactively (if (region-active-p)
+			    'comment-dwim
+			  'comment-line)))
+
   :bind
   (([remap downcase-word] . downcase-dwim)
+   ([remap comment-dwim] . comment-line-or-dwim)
    ([remap yank] . yank-indent)
    ([remap upcase-word] . upcase-dwim)
    ([remap capitalize-word] . capitalize-dwim)
