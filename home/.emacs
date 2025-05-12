@@ -210,11 +210,11 @@
       (indent-region pos (point))))
 
   (defun indent-region-dwim ()
-      (interactive)
+    (interactive)
     (if (region-active-p)
 	(call-interactively 'indent-region)
       (save-mark-and-excursion
-	(mapc 'call-interactively '(indent-region mark-paragraph)))))
+	(mapc 'call-interactively '(mark-paragraph indent-region)))))
 
   (defun eval-last-sexp-dwim ()
     (interactive)
@@ -328,16 +328,16 @@
 		  (push-mark))
 		(apply fn args)))
 
-  (defun puni-backward-kill-to-indentation ()
+  (defun puni-backward-kill-to-indent ()
     (interactive)
-    (let ((kill-whole-line nil))
-      (call-interactively 'puni-backward-kill-line))
-    (indent-according-to-mode))
-
-  (defun minibuffer-backward-kill-line ()
-    (interactive)
-    (let ((kill-whole-line nil))
-      (kill-line 0)))
+    (let ((indent-begin (save-excursion (back-to-indentation) (point))))
+      (if (= (point) indent-begin)
+	  (call-interactively 'puni-backward-kill-line)
+	(puni-soft-delete (point)
+			  indent-begin
+			  'strict-sexp
+			  'beyond
+			  'kill))))
 
   :bind
   (("C-M-r" . puni-raise)
@@ -352,9 +352,7 @@
    ("C-c ?" . puni-convolute)
 
    :map global-map
-   ("C-<backspace>" . puni-backward-kill-to-indentation)
-   :map minibuffer-mode-map
-   ("C-<backspace>" . minibuffer-backward-kill-line)))
+   ("C-<backspace>" . puni-backward-kill-to-indent)))
 
 (use-package magit
   :ensure t
