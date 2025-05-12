@@ -323,14 +323,14 @@
   :bind
   (("C-M-r" . puni-raise)
    ("C-M-s" . puni-splice)
+   ("C-M-v" . puni-mark-list-around-point)
    ("C-(" . puni-slurp-backward)
    ("C-)" . puni-slurp-forward)
    ("C-{" . puni-barf-backward)
    ("C-}" . puni-barf-forward)
 
-   ("C-c ?" . puni-convolute)
-   ("C-c s" . puni-split)
-   ("C-c q" . puni-squeeze)))
+   :map lisp-mode-shared-map
+   ("C-c ?" . puni-convolute)))
 
 (use-package magit
   :ensure t
