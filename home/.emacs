@@ -52,16 +52,12 @@
 	global-auto-revert-non-file-buffers t
 	auto-save-include-big-deletions t
 	kill-buffer-delete-auto-save-files t
-	auto-save-list-file-prefix (expand-file-name "autosave/"
-						     user-emacs-directory)
+	auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)
 	use-short-answers t
 	save-interprogram-paste-before-kill t
 	require-final-newline t
 	load-prefer-newer t
-	backup-by-copying t
 	shell-command-prompt-show-cwd t
-	backup-directory-alist `(("." .
-				  ,(concat user-emacs-directory "backups")))
 	custom-file (expand-file-name "custom.el" user-emacs-directory)
 	desktop-dirname user-emacs-directory
 	find-file-visit-truename t
@@ -79,9 +75,15 @@
 
 	create-lockfiles nil
 	make-backup-files nil
-
+	delete-old-versions t
+	version-control t
+	kept-new-versions 5
+	kept-old-versions 5
 	vc-follow-symlinks t
 	vc-make-backup-files nil
+	backup-by-copying t
+	backup-by-copying-when-linked t
+	backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
 
 	scroll-preserve-screen-position t
 	scroll-error-top-bottom t
@@ -237,6 +239,8 @@
     (call-interactively (if (region-active-p)
 			    'comment-dwim
 			  'comment-line)))
+
+  (keymap-unset isearch-mode-map "C-w" t)
 
   :bind
   ([remap downcase-word] . downcase-dwim)
