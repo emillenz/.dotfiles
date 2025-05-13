@@ -144,6 +144,12 @@
 		  (push-mark))
 		(apply fn args)))
 
+  (advice-add 'backward-up-list :around
+	      (lambda (fn &rest args)
+		(unless (eq last-command 'backward-up-list)
+		  (push-mark))
+		(apply fn args)))
+
   (defun kill-ring-save-region-or-next-kill ()
     (interactive)
     (if (region-active-p)
@@ -151,7 +157,7 @@
       (let ((buffer-read-only t))
 	(ignore-errors
 	  (save-mark-and-excursion
-	    (call-interactively (key-binding (read-key-sequence "save next kill:")) ))))))
+	    (call-interactively (key-binding (read-key-sequence "save kill:"))))))))
 
   (defun set-mark-or-mark-line (n)
     (interactive "p")
@@ -186,13 +192,6 @@
 	  (call-interactively 'delete-region))
       (call-interactively 'yank)
       (indent-region pos (point))))
-
-  (defun indent-region-dwim ()
-    (interactive)
-    (if (region-active-p)
-	(call-interactively 'indent-region)
-      (save-mark-and-excursion
-	(mapc 'call-interactively '(mark-paragraph indent-region)))))
 
   (defun eval-last-sexp-dwim ()
     (interactive)
@@ -229,7 +228,6 @@
    ([remap eval-last-sexp] . eval-last-sexp-dwim)
    ([remap open-line] . open-line-indent)
    ([remap set-mark-command] . set-mark-or-mark-line)
-   ([remap indent-region] . indent-region-dwim)
    ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
    ([remap zap-to-char] . zap-up-to-char)
    ([remap list-buffers] . ibuffer)
