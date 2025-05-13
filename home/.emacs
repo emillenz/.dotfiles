@@ -138,17 +138,20 @@
 	  align
 	  align-entire))
 
-  (advice-add 'mark-paragraph :around
-	      (lambda (fn &rest args)
-		(unless (region-active-p)
-		  (push-mark))
-		(apply fn args)))
+  (progn
+    (advice-add 'mark-paragraph :around
+		(lambda (fn &rest args)
+		  (unless (region-active-p)
+		    (push-mark))
+		  (apply fn args)))
 
-  (advice-add 'backward-up-list :around
-	      (lambda (fn &rest args)
-		(unless (eq last-command 'backward-up-list)
-		  (push-mark))
-		(apply fn args)))
+    (advice-add 'backward-up-list :around
+		(lambda (fn &rest args)
+		  (unless (eq last-command 'backward-up-list)
+		    (push-mark))
+		  (apply fn args)))
+
+    (add-hook 'deactivate-mark-hook 'pop-mark))
 
   (defun kill-ring-save-region-or-next-kill ()
     (interactive)
@@ -156,8 +159,9 @@
 	(call-interactively 'kill-ring-save)
       (let ((buffer-read-only t))
 	(ignore-errors
-	  (save-mark-and-excursion
-	    (call-interactively (key-binding (read-key-sequence "save kill:"))))))))
+	  (call-interactively
+	   (key-binding
+	    (read-key-sequence "save next kill:")))))))
 
   (defun set-mark-or-mark-line (n)
     (interactive "p")
@@ -217,46 +221,45 @@
 			  'comment-line)))
 
   (keymap-unset isearch-mode-map "C-w" t)
-
   :bind
   ([remap downcase-word] . downcase-dwim)
-   ([remap comment-dwim] . comment-line-or-dwim)
-   ([remap yank] . yank-indent)
-   ([remap upcase-word] . upcase-dwim)
-   ([remap capitalize-word] . capitalize-dwim)
-   ([remap dabbrev-completion] . hippie-expand)
-   ([remap eval-last-sexp] . eval-last-sexp-dwim)
-   ([remap open-line] . open-line-indent)
-   ([remap set-mark-command] . set-mark-or-mark-line)
-   ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
-   ([remap zap-to-char] . zap-up-to-char)
-   ([remap list-buffers] . ibuffer)
-   ([remap kill-buffer] . kill-buffer-and-window)
-   ([remap dired] . dired-jump)
+  ([remap comment-dwim] . comment-line-or-dwim)
+  ([remap yank] . yank-indent)
+  ([remap upcase-word] . upcase-dwim)
+  ([remap capitalize-word] . capitalize-dwim)
+  ([remap dabbrev-completion] . hippie-expand)
+  ([remap eval-last-sexp] . eval-last-sexp-dwim)
+  ([remap open-line] . open-line-indent)
+  ([remap set-mark-command] . set-mark-or-mark-line)
+  ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
+  ([remap zap-to-char] . zap-up-to-char)
+  ([remap list-buffers] . ibuffer)
+  ([remap kill-buffer] . kill-buffer-and-window)
+  ([remap dired] . dired-jump)
 
-   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
-   ("C-z" . repeat)
-   ("C-<tab>" . window-alternate-buffer)
-   ("M-w" . kill-ring-save-region-or-next-kill)
+  ("C-u" . (lambda () (interactive) (set-mark-command 1)))
+  ("C-z" . repeat)
+  ("C-<tab>" . window-alternate-buffer)
+  ("M-w" . kill-ring-save-region-or-next-kill)
 
-   ("M-'" . jump-to-register)
-   ("M-#" . point-to-register)
+  ("M-'" . jump-to-register)
+  ("M-#" . point-to-register)
 
-   (:repeat-map goto-map
-		("M-a" . beginning-of-defun)
-		("M-e" . end-of-defun))
+  (:repeat-map goto-map
+	       ("M-a" . beginning-of-defun)
+	       ("M-e" . end-of-defun))
 
-   (:map ctl-x-map
-	 ("f" . find-file))
+  (:map ctl-x-map
+	("f" . find-file))
 
-   (:map ctl-x-x-map
-	 ("f" . global-font-lock-mode))
+  (:map ctl-x-x-map
+	("f" . global-font-lock-mode))
 
-   (:map indent-rigidly-map
-	 ("C-i" . indent-rigidly-right-to-tab-stop)
-	 ("C-S-i" . indent-rigidly-left-to-tab-stop)
-	 ("SPC" . indent-rigidly-right)
-	 ("DEL" . indent-rigidly-left)))
+  (:map indent-rigidly-map
+	("C-i" . indent-rigidly-right-to-tab-stop)
+	("C-S-i" . indent-rigidly-left-to-tab-stop)
+	("SPC" . indent-rigidly-right)
+	("DEL" . indent-rigidly-left)))
 
 (use-package recentf
   :init
