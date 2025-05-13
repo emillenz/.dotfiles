@@ -28,11 +28,11 @@ alias\
 
 export\
 	EDITOR="emacsclient --reuse-frame --alternate-editor=emacs -nw"\
-	VISUAL="emacsclient --reuse-frame --alternate-editor=emacs -nw"\
+	VISUAL=$EDITOR\
 	HISTCONTROL=ignoreboth:erasedups\
 	HISTSIZE=1000
 
 export PS1='\n\[\e[1m\][\W] \[\e[0m\]'
 
-function find { command find $@ -type f -not -path './.*'; }
+function find {	command find $@ -type f -not -path './.*'; }
 function rjs { ruby -rjson -e '$js = JSON.parse(ARGF.read);' $@; }

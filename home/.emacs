@@ -315,11 +315,18 @@
   :init (puni-global-mode 1)
 
   :config
-  (advice-add 'puni-mark-list-around-point :around
+  (advice-add 'puni-mark-list-around-point
+	      :around
 	      (lambda (fn &rest args)
 		(unless (region-active-p)
 		  (push-mark))
 		(apply fn args)))
+
+  (advice-add 'puni-kill-line
+	      :around
+	      (lambda (fn &rest args)
+		(save-excursion
+		  (apply fn args))))
 
   (defun puni-backward-kill-to-indent ()
     (interactive)
