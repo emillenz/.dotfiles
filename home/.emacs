@@ -129,29 +129,6 @@
 		  standard-indent 8)
     (setq c-default-style "linux"))
 
-  (progn
-    (setq display-buffer-base-action '(display-buffer-same-window
-				       display-buffer-use-some-window)
-	  display-buffer-alist
-	  `((,(rx (seq "*"
-		       (or "transient"
-			   (seq "org " (or "select" "todo"))
-			   "agenda commands"
-			   "completions")))
-	     display-buffer-at-bottom
-	     (window-height . fit-window-to-buffer))
-	    ("." ,display-buffer-base-action
-	     (reuseable-frames . t))))
-    (with-eval-after-load 'ediff
-      (setq ediff-window-setup-function 'ediff-setup-windows-plain))
-    (with-eval-after-load 'org
-      (setq org-src-window-setup 'current-window
-	    org-agenda-window-setup 'current-window))
-    (with-eval-after-load 'man
-      (setq man-notify-method 'pushy))
-    (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
-    (advice-add 'pop-to-buffer :override 'switch-to-buffer))
-
   (mapc (lambda (fn)
 	  (advice-add fn :after
 		      (lambda (&rest r)
@@ -374,3 +351,7 @@
   :bind
   ((:map magit-mode-map
 	 ("C-<tab>" . window-alternate-buffer))))
+
+(use-package current-window-only
+  :ensure t
+  :init (current-window-only-mode 1))
