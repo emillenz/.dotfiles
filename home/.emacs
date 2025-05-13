@@ -24,6 +24,7 @@
   (save-place-mode 1)
   (auto-revert-mode 1)
   (global-visual-line-mode 1)
+  (auto-save-visited-mode 1)
 
   (tool-bar-mode -1)
   (menu-bar-mode -1)
@@ -355,4 +356,10 @@
 
 (use-package current-window-only
   :ensure t
-  :init (current-window-only-mode 1))
+  :init (current-window-only-mode 1)
+  :config
+  (add-to-list 'display-buffer-alist
+	       (list (rx (seq "*"
+			      (or "completions")))
+		     'display-buffer-at-bottom
+		     '(window-height . fit-window-to-buffer))))
