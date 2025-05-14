@@ -236,7 +236,7 @@
   ([remap yank] . yank-indent)
   ([remap upcase-word] . upcase-dwim)
   ([remap capitalize-word] . capitalize-dwim)
-  ([remap dabbrev-completion] . hippie-expand)
+  ([remap dabbrev-expand] . hippie-expand)
   ([remap eval-last-sexp] . eval-last-sexp-dwim)
   ([remap open-line] . open-line-indent)
   ([remap set-mark-command] . set-mark-or-mark-line)
@@ -254,12 +254,12 @@
   ("M-'" . jump-to-register)
   ("M-#" . point-to-register)
 
-  (:map next-error-repeat-map
+  (:repeat-map next-error-repeat-map
 	("M-<" . first-error))
 
   (:repeat-map goto-map
-	("M-a" . beginning-of-defun)
-	("M-e" . end-of-defun))
+	       ("M-a" . beginning-of-defun)
+	       ("M-e" . end-of-defun))
 
   (:map ctl-x-map
 	("f" . find-file))
@@ -335,11 +335,11 @@
 
   (advice-add 'puni-kill-line
 	      :around
-	      (puni-kill-line-advice (fn &rest args)
-		(if (bolp)
-		    (save-excursion
-		      (apply fn args))
-		  (apply fn args))))
+	      (defun puni-kill-line-advice (fn &rest args)
+				     (if (bolp)
+					 (save-excursion
+					   (apply fn args))
+				       (apply fn args))))
 
   (defun puni-backward-kill-to-indent ()
     (interactive)
