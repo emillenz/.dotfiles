@@ -41,10 +41,12 @@
 	inhibit-splash-screen t
 	inhibit-startup-screen t
 	inhibit-startup-buffer-menu t
-
+	frame-title-format "%b ― emacs"
+	icon-title-format frame-title-format
+	frame-inhibit-implied-resize t
 	use-file-dialog nil
 	use-dialog-box nil
-	set-mark-command-repeat-pop t
+
 	history-length 1000
 	history-delete-duplicates t
 	uniquify-buffer-name-style 'forward
@@ -66,10 +68,10 @@
 	find-file-visit-truename t
 	comment-empty-lines nil
 	register-preview-delay nil
-	auto-window-vscroll nil
 	kill-do-not-save-duplicates t
 	show-paren-when-point-inside-paren t
 	kill-whole-line t
+	set-mark-command-repeat-pop t
 	shift-select-mode nil
 
 	compilation-scroll-output t
@@ -89,19 +91,10 @@
 
 	scroll-preserve-screen-position t
 	scroll-error-top-bottom t
-
-	frame-title-format "%b ― emacs"
-	icon-title-format frame-title-format
-	frame-inhibit-implied-resize t
+	auto-window-vscroll nil
 
 	comint-input-ignoredups t
 	comint-prompt-read-only t)
-
-  (setq icomplete-compute-delay 0
-	completions-detailed t
-	completions-auto-help 'visible
-	completions-max-height 16
-	completions-format 'one-column)
 
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
@@ -223,7 +216,7 @@
 			    'eval-region
 			  'eval-last-sexp)))
 
-  (defun comment-sexp ()
+  (defun comment-sexp-dwim ()
     (interactive)
     (if (region-active-p)
 	(call-interactively 'comment-dwim)
@@ -252,16 +245,16 @@
   ([remap capitalize-word] . capitalize-dwim)
   ([remap dabbrev-expand] . hippie-expand)
   ([remap eval-last-sexp] . eval-last-sexp-dwim)
-  ([remap comment-dwim] . comment-sexp)
+  ([remap comment-dwim] . comment-sexp-dwim)
   ([remap open-line] . open-line-indent)
   ([remap set-mark-command] . set-mark-or-mark-line)
   ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
   ([remap zap-to-char] . zap-up-to-char)
   ([remap list-buffers] . ibuffer)
   ([remap kill-buffer] . kill-buffer-and-window)
+  ([remap dired] . dired-jump)
   ([remap dired-shell-command] . dired-async-shell-command)
   ([remap shell-command] . async-shell-command)
-  ([remap dired] . dired-jump)
 
   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
   ("C-z" . repeat)
@@ -313,7 +306,6 @@
   :init
   (setq dired-free-space nil
 	dired-omit-files "^\\..*$"
-	dired-kill-when-opening-new-dired-buffer t ;; nil
 	dired-clean-confirm-killing-deleted-buffers nil
 	dired-recursive-copies 'always
 	dired-recursive-deletes 'always
@@ -324,6 +316,7 @@
   :bind
   (:map dired-mode-map
 	("b" . dired-up-directory)
+	("e" . wdired-change-to-wdired-mode)
 	([remap dired-hide-details-mode] . (lambda ()
 					     (interactive)
 					     (dired-omit-mode 'toggle)
@@ -355,6 +348,14 @@
 (use-package org
   :init
   (setq org-tags-column 0))
+
+(use-package icomplete
+  :init
+  (setq icomplete-compute-delay 0
+	completions-detailed t
+	completions-auto-help 'visible
+	completions-max-height 16
+	completions-format 'one-column))
 
 (use-package package
   :init
