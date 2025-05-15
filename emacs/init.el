@@ -11,20 +11,21 @@
 
 (use-package emacs
   :init
-  (fringe-mode 1)
-  (global-auto-revert-mode 1)
-  (column-number-mode 1)
-  (global-word-wrap-whitespace-mode 1)
-  (global-subword-mode 1)
-  (delete-selection-mode 1)
-  (electric-indent-mode 1)
-  (electric-pair-mode 1)
-  (repeat-mode 1)
-  (fido-vertical-mode 1)
-  (save-place-mode 1)
-  (auto-revert-mode 1)
-  (global-visual-line-mode 1)
-  (auto-save-visited-mode 1)
+  (fringe-mode)
+  (global-auto-revert-mode)
+  (column-number-mode)
+  (global-word-wrap-whitespace-mode)
+  (global-subword-mode)
+  (delete-selection-mode)
+  (electric-indent-mode)
+  (electric-pair-mode)
+  (repeat-mode)
+  (fido-vertical-mode)
+  (save-place-mode)
+  (auto-revert-mode)
+  (global-visual-line-mode)
+  (global-hl-line-mode)
+  (auto-save-visited-mode)
 
   (tool-bar-mode -1)
   (menu-bar-mode -1)
@@ -112,6 +113,8 @@
 
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
 
+  (put 'narrow-to-page 'disabled nil)
+
   (progn
     (setq minibuffer-prompt-properties
 	  '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
@@ -140,7 +143,7 @@
   (mapc (lambda (fn)
 	  (advice-add fn
 		      :after
-		      (defun deactivate-mark-advice (&rest r)
+		      (defun deactivate-mark--advice (&rest r)
 			(deactivate-mark))))
 	'(apply-macro-to-region-lines
 	  eval-region
@@ -150,19 +153,23 @@
   (progn
     (advice-add 'mark-paragraph
 		:around
-		(defun mark-paragraph-advice (fn &rest args)
+		(defun mark-paragraph--advice (fn &rest args)
 		  (unless (region-active-p)
 		    (push-mark))
 		  (apply fn args)))
 
     (advice-add 'backward-up-list
 		:around
-		(defun backward-up-list-advice (fn &rest args)
+		(defun backward-up-list---advice (fn &rest args)
 		  (unless (eq last-command 'backward-up-list)
 		    (push-mark))
 		  (apply fn args)))
 
     (add-hook 'deactivate-mark-hook 'pop-mark))
+
+  (add-hook 'prog-mode-hook
+	    (defun prog-mode-hook--change-sexp-def ()
+	      (modify-syntax-entry ?. "_")))
 
   (defun kill-ring-save-region-or-next-kill ()
     (interactive)
@@ -201,6 +208,13 @@
       (mapc 'call-interactively '(open-line forward-line))
       (indent-according-to-mode)))
 
+  (defun indent-dwim ()
+    (interactive)
+    (call-interactively
+     (if (region-active-p)
+	 'indent-region
+       'indent-for-tab-command)))
+
   (defun yank-indent ()
     (interactive)
     (let ((pos (point)))
@@ -234,6 +248,7 @@
   :bind
   ([remap downcase-word] . downcase-dwim)
   ([remap yank] . yank-indent)
+  ([remap indent-for-tab-command] . indent-dwim)
   ([remap upcase-word] . upcase-dwim)
   ([remap capitalize-word] . capitalize-dwim)
   ([remap dabbrev-expand] . hippie-expand)
@@ -254,12 +269,12 @@
   ("M-'" . jump-to-register)
   ("M-#" . point-to-register)
 
-  (:repeat-map next-error-repeat-map
-	("M-<" . first-error))
+  (:repeat-map comint-repeat-map
+	       ("M-s" . comint-next-matching-input-from-input)
+	       ("M-r" . comint-previous-matching-input-from-input))
 
-  (:repeat-map goto-map
-	       ("M-a" . beginning-of-defun)
-	       ("M-e" . end-of-defun))
+  (:repeat-map next-error-repeat-map
+	       ("M-<" . first-error))
 
   (:map ctl-x-map
 	("f" . find-file))
@@ -308,9 +323,8 @@
 	("b" . dired-up-directory)
 	([remap dired-hide-details-mode] . (lambda ()
 					     (interactive)
-					     (mapc 'call-interactively
-						   '(dired-omit-mode
-						     dired-hide-details-mode))))))
+					     (dired-omit-mode 'toggle)
+					     (dired-hide-details-mode 'toggle)))))
 
 (use-package org
   :init
@@ -328,14 +342,14 @@
   :config
   (advice-add 'puni-mark-list-around-point
 	      :around
-	      (defun puni-mark-list-around-point-advice (fn &rest args)
+	      (defun puni-mark-list-around-point--advice (fn &rest args)
 		(unless (region-active-p)
 		  (push-mark))
 		(apply fn args)))
 
   (advice-add 'puni-kill-line
 	      :around
-	      (defun puni-kill-line-advice (fn &rest args)
+	      (defun puni-kill-line--advice (fn &rest args)
 				     (if (bolp)
 					 (save-excursion
 					   (apply fn args))
@@ -362,7 +376,8 @@
    ("C-}" . puni-barf-forward)
 
    (:map lisp-mode-shared-map
-	 ("C-c ?" . puni-convolute))
+	 ("C-c v" . puni-convolute)
+	 ("C-c s" . puni-split))
 
    (:map global-map
 	 ("C-<backspace>" . puni-backward-kill-to-indent))))
