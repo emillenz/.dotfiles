@@ -11,7 +11,6 @@
 
 (use-package emacs
   :init
-  (fringe-mode)
   (global-auto-revert-mode)
   (column-number-mode)
   (global-word-wrap-whitespace-mode)
@@ -26,6 +25,7 @@
   (global-visual-line-mode)
   (global-hl-line-mode)
   (auto-save-visited-mode)
+  (fringe-mode 1)
 
   (tool-bar-mode -1)
   (menu-bar-mode -1)
@@ -223,6 +223,13 @@
 			    'eval-region
 			  'eval-last-sexp)))
 
+  (defun comment-sexp ()
+    (interactive)
+    (if (region-active-p)
+	(call-interactively 'comment-dwim)
+      (save-mark-and-excursion
+	(mapc 'call-interactively '(mark-sexp comment-dwim)))))
+
   (defun kmacro-end-and-call-macro-dwim (n)
     (interactive "p")
     (call-interactively
@@ -245,12 +252,15 @@
   ([remap capitalize-word] . capitalize-dwim)
   ([remap dabbrev-expand] . hippie-expand)
   ([remap eval-last-sexp] . eval-last-sexp-dwim)
+  ([remap comment-dwim] . comment-sexp)
   ([remap open-line] . open-line-indent)
   ([remap set-mark-command] . set-mark-or-mark-line)
   ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
   ([remap zap-to-char] . zap-up-to-char)
   ([remap list-buffers] . ibuffer)
   ([remap kill-buffer] . kill-buffer-and-window)
+  ([remap dired-shell-command] . dired-async-shell-command)
+  ([remap shell-command] . async-shell-command)
   ([remap dired] . dired-jump)
 
   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
@@ -303,6 +313,7 @@
   :init
   (setq dired-free-space nil
 	dired-omit-files "^\\..*$"
+	dired-kill-when-opening-new-dired-buffer t ;; nil
 	dired-clean-confirm-killing-deleted-buffers nil
 	dired-recursive-copies 'always
 	dired-recursive-deletes 'always
@@ -318,14 +329,28 @@
 					     (dired-omit-mode 'toggle)
 					     (dired-hide-details-mode 'toggle)))))
 (use-package isearch
+  :hook
+  (isearch-update-post-hook
+   . (lambda ()
+       (when (and isearch-success
+		  isearch-forward
+		  ;; HACK :: without this isearch won't exit on non-isearch command
+		  (string-prefix-p "isearch" (symbol-name last-command)))
+	 (goto-char isearch-other-end))))
+
   :init
+  (setq search-whitespace-regexp ".*?"
+	isearch-lax-whitespace t
+	lazy-highlight-initial-delay 0
+	isearch-lazy-count t
+	isearch-allow-motion t
+	isearch-motion-changes-direction t)
+
   (keymap-unset isearch-mode-map "C-w" t)
   (keymap-unset isearch-mode-map "C-M-d" t)
 
-  (setq lazy-highlight-initial-delay 0
-	isearch-lazy-count t
-	isearch-allow-motion t
-	isearch-motion-changes-direction t))
+  :bind
+  (([remap isearch-delete-char] . isearch-del-char)))
 
 (use-package org
   :init
