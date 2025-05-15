@@ -102,6 +102,7 @@ mode $PREFIX {
 	bindsym z $ESC; $EXEC systemctl suspend
 
 	bindsym Ctrl+g $ESC
+	bindsym $MOD+g $ESC
 	bindsym Escape $ESC
 }
 

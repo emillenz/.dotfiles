@@ -71,7 +71,6 @@
 	show-paren-when-point-inside-paren t
 	kill-whole-line t
 	shift-select-mode nil
-	indicate-buffer-boundaries 'left
 
 	compilation-scroll-output t
 	next-error-recenter '(4)
@@ -90,11 +89,6 @@
 
 	scroll-preserve-screen-position t
 	scroll-error-top-bottom t
-
-	lazy-highlight-initial-delay 0
-	isearch-lazy-count t
-	isearch-allow-motion t
-	isearch-motion-changes-direction t
 
 	frame-title-format "%b ― emacs"
 	icon-title-format frame-title-format
@@ -143,7 +137,7 @@
   (mapc (lambda (fn)
 	  (advice-add fn
 		      :after
-		      (defun deactivate-mark--advice (&rest r)
+		      (lambda (&rest r)
 			(deactivate-mark))))
 	'(apply-macro-to-region-lines
 	  eval-region
@@ -153,14 +147,14 @@
   (progn
     (advice-add 'mark-paragraph
 		:around
-		(defun mark-paragraph--advice (fn &rest args)
+		(lambda (fn &rest args)
 		  (unless (region-active-p)
 		    (push-mark))
 		  (apply fn args)))
 
     (advice-add 'backward-up-list
 		:around
-		(defun backward-up-list---advice (fn &rest args)
+		(lambda (fn &rest args)
 		  (unless (eq last-command 'backward-up-list)
 		    (push-mark))
 		  (apply fn args)))
@@ -168,7 +162,7 @@
     (add-hook 'deactivate-mark-hook 'pop-mark))
 
   (add-hook 'prog-mode-hook
-	    (defun prog-mode-hook--change-sexp-def ()
+	    (lambda ()
 	      (modify-syntax-entry ?. "_")))
 
   (defun kill-ring-save-region-or-next-kill ()
@@ -243,8 +237,6 @@
 			    nil
 			  alt-buf))))
 
-  (keymap-unset isearch-mode-map "C-w" t)
-  (keymap-unset isearch-mode-map "C-M-d" t)
   :bind
   ([remap downcase-word] . downcase-dwim)
   ([remap yank] . yank-indent)
@@ -269,18 +261,18 @@
   ("M-'" . jump-to-register)
   ("M-#" . point-to-register)
 
+  (:map ctl-x-map
+	("f" . find-file))
+
+  (:map ctl-x-x-map
+	("f" . global-font-lock-mode))
+
   (:repeat-map comint-repeat-map
 	       ("M-s" . comint-next-matching-input-from-input)
 	       ("M-r" . comint-previous-matching-input-from-input))
 
   (:repeat-map next-error-repeat-map
 	       ("M-<" . first-error))
-
-  (:map ctl-x-map
-	("f" . find-file))
-
-  (:map ctl-x-x-map
-	("f" . global-font-lock-mode))
 
   (:map indent-rigidly-map
 	("C-i" . indent-rigidly-right-to-tab-stop)
@@ -325,6 +317,15 @@
 					     (interactive)
 					     (dired-omit-mode 'toggle)
 					     (dired-hide-details-mode 'toggle)))))
+(use-package isearch
+  :init
+  (keymap-unset isearch-mode-map "C-w" t)
+  (keymap-unset isearch-mode-map "C-M-d" t)
+
+  (setq lazy-highlight-initial-delay 0
+	isearch-lazy-count t
+	isearch-allow-motion t
+	isearch-motion-changes-direction t))
 
 (use-package org
   :init
@@ -393,7 +394,5 @@
   :ensure t
   :init (current-window-only-mode 1)
   :config
-  (add-to-list 'display-buffer-alist
-	       (list (rx (seq "*"
-			      (or "completions")))
-		     'display-buffer-at-bottom)))
+  (advice-remove 'delete-other-windows 'current-window-only--delete-other-windows)
+  (add-to-list 'display-buffer-alist '("*Completions*" display-buffer-at-bottom)))
