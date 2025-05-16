@@ -23,7 +23,6 @@
   (save-place-mode)
   (auto-revert-mode)
   (global-visual-line-mode)
-  (global-hl-line-mode)
   (auto-save-visited-mode)
   (fringe-mode 1)
 
@@ -97,11 +96,14 @@
 	  comint-input-ignoredups t
 	  comint-prompt-read-only t)
 
+  (progn
+    (global-hl-line-mode)
+    (add-hook 'deactivate-mark-hook (lambda () (global-hl-line-mode 1)))
+    (add-hook 'activate-mark-hook (lambda () (global-hl-line-mode -1))))
+
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
-
-  (put 'narrow-to-page 'disabled nil)
 
   (progn
     (setopt minibuffer-prompt-properties
@@ -131,6 +133,8 @@
   (progn
     (modify-syntax-entry ?. "_" (standard-syntax-table))
     (modify-syntax-entry ?: "_" (standard-syntax-table)))
+
+  (put 'narrow-to-region 'disabled nil)
 
   (mapc (lambda (fn)
 	  (advice-add fn
@@ -227,6 +231,17 @@
     (let ((buf (caar (window-prev-buffers))))
       (switch-to-buffer (unless (eq buf (current-buffer)) buf))))
 
+  (defun delete-spacing-dwim ()
+    (interactive)
+    (call-interactively
+     (if (bolp)
+	 'delete-blank-lines
+       'cycle-spacing)))
+
+  (defvar-keymap delete-spacing-dwim-repeat-map
+    :repeat t
+    "C-o" 'delete-spacing-dwim)
+
   :bind
   ([remap downcase-word] . downcase-dwim)
   ([remap yank] . yank-indent)
@@ -248,6 +263,9 @@
   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
   ("C-z" . repeat)
   ("M-w" . kill-ring-save-region-or-next-kill)
+
+  ([remap delete-blank-lines] . delete-spacing-dwim)
+  ("M-SPC" . mark-word)
 
   ("M-r" . point-to-register)
   ("M-j" . jump-to-register)
@@ -351,7 +369,7 @@
   (setopt max-mini-window-height 10
 	  completions-detailed t
 	  completions-auto-help 'visible
-	  completions-max-height 10
+	  completions-max-height 16
 	  completions-format 'one-column
 	  icomplete-compute-delay 0
 	  read-buffer-completion-ignore-case t
