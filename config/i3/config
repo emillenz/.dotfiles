@@ -70,10 +70,6 @@ bindsym $MOD+e workspace edit
 bindsym $MOD+shift+e $EXEC emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 workspace edit gaps horizontal $GAPSIZE
 
-for_window [class="Zathura"] move container to workspace read
-bindsym $MOD+r workspace read
-bindsym $MOD+shift+r $EXEC find ~/Documents ~/Downloads -type f -name '*pdf' -or -name '*epub' | dmenu -p "open" $DMENU_ARGS | xargs -i zathura "{}"
-
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+w workspace web
 bindsym $MOD+shift+w $EXEC firefox

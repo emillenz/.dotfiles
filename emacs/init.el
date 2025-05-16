@@ -5,6 +5,8 @@
 ;; email: emillenz@protonmail.com
 ;; ---
 
+;; (setq toggle-debug-on-error t)
+
 (setq use-package-hook-name-suffix nil
       use-package-always-demand t
       use-package-enable-imenu-support t)
@@ -70,9 +72,10 @@
 	register-preview-delay nil
 	kill-do-not-save-duplicates t
 	show-paren-when-point-inside-paren t
+	mark-even-if-inactive nil
 	kill-whole-line t
-	set-mark-command-repeat-pop t
 	shift-select-mode nil
+	set-mark-command-repeat-pop t
 
 	compilation-scroll-output t
 	next-error-recenter '(4)
@@ -281,7 +284,11 @@
 	("C-i" . indent-rigidly-right-to-tab-stop)
 	("C-S-i" . indent-rigidly-left-to-tab-stop)
 	("SPC" . indent-rigidly-right)
-	("DEL" . indent-rigidly-left)))
+	("DEL" . indent-rigidly-left))
+
+  (:map minibuffer-mode-map
+	([remap minibuffer-complete] . icomplete-force-complete)
+	([remap minibuffer-choose-completion] . icomplete-fido-exit)))
 
 (use-package recentf
   :init
@@ -323,13 +330,13 @@
 					     (dired-hide-details-mode 'toggle)))))
 (use-package isearch
   :hook
-  (isearch-update-post-hook
+  ((isearch-update-post-hook
    . (lambda ()
        (when (and isearch-success
 		  isearch-forward
 		  ;; HACK :: without this isearch won't exit on non-isearch command
 		  (string-prefix-p "isearch" (symbol-name last-command)))
-	 (goto-char isearch-other-end))))
+	 (goto-char isearch-other-end)))))
 
   :init
   (setq search-whitespace-regexp ".*?"
@@ -411,7 +418,7 @@
 
 (use-package magit
   :ensure t
-  :hook (magit-mode-hook . font-lock-mode)
+  :hook ((magit-mode-hook . font-lock-mode))
   :bind
   ((:map magit-mode-map
 	 ("C-<tab>" . alternate-buffer))))
@@ -422,3 +429,7 @@
   :config
   (advice-remove 'delete-other-windows 'current-window-only--delete-other-windows)
   (add-to-list 'display-buffer-alist '("*Completions*" display-buffer-at-bottom)))
+
+(use-package pdf-tools
+  :ensure t
+  :init (pdf-tools-install))
