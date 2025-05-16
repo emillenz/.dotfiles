@@ -238,10 +238,6 @@
 	 'delete-blank-lines
        'cycle-spacing)))
 
-  (defvar-keymap delete-spacing-dwim-repeat-map
-    :repeat t
-    "C-o" 'delete-spacing-dwim)
-
   :bind
   ([remap downcase-word] . downcase-dwim)
   ([remap yank] . yank-indent)
