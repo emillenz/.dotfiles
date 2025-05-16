@@ -157,9 +157,9 @@
 
     (add-hook 'deactivate-mark-hook 'pop-mark))
 
-  (add-hook 'prog-mode-hook
-	    (lambda ()
-	      (modify-syntax-entry ?. "_")))
+  (progn
+    (modify-syntax-entry ?. "_" prog-mode-syntax-table)
+    (modify-syntax-entry ?: "_" org-mode-syntax-table))
 
   (defun kill-ring-save-region-or-next-kill ()
     (interactive)
@@ -261,11 +261,9 @@
 
   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
   ("C-z" . repeat)
-  ("C-<tab>" . alternate-buffer)
   ("M-w" . kill-ring-save-region-or-next-kill)
-
+  ("C-<tab>" . alternate-buffer)
   ("M-'" . jump-to-register)
-  ("M-#" . point-to-register)
 
   (:map ctl-x-map
 	("f" . find-file))
