@@ -130,6 +130,10 @@
 		  standard-indent 8)
     (setq c-default-style "linux"))
 
+  (progn
+    (modify-syntax-entry ?. "_" (standard-syntax-table))
+    (modify-syntax-entry ?: "_" (standard-syntax-table)))
+
   (mapc (lambda (fn)
 	  (advice-add fn
 		      :after
@@ -156,10 +160,6 @@
 		  (apply fn args)))
 
     (add-hook 'deactivate-mark-hook 'pop-mark))
-
-  (progn
-    (modify-syntax-entry ?. "_" prog-mode-syntax-table)
-    (modify-syntax-entry ?: "_" org-mode-syntax-table))
 
   (defun kill-ring-save-region-or-next-kill ()
     (interactive)
@@ -233,12 +233,12 @@
 	 'apply-macro-to-region-lines
        'kmacro-end-and-call-macro)))
 
-  (defun alternate-buffer ()
+  (defun switch-to-other-buffer ()
     (interactive)
-    (let ((alt-buf (caar (window-prev-buffers))))
-      (switch-to-buffer (if (eq alt-buf (current-buffer))
+    (let ((other-buffer (caar (window-prev-buffers))))
+      (switch-to-buffer (if (eq other-buffer (current-buffer))
 			    nil
-			  alt-buf))))
+			  other-buffer))))
 
   :bind
   ([remap downcase-word] . downcase-dwim)
@@ -262,7 +262,8 @@
   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
   ("C-z" . repeat)
   ("M-w" . kill-ring-save-region-or-next-kill)
-  ("C-<tab>" . alternate-buffer)
+
+  ("M-o" . switch-to-other-buffer)
   ("M-'" . jump-to-register)
 
   (:map ctl-x-map

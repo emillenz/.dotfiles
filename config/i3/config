@@ -68,6 +68,7 @@ bindsym $MOD+x $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
 bindsym $MOD+shift+x $EXEC dmenu_run -p "run" $DMENU_ARGS
 
 set $GAPSIZE 600
+bindsym $MOD+v gaps horizontal current toggle $GAPSIZE
 
 for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
 bindsym $MOD+a workspace agenda
@@ -92,7 +93,6 @@ bindsym $MOD+c mode $PREFIX
 set $ESC mode "default"
 mode $PREFIX {
 	bindsym o $ESC; move workspace to output next
-	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
 
 	bindsym equal $EXEC pamixer --unmute --increase 5
 	bindsym minus $EXEC pamixer --unmute --decrease 5
