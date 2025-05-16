@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t -*-
 ;; ---
 ;; title: minimalist, distractionless vanilla emacs config
 ;; date: [2025-05-09]
@@ -136,8 +137,9 @@
 
   (mapc (lambda (fn)
 	  (advice-add fn
-		      :after
-		      (lambda (&rest r)
+		      :around
+		      (lambda (fn &rest args)
+			(apply fn args)
 			(deactivate-mark))))
 	'(apply-macro-to-region-lines
 	  eval-region
@@ -145,19 +147,16 @@
 	  align-entire))
 
   (progn
-    (advice-add 'mark-paragraph
-		:around
-		(lambda (fn &rest args)
-		  (unless (region-active-p)
-		    (push-mark))
-		  (apply fn args)))
-
-    (advice-add 'backward-up-list
-		:around
-		(lambda (fn &rest args)
-		  (unless (eq last-command 'backward-up-list)
-		    (push-mark))
-		  (apply fn args)))
+    (mapc (lambda (command)
+	    (advice-add command
+			:around
+			(lambda (fn &rest args)
+			  (unless (eq last-command command)
+			    (push-mark))
+			  (apply fn args))))
+	  '(mark-paragraph
+	    org-mark-element
+	    backward-up-list))
 
     (add-hook 'deactivate-mark-hook 'pop-mark))
 
@@ -253,8 +252,8 @@
   ([remap set-mark-command] . set-mark-or-mark-line)
   ([remap kmacro-end-and-call-macro] . kmacro-end-and-call-macro-dwim)
   ([remap zap-to-char] . zap-up-to-char)
-  ([remap list-buffers] . ibuffer)
   ([remap kill-buffer] . kill-buffer-and-window)
+  ([remap list-buffers] . ibuffer)
   ([remap dired] . dired-jump)
   ([remap dired-shell-command] . dired-async-shell-command)
   ([remap shell-command] . async-shell-command)
@@ -263,11 +262,13 @@
   ("C-z" . repeat)
   ("M-w" . kill-ring-save-region-or-next-kill)
 
+  ("M-r" . point-to-register)
+  ("M-j" . jump-to-register)
   ("M-o" . switch-to-other-buffer)
-  ("M-'" . jump-to-register)
 
   (:map ctl-x-map
-	("f" . find-file))
+	("t" . recentf-open))
+	("f" . find-file)
 
   (:map ctl-x-x-map
 	("f" . global-font-lock-mode))
@@ -331,7 +332,8 @@
   :hook
   ((isearch-update-post-hook
    . (lambda ()
-       (when (and isearch-success
+       (when (and isearch-other-end
+		  isearch-success
 		  isearch-forward
 		  ;; HACK :: without this isearch won't exit on non-isearch command
 		  (string-prefix-p "isearch" (symbol-name last-command)))
@@ -375,18 +377,18 @@
   :config
   (advice-add 'puni-mark-list-around-point
 	      :around
-	      (defun puni-mark-list-around-point--advice (fn &rest args)
+	      (lambda (fn &rest args)
 		(unless (region-active-p)
 		  (push-mark))
 		(apply fn args)))
 
   (advice-add 'puni-kill-line
 	      :around
-	      (defun puni-kill-line--advice (fn &rest args)
-				     (if (bolp)
-					 (save-excursion
-					   (apply fn args))
-				       (apply fn args))))
+	      (lambda (fn &rest args)
+		(if (bolp)
+		    (save-excursion
+		      (apply fn args))
+		  (apply fn args))))
 
   (defun puni-backward-kill-to-indent ()
     (interactive)
@@ -417,10 +419,7 @@
 
 (use-package magit
   :ensure t
-  :hook ((magit-mode-hook . font-lock-mode))
-  :bind
-  ((:map magit-mode-map
-	 ("C-<tab>" . alternate-buffer))))
+  :hook ((magit-mode-hook . font-lock-mode)))
 
 (use-package current-window-only
   :ensure t
