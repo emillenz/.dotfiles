@@ -67,7 +67,7 @@ bindsym $MOD+Tab workspace back_and_forth
 bindsym $MOD+x $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
 bindsym $MOD+shift+x $EXEC dmenu_run -p "run" $DMENU_ARGS
 
-set $GAPSIZE 600
+set $GAPSIZE 550
 bindsym $MOD+v gaps horizontal current toggle $GAPSIZE
 
 for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
@@ -108,7 +108,7 @@ mode $PREFIX {
 		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
 		--exec 'dunstify screenshot "$f"'
 	bindsym k $ESC; kill
-	bindsym c $ESC; $EXEC systemctl suspend
+	bindsym z $ESC; $EXEC systemctl suspend
 
 	bindsym $MOD+c $ESC
 	bindsym Ctrl+g $ESC
