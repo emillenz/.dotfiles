@@ -34,19 +34,7 @@
   (horizontal-scroll-bar-mode -1)
   (tooltip-mode -1)
 
-  (setopt initial-scratch-message nil
-	  inhibit-startup-echo-area-message user-login-name
-	  initial-buffer-choice nil
-	  inhibit-splash-screen t
-	  inhibit-startup-screen t
-	  inhibit-startup-buffer-menu t
-	  frame-title-format "%b ― emacs"
-	  icon-title-format frame-title-format
-	  frame-inhibit-implied-resize t
-	  use-file-dialog nil
-	  use-dialog-box nil
-
-	  history-length 1000
+  (setopt history-length 1000
 	  history-delete-duplicates t
 	  uniquify-buffer-name-style 'forward
 	  delete-by-moving-to-trash t
@@ -74,9 +62,6 @@
 	  shift-select-mode nil
 	  set-mark-command-repeat-pop t
 
-	  compilation-scroll-output t
-	  next-error-recenter '(4)
-
 	  create-lockfiles nil
 	  make-backup-files nil
 	  delete-old-versions t
@@ -88,6 +73,27 @@
 	  backup-by-copying t
 	  backup-by-copying-when-linked t
 	  backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
+
+	  initial-scratch-message nil
+	  inhibit-startup-echo-area-message user-login-name
+	  initial-buffer-choice nil
+	  inhibit-splash-screen t
+	  inhibit-startup-screen t
+	  inhibit-startup-buffer-menu t
+	  frame-title-format "%b ― emacs"
+	  icon-title-format frame-title-format
+	  frame-inhibit-implied-resize t
+	  use-file-dialog nil
+	  use-dialog-box nil
+
+	  tab-always-indent 'complete
+	  indent-tabs-mode t
+	  tab-width 8
+	  standard-indent 8
+	  c-default-style "linux"
+
+	  compilation-scroll-output t
+	  next-error-recenter '(4)
 
 	  scroll-preserve-screen-position t
 	  scroll-error-top-bottom t
@@ -122,13 +128,6 @@
 						    (bg-prose-block-contents bg-dim)))
     (load-theme 'modus-operandi)
     (global-font-lock-mode -1))
-
-  (progn
-    (setopt tab-always-indent 'complete
-	    indent-tabs-mode t
-	    tab-width 8
-	    standard-indent 8)
-    (setopt c-default-style "linux"))
 
   (progn
     (modify-syntax-entry ?. "_" (standard-syntax-table))
@@ -238,6 +237,12 @@
 	 'delete-blank-lines
        'cycle-spacing)))
 
+  (defun switch-to-occur-buffer-alternate ()
+    (interactive)
+    (if (eq major-mode 'occur-mode)
+	(switch-to-buffer nil)
+      (switch-to-buffer "*Occur*")))
+
   :bind
   ([remap downcase-word] . downcase-dwim)
   ([remap yank] . yank-indent)
@@ -279,7 +284,8 @@
 	       ("M-r" . comint-previous-matching-input-from-input))
 
   (:repeat-map next-error-repeat-map
-	       ("M-<" . first-error))
+	       ("<" . first-error)
+	       ("o" . switch-to-occur-buffer-alternate))
 
   (:map indent-rigidly-map
 	("C-i" . indent-rigidly-right-to-tab-stop)
@@ -334,7 +340,6 @@
   ((isearch-update-post-hook
     . (lambda ()
 	(when (and isearch-other-end
-		   isearch-success
 		   isearch-forward
 		   ;; HACK :: without this isearch won't exit on non-isearch command
 		   (string-prefix-p "isearch" (symbol-name last-command)))
