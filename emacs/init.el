@@ -230,13 +230,6 @@
     (let ((buf (caar (window-prev-buffers))))
       (switch-to-buffer (unless (eq buf (current-buffer)) buf))))
 
-  (defun delete-spacing-dwim ()
-    (interactive)
-    (call-interactively
-     (if (bolp)
-	 'delete-blank-lines
-       'cycle-spacing)))
-
   (defun buffer-to-register (char)
     (interactive (list (read-char "buffer to register:")))
     (set-register char `(buffer . ,(current-buffer))))
@@ -258,7 +251,9 @@
   ([remap dired] . dired-jump)
   ([remap dired-shell-command] . dired-async-shell-command)
   ([remap shell-command] . async-shell-command)
+  ([remap delete-horizontal-space] . cycle-spacing)
 
+  ("M-SPC" . mark-word)
   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
   ("C-z" . repeat)
   ("M-w" . kill-ring-save-region-or-next-kill)
@@ -268,8 +263,6 @@
   ("M-r" . point-to-register)
   ("M-j" . jump-to-register)
 
-  ([remap delete-blank-lines] . delete-spacing-dwim)
-  ("M-SPC" . mark-word)
   (:map ctl-x-map
 	("t" . recentf-open)
 	("f" . find-file))
