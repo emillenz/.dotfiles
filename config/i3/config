@@ -7,7 +7,15 @@
 
 set $EXEC exec --no-startup-id
 set $EXEC_ALWAYS exec_always --no-startup-id
-set $DMENU_ARGS -b -l 8 -i -fn 'Aporetic Sans Mono-10' -nb '#ffffff' -nf '#000000' -sb '#c8c8c8' -sf '#000000'
+set $DMENU_ARGS \
+	-i \
+	-b \
+	-l 8 \
+	-fn 'Aporetic Sans Mono-10' \
+	-nb '#ffffff' \
+	-nf '#000000' \
+	-sb '#c8c8c8' \
+	-sf '#000000'
 
 set $BG		#ffffff
 set $FG		#000000
@@ -54,41 +62,51 @@ bindsym XF86AudioMicMute $EXEC pamixer --default-source --toggle-mute
 
 bindsym $MOD+p focus left
 bindsym $MOD+n focus right
-bindsym $MOD+space exec i3-input -F "mark %s" -l 1 -P "set mark:"
-bindsym $MOD+apostrophe exec i3-input -F "[con_mark="%s"] focus" -l 1 -P "jump to mark:"
+bindsym $MOD+Tab workspace back_and_forth
 
 bindsym $MOD+x $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
 bindsym $MOD+shift+x $EXEC dmenu_run -p "run" $DMENU_ARGS
 
-set $GAPSIZE 450
-bindsym $MOD+v gaps horizontal all toggle $GAPSIZE
-gaps horizontal $GAPSIZE
+set $GAPSIZE 600
 
-bindsym $MOD+a [con_mark="a"] focus
-bindsym $MOD+shift+a $EXEC "i3-msg '[class=net.thunderbird.Thunderbird] focus; mark a' || thunderbird"
+for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
+bindsym $MOD+a workspace agenda
+bindsym $MOD+shift+a $EXEC thunderbird
 
-bindsym $MOD+e [con_mark="e"] focus
-bindsym $MOD+shift+e $EXEC "i3-msg '[class=Emacs] focus; mark e' || emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)"
+workspace edit gaps horizontal $GAPSIZE
+for_window [class="Emacs"] move container to workspace edit
+bindsym $MOD+e workspace edit
+bindsym $MOD+shift+e $EXEC emacsclient --reuse-frame \
+	|| (emacs --daemon && emacsclient --create-frame)
 
-bindsym $MOD+w [con_mark="w"] focus
-bindsym $MOD+shift+w $EXEC "i3-msg '[class=firefox] focus; mark w' || firefox"
+for_window [class="firefox"] move container to workspace web
+bindsym $MOD+w workspace web
+bindsym $MOD+shift+w $EXEC firefox
 
-set $CMD_MAP "-"
-bindsym $MOD+c mode $CMD_MAP
+# must come after specific workspace assignments
+for_window [all] focus
+
+set $PREFIX "-"
+bindsym $MOD+c mode $PREFIX
 
 set $ESC mode "default"
-mode $CMD_MAP {
+mode $PREFIX {
 	bindsym o $ESC; move workspace to output next
+	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
 
 	bindsym equal $EXEC pamixer --unmute --increase 5
 	bindsym minus $EXEC pamixer --unmute --decrease 5
 	bindsym 0 $EXEC pamixer --toggle-mute
 	bindsym a $ESC; $EXEC audio-output-menu $DMENU_ARGS
-	bindsym d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) && autorandr --change $config
+	bindsym d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) \
+		&& autorandr --change $config
 
 	bindsym w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
-	bindsym s $ESC; $EXEC scrot --select --file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" --exec 'dunstify screenshot "$f"'
+	bindsym s $ESC; $EXEC scrot \
+		--select \
+		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
+		--exec 'dunstify screenshot "$f"'
 	bindsym k $ESC; kill
 	bindsym c $ESC; $EXEC systemctl suspend
 
