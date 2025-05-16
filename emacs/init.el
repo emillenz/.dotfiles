@@ -237,11 +237,9 @@
 	 'delete-blank-lines
        'cycle-spacing)))
 
-  (defun switch-to-occur-buffer-alternate ()
-    (interactive)
-    (if (eq major-mode 'occur-mode)
-	(switch-to-buffer nil)
-      (switch-to-buffer "*Occur*")))
+  (defun buffer-to-register (char)
+    (interactive (list (read-char "buffer to register:")))
+    (set-register char `(buffer . ,(current-buffer))))
 
   :bind
   ([remap downcase-word] . downcase-dwim)
@@ -264,14 +262,14 @@
   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
   ("C-z" . repeat)
   ("M-w" . kill-ring-save-region-or-next-kill)
+  ("M-o" . switch-to-other-buffer)
+
+  ("M-#" . buffer-to-register)
+  ("M-r" . point-to-register)
+  ("M-j" . jump-to-register)
 
   ([remap delete-blank-lines] . delete-spacing-dwim)
   ("M-SPC" . mark-word)
-
-  ("M-r" . point-to-register)
-  ("M-j" . jump-to-register)
-  ("M-o" . switch-to-other-buffer)
-
   (:map ctl-x-map
 	("t" . recentf-open)
 	("f" . find-file))
@@ -284,8 +282,7 @@
 	       ("M-r" . comint-previous-matching-input-from-input))
 
   (:repeat-map next-error-repeat-map
-	       ("<" . first-error)
-	       ("o" . switch-to-occur-buffer-alternate))
+	       ("M-<" . first-error))
 
   (:map indent-rigidly-map
 	("C-i" . indent-rigidly-right-to-tab-stop)
@@ -367,7 +364,7 @@
   :init
   (fido-vertical-mode)
 
-  (setopt max-mini-window-height 10
+  (setopt max-mini-window-height 12
 	  completions-detailed t
 	  completions-auto-help 'visible
 	  completions-max-height 16
