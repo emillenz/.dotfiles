@@ -57,7 +57,6 @@
 	  register-preview-delay nil
 	  kill-do-not-save-duplicates t
 	  show-paren-when-point-inside-paren t
-	  mark-even-if-inactive nil
 	  kill-whole-line t
 	  shift-select-mode nil
 	  set-mark-command-repeat-pop t
@@ -272,7 +271,6 @@
    ("M-w" . kill-ring-save-region-or-next-kill)
    ("M-o" . switch-to-other-buffer)
    ("M-j" . jump-to-register)
-   ("M-SPC" . mark-word)
 
    (:map ctl-x-map
 	 ("t" . recentf-open)
