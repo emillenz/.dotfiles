@@ -93,10 +93,12 @@ set $DMENU_ARGS\
 set $ESC mode "default"
 bindsym $MOD+space mode "prefix"
 mode "prefix" {
+	bindsym $MOD+space $ESC
+
 	bindsym r $ESC; restart
 	bindsym k $ESC; kill
 	bindsym o $ESC; move workspace to output next
-	bindsym t $ESC; gaps horizontal current toggle $GAPSIZE
+	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
 	bindsym z $ESC; $SHCMD systemctl suspend
 	bindsym x $ESC; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
 	bindsym $MOD+x $ESC; $SHCMD dmenu_run -p "run" $DMENU_ARGS
@@ -108,15 +110,12 @@ mode "prefix" {
 		--select\
 		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png"\
 		--exec 'dunstify screenshot "$f"'
-	bindsym v $ESC; $SHCMD nmcli connection up protonvpn || nmcli connection down protonvpn
+	bindsym v $ESC; $SHCMD nmcli connection up protonvpn || (nmcli connection down protonvpn && dunstify 'vpn down')
 
 	bindsym a $ESC; $SHCMD audio-output-menu $DMENU_ARGS
 	bindsym equal $SHCMD pamixer --unmute --increase 5
 	bindsym minus $SHCMD pamixer --unmute --decrease 5
 	bindsym 0 $SHCMD pamixer --toggle-mute
-
-	bindsym Ctrl+g $ESC
-	bindsym $MOD+space $ESC
 }
 
 # class			border		bg		text	indicator	child_border/floating
