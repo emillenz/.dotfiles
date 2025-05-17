@@ -72,7 +72,7 @@
 	  vc-make-backup-files nil
 	  backup-by-copying t
 	  backup-by-copying-when-linked t
-	  backup-directory-alist `(("." . ,(concat user-emacs-directory "backups")))
+	  backup-directory-alist (list (cons "." (concat user-emacs-directory "backups")))
 
 	  initial-scratch-message nil
 	  inhibit-startup-echo-area-message user-login-name
@@ -157,9 +157,7 @@
 	  '(mark-paragraph
 	    backward-up-list
 	    puni-end-of-sexp
-	    puni-beginning-of-sexp))
-
-    (add-hook 'deactivate-mark-hook 'pop-mark))
+	    puni-beginning-of-sexp)))
 
   (defun kill-ring-save-region-or-next-kill ()
     (interactive)
@@ -233,7 +231,7 @@
 
   (defun buffer-to-register (reg)
     (interactive (list (register-read-with-preview "buffer to register:")))
-    (set-register reg `(buffer . ,(current-buffer))))
+    (set-register reg (cons 'buffer (current-buffer))))
 
   (mapc (lambda (transpose-fn)
 	  (keymap-global-set (format "<remap> <%s>" (symbol-name transpose-fn))
@@ -464,11 +462,11 @@
   :config
   (setopt ediff-window-setup-function 'ediff-setup-windows-plain)
   (advice-remove 'delete-other-windows 'current-window-only--delete-other-windows)
-  (add-to-list 'display-buffer-alist `(,(rx (seq "*")
-					    (or "Completions"
-						"Register Preview")
-					    (seq "*"))
-				       display-buffer-at-bottom)))
+  (add-to-list 'display-buffer-alist (list (rx (seq "*")
+					       (or "Completions"
+						   "Register Preview")
+					       (seq "*"))
+					   'display-buffer-at-bottom)))
 
 (use-package pdf-tools
   :ensure t
