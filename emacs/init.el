@@ -232,20 +232,6 @@
     (interactive (list (register-read-with-preview "buffer to register:")))
     (set-register reg (cons 'buffer (current-buffer))))
 
-  (mapc (lambda (transpose-fn)
-	  (keymap-global-set (format "<remap> <%s>" (symbol-name transpose-fn))
-			     (lambda ()
-			       (interactive)
-			       (if (region-active-p)
-				   (apply transpose-fn '(0))
-				 (call-interactively transpose-fn)))))
-	'(transpose-paragraphs
-	  transpose-sentences
-	  transpose-sexps
-	  transpose-lines
-	  transpose-words
-	  transpose-chars))
-
   :bind
   (([remap downcase-word] . downcase-dwim)
    ([remap yank] . yank-indent)
