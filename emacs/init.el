@@ -235,6 +235,20 @@
     (interactive (list (register-read-with-preview "buffer to register:")))
     (set-register reg `(buffer . ,(current-buffer))))
 
+  (mapc (lambda (transpose-fn)
+	  (keymap-global-set (format "<remap> <%s>" (symbol-name transpose-fn))
+			     (lambda ()
+			       (interactive)
+			       (if (region-active-p)
+				   (apply transpose-fn '(0))
+				 (call-interactively transpose-fn)))))
+	'(transpose-paragraphs
+	  transpose-sentences
+	  transpose-sexps
+	  transpose-lines
+	  transpose-words
+	  transpose-chars))
+
   :bind
   (([remap downcase-word] . downcase-dwim)
    ([remap yank] . yank-indent)
@@ -260,6 +274,7 @@
    ("M-w" . kill-ring-save-region-or-next-kill)
    ("M-o" . switch-to-other-buffer)
    ("M-j" . jump-to-register)
+   ("M-SPC" . mark-word)
 
    (:map ctl-x-map
 	 ("t" . recentf-open)
