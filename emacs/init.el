@@ -151,12 +151,13 @@
 	    (advice-add command
 			:around
 			(lambda (fn &rest args)
-			  (unless (eq last-command command)
+			  (unless (eq last-command this-command)
 			    (push-mark))
 			  (apply fn args))))
 	  '(mark-paragraph
-	    org-mark-element
-	    backward-up-list))
+	    backward-up-list
+	    puni-end-of-sexp
+	    puni-beginning-of-sexp))
 
     (add-hook 'deactivate-mark-hook 'pop-mark))
 
@@ -230,9 +231,9 @@
     (let ((buf (caar (window-prev-buffers))))
       (switch-to-buffer (unless (eq buf (current-buffer)) buf))))
 
-  (defun buffer-to-register (char)
-    (interactive (list (read-char "buffer to register:")))
-    (set-register char `(buffer . ,(current-buffer))))
+  (defun buffer-to-register (reg)
+    (interactive (list (register-read-with-preview "buffer to register:")))
+    (set-register reg `(buffer . ,(current-buffer))))
 
   :bind
   ([remap downcase-word] . downcase-dwim)
@@ -251,16 +252,15 @@
   ([remap dired] . dired-jump)
   ([remap dired-shell-command] . dired-async-shell-command)
   ([remap shell-command] . async-shell-command)
-  ([remap delete-horizontal-space] . cycle-spacing)
 
-  ("M-SPC" . mark-word)
   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
   ("C-z" . repeat)
   ("M-w" . kill-ring-save-region-or-next-kill)
   ("M-o" . switch-to-other-buffer)
 
-  ("M-#" . buffer-to-register)
-  ("M-r" . point-to-register)
+  ("M-SPC" . mark-word)
+  ([remap delete-horizontal-space] . cycle-spacing)
+
   ("M-j" . jump-to-register)
 
   (:map ctl-x-map
@@ -269,6 +269,9 @@
 
   (:map ctl-x-x-map
 	("f" . global-font-lock-mode))
+
+  (:map ctl-x-r-map
+	("u" . buffer-to-register))
 
   (:repeat-map comint-repeat-map
 	       ("M-s" . comint-next-matching-input-from-input)
