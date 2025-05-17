@@ -24,7 +24,7 @@
   (auto-revert-mode)
   (global-visual-line-mode)
   (auto-save-visited-mode)
-  (fringe-mode 1)
+  (fringe-mode 0)
 
   (tool-bar-mode -1)
   (menu-bar-mode -1)
@@ -276,7 +276,7 @@
 
   (:map indent-rigidly-map
 	("C-i" . indent-rigidly-right-to-tab-stop)
-	("C-S-i" . indent-rigidly-left-to-tab-stop)
+	("C-M-i" . indent-rigidly-left-to-tab-stop)
 	("SPC" . indent-rigidly-right)
 	("DEL" . indent-rigidly-left))
 
@@ -285,7 +285,7 @@
 	       ("M-r" . comint-previous-matching-input-from-input))
 
   (:repeat-map next-error-repeat-map
-	       ("M-<" . first-error)))
+	       ("<" . first-error)))
 
 (use-package isearch
   :hook
@@ -446,14 +446,20 @@
   :hook ((magit-mode-hook . font-lock-mode)))
 
 (use-package current-window-only
+  ;; :disabled t
   :ensure t
   :init (current-window-only-mode 1)
   :config
+  (setopt ediff-window-setup-function 'ediff-setup-windows-plain)
   (advice-remove 'delete-other-windows 'current-window-only--delete-other-windows)
-  (add-to-list 'display-buffer-alist '("*Completions*" display-buffer-at-bottom)))
+  (add-to-list 'display-buffer-alist `(,(rx (seq "*")
+					    (or "Completions"
+						"Register Preview")
+					    (seq "*"))
+				       display-buffer-at-bottom)))
 
 (use-package pdf-tools
   :ensure t
-  :init
-  (pdf-tools-install)
+  :init (pdf-tools-install)
+  :config
   (setopt pdf-view-display-size 'fit-height))

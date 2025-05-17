@@ -22,17 +22,17 @@ order += "volume master"
 order += "tztime local"
 
 wireless _first_ {
-        format_up = "%essid %quality"
+        format_up = "[%essid %quality]"
         format_down = ""
 }
 
 ethernet _first_ {
-        format_up = "eth"
+        format_up = "[eth]"
         format_down = ""
 }
 
 battery all {
-        format = "bat %status%percentage %emptytime"
+        format = "[bat %status%percentage %emptytime]"
         integer_battery_capacity = true
         last_full_capacity = true
         hide_seconds = true
@@ -40,26 +40,26 @@ battery all {
         low_threshold = 20
         format_down = ""
 	status_idle = ""
-	status_full = "+"
+	status_full = ""
         status_chr = "+"
         status_bat = "-"
         status_unk = "?"
 }
 
 volume master {
-        format = "%devicename %volume"
-        format_muted = "%devicename :mute"
+        format = "[%devicename %volume]"
+        format_muted = "[%devicename :mute]"
         device = "default"
         mixer = "Master"
         mixer_idx = 0
 }
 
 tztime local {
-        format = "%F %a %R"
+        format = "[%F %a %R]"
 }
 
 path_exists vpn {
-	format = "vpn"
+	format = "[vpn]"
 	format_down = ""
         path = "/proc/sys/net/ipv4/conf/tun0"
 }
