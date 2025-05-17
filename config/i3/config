@@ -5,8 +5,81 @@
 # date: [2023-05-15]
 # ---
 
-set $EXEC exec --no-startup-id
-set $EXEC_ALWAYS exec_always --no-startup-id
+set $SHCMD exec --no-startup-id
+
+set $BG		#ffffff
+set $FG		#000000
+set $BORDER	#9f9f9f
+set $URG	#ff8f88
+set $STATUS_BG	#c8c8c8
+
+set $SHCMD_ON_RESTART exec_always --no-startup-id
+
+$SHCMD_ON_RESTART emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
+$SHCMD_ON_RESTART pgrep firefox || firefox
+$SHCMD_ON_RESTART pgrep thunderbird || thunderbird
+$SHCMD_ON_RESTART pgrep -x keepassxc || keepassxc
+
+$SHCMD_ON_RESTART pgrep unclutter || unclutter
+$SHCMD_ON_RESTART pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
+$SHCMD_ON_RESTART pgrep nm-applet || nm-applet
+$SHCMD_ON_RESTART pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color "$BG"
+
+$SHCMD_ON_RESTART xsetroot -solid "$BG"
+$SHCMD_ON_RESTART xset dpms 0 0 0
+$SHCMD_ON_RESTART xset s off
+$SHCMD_ON_RESTART xset r off
+
+title_align left
+font pango: Aporetic Sans Mono 10
+default_orientation horizontal
+workspace_layout tabbed
+tiling_drag off
+focus_on_window_activation focus
+workspace_auto_back_and_forth no
+
+set $GAPSIZE 550
+smart_gaps inverse_outer
+default_border none
+default_floating_border pixel 1
+
+set $MOD Mod1
+floating_modifier $MOD
+
+bindsym button2 kill
+bindsym --whole-window $MOD+button2 floating toggle
+bindsym button4 nop
+bindsym button5 nop
+
+bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
+bindsym XF86MonBrightnessUp $SHCMD brightnessctl set 5%+
+bindsym XF86Display $SHCMD autorandr --change
+bindsym XF86Sleep $SHCMD systemctl suspend
+bindsym XF86AudioLowerVolume $SHCMD pamixer --unmute --decrease 5
+bindsym XF86AudioRaiseVolume $SHCMD pamixer --unmute --increase 5
+bindsym XF86AudioMute $SHCMD pamixer --toggle-mute
+bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
+
+bindsym $MOD+Tab focus next
+bindsym $MOD+shift+Tab focus prev
+focus_wrapping yes
+
+for_window [all] move container to workspace all
+bindsym $MOD+grave workspace all
+
+workspace edit gaps horizontal $GAPSIZE
+for_window [class="Emacs"] move container to workspace edit
+bindsym $MOD+1 workspace edit
+
+for_window [class="firefox"] move container to workspace web
+bindsym $MOD+2 workspace web
+
+for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
+bindsym $MOD+3 workspace agenda
+
+# follow focus after moving window to workspace
+for_window [all] focus
+
 set $DMENU_ARGS\
 	-i\
 	-b\
@@ -17,102 +90,33 @@ set $DMENU_ARGS\
 	-sb '#c8c8c8'\
 	-sf '#000000'
 
-set $BG		#ffffff
-set $FG		#000000
-set $BORDER	#9f9f9f
-set $URG	#ff8f88
-set $STATUS_BG	#c8c8c8
-
-$EXEC_ALWAYS pgrep unclutter || unclutter
-$EXEC_ALWAYS pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
-$EXEC_ALWAYS pgrep nm-applet || nm-applet
-$EXEC_ALWAYS pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color "$BG"
-
-$EXEC_ALWAYS xsetroot -solid "$BG"
-$EXEC_ALWAYS xset dpms 0 0 0
-$EXEC_ALWAYS xset s off
-$EXEC_ALWAYS xset r off
-
-workspace_auto_back_and_forth no
-workspace_layout tabbed
-force_focus_wrapping no
-default_orientation horizontal
-default_border none
-default_floating_border pixel 1
-title_align left
-font pango: Aporetic Sans Mono 10
-focus_on_window_activation focus
-smart_gaps inverse_outer
-
-set $MOD Mod4
-floating_modifier $MOD
-tiling_drag off
-bindsym button2 kill
-bindsym --whole-window $MOD+button2 floating toggle
-bindsym button4 nop
-bindsym button5 nop
-bindsym XF86MonBrightnessDown $EXEC brightnessctl set 5%-
-bindsym XF86MonBrightnessUp $EXEC brightnessctl set 5%+
-bindsym XF86Display $EXEC autorandr --change
-bindsym XF86Sleep $EXEC systemctl suspend
-bindsym XF86AudioLowerVolume $EXEC pamixer --unmute --decrease 5
-bindsym XF86AudioRaiseVolume $EXEC pamixer --unmute --increase 5
-bindsym XF86AudioMute $EXEC pamixer --toggle-mute
-bindsym XF86AudioMicMute $EXEC pamixer --default-source --toggle-mute
-
-bindsym $MOD+p focus left
-bindsym $MOD+n focus right
-bindsym $MOD+Tab workspace back_and_forth
-
-bindsym $MOD+x $EXEC i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
-bindsym $MOD+shift+x $EXEC dmenu_run -p "run" $DMENU_ARGS
-
-set $GAPSIZE 550
-
-for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
-bindsym $MOD+a workspace agenda
-bindsym $MOD+shift+a $EXEC thunderbird
-
-workspace edit gaps horizontal $GAPSIZE
-for_window [class="Emacs"] move container to workspace edit
-bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e $EXEC emacsclient --reuse-frame\
-	|| (emacs --daemon && emacsclient --create-frame)
-
-for_window [class="firefox"] move container to workspace web
-bindsym $MOD+w workspace web
-bindsym $MOD+shift+w $EXEC firefox
-
-# must come after specific workspace assignments
-for_window [all] focus
-
-set $PREFIX "-"
-bindsym $MOD+c mode $PREFIX
-
 set $ESC mode "default"
-mode $PREFIX {
+bindsym $MOD+space mode "prefix"
+mode "prefix" {
+	bindsym r $ESC; restart
+	bindsym k $ESC; kill
 	bindsym o $ESC; move workspace to output next
-	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
-
-	bindsym equal $EXEC pamixer --unmute --increase 5
-	bindsym minus $EXEC pamixer --unmute --decrease 5
-	bindsym 0 $EXEC pamixer --toggle-mute
-	bindsym a $ESC; $EXEC audio-output-menu $DMENU_ARGS
-	bindsym d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS)\
+	bindsym t $ESC; gaps horizontal current toggle $GAPSIZE
+	bindsym z $ESC; $SHCMD systemctl suspend
+	bindsym x $ESC; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
+	bindsym $MOD+x $ESC; $SHCMD dmenu_run -p "run" $DMENU_ARGS
+	bindsym d $ESC; $SHCMD config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) \
 		&& autorandr --change $config
-
-	bindsym w $ESC; $EXEC window-menu $DMENU_ARGS
-	bindsym b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
-	bindsym s $ESC; $EXEC scrot\
+	bindsym w $ESC; $SHCMD window-menu $DMENU_ARGS
+	bindsym b $ESC; $SHCMD bluetooth-menu $DMENU_ARGS
+	bindsym s $ESC; $SHCMD scrot\
 		--select\
 		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png"\
 		--exec 'dunstify screenshot "$f"'
-	bindsym k $ESC; kill
-	bindsym z $ESC; $EXEC systemctl suspend
+	bindsym v $ESC; $SHCMD nmcli connection up protonvpn || nmcli connection down protonvpn
 
-	bindsym $MOD+c $ESC
+	bindsym a $ESC; $SHCMD audio-output-menu $DMENU_ARGS
+	bindsym equal $SHCMD pamixer --unmute --increase 5
+	bindsym minus $SHCMD pamixer --unmute --decrease 5
+	bindsym 0 $SHCMD pamixer --toggle-mute
+
 	bindsym Ctrl+g $ESC
-	bindsym Escape $ESC
+	bindsym $MOD+space $ESC
 }
 
 # class			border		bg		text	indicator	child_border/floating

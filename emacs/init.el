@@ -236,56 +236,53 @@
     (set-register reg `(buffer . ,(current-buffer))))
 
   :bind
-  ([remap downcase-word] . downcase-dwim)
-  ([remap yank] . yank-indent)
-  ([remap indent-for-tab-command] . indent-dwim)
-  ([remap upcase-word] . upcase-dwim)
-  ([remap capitalize-word] . capitalize-dwim)
-  ([remap dabbrev-expand] . hippie-expand)
-  ([remap eval-last-sexp] . eval-last-sexp-dwim)
-  ([remap comment-dwim] . comment-sexp-dwim)
-  ([remap open-line] . open-line-indent)
-  ([remap set-mark-command] . set-mark-or-mark-line)
-  ([remap zap-to-char] . zap-up-to-char)
-  ([remap kill-buffer] . kill-buffer-and-window)
-  ([remap list-buffers] . ibuffer)
-  ([remap dired] . dired-jump)
+  (([remap downcase-word] . downcase-dwim)
+   ([remap yank] . yank-indent)
+   ([remap indent-for-tab-command] . indent-dwim)
+   ([remap upcase-word] . upcase-dwim)
+   ([remap capitalize-word] . capitalize-dwim)
+   ([remap dabbrev-expand] . hippie-expand)
+   ([remap eval-last-sexp] . eval-last-sexp-dwim)
+   ([remap comment-dwim] . comment-sexp-dwim)
+   ([remap open-line] . open-line-indent)
+   ([remap set-mark-command] . set-mark-or-mark-line)
+   ([remap zap-to-char] . zap-up-to-char)
+   ([remap kill-buffer] . kill-buffer-and-window)
+   ([remap list-buffers] . ibuffer)
+   ([remap dired] . dired-jump)
+   ([remap delete-horizontal-space] . cycle-spacing)
 
-  ([remap dired-shell-command] . dired-async-shell-command)
-  ([remap shell-command] . async-shell-command)
+   ([remap shell-command] . async-shell-command)
+   ([remap dired-do-shell-command] . dired-do-async-shell-command)
 
-  ("C-u" . (lambda () (interactive) (set-mark-command 1)))
-  ("C-z" . repeat)
-  ("M-w" . kill-ring-save-region-or-next-kill)
-  ("M-o" . switch-to-other-buffer)
+   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
+   ("C-z" . repeat)
+   ("M-w" . kill-ring-save-region-or-next-kill)
+   ("M-o" . switch-to-other-buffer)
+   ("M-j" . jump-to-register)
 
-  ("M-SPC" . mark-word)
-  ([remap delete-horizontal-space] . cycle-spacing)
+   (:map ctl-x-map
+	 ("t" . recentf-open)
+	 ("f" . find-file))
 
-  ("M-j" . jump-to-register)
+   (:map ctl-x-x-map
+	 ("f" . global-font-lock-mode))
 
-  (:map ctl-x-map
-	("t" . recentf-open)
-	("f" . find-file))
+   (:map ctl-x-r-map
+	 ("u" . buffer-to-register))
 
-  (:map ctl-x-x-map
-	("f" . global-font-lock-mode))
+   (:map indent-rigidly-map
+	 ("C-i" . indent-rigidly-right-to-tab-stop)
+	 ("C-M-i" . indent-rigidly-left-to-tab-stop)
+	 ("SPC" . indent-rigidly-right)
+	 ("DEL" . indent-rigidly-left))
 
-  (:map ctl-x-r-map
-	("u" . buffer-to-register))
+   (:repeat-map comint-repeat-map
+		("M-s" . comint-next-matching-input-from-input)
+		("M-r" . comint-previous-matching-input-from-input))
 
-  (:map indent-rigidly-map
-	("C-i" . indent-rigidly-right-to-tab-stop)
-	("C-M-i" . indent-rigidly-left-to-tab-stop)
-	("SPC" . indent-rigidly-right)
-	("DEL" . indent-rigidly-left))
-
-  (:repeat-map comint-repeat-map
-	       ("M-s" . comint-next-matching-input-from-input)
-	       ("M-r" . comint-previous-matching-input-from-input))
-
-  (:repeat-map next-error-repeat-map
-	       ("<" . first-error)))
+   (:repeat-map next-error-repeat-map
+		("<" . first-error))))
 
 (use-package isearch
   :hook
