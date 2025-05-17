@@ -7,14 +7,14 @@
 
 set $EXEC exec --no-startup-id
 set $EXEC_ALWAYS exec_always --no-startup-id
-set $DMENU_ARGS \
-	-i \
-	-b \
-	-l 8 \
-	-fn 'Aporetic Sans Mono-10' \
-	-nb '#ffffff' \
-	-nf '#000000' \
-	-sb '#c8c8c8' \
+set $DMENU_ARGS\
+	-i\
+	-b\
+	-l 8\
+	-fn 'Aporetic Sans Mono-10'\
+	-nb '#ffffff'\
+	-nf '#000000'\
+	-sb '#c8c8c8'\
 	-sf '#000000'
 
 set $BG		#ffffff
@@ -76,7 +76,7 @@ bindsym $MOD+shift+a $EXEC thunderbird
 workspace edit gaps horizontal $GAPSIZE
 for_window [class="Emacs"] move container to workspace edit
 bindsym $MOD+e workspace edit
-bindsym $MOD+shift+e $EXEC emacsclient --reuse-frame \
+bindsym $MOD+shift+e $EXEC emacsclient --reuse-frame\
 	|| (emacs --daemon && emacsclient --create-frame)
 
 for_window [class="firefox"] move container to workspace web
@@ -98,14 +98,14 @@ mode $PREFIX {
 	bindsym minus $EXEC pamixer --unmute --decrease 5
 	bindsym 0 $EXEC pamixer --toggle-mute
 	bindsym a $ESC; $EXEC audio-output-menu $DMENU_ARGS
-	bindsym d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) \
+	bindsym d $ESC; $EXEC config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS)\
 		&& autorandr --change $config
 
 	bindsym w $ESC; $EXEC window-menu $DMENU_ARGS
 	bindsym b $ESC; $EXEC bluetooth-menu $DMENU_ARGS
-	bindsym s $ESC; $EXEC scrot \
-		--select \
-		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
+	bindsym s $ESC; $EXEC scrot\
+		--select\
+		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png"\
 		--exec 'dunstify screenshot "$f"'
 	bindsym k $ESC; kill
 	bindsym z $ESC; $EXEC systemctl suspend

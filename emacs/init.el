@@ -250,6 +250,7 @@
   ([remap kill-buffer] . kill-buffer-and-window)
   ([remap list-buffers] . ibuffer)
   ([remap dired] . dired-jump)
+
   ([remap dired-shell-command] . dired-async-shell-command)
   ([remap shell-command] . async-shell-command)
 
@@ -273,22 +274,77 @@
   (:map ctl-x-r-map
 	("u" . buffer-to-register))
 
-  (:repeat-map comint-repeat-map
-	       ("M-s" . comint-next-matching-input-from-input)
-	       ("M-r" . comint-previous-matching-input-from-input))
-
-  (:repeat-map next-error-repeat-map
-	       ("M-<" . first-error))
-
   (:map indent-rigidly-map
 	("C-i" . indent-rigidly-right-to-tab-stop)
 	("C-S-i" . indent-rigidly-left-to-tab-stop)
 	("SPC" . indent-rigidly-right)
 	("DEL" . indent-rigidly-left))
 
-  (:map minibuffer-mode-map
-	([remap minibuffer-complete] . icomplete-force-complete)
-	([remap minibuffer-choose-completion] . icomplete-fido-exit)))
+  (:repeat-map comint-repeat-map
+	       ("M-s" . comint-next-matching-input-from-input)
+	       ("M-r" . comint-previous-matching-input-from-input))
+
+  (:repeat-map next-error-repeat-map
+	       ("M-<" . first-error)))
+
+(use-package isearch
+  :hook
+  ((isearch-update-post-hook
+    . (lambda ()
+	(when (and isearch-other-end
+		   isearch-forward
+		   ;; neccessary, otherwise isearch won't exit on any non-isearch command
+		   (string-prefix-p "isearch" (symbol-name last-command)))
+	  (goto-char isearch-other-end)))))
+
+  :init
+  (setopt isearch-lax-whitespace t
+	  search-whitespace-regexp ".*?"
+
+	  lazy-highlight-initial-delay 0
+	  isearch-lazy-count t
+	  isearch-allow-motion t
+	  isearch-motion-changes-direction t)
+
+  (keymap-unset isearch-mode-map "C-w" t)
+  (keymap-unset isearch-mode-map "C-M-d" t)
+
+  :bind
+  (([remap isearch-delete-char] . isearch-del-char)))
+
+(use-package replace
+  :init
+  (progn
+    (defvar ignore-self-insert-map
+      (let ((map (make-keymap)))
+	(set-char-table-range (nth 1 map) t 'ignore)
+	map))
+    (set-keymap-parent query-replace-map ignore-self-insert-map))
+
+  :bind
+  (([remap query-replace] . query-replace-regexp)
+   ([remap isearch-query-replace] . isearch-query-replace-regexp)
+
+   (:map query-replace-map
+	 ("p" . backup))))
+
+(use-package icomplete
+  :init
+  (fido-vertical-mode)
+
+  (setopt max-mini-window-height 12
+	  completions-detailed t
+	  completions-auto-help 'visible
+	  completions-max-height 16
+	  completions-format 'one-column
+	  icomplete-compute-delay 0
+	  read-buffer-completion-ignore-case t
+	  read-file-name-completion-ignore-case t)
+
+  :bind
+  ((:map minibuffer-mode-map
+	 ([remap minibuffer-complete] . icomplete-force-complete)
+	 ([remap minibuffer-choose-completion] . icomplete-fido-exit))))
 
 (use-package recentf
   :init
@@ -328,46 +384,10 @@
 					     (interactive)
 					     (dired-omit-mode 'toggle)
 					     (dired-hide-details-mode 'toggle)))))
-(use-package isearch
-  :hook
-  ((isearch-update-post-hook
-    . (lambda ()
-	(when (and isearch-other-end
-		   isearch-forward
-		   ;; HACK :: without this isearch won't exit on non-isearch command
-		   (string-prefix-p "isearch" (symbol-name last-command)))
-	  (goto-char isearch-other-end)))))
-
-  :init
-  (setopt search-whitespace-regexp ".*?"
-	  isearch-lax-whitespace t
-	  lazy-highlight-initial-delay 0
-	  isearch-lazy-count t
-	  isearch-allow-motion t
-	  isearch-motion-changes-direction t)
-
-  (keymap-unset isearch-mode-map "C-w" t)
-  (keymap-unset isearch-mode-map "C-M-d" t)
-
-  :bind
-  (([remap isearch-delete-char] . isearch-del-char)))
 
 (use-package org
   :init
   (setopt org-tags-column 0))
-
-(use-package icomplete
-  :init
-  (fido-vertical-mode)
-
-  (setopt max-mini-window-height 12
-	  completions-detailed t
-	  completions-auto-help 'visible
-	  completions-max-height 16
-	  completions-format 'one-column
-	  icomplete-compute-delay 0
-	  read-buffer-completion-ignore-case t
-	  read-file-name-completion-ignore-case t))
 
 (use-package package
   :init
