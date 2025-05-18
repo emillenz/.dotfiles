@@ -91,9 +91,9 @@ set $DMENU_ARGS\
 	-sf '#000000'
 
 set $ESC mode "default"
-bindsym $MOD+space mode "prefix"
+bindsym $MOD+z mode "prefix"
 mode "prefix" {
-	bindsym $MOD+space  $ESC
+	bindsym $MOD+z  $ESC
 	bindsym Ctrl+g  $ESC
 
 	bindsym r $ESC; restart

@@ -1,3 +1,0 @@
-(setq kill-whole-line t)
-(global-set-key "\C-xf" 'find-file)
-(setq make-backup-files nil)

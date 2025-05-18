@@ -59,6 +59,7 @@
 	  kill-whole-line t
 	  shift-select-mode nil
 	  set-mark-command-repeat-pop t
+	  bookmark-fringe-mark nil
 
 	  create-lockfiles nil
 	  make-backup-files nil
@@ -160,8 +161,9 @@
 		      (lambda (fn &rest args)
 			(with-undo-amalgamate
 			  (apply fn args)))))
-	'(kmacro-end-or-call-macro-repeat
-	  query-replace-regexp))
+	'(kmacro-end-and-call-macro
+	  query-replace-regexp
+	  apply-macro-to-region-lines))
 
   (progn
     (defun kill-ring-save-region-or-next-kill ()
@@ -236,7 +238,6 @@
 		   "<remap> <eval-last-sexp>" 'eval-last-sexp-dwim
 		   "<remap> <comment-dwim>" 'comment-sexp-dwim
 		   "<remap> <open-line>" 'open-line-indent
-		   "<remap> <zap-to-char>" 'zap-up-to-char
 		   "<remap> <kill-buffer>" 'kill-buffer-and-window
 		   "<remap> <list-buffers>" 'ibuffer
 		   "<remap> <dired>" 'dired-jump
@@ -249,11 +250,11 @@
 		   "C-z" 'repeat
 		   "M-w" 'kill-ring-save-region-or-next-kill
 		   "M-j" 'jump-to-register
+		   "M-SPC" 'mark-word
 		   "C-<tab>" 'switch-to-other-buffer)
 
       (keymap-set! ctl-x-map
-		   "t" 'recentf-open
-		   "f" 'find-file)
+		   "f" 'recentf-open)
 
       (keymap-set! ctl-x-x-map
 		   "f" 'global-font-lock-mode)
@@ -416,7 +417,10 @@
 	       "C-c s" 'puni-split))
 
 (use-package magit
-  :ensure t)
+  :ensure t
+  :config
+  (keymap-set magit-mode-map
+	      "C-<tab>" 'switch-to-other-buffer))
 
 (use-package current-window-only
   :ensure t
