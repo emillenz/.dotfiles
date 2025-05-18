@@ -6,12 +6,11 @@
 ;; email: emillenz@protonmail.com
 ;; ---
 
-(setopt use-package-hook-name-suffix nil
-	use-package-always-demand t
+(setopt use-package-always-demand t
 	use-package-enable-imenu-support t)
 
 (use-package emacs
-  :init
+  :config
   (global-auto-revert-mode)
   (column-number-mode)
   (global-word-wrap-whitespace-mode)
@@ -126,7 +125,11 @@
 	    modus-themes-common-palette-overrides '((fg-heading-1 fg-heading-0)
 						    (bg-prose-block-contents bg-dim)))
     (load-theme 'modus-operandi)
-    (global-font-lock-mode -1))
+
+    (progn
+      (global-font-lock-mode -1)
+      (with-eval-after-load 'magit
+	(add-hook 'magit-mode-hook 'font-lock-mode))))
 
   (progn
     (modify-syntax-entry ?. "_" (standard-syntax-table))
@@ -135,163 +138,148 @@
   (put 'narrow-to-region 'disabled nil)
 
   (mapc (lambda (fn)
-	  (advice-add fn
-		      :around
-		      (lambda (fn &rest args)
-			(apply fn args)
-			(deactivate-mark))))
+	  (advice-add fn :before (lambda (&rest _) (deactivate-mark))))
 	'(apply-macro-to-region-lines
 	  eval-region
 	  align
 	  align-entire))
 
   (progn
-    (mapc (lambda (command)
-	    (advice-add command
-			:around
-			(lambda (fn &rest args)
-			  (unless (eq last-command this-command)
-			    (push-mark))
-			  (apply fn args))))
-	  '(mark-paragraph
-	    backward-up-list
-	    puni-end-of-sexp
-	    puni-beginning-of-sexp)))
+    (defun push-mark-once (fn)
+      (advice-add fn
+		  :before
+		  (lambda (&rest _)
+		    (unless (or (eq last-command this-command)
+				(= (mark) (point)))
+		      (push-mark)))))
 
-  (defun kill-ring-save-region-or-next-kill ()
-    (interactive)
-    (if (region-active-p)
-	(call-interactively 'kill-ring-save)
-      (let ((buffer-read-only t))
-	(ignore-errors
-	  (save-mark-and-excursion
-	    (call-interactively
-	     (key-binding
-	      (read-key-sequence "save next kill:"))))))))
+    (mapc 'push-mark-once '(mark-paragraph backward-up-list)))
 
-  (defun set-mark-or-mark-line (n)
-    (interactive "p")
-    (if (region-active-p)
-	(if (< (point) (mark))
-	    (let ((beg (point)))
-	      (goto-char (mark))
-	      (end-of-line)
-	      (forward-char 1)
-	      (set-mark (point))
-	      (goto-char beg)
-	      (beginning-of-line))
-	  (let ((end (point)))
-	    (goto-char (mark))
-	    (beginning-of-line)
-	    (set-mark (point))
-	    (goto-char end)
-	    (end-of-line)
-	    (forward-char 1)))
-      (call-interactively 'set-mark-command)))
+  (mapc (lambda (cmd)
+	  (advice-add cmd :around
+		      (lambda (fn &rest args)
+			(with-undo-amalgamate
+			  (apply fn args)))))
+	'(kmacro-end-or-call-macro-repeat
+	  query-replace-regexp))
 
-  (defun open-line-indent ()
-    (interactive)
-    (save-mark-and-excursion
-      (mapc 'call-interactively '(open-line forward-line))
-      (indent-according-to-mode)))
+  (progn
+    (defun kill-ring-save-region-or-next-kill ()
+      (interactive)
+      (if (region-active-p)
+	  (call-interactively 'kill-ring-save)
+	(let ((buffer-read-only t))
+	  (ignore-errors
+	    (save-mark-and-excursion
+	      (call-interactively
+	       (key-binding
+		(read-key-sequence "save next kill:"))))))))
 
-  (defun indent-dwim ()
-    (interactive)
-    (call-interactively
-     (if (region-active-p)
-	 'indent-region
-       'indent-for-tab-command)))
-
-  (defun yank-indent ()
-    (interactive)
-    (let ((pos (point)))
-      (if (and delete-selection-mode (region-active-p))
-	  (call-interactively 'delete-region))
-      (call-interactively 'yank)
-      (indent-region pos (point))))
-
-  (defun eval-last-sexp-dwim ()
-    (interactive)
-    (call-interactively (if (region-active-p)
-			    'eval-region
-			  'eval-last-sexp)))
-
-  (defun comment-sexp-dwim ()
-    (interactive)
-    (if (region-active-p)
-	(call-interactively 'comment-dwim)
+    (defun open-line-indent ()
+      (interactive)
       (save-mark-and-excursion
-	(mapc 'call-interactively '(mark-sexp comment-dwim)))))
+	(mapc 'call-interactively '(open-line forward-line))
+	(indent-according-to-mode)))
 
-  (defun switch-to-other-buffer ()
-    (interactive)
-    (let ((buf (caar (window-prev-buffers))))
-      (switch-to-buffer (unless (eq buf (current-buffer)) buf))))
+    (defun indent-dwim ()
+      (interactive)
+      (call-interactively
+       (if (region-active-p)
+	   'indent-region
+	 'indent-for-tab-command)))
 
-  (defun buffer-to-register (reg)
-    (interactive (list (register-read-with-preview "buffer to register:")))
-    (set-register reg (cons 'buffer (current-buffer))))
+    (defun yank-indent ()
+      (interactive)
+      (let ((pos (point)))
+	(if (and delete-selection-mode (region-active-p))
+	    (call-interactively 'delete-region))
+	(call-interactively 'yank)
+	(indent-region pos (point))))
 
-  :bind
-  (([remap downcase-word] . downcase-dwim)
-   ([remap yank] . yank-indent)
-   ([remap indent-for-tab-command] . indent-dwim)
-   ([remap upcase-word] . upcase-dwim)
-   ([remap capitalize-word] . capitalize-dwim)
-   ([remap dabbrev-expand] . hippie-expand)
-   ([remap eval-last-sexp] . eval-last-sexp-dwim)
-   ([remap comment-dwim] . comment-sexp-dwim)
-   ([remap open-line] . open-line-indent)
-   ([remap set-mark-command] . set-mark-or-mark-line)
-   ([remap zap-to-char] . zap-up-to-char)
-   ([remap kill-buffer] . kill-buffer-and-window)
-   ([remap list-buffers] . ibuffer)
-   ([remap dired] . dired-jump)
-   ([remap delete-horizontal-space] . cycle-spacing)
+    (defun eval-last-sexp-dwim ()
+      (interactive)
+      (call-interactively (if (region-active-p)
+			      'eval-region
+			    'eval-last-sexp)))
 
-   ([remap shell-command] . async-shell-command)
-   ([remap dired-do-shell-command] . dired-do-async-shell-command)
+    (defun comment-sexp-dwim ()
+      (interactive)
+      (if (region-active-p)
+	  (call-interactively 'comment-dwim)
+	(save-mark-and-excursion
+	  (mapc 'call-interactively '(mark-sexp comment-dwim)))))
 
-   ("C-u" . (lambda () (interactive) (set-mark-command 1)))
-   ("C-z" . repeat)
-   ("M-w" . kill-ring-save-region-or-next-kill)
-   ("M-o" . switch-to-other-buffer)
-   ("M-j" . jump-to-register)
+    (defun switch-to-other-buffer ()
+      (interactive)
+      (let ((buf (caar (window-prev-buffers))))
+	(switch-to-buffer (unless (eq buf (current-buffer)) buf))))
 
-   (:map ctl-x-map
-	 ("t" . recentf-open)
-	 ("f" . find-file))
+    (defun buffer-to-register (reg)
+      (interactive (list (register-read-with-preview "buffer to register:")))
+      (set-register reg (cons 'buffer (current-buffer))))
 
-   (:map ctl-x-x-map
-	 ("f" . global-font-lock-mode))
+    (progn
+      (defmacro keymap-set! (keymap &rest pairs)
+	(macroexp-progn
+	 (cl-loop for (key cmd)
+		  on pairs
+		  by 'cddr
+		  collect (list 'keymap-set keymap key cmd))))
 
-   (:map ctl-x-r-map
-	 ("u" . buffer-to-register))
+      (keymap-set! global-map
+		   "<remap> <downcase-word>" 'downcase-dwim
+		   "<remap> <yank>" 'yank-indent
+		   "<remap> <indent-for-tab-command>" 'indent-dwim
+		   "<remap> <upcase-word>" 'upcase-dwim
+		   "<remap> <capitalize-word>" 'capitalize-dwim
+		   "<remap> <dabbrev-expand>" 'hippie-expand
+		   "<remap> <eval-last-sexp>" 'eval-last-sexp-dwim
+		   "<remap> <comment-dwim>" 'comment-sexp-dwim
+		   "<remap> <open-line>" 'open-line-indent
+		   "<remap> <zap-to-char>" 'zap-up-to-char
+		   "<remap> <kill-buffer>" 'kill-buffer-and-window
+		   "<remap> <list-buffers>" 'ibuffer
+		   "<remap> <dired>" 'dired-jump
+		   "<remap> <delete-horizontal-space>" 'cycle-spacing
 
-   (:map indent-rigidly-map
-	 ("C-i" . indent-rigidly-right-to-tab-stop)
-	 ("C-M-i" . indent-rigidly-left-to-tab-stop)
-	 ("SPC" . indent-rigidly-right)
-	 ("DEL" . indent-rigidly-left))
+		   "<remap> <shell-command>" 'async-shell-command
+		   "<remap> <dired-do-shell-command>" 'dired-do-async-shell-command
 
-   (:repeat-map comint-repeat-map
-		("M-s" . comint-next-matching-input-from-input)
-		("M-r" . comint-previous-matching-input-from-input))
+		   "C-u" (lambda () (interactive) (set-mark-command 1))
+		   "C-z" 'repeat
+		   "M-w" 'kill-ring-save-region-or-next-kill
+		   "M-j" 'jump-to-register
+		   "C-<tab>" 'switch-to-other-buffer)
 
-   (:repeat-map next-error-repeat-map
-		("<" . first-error))))
+      (keymap-set! ctl-x-map
+		   "t" 'recentf-open
+		   "f" 'find-file)
+
+      (keymap-set! ctl-x-x-map
+		   "f" 'global-font-lock-mode)
+
+      (keymap-set! ctl-x-r-map
+		   "u" 'buffer-to-register)
+
+      (keymap-set! indent-rigidly-map
+		   "C-i" 'indent-rigidly-right-to-tab-stop
+		   "C-M-i" 'indent-rigidly-left-to-tab-stop
+		   "SPC" 'indent-rigidly-right
+		   "DEL" 'indent-rigidly-left)
+
+      (keymap-set! next-error-repeat-map
+		   "<" 'first-error))))
 
 (use-package isearch
-  :hook
-  ((isearch-update-post-hook
-    . (lambda ()
-	(when (and isearch-other-end
-		   isearch-forward
-		   ;; neccessary, otherwise isearch won't exit on any non-isearch command
-		   (string-prefix-p "isearch" (symbol-name last-command)))
-	  (goto-char isearch-other-end)))))
+  :config
+  (add-hook 'isearch-update-post-hook
+	    (lambda ()
+	      (when (and isearch-other-end
+			 isearch-forward
+			 ;; neccessary, otherwise isearch won't exit on any non-isearch command
+			 (string-prefix-p "isearch" (symbol-name last-command)))
+		(goto-char isearch-other-end))))
 
-  :init
   (setopt isearch-lax-whitespace t
 	  search-whitespace-regexp ".*?"
 
@@ -302,12 +290,11 @@
 
   (keymap-unset isearch-mode-map "C-w" t)
   (keymap-unset isearch-mode-map "C-M-d" t)
-
-  :bind
-  (([remap isearch-delete-char] . isearch-del-char)))
+  (keymap-set! global-map
+	       "<remap> <isearch-delete-char>" 'isearch-del-char))
 
 (use-package replace
-  :init
+  :config
   (progn
     (defvar ignore-self-insert-map
       (let ((map (make-keymap)))
@@ -315,15 +302,15 @@
 	map))
     (set-keymap-parent query-replace-map ignore-self-insert-map))
 
-  :bind
-  (([remap query-replace] . query-replace-regexp)
-   ([remap isearch-query-replace] . isearch-query-replace-regexp)
+  (keymap-set! global-map
+	       "<remap> <query-replace>" 'query-replace-regexp
+	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
 
-   (:map query-replace-map
-	 ("p" . backup))))
+  (keymap-set! query-replace-map
+	       "p" 'backup))
 
 (use-package icomplete
-  :init
+  :config
   (fido-vertical-mode)
 
   (setopt max-mini-window-height 12
@@ -335,18 +322,17 @@
 	  read-buffer-completion-ignore-case t
 	  read-file-name-completion-ignore-case t)
 
-  :bind
-  ((:map minibuffer-mode-map
-	 ([remap minibuffer-complete] . icomplete-force-complete)
-	 ([remap minibuffer-choose-completion] . icomplete-fido-exit))))
+  (keymap-set! minibuffer-mode-map
+	 "<remap> <minibuffer-complete>" 'icomplete-force-complete
+	 "<remap> <minibuffer-choose-completion>" 'icomplete-fido-exit))
 
 (use-package recentf
-  :init
+  :config
   (recentf-mode 1)
   (setopt recentf-max-saved-items 300))
 
 (use-package savehist
-  :init
+  :config
   (savehist-mode 1)
   (setopt savehist-save-minibuffer-history t
 	  savehist-additional-variables
@@ -356,11 +342,10 @@
 	    search-ring regexp-search-ring)))
 
 (use-package dired
-  :hook
-  ((dired-mode-hook . dired-hide-details-mode)
-   (dired-mode-hook . dired-omit-mode))
+  :config
+  (add-hook 'dired-mode-hook 'dired-hide-details-mode)
+  (add-hook 'dired-mode-hook 'dired-omit-mode)
 
-  :init
   (setopt dired-free-space nil
 	  dired-omit-files "^\\..*$"
 	  dired-clean-confirm-killing-deleted-buffers nil
@@ -370,35 +355,30 @@
 	  dired-create-destination-dirs 'ask
 	  dired-vc-rename-file t)
 
-  :bind
-  (:map dired-mode-map
-	("b" . dired-up-directory)
-	("e" . wdired-change-to-wdired-mode)
-	([remap dired-hide-details-mode] . (lambda ()
-					     (interactive)
-					     (dired-omit-mode 'toggle)
-					     (dired-hide-details-mode 'toggle)))))
+  (keymap-set! dired-mode-map
+	"b" 'dired-up-directory
+	"e" 'wdired-change-to-wdired-mode
+	"<remap> <dired-hide-details-mode>" (lambda ()
+				  (interactive)
+				  (dired-omit-mode 'toggle)
+				  (dired-hide-details-mode 'toggle))))
 
 (use-package org
-  :init
+  :config
   (setopt org-tags-column 0))
 
 (use-package package
-  :init
+  :config
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
   (package-initialize))
 
 (use-package puni
   :ensure t
   :init (puni-global-mode 1)
-
   :config
-  (advice-add 'puni-mark-list-around-point
-	      :around
-	      (lambda (fn &rest args)
-		(unless (region-active-p)
-		  (push-mark))
-		(apply fn args)))
+  (mapc 'push-mark-once '(puni-mark-list-around-point
+			  puni-end-of-sexp
+			  puni-beginning-of-sexp))
 
   (advice-add 'puni-kill-line
 	      :around
@@ -419,28 +399,26 @@
 			  'beyond
 			  'kill))))
 
-  :bind
-  (("C-M-r" . puni-raise)
-   ("C-M-s" . puni-splice)
-   ("C-M-v" . puni-mark-list-around-point)
-   ("C-(" . puni-slurp-backward)
-   ("C-)" . puni-slurp-forward)
-   ("C-{" . puni-barf-backward)
-   ("C-}" . puni-barf-forward)
+  (keymap-set! global-map
+	       "C-<backspace>" 'puni-backward-kill-to-indent
 
-   (:map lisp-mode-shared-map
-	 ("C-c v" . puni-convolute)
-	 ("C-c s" . puni-split))
+	       "C-M-r" 'puni-raise
+	       "C-M-s" 'puni-splice
+	       "C-M-v" 'puni-mark-list-around-point
 
-   (:map global-map
-	 ("C-<backspace>" . puni-backward-kill-to-indent))))
+	       "C-(" 'puni-slurp-backward
+	       "C-)" 'puni-slurp-forward
+	       "C-{" 'puni-barf-backward
+	       "C-}" 'puni-barf-forward)
+
+  (keymap-set! lisp-mode-shared-map
+	       "C-c v" 'puni-convolute
+	       "C-c s" 'puni-split))
 
 (use-package magit
-  :ensure t
-  :hook ((magit-mode-hook . font-lock-mode)))
+  :ensure t)
 
 (use-package current-window-only
-  ;; :disabled t
   :ensure t
   :init (current-window-only-mode 1)
   :config
