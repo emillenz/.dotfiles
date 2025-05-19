@@ -90,16 +90,15 @@ set $DMENU_ARGS \
 	-sb '#c8c8c8' \
 	-sf '#000000'
 
-set $ESC mode "default"
-bindsym $MOD+space mode "prefix"
+set $ESC mode "default"-
+bindsym Super_L mode "prefix"
 mode "prefix" {
-	bindsym $MOD+space $ESC
-	bindsym Ctrl+g  $ESC
+	bindsym Super_L $ESC
 
 	bindsym r $ESC; restart
 	bindsym k $ESC; kill
 	bindsym o $ESC; move workspace to output next
-	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
+	bindsym h $ESC; gaps horizontal current toggle $GAPSIZE
 	bindsym z $ESC; $SHCMD systemctl suspend
 	bindsym x $ESC; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
 	bindsym s $ESC; $SHCMD scrot \

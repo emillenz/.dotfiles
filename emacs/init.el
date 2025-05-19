@@ -143,11 +143,11 @@
   (put 'narrow-to-region 'disabled nil)
 
   (seq-do (lambda (fn)
-	  (advice-add fn :before (lambda (&rest _) (deactivate-mark))))
-	'(apply-macro-to-region-lines
-	  eval-region
-	  align
-	  align-entire))
+	    (advice-add fn :before (lambda (&rest _) (deactivate-mark))))
+	  '(apply-macro-to-region-lines
+	    eval-region
+	    align
+	    align-entire))
 
   (progn
     (defun push-mark-once (fn)
@@ -161,13 +161,13 @@
     (seq-do 'push-mark-once '(mark-paragraph backward-up-list)))
 
   (seq-do (lambda (cmd)
-	  (advice-add cmd :around
-		      (lambda (fn &rest args)
-			(with-undo-amalgamate
-			  (apply fn args)))))
-	'(kmacro-end-and-call-macro
-	  query-replace-regexp
-	  apply-macro-to-region-lines))
+	    (advice-add cmd :around
+			(lambda (fn &rest args)
+			  (with-undo-amalgamate
+			    (apply fn args)))))
+	  '(kmacro-end-and-call-macro
+	    query-replace-regexp
+	    apply-macro-to-region-lines))
 
   (progn
     (defun kill-ring-save-region-or-next-kill ()
@@ -233,6 +233,13 @@
       (interactive (list (register-read-with-preview "buffer to register:")))
       (set-register reg (cons 'buffer (current-buffer))))
 
+    (defun point-to-register-dwim ()
+      (interactive)
+      (call-interactively
+       (if current-prefix-arg
+	   'buffer-to-register
+	 'point-to-register)))
+
     (progn
       (defmacro keymap-set! (keymap &rest pairs)
 	(macroexp-progn
@@ -259,10 +266,12 @@
 		   "<remap> <shell-command>" 'async-shell-command
 		   "<remap> <dired-do-shell-command>" 'dired-do-async-shell-command
 
+		   "M-SPC" 'mark-word
 		   "C-u" (lambda () (interactive) (set-mark-command 1))
 		   "C-z" 'repeat
 		   "M-w" 'kill-ring-save-region-or-next-kill
 		   "M-j" 'jump-to-register
+		   "M-r" 'point-to-register-dwim
 		   "C-<tab>" 'switch-to-other-buffer)
 
       (keymap-set! ctl-x-map
@@ -270,9 +279,6 @@
 
       (keymap-set! ctl-x-x-map
 		   "f" 'global-font-lock-mode)
-
-      (keymap-set! ctl-x-r-map
-		   "u" 'buffer-to-register)
 
       (keymap-set! indent-rigidly-map
 		   "C-i" 'indent-rigidly-right-to-tab-stop
