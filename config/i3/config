@@ -64,7 +64,7 @@ bindsym $MOD+Tab focus next
 bindsym $MOD+shift+Tab focus prev
 focus_wrapping yes
 
-for_window [all] move container to workspace all
+for_window [tiling] move container to workspace all
 bindsym $MOD+grave workspace all
 
 workspace edit gaps horizontal $GAPSIZE
@@ -80,20 +80,20 @@ bindsym $MOD+3 workspace agenda
 # follow focus after moving window to workspace
 for_window [all] focus
 
-set $DMENU_ARGS\
-	-i\
-	-b\
-	-l 8\
-	-fn 'Aporetic Sans Mono-10'\
-	-nb '#ffffff'\
-	-nf '#000000'\
-	-sb '#c8c8c8'\
+set $DMENU_ARGS \
+	-i \
+	-b \
+	-l 8 \
+	-fn 'Aporetic Sans Mono-10' \
+	-nb '#ffffff' \
+	-nf '#000000' \
+	-sb '#c8c8c8' \
 	-sf '#000000'
 
 set $ESC mode "default"
-bindsym $MOD+z mode "prefix"
+bindsym $MOD+space mode "prefix"
 mode "prefix" {
-	bindsym $MOD+z  $ESC
+	bindsym $MOD+space $ESC
 	bindsym Ctrl+g  $ESC
 
 	bindsym r $ESC; restart
@@ -102,18 +102,12 @@ mode "prefix" {
 	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
 	bindsym z $ESC; $SHCMD systemctl suspend
 	bindsym x $ESC; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
-	bindsym $MOD+x $ESC; $SHCMD dmenu_run -p "run" $DMENU_ARGS
-	bindsym d $ESC; $SHCMD config=$(autorandr --list | dmenu -p "display-config" $DMENU_ARGS) \
-		&& autorandr --change $config
-	bindsym w $ESC; $SHCMD window-menu $DMENU_ARGS
-	bindsym b $ESC; $SHCMD bluetooth-menu $DMENU_ARGS
-	bindsym s $ESC; $SHCMD scrot\
-		--select\
-		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png"\
+	bindsym s $ESC; $SHCMD scrot \
+		--select \
+		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
 		--exec 'dunstify screenshot "$f"'
 	bindsym v $ESC; $SHCMD nmcli connection up protonvpn || (nmcli connection down protonvpn && dunstify 'vpn down')
 
-	bindsym a $ESC; $SHCMD audio-output-menu $DMENU_ARGS
 	bindsym equal $SHCMD pamixer --unmute --increase 5
 	bindsym minus $SHCMD pamixer --unmute --decrease 5
 	bindsym 0 $SHCMD pamixer --toggle-mute

@@ -263,7 +263,6 @@
 		   "C-z" 'repeat
 		   "M-w" 'kill-ring-save-region-or-next-kill
 		   "M-j" 'jump-to-register
-		   "M-SPC" 'mark-word
 		   "C-<tab>" 'switch-to-other-buffer)
 
       (keymap-set! ctl-x-map
