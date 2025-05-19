@@ -6,8 +6,8 @@
 ;; email: emillenz@protonmail.com
 ;; ---
 
-(setopt use-package-always-demand t
-	use-package-enable-imenu-support t)
+(setq use-package-always-demand t
+      use-package-enable-imenu-support t)
 
 (use-package emacs
   :config
@@ -33,73 +33,75 @@
   (horizontal-scroll-bar-mode -1)
   (tooltip-mode -1)
 
-  (setopt history-length 1000
-	  history-delete-duplicates t
-	  uniquify-buffer-name-style 'forward
-	  delete-by-moving-to-trash t
-	  remote-file-name-inhibit-delete-by-moving-to-trash t
-	  ring-bell-function 'ignore
-	  enable-recursive-minibuffers t
-	  global-auto-revert-non-file-buffers t
-	  auto-save-include-big-deletions t
-	  kill-buffer-delete-auto-save-files t
-	  auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)
-	  use-short-answers t
-	  save-interprogram-paste-before-kill t
-	  require-final-newline t
-	  load-prefer-newer t
-	  shell-command-prompt-show-cwd t
-	  custom-file (expand-file-name "custom.el" user-emacs-directory)
-	  desktop-dirname user-emacs-directory
-	  find-file-visit-truename t
-	  comment-empty-lines nil
-	  register-preview-delay nil
-	  kill-do-not-save-duplicates t
-	  show-paren-when-point-inside-paren t
-	  kill-whole-line t
-	  shift-select-mode nil
-	  set-mark-command-repeat-pop t
-	  bookmark-fringe-mark nil
+  (setq history-length 1000
+	history-delete-duplicates t
+	uniquify-buffer-name-style 'forward
+	delete-by-moving-to-trash t
+	remote-file-name-inhibit-delete-by-moving-to-trash t
+	ring-bell-function 'ignore
+	enable-recursive-minibuffers t
+	global-auto-revert-non-file-buffers t
+	auto-save-include-big-deletions t
+	kill-buffer-delete-auto-save-files t
+	auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)
+	use-short-answers t
+	save-interprogram-paste-before-kill t
+	require-final-newline t
+	load-prefer-newer t
+	shell-command-prompt-show-cwd t
+	async-shell-command-display-buffer nil
+	async-shell-command-buffer 'new-buffer
+	custom-file (expand-file-name "custom.el" user-emacs-directory)
+	desktop-dirname user-emacs-directory
+	find-file-visit-truename t
+	comment-empty-lines nil
+	register-preview-delay nil
+	kill-do-not-save-duplicates t
+	show-paren-when-point-inside-paren t
+	kill-whole-line t
+	shift-select-mode nil
+	set-mark-command-repeat-pop t
+	bookmark-fringe-mark nil
 
-	  create-lockfiles nil
-	  make-backup-files nil
-	  delete-old-versions t
-	  version-control t
-	  kept-new-versions 5
-	  kept-old-versions 5
-	  vc-follow-symlinks t
-	  vc-make-backup-files nil
-	  backup-by-copying t
-	  backup-by-copying-when-linked t
-	  backup-directory-alist (list (cons "." (concat user-emacs-directory "backups")))
+	create-lockfiles nil
+	make-backup-files nil
+	delete-old-versions t
+	version-control t
+	kept-new-versions 5
+	kept-old-versions 5
+	vc-follow-symlinks t
+	vc-make-backup-files nil
+	backup-by-copying t
+	backup-by-copying-when-linked t
+	backup-directory-alist (list (cons "." (concat user-emacs-directory "backups")))
 
-	  initial-scratch-message nil
-	  inhibit-startup-echo-area-message user-login-name
-	  initial-buffer-choice nil
-	  inhibit-splash-screen t
-	  inhibit-startup-screen t
-	  inhibit-startup-buffer-menu t
-	  frame-title-format "%b ― emacs"
-	  icon-title-format frame-title-format
-	  frame-inhibit-implied-resize t
-	  use-file-dialog nil
-	  use-dialog-box nil
+	initial-scratch-message nil
+	inhibit-startup-echo-area-message user-login-name
+	initial-buffer-choice nil
+	inhibit-splash-screen t
+	inhibit-startup-screen t
+	inhibit-startup-buffer-menu t
+	frame-title-format "%b ― emacs"
+	icon-title-format frame-title-format
+	frame-inhibit-implied-resize t
+	use-file-dialog nil
+	use-dialog-box nil
 
-	  tab-always-indent 'complete
-	  indent-tabs-mode t
-	  tab-width 8
-	  standard-indent 8
-	  c-default-style "linux"
+	tab-always-indent 'complete
+	indent-tabs-mode t
+	tab-width 8
+	standard-indent 8
+	c-default-style "linux"
 
-	  compilation-scroll-output t
-	  next-error-recenter '(4)
+	compilation-scroll-output t
+	next-error-recenter '(4)
 
-	  scroll-preserve-screen-position t
-	  scroll-error-top-bottom t
-	  auto-window-vscroll nil
+	scroll-preserve-screen-position t
+	scroll-error-top-bottom t
+	auto-window-vscroll nil
 
-	  comint-input-ignoredups t
-	  comint-prompt-read-only t)
+	comint-input-ignoredups t
+	comint-prompt-read-only t)
 
   (progn
     (global-hl-line-mode)
@@ -108,23 +110,25 @@
 
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
+  (delete 'try-expand-list hippie-expand-try-functions-list)
+
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
 
   (progn
-    (setopt minibuffer-prompt-properties
-	    '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+    (setq minibuffer-prompt-properties
+	  '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
     (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode))
 
   (progn
     (set-language-environment "utf-8")
-    (setopt default-input-method nil))
+    (setq default-input-method nil))
 
   (progn
     (require-theme 'modus-themes)
-    (setopt modus-themes-italic-constructs t
-	    modus-themes-bold-constructs t
-	    modus-themes-common-palette-overrides '((fg-heading-1 fg-heading-0)
-						    (bg-prose-block-contents bg-dim)))
+    (setq modus-themes-italic-constructs t
+	  modus-themes-bold-constructs t
+	  modus-themes-common-palette-overrides '((fg-heading-1 fg-heading-0)
+						  (bg-prose-block-contents bg-dim)))
     (load-theme 'modus-operandi)
 
     (progn
@@ -138,7 +142,7 @@
 
   (put 'narrow-to-region 'disabled nil)
 
-  (mapc (lambda (fn)
+  (seq-do (lambda (fn)
 	  (advice-add fn :before (lambda (&rest _) (deactivate-mark))))
 	'(apply-macro-to-region-lines
 	  eval-region
@@ -151,12 +155,12 @@
 		  :before
 		  (lambda (&rest _)
 		    (unless (or (eq last-command this-command)
-				(= (mark) (point)))
+				(when (mark) (= (mark) (point))))
 		      (push-mark)))))
 
-    (mapc 'push-mark-once '(mark-paragraph backward-up-list)))
+    (seq-do 'push-mark-once '(mark-paragraph backward-up-list)))
 
-  (mapc (lambda (cmd)
+  (seq-do (lambda (cmd)
 	  (advice-add cmd :around
 		      (lambda (fn &rest args)
 			(with-undo-amalgamate
@@ -180,7 +184,7 @@
     (defun open-line-indent ()
       (interactive)
       (save-mark-and-excursion
-	(mapc 'call-interactively '(open-line forward-line))
+	(seq-do 'call-interactively '(open-line forward-line))
 	(indent-according-to-mode)))
 
     (defun indent-dwim ()
@@ -198,18 +202,27 @@
 	(call-interactively 'yank)
 	(indent-region pos (point))))
 
-    (defun eval-last-sexp-dwim ()
-      (interactive)
-      (call-interactively (if (region-active-p)
-			      'eval-region
-			    'eval-last-sexp)))
-
     (defun comment-sexp-dwim ()
       (interactive)
-      (if (region-active-p)
-	  (call-interactively 'comment-dwim)
-	(save-mark-and-excursion
-	  (mapc 'call-interactively '(mark-sexp comment-dwim)))))
+      (save-mark-and-excursion
+	(unless (region-active-p)
+	  (call-interactively 'mark-sexp))
+	(call-interactively 'comment-dwim)))
+
+    (defun eval-sexp-dwim ()
+      (interactive)
+      (save-mark-and-excursion
+	(unless (region-active-p)
+	  (call-interactively 'mark-sexp))
+	(eval-region (region-beginning) (region-end) t)))
+
+    (defun pp-eval-sexp-dwim ()
+      (interactive)
+      (save-mark-and-excursion
+	(unless (region-active-p)
+	  (call-interactively 'mark-sexp))
+	(pp-eval-expression (read (buffer-substring (region-beginning)
+						    (region-end))))))
 
     (defun switch-to-other-buffer ()
       (interactive)
@@ -235,7 +248,7 @@
 		   "<remap> <upcase-word>" 'upcase-dwim
 		   "<remap> <capitalize-word>" 'capitalize-dwim
 		   "<remap> <dabbrev-expand>" 'hippie-expand
-		   "<remap> <eval-last-sexp>" 'eval-last-sexp-dwim
+		   "<remap> <eval-last-sexp>" 'eval-sexp-dwim
 		   "<remap> <comment-dwim>" 'comment-sexp-dwim
 		   "<remap> <open-line>" 'open-line-indent
 		   "<remap> <kill-buffer>" 'kill-buffer-and-window
@@ -281,13 +294,13 @@
 			 (string-prefix-p "isearch" (symbol-name last-command)))
 		(goto-char isearch-other-end))))
 
-  (setopt isearch-lax-whitespace t
-	  search-whitespace-regexp ".*?"
+  (setq isearch-lax-whitespace t
+	search-whitespace-regexp ".*?"
 
-	  lazy-highlight-initial-delay 0
-	  isearch-lazy-count t
-	  isearch-allow-motion t
-	  isearch-motion-changes-direction t)
+	lazy-highlight-initial-delay 0
+	isearch-lazy-count t
+	isearch-allow-motion t
+	isearch-motion-changes-direction t)
 
   (keymap-unset isearch-mode-map "C-w" t)
   (keymap-unset isearch-mode-map "C-M-d" t)
@@ -314,59 +327,59 @@
   :config
   (fido-vertical-mode)
 
-  (setopt max-mini-window-height 12
-	  completions-detailed t
-	  completions-auto-help 'visible
-	  completions-max-height 16
-	  completions-format 'one-column
-	  icomplete-compute-delay 0
-	  read-buffer-completion-ignore-case t
-	  read-file-name-completion-ignore-case t)
+  (setq max-mini-window-height 12
+	completions-detailed t
+	completions-auto-help 'visible
+	completions-max-height 16
+	completions-format 'one-column
+	icomplete-compute-delay 0
+	read-buffer-completion-ignore-case t
+	read-file-name-completion-ignore-case t)
 
   (keymap-set! minibuffer-mode-map
-	 "<remap> <minibuffer-complete>" 'icomplete-force-complete
-	 "<remap> <minibuffer-choose-completion>" 'icomplete-fido-exit))
+	       "<remap> <minibuffer-complete>" 'icomplete-force-complete
+	       "<remap> <minibuffer-choose-completion>" 'icomplete-fido-exit))
 
 (use-package recentf
   :config
   (recentf-mode 1)
-  (setopt recentf-max-saved-items 300))
+  (setq recentf-max-saved-items 300))
 
 (use-package savehist
   :config
   (savehist-mode 1)
-  (setopt savehist-save-minibuffer-history t
-	  savehist-additional-variables
-	  '(kill-ring
-	    register-alist
-	    mark-ring global-mark-ring
-	    search-ring regexp-search-ring)))
+  (setq savehist-save-minibuffer-history t
+	savehist-additional-variables
+	'(kill-ring
+	  register-alist
+	  mark-ring global-mark-ring
+	  search-ring regexp-search-ring)))
 
 (use-package dired
   :config
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   (add-hook 'dired-mode-hook 'dired-omit-mode)
 
-  (setopt dired-free-space nil
-	  dired-omit-files "^\\..*$"
-	  dired-clean-confirm-killing-deleted-buffers nil
-	  dired-recursive-copies 'always
-	  dired-recursive-deletes 'always
-	  dired-no-confirm '(uncompress move copy)
-	  dired-create-destination-dirs 'ask
-	  dired-vc-rename-file t)
+  (setq dired-free-space nil
+	dired-omit-files "^\\..*$"
+	dired-clean-confirm-killing-deleted-buffers nil
+	dired-recursive-copies 'always
+	dired-recursive-deletes 'always
+	dired-no-confirm '(uncompress move copy)
+	dired-create-destination-dirs 'ask
+	dired-vc-rename-file t)
 
   (keymap-set! dired-mode-map
-	"b" 'dired-up-directory
-	"e" 'wdired-change-to-wdired-mode
-	"<remap> <dired-hide-details-mode>" (lambda ()
-				  (interactive)
-				  (dired-omit-mode 'toggle)
-				  (dired-hide-details-mode 'toggle))))
+	       "b" 'dired-up-directory
+	       "e" 'wdired-change-to-wdired-mode
+	       "<remap> <dired-hide-details-mode>" (lambda ()
+						     (interactive)
+						     (dired-omit-mode 'toggle)
+						     (dired-hide-details-mode 'toggle))))
 
 (use-package org
   :config
-  (setopt org-tags-column 0))
+  (setq org-tags-column 0))
 
 (use-package package
   :config
@@ -377,7 +390,7 @@
   :ensure t
   :init (puni-global-mode 1)
   :config
-  (mapc 'push-mark-once '(puni-mark-list-around-point
+  (seq-do 'push-mark-once '(puni-mark-list-around-point
 			  puni-end-of-sexp
 			  puni-beginning-of-sexp))
 
@@ -426,7 +439,7 @@
   :ensure t
   :init (current-window-only-mode 1)
   :config
-  (setopt ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
   (advice-remove 'delete-other-windows 'current-window-only--delete-other-windows)
   (add-to-list 'display-buffer-alist (list (rx (seq "*")
 					       (or "Completions"
@@ -438,4 +451,4 @@
   :ensure t
   :init (pdf-tools-install)
   :config
-  (setopt pdf-view-display-size 'fit-height))
+  (setq pdf-view-display-size 'fit-height))
