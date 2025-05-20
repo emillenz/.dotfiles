@@ -167,7 +167,6 @@
 			  (with-undo-amalgamate
 			    (apply fn args)))))
 	  '(kmacro-end-and-call-macro
-	    kmacro-end-or-call-macro-repeat
 	    query-replace-regexp
 	    apply-macro-to-region-lines))
 
@@ -190,8 +189,8 @@
 		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "M-SPC" 'mark-word
 
-		 "C-u" (lambda () (interactive) (set-mark-command 1))
-		 "C-z" 'repeat)
+		 "C-z" 'repeat
+		 "C-u" (lambda () (interactive) (set-mark-command '(4))))
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open)

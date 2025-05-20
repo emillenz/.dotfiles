@@ -13,6 +13,16 @@ set $BORDER	#9f9f9f
 set $URG	#ff8f88
 set $STATUS_BG	#c8c8c8
 
+set $DMENU_ARGS \
+	-i \
+	-b \
+	-l 8 \
+	-fn 'Aporetic Sans Mono-10' \
+	-nb '#ffffff' \
+	-nf '#000000' \
+	-sb '#c8c8c8' \
+	-sf '#000000'
+
 set $SHCMD_ON_RESTART exec_always --no-startup-id
 
 $SHCMD_ON_RESTART emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
@@ -63,34 +73,34 @@ bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
 bindsym $MOD+Tab focus next
 bindsym $MOD+shift+Tab focus prev
 
-for_window [tiling] move container to workspace all
-bindsym $MOD+grave workspace all
-
-workspace 1 gaps horizontal $GAPSIZE
-for_window [class="Emacs"] move container to workspace 1
+for_window [tiling] move container to workspace 1
 bindsym $MOD+1 workspace 1
 
-for_window [class="firefox"] move container to workspace 2
+workspace 2 gaps horizontal $GAPSIZE
+for_window [class="Emacs"] move container to workspace 2
 bindsym $MOD+2 workspace 2
 
-# follow focus after moving window to workspace
-for_window [all] focus
+for_window [class="firefox"] move container to workspace 3
+bindsym $MOD+3 workspace 3
 
-set $DMENU_ARGS \
-	-i \
-	-b \
-	-l 8 \
-	-fn 'Aporetic Sans Mono-10' \
-	-nb '#ffffff' \
-	-nf '#000000' \
-	-sb '#c8c8c8' \
-	-sf '#000000'
+for_window [class="net.thunderbird.Thunderbird"] move container to workspace 4
+bindsym $MOD+4 workspace 4
+
+bindsym $MOD+5 workspace 5
+bindsym $MOD+6 workspace 6
 
 set $ESC mode "default"
 bindsym Super_L mode "prefix"
 mode "prefix" {
 	bindsym Super_L $ESC
 	bindsym Ctrl+g $ESC
+
+	bindsym 1 $ESC; move container to workspace 1; workspace 1
+	bindsym 2 $ESC; move container to workspace 2; workspace 2
+	bindsym 3 $ESC; move container to workspace 3; workspace 3
+	bindsym 4 $ESC; move container to workspace 4; workspace 4
+	bindsym 5 $ESC; move container to workspace 5; workspace 5
+	bindsym 6 $ESC; move container to workspace 6; workspace 6
 
 	bindsym r $ESC; restart
 	bindsym k $ESC; kill
