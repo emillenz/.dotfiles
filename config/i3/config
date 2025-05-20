@@ -74,9 +74,6 @@ bindsym $MOD+1 workspace edit
 for_window [class="firefox"] move container to workspace web
 bindsym $MOD+2 workspace web
 
-for_window [class="net.thunderbird.Thunderbird"] move container to workspace agenda
-bindsym $MOD+3 workspace agenda
-
 # follow focus after moving window to workspace
 for_window [all] focus
 
