@@ -90,10 +90,11 @@ set $DMENU_ARGS \
 	-sb '#c8c8c8' \
 	-sf '#000000'
 
-set $ESC mode "default"-
+set $ESC mode "default"
 bindsym Super_L mode "prefix"
 mode "prefix" {
 	bindsym Super_L $ESC
+	bindsym Ctrl+g $ESC
 
 	bindsym r $ESC; restart
 	bindsym k $ESC; kill

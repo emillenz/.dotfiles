@@ -165,7 +165,7 @@
 			(lambda (fn &rest args)
 			  (with-undo-amalgamate
 			    (apply fn args)))))
-	  '(kmacro-end-and-call-macro
+	  '(kmacro-end-or-call-macro-repeat
 	    query-replace-regexp
 	    apply-macro-to-region-lines))
 
@@ -260,22 +260,19 @@
 		   "<remap> <open-line>" 'open-line-indent
 		   "<remap> <kill-buffer>" 'kill-buffer-and-window
 		   "<remap> <list-buffers>" 'ibuffer
-		   "<remap> <dired>" 'dired-jump
+
 		   "<remap> <delete-horizontal-space>" 'cycle-spacing
-
-		   "<remap> <shell-command>" 'async-shell-command
-		   "<remap> <dired-do-shell-command>" 'dired-do-async-shell-command
-
 		   "M-SPC" 'mark-word
+
 		   "C-u" (lambda () (interactive) (set-mark-command 1))
 		   "C-z" 'repeat
 		   "M-w" 'kill-ring-save-region-or-next-kill
-		   "M-j" 'jump-to-register
 		   "M-r" 'point-to-register-dwim
-		   "C-<tab>" 'switch-to-other-buffer)
+		   "M-j" 'jump-to-register)
 
       (keymap-set! ctl-x-map
-		   "f" 'recentf-open)
+		   "f" 'recentf-open
+		   "C-b" 'switch-to-other-buffer)
 
       (keymap-set! ctl-x-x-map
 		   "f" 'global-font-lock-mode)
@@ -295,7 +292,6 @@
 	    (lambda ()
 	      (when (and isearch-other-end
 			 isearch-forward
-			 ;; neccessary, otherwise isearch won't exit on any non-isearch command
 			 (string-prefix-p "isearch" (symbol-name last-command)))
 		(goto-char isearch-other-end))))
 
@@ -315,11 +311,11 @@
 (use-package replace
   :config
   (progn
-    (defvar ignore-self-insert-map
+    (defvar suppressed-map
       (let ((map (make-keymap)))
 	(set-char-table-range (nth 1 map) t 'ignore)
 	map))
-    (set-keymap-parent query-replace-map ignore-self-insert-map))
+    (define-keymap :keymap query-replace-map :parent suppressed-map))
 
   (keymap-set! global-map
 	       "<remap> <query-replace>" 'query-replace-regexp
@@ -353,8 +349,7 @@
 (use-package savehist
   :config
   (savehist-mode 1)
-  (setq savehist-save-minibuffer-history t
-	savehist-additional-variables
+  (setq savehist-additional-variables
 	'(kill-ring
 	  register-alist
 	  mark-ring global-mark-ring
@@ -375,8 +370,6 @@
 	dired-vc-rename-file t)
 
   (keymap-set! dired-mode-map
-	       "b" 'dired-up-directory
-	       "e" 'wdired-change-to-wdired-mode
 	       "<remap> <dired-hide-details-mode>" (lambda ()
 						     (interactive)
 						     (dired-omit-mode 'toggle)
@@ -435,10 +428,7 @@
 	       "C-c s" 'puni-split))
 
 (use-package magit
-  :ensure t
-  :config
-  (keymap-set magit-mode-map
-	      "C-<tab>" 'switch-to-other-buffer))
+  :ensure t)
 
 (use-package current-window-only
   :ensure t
