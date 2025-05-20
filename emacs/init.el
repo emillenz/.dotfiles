@@ -453,15 +453,23 @@
   :init (current-window-only-mode 1)
   :config
   (setopt ediff-window-setup-function 'ediff-setup-windows-plain)
-  (advice-remove 'delete-other-windows 'current-window-only--delete-other-windows)
-  (add-to-list 'display-buffer-alist (list (rx (seq "*")
-					       (or "Completions"
-						   "Register Preview")
-					       (seq "*"))
-					   'display-buffer-at-bottom)))
+  (advice-remove 'delete-other-windows
+		 'current-window-only--delete-other-windows)
+  (add-to-list 'display-buffer-alist
+	       (list (rx (seq "*")
+			 (or "Completions"
+			     "Register Preview")
+			 (seq "*"))
+		     'display-buffer-at-bottom)))
 
 (use-package pdf-tools
   :ensure t
   :init (pdf-tools-install)
   :config
   (setopt pdf-view-display-size 'fit-height))
+
+(use-package visual-fill-column
+  :ensure t
+  :init (global-visual-fill-column-mode)
+  :config
+  (setopt visual-fill-column-width 100))

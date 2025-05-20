@@ -17,6 +17,7 @@ set $SHCMD_ON_RESTART exec_always --no-startup-id
 
 $SHCMD_ON_RESTART emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 $SHCMD_ON_RESTART pgrep firefox || firefox
+$SHCMD_ON_RESTART pgrep thunderbird || thunderbird
 $SHCMD_ON_RESTART pgrep -x keepassxc || keepassxc
 
 $SHCMD_ON_RESTART pgrep unclutter || unclutter
@@ -33,9 +34,9 @@ title_align left
 font pango: Aporetic Sans Mono 10
 default_orientation horizontal
 workspace_layout tabbed
-tiling_drag off
 focus_on_window_activation focus
 workspace_auto_back_and_forth no
+focus_wrapping no
 
 set $GAPSIZE 420
 gaps horizontal $GAPSIZE
@@ -60,12 +61,9 @@ bindsym XF86AudioRaiseVolume $SHCMD pamixer --unmute --increase 5
 bindsym XF86AudioMute $SHCMD pamixer --toggle-mute
 bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
 
-bindsym $MOD+Tab focus next
-bindsym $MOD+grave focus prev
-focus_wrapping yes
-
 bindsym $MOD+1 [class="Emacs"] focus
 bindsym $MOD+2 [class="firefox"] focus
+bindsym $MOD+3 [class="net.thunderbird.Thunderbird"] focus
 
 set $DMENU_ARGS \
 	-i \
@@ -84,19 +82,20 @@ mode "prefix" {
 	bindsym Ctrl+g $ESC
 
 	bindsym Tab move right
-	bindsym grave move left
+	bindsym $MOD+Tab move left
 
+	bindsym o $ESC; move workspace to output next
 	bindsym r $ESC; restart
 	bindsym k $ESC; kill
-	bindsym o $ESC; move workspace to output next
-	bindsym h $ESC; gaps horizontal current toggle $GAPSIZE
+	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
 	bindsym z $ESC; $SHCMD systemctl suspend
 	bindsym x $ESC; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
 	bindsym s $ESC; $SHCMD scrot \
 		--select \
 		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
 		--exec 'dunstify screenshot "$f"'
-	bindsym v $ESC; $SHCMD nmcli connection up protonvpn || (nmcli connection down protonvpn && dunstify 'vpn down')
+	bindsym v $ESC; $SHCMD nmcli connection up protonvpn \
+		|| (nmcli connection down protonvpn && dunstify 'vpn down')
 
 	bindsym equal $SHCMD pamixer --unmute --increase 5
 	bindsym minus $SHCMD pamixer --unmute --decrease 5
