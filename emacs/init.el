@@ -467,9 +467,3 @@
   :init (pdf-tools-install)
   :config
   (setopt pdf-view-display-size 'fit-height))
-
-(use-package visual-fill-column
-  :ensure t
-  :init (global-visual-fill-column-mode)
-  :config
-  (setopt visual-fill-column-width 100))
