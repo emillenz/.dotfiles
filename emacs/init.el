@@ -185,6 +185,7 @@
 		 "<remap> <dabbrev-expand>" 'hippie-expand
 		 "<remap> <kill-buffer>" 'kill-buffer-and-window
 		 "<remap> <list-buffers>" 'ibuffer
+		 "<remap> <dired>" 'dired-jump
 
 		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "M-SPC" 'mark-word

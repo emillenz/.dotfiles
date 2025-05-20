@@ -60,20 +60,19 @@ bindsym --whole-window $MOD+button2 floating toggle
 bindsym button4 nop
 bindsym button5 nop
 
-bindsym XF86MonBrightnessDown $SHCMD brightnessctl set 5%-
-bindsym XF86MonBrightnessUp $SHCMD brightnessctl set 5%+
-bindsym XF86Display $SHCMD autorandr --change
-bindsym XF86Sleep $SHCMD systemctl suspend
-bindsym XF86AudioLowerVolume $SHCMD pamixer --unmute --decrease 5
-bindsym XF86AudioRaiseVolume $SHCMD pamixer --unmute --increase 5
-bindsym XF86AudioMute $SHCMD pamixer --toggle-mute
-bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
+bindsym XF86MonBrightnessDown	$SHCMD brightnessctl set 5%-
+bindsym XF86MonBrightnessUp	$SHCMD brightnessctl set 5%+
+bindsym XF86Display		$SHCMD autorandr --change
+bindsym XF86Sleep		$SHCMD systemctl suspend
+bindsym XF86AudioLowerVolume	$SHCMD pamixer --unmute --decrease 5
+bindsym XF86AudioRaiseVolume	$SHCMD pamixer --unmute --increase 5
+bindsym XF86AudioMute		$SHCMD pamixer --toggle-mute
+bindsym XF86AudioMicMute	$SHCMD pamixer --default-source --toggle-mute
 
-for_window [tiling] move container to workspace 6
-for_window [class="Emacs"] move container to workspace 1
-for_window [class="firefox"] move container to workspace 2
-for_window [class="net.thunderbird.Thunderbird"] move container to workspace 3
-for_window [all] focus
+for_window [tiling]					move container to workspace 6; workspace 6
+for_window [class="Emacs"]				move container to workspace 1; workspace 1
+for_window [class="firefox"]				move container to workspace 2; workspace 2
+for_window [class="net.thunderbird.Thunderbird"]	move container to workspace 3; workspace 3
 
 workspace 1 gaps horizontal $GAPSIZE
 
