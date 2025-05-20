@@ -17,7 +17,6 @@ set $SHCMD_ON_RESTART exec_always --no-startup-id
 
 $SHCMD_ON_RESTART emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
 $SHCMD_ON_RESTART pgrep firefox || firefox
-$SHCMD_ON_RESTART pgrep thunderbird || thunderbird
 $SHCMD_ON_RESTART pgrep -x keepassxc || keepassxc
 
 $SHCMD_ON_RESTART pgrep unclutter || unclutter
@@ -38,7 +37,8 @@ tiling_drag off
 focus_on_window_activation focus
 workspace_auto_back_and_forth no
 
-set $GAPSIZE 550
+set $GAPSIZE 420
+gaps horizontal $GAPSIZE
 smart_gaps inverse_outer
 default_border none
 default_floating_border pixel 1
@@ -61,21 +61,11 @@ bindsym XF86AudioMute $SHCMD pamixer --toggle-mute
 bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
 
 bindsym $MOD+Tab focus next
-bindsym $MOD+shift+Tab focus prev
+bindsym $MOD+grave focus prev
 focus_wrapping yes
 
-for_window [tiling] move container to workspace all
-bindsym $MOD+grave workspace all
-
-workspace edit gaps horizontal $GAPSIZE
-for_window [class="Emacs"] move container to workspace edit
-bindsym $MOD+1 workspace edit
-
-for_window [class="firefox"] move container to workspace web
-bindsym $MOD+2 workspace web
-
-# follow focus after moving window to workspace
-for_window [all] focus
+bindsym $MOD+1 [class="Emacs"] focus
+bindsym $MOD+2 [class="firefox"] focus
 
 set $DMENU_ARGS \
 	-i \
@@ -92,6 +82,9 @@ bindsym Super_L mode "prefix"
 mode "prefix" {
 	bindsym Super_L $ESC
 	bindsym Ctrl+g $ESC
+
+	bindsym Tab move right
+	bindsym grave move left
 
 	bindsym r $ESC; restart
 	bindsym k $ESC; kill
