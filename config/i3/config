@@ -64,6 +64,8 @@ bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
 bindsym $MOD+1 [class="Emacs"] focus
 bindsym $MOD+2 [class="firefox"] focus
 bindsym $MOD+3 [class="net.thunderbird.Thunderbird"] focus
+bindsym $MOD+Tab focus next
+bindsym $MOD+shift+Tab focus prev
 
 set $DMENU_ARGS \
 	-i \
@@ -82,7 +84,7 @@ mode "prefix" {
 	bindsym Ctrl+g $ESC
 
 	bindsym Tab move right
-	bindsym $MOD+Tab move left
+	bindsym shift+Tab move left
 
 	bindsym o $ESC; move workspace to output next
 	bindsym r $ESC; restart
