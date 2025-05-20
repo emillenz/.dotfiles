@@ -46,7 +46,6 @@ default_orientation horizontal
 workspace_layout tabbed
 focus_on_window_activation focus
 workspace_auto_back_and_forth no
-focus_wrapping no
 
 set $GAPSIZE 550
 smart_gaps inverse_outer
@@ -70,22 +69,21 @@ bindsym XF86AudioRaiseVolume $SHCMD pamixer --unmute --increase 5
 bindsym XF86AudioMute $SHCMD pamixer --toggle-mute
 bindsym XF86AudioMicMute $SHCMD pamixer --default-source --toggle-mute
 
+for_window [tiling] move container to workspace 6
+for_window [class="Emacs"] move container to workspace 1
+for_window [class="firefox"] move container to workspace 2
+for_window [class="net.thunderbird.Thunderbird"] move container to workspace 3
+for_window [all] focus
+
+workspace 1 gaps horizontal $GAPSIZE
+
 bindsym $MOD+Tab focus next
-bindsym $MOD+shift+Tab focus prev
+focus_wrapping yes
 
-for_window [tiling] move container to workspace 1
 bindsym $MOD+1 workspace 1
-
-workspace 2 gaps horizontal $GAPSIZE
-for_window [class="Emacs"] move container to workspace 2
 bindsym $MOD+2 workspace 2
-
-for_window [class="firefox"] move container to workspace 3
 bindsym $MOD+3 workspace 3
-
-for_window [class="net.thunderbird.Thunderbird"] move container to workspace 4
 bindsym $MOD+4 workspace 4
-
 bindsym $MOD+5 workspace 5
 bindsym $MOD+6 workspace 6
 
@@ -109,9 +107,9 @@ mode "prefix" {
 	bindsym z $ESC; $SHCMD systemctl suspend
 	bindsym x $ESC; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
 	bindsym s $ESC; $SHCMD scrot \
-		--select \
-		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
-		--exec 'dunstify screenshot "$f"'
+	--select \
+	--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
+	--exec 'dunstify screenshot "$f"'
 	bindsym v $ESC; $SHCMD nmcli connection up protonvpn || (nmcli connection down protonvpn && dunstify 'vpn down')
 
 	bindsym equal $SHCMD pamixer --unmute --increase 5
