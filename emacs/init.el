@@ -23,8 +23,8 @@
   (auto-revert-mode)
   (global-visual-line-mode)
   (auto-save-visited-mode)
-  (fringe-mode 0)
 
+  (fringe-mode 0)
   (tool-bar-mode -1)
   (menu-bar-mode -1)
   (blink-cursor-mode -1)
@@ -209,6 +209,12 @@
 		 "<" 'first-error)
 
     (progn
+      (setopt kmacro-execute-before-append nil)
+      (keymap-set! kmacro-keymap "a" (lambda ()
+				       (interactive)
+				       (kmacro-start-macro '(4)))))
+
+    (progn
       (defun kill-ring-save-region-or-next-kill ()
 	(interactive)
 	(if (region-active-p)
@@ -302,7 +308,16 @@
 
       (keymap-set! global-map
 		   "M-r" 'point-to-register-dwim
-		   "M-j" 'jump-to-register))))
+		   "M-j" 'jump-to-register))
+
+    (progn
+      (defun kmacro-end-and-call-macro-dwim ()
+	(interactive)
+	(call-interactively (if (region-active-p)
+				'apply-macro-to-region-lines
+			      'kmacro-end-and-call-macro)))
+      (keymap-set! global-map
+		   "<remap> <kmacro-end-and-call-macro>" 'kmacro-end-and-call-macro-dwim))))
 
 (use-package isearch
   :config
@@ -344,20 +359,33 @@
 
 (use-package icomplete
   :config
-  (fido-vertical-mode)
+  (add-hook 'after-init-hook 'icomplete-vertical-mode)
 
-  (setopt max-mini-window-height 12
-	  completions-detailed t
-	  completions-auto-help 'visible
-	  completions-max-height 16
-	  completions-format 'one-column
+  (setopt icomplete-delay-completions-threshold 0
+	  icomplete-show-matches-on-no-input t
 	  icomplete-compute-delay 0
+	  icomplete-scroll t
+	  icomplete-prospects-height 10
+	  icomplete-tidy-shadowed-file-names t)
+
+  (setopt completion-ignore-case t
+	  completion-styles '(initials flex)
 	  read-buffer-completion-ignore-case t
 	  read-file-name-completion-ignore-case t)
 
-  (keymap-set! minibuffer-mode-map
-	       "<remap> <minibuffer-complete>" 'icomplete-force-complete
-	       "<remap> <minibuffer-choose-completion>" 'icomplete-fido-exit))
+  (setopt max-mini-window-height 10
+	  completions-detailed t)
+
+  (progn
+    (setopt icomplete-in-buffer t)
+    (advice-add 'completion-at-point :after #'minibuffer-hide-completions))
+
+  (keymap-set! icomplete-minibuffer-map
+	       "C-n" 'icomplete-forward-completions
+	       "C-p" 'icomplete-backward-completions
+	       "C-i" 'icomplete-force-complete
+	       "C-m" 'icomplete-force-complete-and-exit
+	       "C-M-m" 'icomplete-ret))
 
 (use-package recentf
   :config
@@ -381,6 +409,7 @@
   (setopt dired-free-space nil
 	  dired-omit-files "^\\..*$"
 	  dired-clean-confirm-killing-deleted-buffers nil
+	  dired-dwim-target t
 	  dired-recursive-copies 'always
 	  dired-recursive-deletes 'always
 	  dired-no-confirm '(uncompress move copy)
@@ -388,6 +417,7 @@
 	  dired-vc-rename-file t)
 
   (keymap-set! dired-mode-map
+	       "b" 'dired-up-directory
 	       "<remap> <dired-hide-details-mode>" (lambda ()
 						     (interactive)
 						     (dired-omit-mode 'toggle)
