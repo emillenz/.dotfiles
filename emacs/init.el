@@ -21,7 +21,6 @@
   (repeat-mode)
   (save-place-mode)
   (auto-revert-mode)
-  (global-visual-line-mode)
   (auto-save-visited-mode)
 
   (fringe-mode 0)
@@ -55,7 +54,8 @@
 	  kill-do-not-save-duplicates t
 	  kill-whole-line t
 	  shift-select-mode nil
-	  kmacro-execute-before-append nil)
+	  kmacro-execute-before-append nil
+	  word-wrap t)
 
   (setopt history-length 1000
 	  history-delete-duplicates t)
@@ -217,6 +217,8 @@
     (keymap-set! next-error-repeat-map
 		 "<" 'first-error)
 
+    (global-visual-line-mode)
+
     (progn
       (setopt kill-read-only-ok t)
       (defun kill-ring-save-region-or-next-kill ()
@@ -352,28 +354,23 @@
 
 (use-package icomplete
   :config
-  (icomplete-vertical-mode)
+  (fido-vertical-mode)
 
   (setopt completion-auto-help nil)
 
   (setopt icomplete-delay-completions-threshold 0
-	  icomplete-show-matches-on-no-input t
 	  icomplete-compute-delay 0
 	  icomplete-prospects-height 10
 	  icomplete-tidy-shadowed-file-names t
-	  icomplete-scroll t
 	  completions-detailed t
-	  completion-styles '(basic flex))
+	  max-mini-window-height 10)
 
   (setopt completion-ignore-case t
 	  read-buffer-completion-ignore-case t
 	  read-file-name-completion-ignore-case t)
 
   (keymap-set! icomplete-minibuffer-map
-	       "C-n" 'icomplete-forward-completions
-	       "C-p" 'icomplete-backward-completions
-	       "<remap> <minibuffer-complete>" 'icomplete-force-complete
-	       "C-m" 'icomplete-force-complete-and-exit
+	       "C-i" 'icomplete-force-complete
 	       "C-M-m" 'icomplete-ret))
 
 (use-package recentf
@@ -414,7 +411,8 @@
 
 (use-package org
   :config
-  (setopt org-tags-column 0))
+  (setopt org-tags-column 0
+	  org-special-ctrl-k t))
 
 (use-package package
   :config
@@ -425,6 +423,7 @@
   :ensure t
   :init (puni-global-mode 1)
   :config
+  (add-hook 'org-mode-hook (lambda () (puni-mode -1)))
   (seq-do 'push-mark-once '(puni-mark-list-around-point
 			    puni-end-of-sexp
 			    puni-beginning-of-sexp))
