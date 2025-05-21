@@ -237,8 +237,8 @@
 			  (back-to-indentation)
 			  (point)))
 	    (call-interactively 'split-line)
-	    (save-excursion
-	  (seq-do 'call-interactively '(newline indent-according-to-mode)))))
+	  (save-excursion
+	    (seq-do 'call-interactively '(newline indent-according-to-mode)))))
 
       (keymap-set! global-map "<remap> <open-line>" 'open-line-indent))
 
@@ -252,6 +252,19 @@
 	  (indent-region pos (point))))
 
       (keymap-set! global-map "<remap> <yank>" 'yank-indent))
+
+    (progn
+      (defun indent-rigidly-dwim ()
+	(interactive)
+	(unless (use-region-p)
+	  (push-mark (pos-bol))
+	  (when (= (point) (save-excursion
+			     (back-to-indentation)
+			     (point)))
+	    (forward-char)))
+	(call-interactively 'indent-rigidly))
+
+      (keymap-set! global-map "<remap> <indent-rigidly>" 'indent-rigidly-dwim))
 
     (progn
       (defun comment-sexp-dwim ()
