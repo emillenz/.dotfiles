@@ -33,9 +33,7 @@
   (horizontal-scroll-bar-mode -1)
   (tooltip-mode -1)
 
-  (setopt history-length 1000
-	  history-delete-duplicates t
-	  uniquify-buffer-name-style 'forward
+  (setopt uniquify-buffer-name-style 'forward
 	  delete-by-moving-to-trash t
 	  remote-file-name-inhibit-delete-by-moving-to-trash t
 	  ring-bell-function 'ignore
@@ -44,24 +42,30 @@
 	  auto-save-include-big-deletions t
 	  kill-buffer-delete-auto-save-files t
 	  auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)
+	  custom-file (expand-file-name "custom.el" user-emacs-directory)
 	  use-short-answers t
 	  save-interprogram-paste-before-kill t
 	  require-final-newline t
 	  load-prefer-newer t
-	  shell-command-prompt-show-cwd t
-	  async-shell-command-display-buffer nil
-	  async-shell-command-buffer 'new-buffer
-	  custom-file (expand-file-name "custom.el" user-emacs-directory)
 	  desktop-dirname user-emacs-directory
 	  find-file-visit-truename t
 	  comment-empty-lines nil
 	  register-preview-delay nil
-	  kill-do-not-save-duplicates t
 	  show-paren-when-point-inside-paren t
+	  kill-do-not-save-duplicates t
 	  kill-whole-line t
 	  shift-select-mode nil
-	  set-mark-command-repeat-pop t
-	  bookmark-fringe-mark nil)
+	  kmacro-execute-before-append nil)
+
+  (setopt history-length 1000
+	  history-delete-duplicates t)
+
+  (setopt shell-command-prompt-show-cwd t
+	  async-shell-command-display-buffer nil
+	  async-shell-command-buffer 'new-buffer)
+
+  (setopt bookmark-fringe-mark nil
+	  bookmark-save-flag 1)
 
   (setopt create-lockfiles nil
 	  make-backup-files nil
@@ -159,7 +163,12 @@
 		      (push-mark)))))
 
     (seq-do 'push-mark-once '(mark-paragraph
-			      backward-up-list)))
+			      backward-up-list))
+
+    (add-hook 'deactivate-mark-hook
+	      (lambda ()
+		(unless (eq (mark) (point))
+		  (pop-mark)))))
 
   (seq-do (lambda (cmd)
 	    (advice-add cmd :around
@@ -187,11 +196,11 @@
 		 "<remap> <list-buffers>" 'ibuffer
 		 "<remap> <dired>" 'dired-jump
 
-		 "<remap> <delete-horizontal-space>" 'cycle-spacing
-		 "M-SPC" 'mark-word
-
+		 "C-," (lambda () (interactive) (set-mark-command t))
 		 "C-z" 'repeat
-		 "C-u" (lambda () (interactive) (set-mark-command '(4))))
+
+		 "<remap> <delete-horizontal-space>" 'cycle-spacing
+		 "M-SPC" 'mark-word)
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open)
@@ -209,22 +218,16 @@
 		 "<" 'first-error)
 
     (progn
-      (setopt kmacro-execute-before-append nil)
-      (keymap-set! kmacro-keymap "a" (lambda ()
-				       (interactive)
-				       (kmacro-start-macro '(4)))))
-
-    (progn
+      (setopt kill-read-only-ok t)
       (defun kill-ring-save-region-or-next-kill ()
 	(interactive)
-	(if (region-active-p)
+	(if (use-region-p)
 	    (call-interactively 'kill-ring-save)
 	  (let ((buffer-read-only t))
-	    (ignore-errors
-	      (save-mark-and-excursion
-		(call-interactively
-		 (key-binding
-		  (read-key-sequence "save next kill:"))))))))
+	    (save-mark-and-excursion
+	      (call-interactively
+	       (key-binding
+		(read-key-sequence "save next kill:")))))))
 
       (keymap-set! global-map "M-w" 'kill-ring-save-region-or-next-kill))
 
@@ -238,20 +241,10 @@
       (keymap-set! global-map "<remap> <open-line>" 'open-line-indent))
 
     (progn
-      (defun indent-dwim ()
-	(interactive)
-	(call-interactively
-	 (if (region-active-p)
-	     'indent-region
-	   'indent-for-tab-command)))
-
-      (keymap-set! global-map "<remap> <indent-for-tab-command>" 'indent-dwim))
-
-    (progn
       (defun yank-indent ()
 	(interactive)
 	(let ((pos (point)))
-	  (if (and delete-selection-mode (region-active-p))
+	  (if (and delete-selection-mode (use-region-p))
 	      (call-interactively 'delete-region))
 	  (call-interactively 'yank)
 	  (indent-region pos (point))))
@@ -262,7 +255,7 @@
       (defun comment-sexp-dwim ()
 	(interactive)
 	(save-mark-and-excursion
-	  (unless (region-active-p)
+	  (unless (use-region-p)
 	    (call-interactively 'mark-sexp))
 	  (call-interactively 'comment-dwim)))
 
@@ -272,14 +265,14 @@
       (defun eval-sexp-dwim ()
 	(interactive)
 	(save-mark-and-excursion
-	  (unless (region-active-p)
+	  (unless (use-region-p)
 	    (call-interactively 'mark-sexp))
 	  (eval-region (region-beginning) (region-end) t)))
 
       (defun pp-eval-sexp-dwim ()
 	(interactive)
 	(save-mark-and-excursion
-	  (unless (region-active-p)
+	  (unless (use-region-p)
 	    (call-interactively 'mark-sexp))
 	  (pp-eval-expression (read (buffer-substring (region-beginning)
 						      (region-end))))))
@@ -313,7 +306,7 @@
     (progn
       (defun kmacro-end-and-call-macro-dwim ()
 	(interactive)
-	(call-interactively (if (region-active-p)
+	(call-interactively (if (use-region-p)
 				'apply-macro-to-region-lines
 			      'kmacro-end-and-call-macro)))
       (keymap-set! global-map
@@ -359,31 +352,27 @@
 
 (use-package icomplete
   :config
-  (add-hook 'after-init-hook 'icomplete-vertical-mode)
+  (icomplete-vertical-mode)
+
+  (setopt completion-auto-help nil)
 
   (setopt icomplete-delay-completions-threshold 0
 	  icomplete-show-matches-on-no-input t
 	  icomplete-compute-delay 0
-	  icomplete-scroll t
 	  icomplete-prospects-height 10
-	  icomplete-tidy-shadowed-file-names t)
+	  icomplete-tidy-shadowed-file-names t
+	  icomplete-scroll t
+	  completions-detailed t
+	  completion-styles '(basic flex))
 
   (setopt completion-ignore-case t
-	  completion-styles '(initials flex)
 	  read-buffer-completion-ignore-case t
 	  read-file-name-completion-ignore-case t)
-
-  (setopt max-mini-window-height 10
-	  completions-detailed t)
-
-  (progn
-    (setopt icomplete-in-buffer t)
-    (advice-add 'completion-at-point :after #'minibuffer-hide-completions))
 
   (keymap-set! icomplete-minibuffer-map
 	       "C-n" 'icomplete-forward-completions
 	       "C-p" 'icomplete-backward-completions
-	       "C-i" 'icomplete-force-complete
+	       "<remap> <minibuffer-complete>" 'icomplete-force-complete
 	       "C-m" 'icomplete-force-complete-and-exit
 	       "C-M-m" 'icomplete-ret))
 
