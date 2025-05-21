@@ -327,25 +327,14 @@
 	  isearch-lazy-count t
 	  isearch-allow-motion t
 	  isearch-motion-changes-direction t
-	  isearch-wrap-pause nil)
+	  isearch-wrap-pause 'no)
 
   (progn
-    (progn
-      (defun isearch-delete-dwim ()
-      (interactive)
-      (isearch-del-char)
-      (while (or (not isearch-success) isearch-error)
-	(isearch-pop-state))
-      (isearch-update))
-
-      (keymap-set! isearch-mode-map
-		   "<remap> <isearch-delete-char>" 'isearch-delete-dwim))
-
     (keymap-unset isearch-mode-map "C-w" t)
     (keymap-unset isearch-mode-map "C-M-d" t)
 
     (keymap-set! isearch-mode-map
-		 "C-g" 'isearch-cancel
+		 "<remap> <isearch-delete-char>" 'isearch-del-char
 		 "M-/" 'isearch-complete)
 
     (keymap-set! minibuffer-local-isearch-map

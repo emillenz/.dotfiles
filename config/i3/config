@@ -25,7 +25,8 @@ set $DMENU_ARGS \
 
 set $SHCMD_ON_RESTART exec_always --no-startup-id
 
-$SHCMD_ON_RESTART emacsclient --reuse-frame || (emacs --daemon && emacsclient --create-frame)
+$SHCMD_ON_RESTART emacsclient --reuse-frame \
+	|| (emacs --daemon && emacsclient --create-frame)
 $SHCMD_ON_RESTART pgrep firefox || firefox
 $SHCMD_ON_RESTART pgrep thunderbird || thunderbird
 $SHCMD_ON_RESTART pgrep -x keepassxc || keepassxc
@@ -33,7 +34,8 @@ $SHCMD_ON_RESTART pgrep -x keepassxc || keepassxc
 $SHCMD_ON_RESTART pgrep unclutter || unclutter
 $SHCMD_ON_RESTART pgrep batsignal || batsignal -bpe -w 50 -c 20 -d 5
 $SHCMD_ON_RESTART pgrep nm-applet || nm-applet
-$SHCMD_ON_RESTART pgrep xss-lock || xss-lock --transfer-sleep-lock -- i3lock --nofork --color "$BG"
+$SHCMD_ON_RESTART pgrep xss-lock \
+	|| xss-lock --transfer-sleep-lock -- i3lock --nofork --color "$BG"
 
 $SHCMD_ON_RESTART xsetroot -solid "$BG"
 $SHCMD_ON_RESTART xset dpms 0 0 0
@@ -70,7 +72,7 @@ bindsym XF86AudioRaiseVolume	$SHCMD pamixer --unmute --increase 5
 bindsym XF86AudioMute		$SHCMD pamixer --toggle-mute
 bindsym XF86AudioMicMute	$SHCMD pamixer --default-source --toggle-mute
 
-for_window [tiling]					move container to workspace 6
+for_window [all]					move container to workspace 0
 for_window [class="Emacs"]				move container to workspace 1
 for_window [class="firefox"]				move container to workspace 2
 for_window [class="net.thunderbird.Thunderbird"]	move container to workspace 3
@@ -79,6 +81,7 @@ for_window [all] focus
 bindsym $MOD+Tab focus next
 focus_wrapping yes
 
+bindsym $MOD+grave workspace 0
 bindsym $MOD+1 workspace 1
 bindsym $MOD+2 workspace 2
 bindsym $MOD+3 workspace 3
@@ -92,6 +95,7 @@ mode "prefix" {
 	bindsym Super_L $ESC
 	bindsym Ctrl+g $ESC
 
+	bindsym grave $ESC; move container to workspace 0; workspace 0
 	bindsym 1 $ESC; move container to workspace 1; workspace 1
 	bindsym 2 $ESC; move container to workspace 2; workspace 2
 	bindsym 3 $ESC; move container to workspace 3; workspace 3
@@ -106,10 +110,11 @@ mode "prefix" {
 	bindsym z $ESC; $SHCMD systemctl suspend
 	bindsym x $ESC; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
 	bindsym s $ESC; $SHCMD scrot \
-	--select \
-	--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
-	--exec 'dunstify screenshot "$f"'
-	bindsym v $ESC; $SHCMD nmcli connection up protonvpn || (nmcli connection down protonvpn && dunstify 'vpn down')
+		--select \
+		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
+		--exec 'dunstify screenshot "$f"'
+	bindsym v $ESC; $SHCMD nmcli connection up protonvpn \
+		|| (nmcli connection down protonvpn && dunstify 'vpn down')
 
 	bindsym equal $SHCMD pamixer --unmute --increase 5
 	bindsym minus $SHCMD pamixer --unmute --decrease 5
