@@ -233,9 +233,12 @@
     (progn
       (defun open-line-indent ()
 	(interactive)
-	(save-mark-and-excursion
-	  (seq-do 'call-interactively '(open-line forward-line))
-	  (indent-according-to-mode)))
+	(if (eq (point) (save-excursion
+			  (back-to-indentation)
+			  (point)))
+	    (call-interactively 'split-line)
+	    (save-excursion
+	  (seq-do 'call-interactively '(newline indent-according-to-mode)))))
 
       (keymap-set! global-map "<remap> <open-line>" 'open-line-indent))
 
