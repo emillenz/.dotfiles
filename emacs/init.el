@@ -18,7 +18,6 @@
   (delete-selection-mode)
   (electric-indent-mode)
   (electric-pair-mode)
-  (repeat-mode)
   (save-place-mode)
   (auto-revert-mode)
   (auto-save-visited-mode)
@@ -205,6 +204,9 @@
     (keymap-set! ctl-x-x-map
 		 "f" 'global-font-lock-mode)
 
+    (keymap-set! help-map
+		 "." (lambda () (interactive) (describe-symbol (symbol-at-point))))
+
     (keymap-set! indent-rigidly-map
 		 "C-i" 'indent-rigidly-right-to-tab-stop
 		 "C-M-i" 'indent-rigidly-left-to-tab-stop
@@ -319,33 +321,57 @@
 		(goto-char isearch-other-end))))
 
   (setopt isearch-lax-whitespace t
-	  search-whitespace-regexp ".*?"
+	  search-whitespace-regexp ".*?")
 
-	  lazy-highlight-initial-delay 0
+  (setopt lazy-highlight-initial-delay 0
 	  isearch-lazy-count t
 	  isearch-allow-motion t
-	  isearch-motion-changes-direction t)
+	  isearch-motion-changes-direction t
+	  isearch-wrap-pause nil)
 
-  (keymap-unset isearch-mode-map "C-w" t)
-  (keymap-unset isearch-mode-map "C-M-d" t)
-  (keymap-set! global-map
-	       "<remap> <isearch-delete-char>" 'isearch-del-char))
+  (progn
+    (progn
+      (defun isearch-delete-dwim ()
+      (interactive)
+      (isearch-del-char)
+      (while (or (not isearch-success) isearch-error)
+	(isearch-pop-state))
+      (isearch-update))
+
+      (keymap-set! isearch-mode-map
+		   "<remap> <isearch-delete-char>" 'isearch-delete-dwim))
+
+    (keymap-unset isearch-mode-map "C-w" t)
+    (keymap-unset isearch-mode-map "C-M-d" t)
+
+    (keymap-set! isearch-mode-map
+		 "C-g" 'isearch-cancel
+		 "M-/" 'isearch-complete)
+
+    (keymap-set! minibuffer-local-isearch-map
+		 "M-/" 'isearch-complete-edit)))
+
+(use-package repeat
+  :config
+  (repeat-mode)
+  (setopt repeat-keep-prefix t))
 
 (use-package replace
   :config
   (progn
-    (defvar suppressed-map
-      (let ((map (make-keymap)))
-	(set-char-table-range (nth 1 map) t 'ignore)
-	map))
-    (define-keymap :keymap query-replace-map :parent suppressed-map))
+    (progn
+      (defvar suppressed-map
+	(let ((map (make-keymap)))
+	  (set-char-table-range (nth 1 map) t 'ignore)
+	  map))
+      (define-keymap :keymap query-replace-map :parent suppressed-map))
 
-  (keymap-set! global-map
-	       "<remap> <query-replace>" 'query-replace-regexp
-	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
+    (keymap-set! global-map
+		 "<remap> <query-replace>" 'query-replace-regexp
+		 "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
 
-  (keymap-set! query-replace-map
-	       "p" 'backup))
+    (keymap-set! query-replace-map
+		 "p" 'backup)))
 
 (use-package icomplete
   :config
@@ -395,14 +421,18 @@
 	  dired-recursive-deletes 'always
 	  dired-no-confirm '(uncompress move copy)
 	  dired-create-destination-dirs 'ask
-	  dired-vc-rename-file t)
+	  dired-vc-rename-file t
+	  dired-auto-revert-buffer 'dired-directory-changed-p
+	  dired-create-destination-dirs-on-trailing-dirsep t)
 
   (keymap-set! dired-mode-map
 	       "b" 'dired-up-directory
-	       "<remap> <dired-hide-details-mode>" (lambda ()
-						     (interactive)
-						     (dired-omit-mode 'toggle)
-						     (dired-hide-details-mode 'toggle))))
+
+	       "<remap> <dired-hide-details-mode>"
+	       (lambda ()
+		 (interactive)
+		 (dired-omit-mode 'toggle)
+		 (dired-hide-details-mode 'toggle))))
 
 (use-package org
   :config
@@ -443,24 +473,28 @@
 			  'beyond
 			  'kill))))
 
-  (keymap-set! puni-mode-map
-	       "C-<backspace>" 'puni-backward-kill-to-indent
+  (progn
+    (keymap-set! puni-mode-map
+		 "C-<backspace>" 'puni-backward-kill-to-indent
 
-	       "C-M-r" 'puni-raise
-	       "C-M-s" 'puni-splice
-	       "C-M-v" 'puni-mark-list-around-point
+		 "C-M-r" 'puni-raise
+		 "C-M-s" 'puni-splice
+		 "C-M-v" 'puni-mark-list-around-point
 
-	       "C-(" 'puni-slurp-backward
-	       "C-)" 'puni-slurp-forward
-	       "C-{" 'puni-barf-backward
-	       "C-}" 'puni-barf-forward)
+		 "C-(" 'puni-slurp-backward
+		 "C-)" 'puni-slurp-forward
+		 "C-{" 'puni-barf-backward
+		 "C-}" 'puni-barf-forward)
 
-  (keymap-set! lisp-mode-shared-map
-	       "C-c v" 'puni-convolute
-	       "C-c s" 'puni-split)
+    (add-hook 'org-mode-hook
+	      (lambda ()
+		(interactive)
+		(keymap-set org-mode-map
+			    "<remap> <puni-kill-line>" 'org-kill-line)))
 
-  (keymap-set! org-mode-map
-	       ))
+    (keymap-set! lisp-mode-shared-map
+		 "C-c v" 'puni-convolute
+		 "C-c s" 'puni-split)))
 
 (use-package magit
   :ensure t)
