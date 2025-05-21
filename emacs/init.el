@@ -22,6 +22,7 @@
   (save-place-mode)
   (auto-revert-mode)
   (auto-save-visited-mode)
+  (global-visual-line-mode)
 
   (fringe-mode 0)
   (tool-bar-mode -1)
@@ -55,7 +56,7 @@
 	  kill-whole-line t
 	  shift-select-mode nil
 	  kmacro-execute-before-append nil
-	  word-wrap t)
+	  vc-follow-symlinks t)
 
   (setopt history-length 1000
 	  history-delete-duplicates t)
@@ -73,7 +74,6 @@
 	  version-control t
 	  kept-new-versions 5
 	  kept-old-versions 5
-	  vc-follow-symlinks t
 	  vc-make-backup-files nil
 	  backup-by-copying t
 	  backup-by-copying-when-linked t
@@ -113,8 +113,6 @@
     (add-hook 'activate-mark-hook (lambda () (global-hl-line-mode -1))))
 
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
-
-  (delete 'try-expand-list hippie-expand-try-functions-list)
 
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
 
@@ -191,15 +189,14 @@
 		 "<remap> <downcase-word>" 'downcase-dwim
 		 "<remap> <upcase-word>" 'upcase-dwim
 		 "<remap> <capitalize-word>" 'capitalize-dwim
-		 "<remap> <dabbrev-expand>" 'hippie-expand
 		 "<remap> <kill-buffer>" 'kill-buffer-and-window
 		 "<remap> <list-buffers>" 'ibuffer
+		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "<remap> <dired>" 'dired-jump
 
+		 "C-M-/" 'hippie-expand
 		 "C-," (lambda () (interactive) (set-mark-command t))
 		 "C-z" 'repeat
-
-		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "M-SPC" 'mark-word)
 
     (keymap-set! ctl-x-map
@@ -216,8 +213,6 @@
 
     (keymap-set! next-error-repeat-map
 		 "<" 'first-error)
-
-    (global-visual-line-mode)
 
     (progn
       (setopt kill-read-only-ok t)
@@ -421,9 +416,10 @@
 
 (use-package puni
   :ensure t
-  :init (puni-global-mode 1)
+  :init
+  (puni-global-mode 1)
+
   :config
-  (add-hook 'org-mode-hook (lambda () (puni-mode -1)))
   (seq-do 'push-mark-once '(puni-mark-list-around-point
 			    puni-end-of-sexp
 			    puni-beginning-of-sexp))
@@ -447,7 +443,7 @@
 			  'beyond
 			  'kill))))
 
-  (keymap-set! global-map
+  (keymap-set! puni-mode-map
 	       "C-<backspace>" 'puni-backward-kill-to-indent
 
 	       "C-M-r" 'puni-raise
@@ -461,7 +457,10 @@
 
   (keymap-set! lisp-mode-shared-map
 	       "C-c v" 'puni-convolute
-	       "C-c s" 'puni-split))
+	       "C-c s" 'puni-split)
+
+  (keymap-set! org-mode-map
+	       ))
 
 (use-package magit
   :ensure t)
