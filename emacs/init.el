@@ -431,13 +431,7 @@
 	  dired-create-destination-dirs-on-trailing-dirsep t)
 
   (keymap-set! dired-mode-map
-	       "b" 'dired-up-directory
-
-	       "<remap> <dired-hide-details-mode>"
-	       (lambda ()
-		 (interactive)
-		 (dired-omit-mode 'toggle)
-		 (dired-hide-details-mode 'toggle))))
+	       "b" 'dired-up-directory))
 
 (use-package org
   :config
