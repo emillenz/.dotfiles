@@ -186,15 +186,11 @@
 		 "<remap> <upcase-word>" 'upcase-dwim
 		 "<remap> <capitalize-word>" 'capitalize-dwim
 		 "<remap> <delete-horizontal-space>" 'cycle-spacing
+		 "<remap> <keyboard-quit>" 'keyboard-escape-quit
+		 "<remap> <kill-buffer>" 'kill-current-buffer
 		 "C-M-/" 'hippie-expand
 		 "C-z" 'repeat
-		 "M-SPC" 'mark-word
-
-		 "<remap> <kill-buffer>" (defun kill-current-buffer ()
-					   (interactive)
-					   (kill-buffer nil))
-		 "<remap> <dired>" 'dired-jump
-		 "<remap> <list-buffers>" 'ibuffer)
+		 "M-SPC" 'mark-word)
 
     (progn
       (keymap-set! global-map
@@ -220,118 +216,106 @@
 		 "DEL" 'indent-rigidly-left)
 
     (keymap-set! next-error-repeat-map
-		 "<" 'first-error)
+		 "M-<" 'first-error)
 
     (progn
       (setopt kill-read-only-ok t)
-      (defun kill-ring-save-region-or-next-kill ()
-	(interactive)
-	(if (use-region-p)
-	    (call-interactively 'kill-ring-save)
-	  (let ((buffer-read-only t))
-	    (save-mark-and-excursion
-	      (call-interactively
-	       (key-binding
-		(read-key-sequence "save next kill:")))))))
+      (keymap-set! global-map
+		   "M-w"
+		   (defun kill-ring-save-region-or-next-kill ()
+		     (interactive)
+		     (if (use-region-p)
+			 (call-interactively 'kill-ring-save)
+		       (let ((buffer-read-only t))
+			 (save-mark-and-excursion
+			   (call-interactively
+			    (key-binding
+			     (read-key-sequence "save next kill:")))))))))
 
-      (keymap-set! global-map "M-w" 'kill-ring-save-region-or-next-kill))
+    (keymap-set! global-map
+		 "<remap> <open-line>"
+		 (defun open-line-indent ()
+		   (interactive)
+		   (if (eq (point) (save-excursion
+				     (back-to-indentation)
+				     (point)))
+		       (call-interactively 'split-line)
+		     (save-excursion
+		       (seq-do 'call-interactively '(newline indent-according-to-mode))))))
 
-    (progn
-      (defun open-line-indent ()
-	(interactive)
-	(if (eq (point) (save-excursion
-			  (back-to-indentation)
-			  (point)))
-	    (call-interactively 'split-line)
-	  (save-excursion
-	    (seq-do 'call-interactively '(newline indent-according-to-mode)))))
+    (keymap-set! global-map
+		 "<remap> <yank>"
+		 (defun yank-indent ()
+		   (interactive)
+		   (let ((pos (point)))
+		     (if (and delete-selection-mode (use-region-p))
+			 (call-interactively 'delete-region))
+		     (call-interactively 'yank)
+		     (indent-region pos (point)))))
 
-      (keymap-set! global-map "<remap> <open-line>" 'open-line-indent))
+    (keymap-set! global-map
+		 "<remap> <indent-rigidly>"
+		 (defun indent-rigidly-dwim ()
+		   (interactive)
+		   (unless (use-region-p)
+		     (push-mark (pos-bol) t)
+		     (when (<= (point) (save-excursion
+					 (back-to-indentation)
+					 (point)))
+		       (back-to-indentation)
+		       (forward-char)))
+		   (call-interactively 'indent-rigidly)))
 
-    (progn
-      (defun yank-indent ()
-	(interactive)
-	(let ((pos (point)))
-	  (if (and delete-selection-mode (use-region-p))
-	      (call-interactively 'delete-region))
-	  (call-interactively 'yank)
-	  (indent-region pos (point))))
+    (keymap-set! global-map
+		 "<remap> <comment-dwim>"
+		 (defun comment-sexp-dwim ()
+		   (interactive)
+		   (save-mark-and-excursion
+		     (unless (use-region-p)
+		       (call-interactively 'mark-sexp))
+		     (call-interactively 'comment-dwim))))
 
-      (keymap-set! global-map "<remap> <yank>" 'yank-indent))
+    (keymap-set! global-map
+		 "<remap> <eval-last-sexp>"
+		 (defun eval-sexp-dwim ()
+		   (interactive)
+		   (save-mark-and-excursion
+		     (unless (use-region-p)
+		       (call-interactively 'mark-sexp))
+		     (eval-region (region-beginning) (region-end) t))))
 
-    (progn
-      (defun indent-rigidly-dwim ()
-	(interactive)
-	(unless (use-region-p)
-	  (push-mark (pos-bol))
-	  (when (= (point) (save-excursion
-			     (back-to-indentation)
-			     (point)))
-	    (forward-char)))
-	(call-interactively 'indent-rigidly))
-
-      (keymap-set! global-map "<remap> <indent-rigidly>" 'indent-rigidly-dwim))
-
-    (progn
-      (defun comment-sexp-dwim ()
-	(interactive)
-	(save-mark-and-excursion
-	  (unless (use-region-p)
-	    (call-interactively 'mark-sexp))
-	  (call-interactively 'comment-dwim)))
-
-      (keymap-set! global-map "<remap> <comment-dwim>" 'comment-sexp-dwim))
-
-    (progn
-      (defun eval-sexp-dwim ()
-	(interactive)
-	(save-mark-and-excursion
-	  (unless (use-region-p)
-	    (call-interactively 'mark-sexp))
-	  (eval-region (region-beginning) (region-end) t)))
-
-      (defun pp-eval-sexp-dwim ()
-	(interactive)
-	(save-mark-and-excursion
-	  (unless (use-region-p)
-	    (call-interactively 'mark-sexp))
-	  (pp-eval-expression (read (buffer-substring (region-beginning)
-						      (region-end))))))
-
-      (keymap-set! global-map "<remap> <eval-last-sexp>" 'eval-sexp-dwim))
-
-    (progn
-      (defun switch-to-other-buffer ()
-	(interactive)
-	(let ((buf (caar (window-prev-buffers))))
-	  (switch-to-buffer (unless (eq buf (current-buffer)) buf))))
-
-      (keymap-set! ctl-x-map "C-b" 'switch-to-other-buffer))
+    (keymap-set! ctl-x-map
+		 "C-b"
+		 (defun switch-to-other-buffer ()
+		   (interactive)
+		   (let ((buf (caar (window-prev-buffers))))
+		     (switch-to-buffer (unless (eq buf (current-buffer)) buf)))))
 
     (progn
       (defun buffer-to-register (reg)
 	(interactive (list (register-read-with-preview "buffer to register:")))
 	(set-register reg (cons 'buffer (current-buffer))))
 
-      (defun point-to-register-dwim ()
-	(interactive)
-	(call-interactively
-	 (if current-prefix-arg
-	     'buffer-to-register
-	   'point-to-register)))
+      (keymap-set! global-map
+		   "M-r"
+		   (defun point-to-register-dwim ()
+		     (interactive)
+		     (call-interactively
+		      (if current-prefix-arg
+			  'buffer-to-register
+			'point-to-register))))
 
       (keymap-set! global-map
-		   "M-r" 'point-to-register-dwim
 		   "M-j" 'jump-to-register))
 
-    (progn
-      (defun kmacro-end-and-call-macro-dwim ()
-	(interactive)
-	(call-interactively (if (use-region-p)
-				'apply-macro-to-region-lines
-			      'kmacro-end-and-call-macro)))
-      (keymap-set! global-map
-		   "<remap> <kmacro-end-and-call-macro>" 'kmacro-end-and-call-macro-dwim))))
+    (keymap-set! global-map
+		 "<remap> <kmacro-end-and-call-macro>"
+		 (defun kmacro-end-and-call-macro-dwim ()
+		   (interactive)
+		   (call-interactively
+		    (if (use-region-p)
+			'apply-macro-to-region-lines
+		      'kmacro-end-and-call-macro))))))
 
 (use-package isearch
   :config
