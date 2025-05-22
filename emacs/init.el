@@ -6,8 +6,10 @@
 ;; email: emillenz@protonmail.com
 ;; ---
 
-(setopt use-package-always-demand t
-	use-package-enable-imenu-support t)
+(use-package use-package
+  :config
+  (setopt use-package-always-demand t
+	  use-package-enable-imenu-support t))
 
 (use-package emacs
   :config
@@ -62,9 +64,6 @@
 	  async-shell-command-display-buffer nil
 	  async-shell-command-buffer 'new-buffer)
 
-  (setopt bookmark-fringe-mark nil
-	  bookmark-save-flag 1)
-
   (setopt create-lockfiles nil
 	  make-backup-files nil
 	  delete-old-versions t
@@ -99,9 +98,6 @@
   (setopt scroll-preserve-screen-position t
 	  scroll-error-top-bottom t
 	  auto-window-vscroll nil)
-
-  (setopt comint-input-ignoredups t
-	  comint-prompt-read-only t)
 
   (progn
     (global-hl-line-mode)
@@ -148,7 +144,7 @@
 	    align-entire))
 
   (progn
-    (defun push-mark-once (fn)
+    (defun advice-add-push-mark-once (fn)
       (advice-add fn
 		  :before
 		  (defun advice--push-mark-once (&rest _)
@@ -156,9 +152,10 @@
 				(when (mark) (= (mark) (point))))
 		      (push-mark)))))
 
-    (seq-do 'push-mark-once '(mark-paragraph
-			      backward-up-list
-			      down-list))
+    (seq-do 'advice-add-push-mark-once
+	    '(mark-paragraph
+	      backward-up-list
+	      down-list))
 
     (add-hook 'deactivate-mark-hook
 	      (defun hook--pop-mark ()
@@ -317,6 +314,12 @@
 			'apply-macro-to-region-lines
 		      'kmacro-end-and-call-macro))))))
 
+
+(use-package comint
+  :config
+  (setopt comint-input-ignoredups t
+	  comint-prompt-read-only t))
+
 (use-package isearch
   :config
   (add-hook 'isearch-update-post-hook
@@ -387,12 +390,17 @@
 
   (keymap-set! icomplete-minibuffer-map
 	       "C-i" 'icomplete-force-complete
-	       "C-M-m" 'icomplete-ret))
+	       "C-M-m" 'icomplete-fido-exit))
 
 (use-package recentf
   :config
   (recentf-mode 1)
   (setopt recentf-max-saved-items 300))
+
+(use-package bookmark
+  :config
+  (setopt bookmark-fringe-mark nil
+	  bookmark-save-flag 1))
 
 (use-package savehist
   :config
@@ -439,9 +447,11 @@
   (puni-global-mode 1)
 
   :config
-  (seq-do 'push-mark-once '(puni-mark-list-around-point
-			    puni-end-of-sexp
-			    puni-beginning-of-sexp))
+  (seq-do (lambda (cmd)
+	    (advice-add-push-mark-once cmd))
+	  '(puni-mark-list-around-point
+	    puni-end-of-sexp
+	    puni-beginning-of-sexp))
 
   (advice-add 'puni-kill-line
 	      :around
@@ -476,21 +486,27 @@
     (keymap-set! puni-mode-map
 		 "<remap> <kill-whole-line>" 'puni-kill-whole-line))
 
-  (defun puni-backward-kill-to-indent ()
-    (interactive)
-    (let ((indent-begin (save-excursion (back-to-indentation) (point))))
-      (if (= (point) indent-begin)
-	  (call-interactively 'puni-backward-kill-line)
-	(puni-soft-delete (point)
-			  indent-begin
-			  'strict-sexp
-			  'beyond
-			  'kill))))
+  (progn
+    (defun puni-backward-kill-line-to-indent (&optional arg)
+      (interactive "p")
+      (let ((pos-indent (save-excursion (back-to-indentation) (point))))
+	(cond ((or (= arg 0)
+		   (= (point) pos-indent))
+	       (puni-backward-kill-line))
+	      ((= arg 1)
+	       (puni-soft-delete (point)
+				 pos-indent
+				 'strict-sexp
+				 'beyond
+				 'kill))
+	      (t
+	       (puni-backward-kill-line arg)))))
+
+    (keymap-set! puni-mode-map
+		 "C-<backspace>" 'puni-backward-kill-line-to-indent))
 
   (progn
     (keymap-set! puni-mode-map
-		 "C-<backspace>" 'puni-backward-kill-to-indent
-
 		 "C-M-r" 'puni-raise
 		 "C-M-s" 'puni-splice
 		 "C-M-v" 'puni-mark-list-around-point
