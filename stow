@@ -10,5 +10,5 @@
 alias stow="stow --restow --ignore='^.git$'"
 stow config --target "$HOME/.config"
 stow home --target "$HOME"
-stow X11 --target "/etc/X11/xorg.conf.d/"
 stow emacs --target "$HOME/.emacs.d"
+stow X11 --target "/etc/X11/xorg.conf.d/"

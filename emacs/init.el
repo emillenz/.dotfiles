@@ -13,7 +13,6 @@
   :config
   (global-auto-revert-mode)
   (column-number-mode)
-  (global-word-wrap-whitespace-mode)
   (global-subword-mode)
   (delete-selection-mode)
   (electric-indent-mode)
@@ -52,7 +51,6 @@
 	  register-preview-delay nil
 	  show-paren-when-point-inside-paren t
 	  kill-do-not-save-duplicates t
-	  kill-whole-line t
 	  shift-select-mode nil
 	  kmacro-execute-before-append nil
 	  vc-follow-symlinks t)
@@ -90,10 +88,9 @@
 	  use-file-dialog nil
 	  use-dialog-box nil)
 
-  (setopt tab-always-indent 'complete
+  (setopt tab-always-indent t
 	  indent-tabs-mode t
 	  tab-width 8
-	  standard-indent 8
 	  c-default-style "linux")
 
   (setopt compilation-scroll-output t
@@ -160,7 +157,8 @@
 		      (push-mark)))))
 
     (seq-do 'push-mark-once '(mark-paragraph
-			      backward-up-list))
+			      backward-up-list
+			      down-list))
 
     (add-hook 'deactivate-mark-hook
 	      (lambda ()
@@ -172,9 +170,8 @@
 			(lambda (fn &rest args)
 			  (with-undo-amalgamate
 			    (apply fn args)))))
-	  '(kmacro-end-and-call-macro
-	    query-replace-regexp
-	    apply-macro-to-region-lines))
+	  '(kmacro-end-and-call-macro-dwim
+	    query-replace-regexp))
 
   (progn
     (defmacro keymap-set! (keymap &rest pairs)
@@ -188,15 +185,15 @@
 		 "<remap> <downcase-word>" 'downcase-dwim
 		 "<remap> <upcase-word>" 'upcase-dwim
 		 "<remap> <capitalize-word>" 'capitalize-dwim
-		 "<remap> <kill-buffer>" 'kill-buffer-and-window
-		 "<remap> <list-buffers>" 'ibuffer
 		 "<remap> <delete-horizontal-space>" 'cycle-spacing
-		 "<remap> <dired>" 'dired-jump
-
 		 "C-M-/" 'hippie-expand
 		 "C-," (lambda () (interactive) (set-mark-command t))
 		 "C-z" 'repeat
-		 "M-SPC" 'mark-word)
+		 "M-SPC" 'mark-word
+
+		 "<remap> <kill-buffer>" (lambda () (interactive) (kill-buffer nil))
+		 "<remap> <dired>" 'dired-jump
+		 "<remap> <list-buffers>" 'ibuffer)
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open)
