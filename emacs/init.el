@@ -105,8 +105,8 @@
 
   (progn
     (global-hl-line-mode)
-    (add-hook 'deactivate-mark-hook (lambda () (global-hl-line-mode 1)))
-    (add-hook 'activate-mark-hook (lambda () (global-hl-line-mode -1))))
+    (add-hook 'deactivate-mark-hook (defun hook--hl-line-mode-on () (global-hl-line-mode 1)))
+    (add-hook 'activate-mark-hook (defun hook--hl-line-mode-off () (global-hl-line-mode -1))))
 
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
@@ -141,7 +141,7 @@
   (put 'narrow-to-region 'disabled nil)
 
   (seq-do (lambda (fn)
-	    (advice-add fn :before (lambda (&rest _) (deactivate-mark))))
+	    (advice-add fn :before (defun advice--deactivate-mark (&rest _) (deactivate-mark))))
 	  '(apply-macro-to-region-lines
 	    eval-region
 	    align
@@ -151,7 +151,7 @@
     (defun push-mark-once (fn)
       (advice-add fn
 		  :before
-		  (lambda (&rest _)
+		  (defun advice--push-mark-once (&rest _)
 		    (unless (or (eq last-command this-command)
 				(when (mark) (= (mark) (point))))
 		      (push-mark)))))
@@ -161,13 +161,13 @@
 			      down-list))
 
     (add-hook 'deactivate-mark-hook
-	      (lambda ()
+	      (defun hook--pop-mark ()
 		(unless (eq (mark) (point))
 		  (pop-mark)))))
 
   (seq-do (lambda (cmd)
 	    (advice-add cmd :around
-			(lambda (fn &rest args)
+			(defun advice--undo-amalgamate (fn &rest args)
 			  (with-undo-amalgamate
 			    (apply fn args)))))
 	  '(kmacro-end-and-call-macro-dwim
@@ -187,13 +187,20 @@
 		 "<remap> <capitalize-word>" 'capitalize-dwim
 		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "C-M-/" 'hippie-expand
-		 "C-," (lambda () (interactive) (set-mark-command t))
 		 "C-z" 'repeat
 		 "M-SPC" 'mark-word
 
-		 "<remap> <kill-buffer>" (lambda () (interactive) (kill-buffer nil))
+		 "<remap> <kill-buffer>" (defun kill-current-buffer ()
+					   (interactive)
+					   (kill-buffer nil))
 		 "<remap> <dired>" 'dired-jump
 		 "<remap> <list-buffers>" 'ibuffer)
+
+    (progn
+      (keymap-set! global-map
+		   "C-," 'pop-to-mark-command)
+      (with-eval-after-load 'org
+	(keymap-unset org-mode-map "C-," t)))
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open)
@@ -202,7 +209,9 @@
 		 "f" 'global-font-lock-mode)
 
     (keymap-set! help-map
-		 "." (lambda () (interactive) (describe-symbol (symbol-at-point))))
+		 "." (defun describe-symbol-at-point ()
+		       (interactive)
+		       (describe-symbol (symbol-at-point))))
 
     (keymap-set! indent-rigidly-map
 		 "C-i" 'indent-rigidly-right-to-tab-stop
@@ -297,7 +306,7 @@
 	(let ((buf (caar (window-prev-buffers))))
 	  (switch-to-buffer (unless (eq buf (current-buffer)) buf))))
 
-      (keymap-set! global-map "M-o" 'switch-to-other-buffer))
+      (keymap-set! ctl-x-map "C-b" 'switch-to-other-buffer))
 
     (progn
       (defun buffer-to-register (reg)
@@ -327,7 +336,7 @@
 (use-package isearch
   :config
   (add-hook 'isearch-update-post-hook
-	    (lambda ()
+	    (defun hook--isearch-beginning-of-match ()
 	      (when (and isearch-other-end
 			 isearch-forward
 			 (string-prefix-p "isearch" (symbol-name last-command)))
@@ -452,11 +461,36 @@
 
   (advice-add 'puni-kill-line
 	      :around
-	      (lambda (fn &rest args)
+	      (defun advice--save-point (fn &rest args)
 		(if (bolp)
 		    (save-excursion
 		      (apply fn args))
 		  (apply fn args))))
+
+  (progn
+    (defun puni-kill-whole-line (&optional arg)
+      (interactive "p")
+      (let ((soft-delete-args '(strict-sexp beyond kill)))
+	(cond ((zerop arg)
+	       (apply 'puni-soft-delete
+		      (save-excursion (forward-visible-line 0) (point))
+		      (save-excursion (end-of-visible-line) (point))
+		      soft-delete-args))
+	      ((< arg 0)
+	       (apply 'puni-soft-delete
+		      (save-excursion (end-of-visible-line) (point))
+		      (save-excursion (forward-visible-line (1+ arg))
+				      (unless (bobp) (backward-char))
+				      (point))
+		      soft-delete-args))
+	      (t
+	       (apply 'puni-soft-delete
+		      (save-excursion (forward-visible-line 0) (point))
+		      (save-excursion (forward-visible-line arg) (point))
+		      soft-delete-args)))))
+
+    (keymap-set! puni-mode-map
+		 "<remap> <kill-whole-line>" 'puni-kill-whole-line))
 
   (defun puni-backward-kill-to-indent ()
     (interactive)
@@ -483,8 +517,7 @@
 		 "C-}" 'puni-barf-forward)
 
     (add-hook 'org-mode-hook
-	      (lambda ()
-		(interactive)
+	      (defun hook--org-kill-line ()
 		(keymap-set org-mode-map
 			    "<remap> <puni-kill-line>" 'org-kill-line)))
 
