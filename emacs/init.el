@@ -7,12 +7,18 @@
 ;; ---
 
 (use-package use-package
+  :demand t
   :config
   (setopt use-package-always-demand t
 	  use-package-enable-imenu-support t))
 
-(use-package emacs
+(use-package package
   :config
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (package-initialize))
+
+use-package emacs
+ (:config
   (global-auto-revert-mode)
   (column-number-mode)
   (global-subword-mode)
@@ -99,11 +105,6 @@
 	  scroll-error-top-bottom t
 	  auto-window-vscroll nil)
 
-  (progn
-    (global-hl-line-mode)
-    (add-hook 'deactivate-mark-hook (defun hook--hl-line-mode-on () (global-hl-line-mode 1)))
-    (add-hook 'activate-mark-hook (defun hook--hl-line-mode-off () (global-hl-line-mode -1))))
-
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   (add-to-list 'default-frame-alist '(font . "iosevka comfy-10"))
@@ -116,19 +117,6 @@
   (progn
     (set-language-environment "utf-8")
     (setopt default-input-method nil))
-
-  (progn
-    (require-theme 'modus-themes)
-    (setopt modus-themes-italic-constructs t
-	    modus-themes-bold-constructs t
-	    modus-themes-common-palette-overrides '((fg-heading-1 fg-heading-0)
-						    (bg-prose-block-contents bg-dim)))
-    (load-theme 'modus-operandi)
-
-    (progn
-      (global-font-lock-mode -1)
-      (with-eval-after-load 'magit
-	(add-hook 'magit-mode-hook 'font-lock-mode))))
 
   (progn
     (modify-syntax-entry ?. "_" (standard-syntax-table))
@@ -168,152 +156,174 @@
 			  (with-undo-amalgamate
 			    (apply fn args)))))
 	  '(kmacro-end-and-call-macro-dwim
-	    query-replace-regexp))
+	    query-replace-regexp)))
+
+(use-package keybindings
+  :no-require t
+  :config
+  (defmacro keymap-set! (keymap &rest pairs)
+    (macroexp-progn
+     (cl-loop for (key cmd)
+	      on pairs
+	      by 'cddr
+	      collect (list 'keymap-set keymap key cmd))))
+
+  (keymap-set! global-map
+	       "<remap> <downcase-word>" 'downcase-dwim
+	       "<remap> <upcase-word>" 'upcase-dwim
+	       "<remap> <capitalize-word>" 'capitalize-dwim
+	       "<remap> <delete-horizontal-space>" 'cycle-spacing
+	       "<remap> <keyboard-quit>" 'keyboard-escape-quit
+	       "<remap> <kill-buffer>" 'kill-current-buffer
+	       "C-M-/" 'hippie-expand
+	       "C-z" 'repeat
+	       "M-SPC" 'mark-word)
 
   (progn
-    (defmacro keymap-set! (keymap &rest pairs)
-      (macroexp-progn
-       (cl-loop for (key cmd)
-		on pairs
-		by 'cddr
-		collect (list 'keymap-set keymap key cmd))))
-
     (keymap-set! global-map
-		 "<remap> <downcase-word>" 'downcase-dwim
-		 "<remap> <upcase-word>" 'upcase-dwim
-		 "<remap> <capitalize-word>" 'capitalize-dwim
-		 "<remap> <delete-horizontal-space>" 'cycle-spacing
-		 "<remap> <keyboard-quit>" 'keyboard-escape-quit
-		 "<remap> <kill-buffer>" 'kill-current-buffer
-		 "C-M-/" 'hippie-expand
-		 "C-z" 'repeat
-		 "M-SPC" 'mark-word)
+		 "C-," 'pop-to-mark-command)
+    (with-eval-after-load 'org
+      (keymap-unset org-mode-map "C-," t)))
 
-    (progn
-      (keymap-set! global-map
-		   "C-," 'pop-to-mark-command)
-      (with-eval-after-load 'org
-	(keymap-unset org-mode-map "C-," t)))
+  (keymap-set! ctl-x-map
+	       "f" 'recentf-open)
 
-    (keymap-set! ctl-x-map
-		 "f" 'recentf-open)
+  (keymap-set! ctl-x-x-map
+	       "f" 'global-font-lock-mode)
 
-    (keymap-set! ctl-x-x-map
-		 "f" 'global-font-lock-mode)
-
-    (keymap-set! help-map
-		 "." (defun describe-symbol-at-point ()
-		       (interactive)
-		       (describe-symbol (symbol-at-point))))
-
-    (keymap-set! indent-rigidly-map
-		 "C-i" 'indent-rigidly-right-to-tab-stop
-		 "C-M-i" 'indent-rigidly-left-to-tab-stop
-		 "SPC" 'indent-rigidly-right
-		 "DEL" 'indent-rigidly-left)
-
-    (keymap-set! next-error-repeat-map
-		 "M-<" 'first-error)
-
-    (progn
-      (setopt kill-read-only-ok t)
-      (keymap-set! global-map
-		   "M-w"
-		   (defun kill-ring-save-region-or-next-kill ()
+  (keymap-set! help-map
+	       "." (defun describe-symbol-at-point ()
 		     (interactive)
-		     (if (use-region-p)
-			 (call-interactively 'kill-ring-save)
-		       (let ((buffer-read-only t))
-			 (save-mark-and-excursion
-			   (call-interactively
-			    (key-binding
-			     (read-key-sequence "save next kill:")))))))))
+		     (describe-symbol (symbol-at-point))))
 
-    (keymap-set! global-map
-		 "<remap> <open-line>"
-		 (defun open-line-indent ()
-		   (interactive)
-		   (if (eq (point) (save-excursion
-				     (back-to-indentation)
-				     (point)))
-		       (call-interactively 'split-line)
-		     (save-excursion
-		       (seq-do 'call-interactively '(newline indent-according-to-mode))))))
+  (keymap-set! indent-rigidly-map
+	       "C-i" 'indent-rigidly-right-to-tab-stop
+	       "C-M-i" 'indent-rigidly-left-to-tab-stop
+	       "SPC" 'indent-rigidly-right
+	       "DEL" 'indent-rigidly-left)
 
-    (keymap-set! global-map
-		 "<remap> <yank>"
-		 (defun yank-indent ()
-		   (interactive)
-		   (let ((pos (point)))
-		     (if (and delete-selection-mode (use-region-p))
-			 (call-interactively 'delete-region))
-		     (call-interactively 'yank)
-		     (indent-region pos (point)))))
+  (keymap-set! next-error-repeat-map
+	       "M-<" 'first-error)
 
+  (progn
+    (setopt kill-read-only-ok t)
     (keymap-set! global-map
-		 "<remap> <indent-rigidly>"
-		 (defun indent-rigidly-dwim ()
+		 "M-w"
+		 (defun kill-ring-save-region-or-next-kill ()
 		   (interactive)
+		   (if (use-region-p)
+		       (call-interactively 'kill-ring-save)
+		     (let ((buffer-read-only t))
+		       (save-mark-and-excursion
+			 (call-interactively
+			  (key-binding
+			   (read-key-sequence "save next kill:")))))))))
+
+  (keymap-set! global-map
+	       "<remap> <open-line>"
+	       (defun open-line-indent ()
+		 (interactive)
+		 (if (eq (point) (save-excursion
+				   (back-to-indentation)
+				   (point)))
+		     (call-interactively 'split-line)
+		   (save-excursion
+		     (seq-do 'call-interactively '(newline indent-according-to-mode))))))
+
+  (keymap-set! global-map
+	       "<remap> <yank>"
+	       (defun yank-indent ()
+		 (interactive)
+		 (let ((pos (point)))
+		   (if (and delete-selection-mode (use-region-p))
+		       (call-interactively 'delete-region))
+		   (call-interactively 'yank)
+		   (indent-region pos (point)))))
+
+  (keymap-set! global-map
+	       "<remap> <indent-rigidly>"
+	       (defun indent-rigidly-dwim ()
+		 (interactive)
+		 (unless (use-region-p)
+		   (push-mark (pos-bol) t)
+		   (when (<= (point) (save-excursion
+				       (back-to-indentation)
+				       (point)))
+		     (back-to-indentation)
+		     (forward-char)))
+		 (call-interactively 'indent-rigidly)))
+
+  (keymap-set! global-map
+	       "<remap> <comment-dwim>"
+	       (defun comment-sexp-dwim ()
+		 (interactive)
+		 (save-mark-and-excursion
 		   (unless (use-region-p)
-		     (push-mark (pos-bol) t)
-		     (when (<= (point) (save-excursion
-					 (back-to-indentation)
-					 (point)))
-		       (back-to-indentation)
-		       (forward-char)))
-		   (call-interactively 'indent-rigidly)))
+		     (call-interactively 'mark-sexp))
+		   (call-interactively 'comment-dwim))))
+
+  (keymap-set! global-map
+	       "<remap> <eval-last-sexp>"
+	       (defun eval-sexp-dwim ()
+		 (interactive)
+		 (save-mark-and-excursion
+		   (unless (use-region-p)
+		     (call-interactively 'mark-sexp))
+		   (eval-region (region-beginning) (region-end) t))))
+
+  (keymap-set! ctl-x-map
+	       "C-b"
+	       (defun switch-to-other-buffer ()
+		 (interactive)
+		 (let ((buf (caar (window-prev-buffers))))
+		   (switch-to-buffer (unless (eq buf (current-buffer)) buf)))))
+
+  (progn
+    (defun buffer-to-register (reg)
+      (interactive (list (register-read-with-preview "buffer to register:")))
+      (set-register reg (cons 'buffer (current-buffer))))
 
     (keymap-set! global-map
-		 "<remap> <comment-dwim>"
-		 (defun comment-sexp-dwim ()
-		   (interactive)
-		   (save-mark-and-excursion
-		     (unless (use-region-p)
-		       (call-interactively 'mark-sexp))
-		     (call-interactively 'comment-dwim))))
-
-    (keymap-set! global-map
-		 "<remap> <eval-last-sexp>"
-		 (defun eval-sexp-dwim ()
-		   (interactive)
-		   (save-mark-and-excursion
-		     (unless (use-region-p)
-		       (call-interactively 'mark-sexp))
-		     (eval-region (region-beginning) (region-end) t))))
-
-    (keymap-set! ctl-x-map
-		 "C-b"
-		 (defun switch-to-other-buffer ()
-		   (interactive)
-		   (let ((buf (caar (window-prev-buffers))))
-		     (switch-to-buffer (unless (eq buf (current-buffer)) buf)))))
-
-    (progn
-      (defun buffer-to-register (reg)
-	(interactive (list (register-read-with-preview "buffer to register:")))
-	(set-register reg (cons 'buffer (current-buffer))))
-
-      (keymap-set! global-map
-		   "M-r"
-		   (defun point-to-register-dwim ()
-		     (interactive)
-		     (call-interactively
-		      (if current-prefix-arg
-			  'buffer-to-register
-			'point-to-register))))
-
-      (keymap-set! global-map
-		   "M-j" 'jump-to-register))
-
-    (keymap-set! global-map
-		 "<remap> <kmacro-end-and-call-macro>"
-		 (defun kmacro-end-and-call-macro-dwim ()
+		 "M-r"
+		 (defun point-to-register-dwim ()
 		   (interactive)
 		   (call-interactively
-		    (if (use-region-p)
-			'apply-macro-to-region-lines
-		      'kmacro-end-and-call-macro))))))
+		    (if current-prefix-arg
+			'buffer-to-register
+		      'point-to-register))))
 
+    (keymap-set! global-map
+		 "M-j" 'jump-to-register))
+
+  (keymap-set! global-map
+	       "<remap> <kmacro-end-and-call-macro>"
+	       (defun kmacro-end-and-call-macro-dwim ()
+		 (interactive)
+		 (call-interactively
+		  (if (use-region-p)
+		      'apply-macro-to-region-lines
+		    'kmacro-end-and-call-macro)))))
+
+(use-package theme
+  :no-require t
+  :config
+  (require-theme 'modus-themes)
+  (setopt modus-themes-italic-constructs t
+	  modus-themes-bold-constructs t
+	  modus-themes-common-palette-overrides '((fg-heading-1 fg-heading-0)
+						  (bg-prose-block-contents bg-dim)))
+  (load-theme 'modus-operandi)
+
+(use-package hl-line
+  :config
+  (global-hl-line-mode)
+  (add-hook 'deactivate-mark-hook (defun hook--hl-line-mode-on () (global-hl-line-mode)))
+  (add-hook 'activate-mark-hook (defun hook--hl-line-mode-off () (global-hl-line-mode -1))))
+
+  (progn
+    (global-font-lock-mode -1)
+    (with-eval-after-load 'magit
+      (add-hook 'magit-mode-hook 'font-lock-mode))))
 
 (use-package comint
   :config
@@ -357,19 +367,19 @@
 (use-package replace
   :config
   (progn
-    (progn
-      (defvar suppressed-map
-	(let ((map (make-keymap)))
-	  (set-char-table-range (nth 1 map) t 'ignore)
-	  map))
-      (define-keymap :keymap query-replace-map :parent suppressed-map))
+    (defvar suppressed-map
+      (let ((map (make-keymap)))
+	(set-char-table-range (nth 1 map) t 'ignore)
+	map))
 
-    (keymap-set! global-map
-		 "<remap> <query-replace>" 'query-replace-regexp
-		 "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
+    (define-keymap :keymap query-replace-map :parent suppressed-map))
 
-    (keymap-set! query-replace-map
-		 "p" 'backup)))
+  (keymap-set! global-map
+	       "<remap> <query-replace>" 'query-replace-regexp
+	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
+
+  (keymap-set! query-replace-map
+	       "p" 'backup))
 
 (use-package icomplete
   :config
@@ -394,7 +404,7 @@
 
 (use-package recentf
   :config
-  (recentf-mode 1)
+  (recentf-mode)
   (setopt recentf-max-saved-items 300))
 
 (use-package bookmark
@@ -404,7 +414,7 @@
 
 (use-package savehist
   :config
-  (savehist-mode 1)
+  (savehist-mode)
   (setopt savehist-additional-variables
 	  '(kill-ring
 	    register-alist
@@ -436,15 +446,10 @@
   (setopt org-tags-column 0
 	  org-special-ctrl-k t))
 
-(use-package package
-  :config
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (package-initialize))
-
 (use-package puni
   :ensure t
   :init
-  (puni-global-mode 1)
+  (puni-global-mode)
 
   :config
   (seq-do (lambda (cmd)
@@ -530,7 +535,7 @@
 
 (use-package current-window-only
   :ensure t
-  :init (current-window-only-mode 1)
+  :init (current-window-only-mode)
   :config
   (setopt ediff-window-setup-function 'ediff-setup-windows-plain)
   (advice-remove 'delete-other-windows
