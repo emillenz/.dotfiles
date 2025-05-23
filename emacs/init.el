@@ -483,15 +483,6 @@ use-package emacs
     (keymap-set! puni-mode-map
 		 "<remap> <kill-whole-line>" 'puni-kill-whole-line))
 
-  (advice-add 'puni-kill-line
-	      :around
-	      (defun advice--puni-kill-line-within (fn &rest args)
-		(let ((og-puni-soft-delete (symbol-function 'puni-soft-delete)))
-		  (cl-letf (((symbol-function 'puni-soft-delete)
-			     (lambda (from to &rest _)
-			       (funcall og-puni-soft-delete from to 'strict-sexp 'within 'kill))))
-		    (apply fn args)))))
-
   (progn
     (defun puni-backward-kill-line-to-indent (&optional arg)
       (interactive "p")
