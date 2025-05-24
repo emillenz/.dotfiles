@@ -351,13 +351,8 @@ use-package emacs
   (progn
     (keymap-unset isearch-mode-map "C-w" t)
     (keymap-unset isearch-mode-map "C-M-d" t)
-
     (keymap-set! isearch-mode-map
-		 "<remap> <isearch-delete-char>" 'isearch-del-char
-		 "M-/" 'isearch-complete)
-
-    (keymap-set! minibuffer-local-isearch-map
-		 "M-/" 'isearch-complete-edit)))
+		 "<remap> <isearch-delete-char>" 'isearch-del-char)))
 
 (use-package repeat
   :config
