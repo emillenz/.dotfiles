@@ -115,6 +115,7 @@ mode "prefix" {
 		--exec 'dunstify screenshot "$f"'
 	bindsym v $ESC; $SHCMD nmcli connection up protonvpn \
 		|| (nmcli connection down protonvpn && dunstify 'vpn down')
+	bindsym d $ESC; $SHCMD autorandr --change
 
 	bindsym equal $SHCMD pamixer --unmute --increase 5
 	bindsym minus $SHCMD pamixer --unmute --decrease 5

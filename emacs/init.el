@@ -7,7 +7,6 @@
 ;; ---
 
 (use-package use-package
-  :demand t
   :config
   (setopt use-package-always-demand t
 	  use-package-enable-imenu-support t))
@@ -17,8 +16,8 @@
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
   (package-initialize))
 
-use-package emacs
- (:config
+(use-package emacs
+ :config
   (global-auto-revert-mode)
   (column-number-mode)
   (global-subword-mode)
@@ -61,7 +60,8 @@ use-package emacs
 	  kill-do-not-save-duplicates t
 	  shift-select-mode nil
 	  kmacro-execute-before-append nil
-	  vc-follow-symlinks t)
+	  vc-follow-symlinks t
+	  view-read-only t)
 
   (setopt history-length 1000
 	  history-delete-duplicates t)
@@ -228,7 +228,7 @@ use-package emacs
 				   (point)))
 		     (call-interactively 'split-line)
 		   (save-excursion
-		     (seq-do 'call-interactively '(newline indent-according-to-mode))))))
+		     (call-interactively 'default-indent-new-line)))))
 
   (keymap-set! global-map
 	       "<remap> <yank>"
@@ -239,19 +239,6 @@ use-package emacs
 		       (call-interactively 'delete-region))
 		   (call-interactively 'yank)
 		   (indent-region pos (point)))))
-
-  (keymap-set! global-map
-	       "<remap> <indent-rigidly>"
-	       (defun indent-rigidly-dwim ()
-		 (interactive)
-		 (unless (use-region-p)
-		   (push-mark (pos-bol) t)
-		   (when (<= (point) (save-excursion
-				       (back-to-indentation)
-				       (point)))
-		     (back-to-indentation)
-		     (forward-char)))
-		 (call-interactively 'indent-rigidly)))
 
   (keymap-set! global-map
 	       "<remap> <comment-dwim>"
@@ -316,9 +303,7 @@ use-package emacs
 
 (use-package hl-line
   :config
-  (global-hl-line-mode)
-  (add-hook 'deactivate-mark-hook (defun hook--hl-line-mode-on () (global-hl-line-mode)))
-  (add-hook 'activate-mark-hook (defun hook--hl-line-mode-off () (global-hl-line-mode -1))))
+  (global-hl-line-mode))
 
   (progn
     (global-font-lock-mode -1)
@@ -480,19 +465,15 @@ use-package emacs
 
   (progn
     (defun puni-backward-kill-line-to-indent (&optional arg)
-      (interactive "p")
+      (interactive "P")
       (let ((pos-indent (save-excursion (back-to-indentation) (point))))
-	(cond ((or (= arg 0)
-		   (<= (point) pos-indent))
-	       (puni-backward-kill-line))
-	      ((= arg 1)
-	       (puni-soft-delete (point)
-				 pos-indent
-				 'strict-sexp
-				 'beyond
-				 'kill))
-	      (t
-	       (puni-backward-kill-line arg)))))
+	(if (or arg (<= (point) pos-indent))
+	    (puni-backward-kill-line arg)
+	  (puni-soft-delete (point)
+			      pos-indent
+			      'strict-sexp
+			      'beyond
+			      'kill))))
 
     (keymap-set! puni-mode-map
 		 "C-<backspace>" 'puni-backward-kill-line-to-indent))
@@ -514,8 +495,7 @@ use-package emacs
 			    "<remap> <puni-kill-line>" 'org-kill-line)))
 
     (keymap-set! lisp-mode-shared-map
-		 "C-c v" 'puni-convolute
-		 "C-c s" 'puni-split)))
+		 "C-c v" 'puni-convolute)))
 
 (use-package magit
   :ensure t)
@@ -529,7 +509,8 @@ use-package emacs
 		 'current-window-only--delete-other-windows)
   (add-to-list 'display-buffer-alist
 	       (list (rx (seq "*")
-			 (or "Completions"
+			 (or "Org Help"
+			     "Completions"
 			     "Register Preview")
 			 (seq "*"))
 		     'display-buffer-at-bottom)))
