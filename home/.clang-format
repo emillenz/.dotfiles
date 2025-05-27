@@ -1,11 +1,8 @@
 # ---
-# title:  clang format config file
+# title: clang format config file
 # author: emil lenz
-# email:  emillenz@protonmail.com
-# date:   2024-05-15
-# notes:
-# - this is adheres to linux kernel standards, 8-wide tab indentation, optimized for readability.
-# - braces on newlines for functions in c-style languages make sense, since library functions can have abysmally long types.
+# email: emillenz@protonmail.com
+# date: [2024-05-15]
 # ---
 
 BasedOnStyle: LLVM

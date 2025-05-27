@@ -40,7 +40,6 @@ $SHCMD_ALWAYS pgrep xss-lock \
 $SHCMD_ALWAYS xsetroot -solid "$BG"
 $SHCMD_ALWAYS xset dpms 0 0 0
 $SHCMD_ALWAYS xset s off
-$SHCMD_ALWAYS xset r off
 
 title_align left
 font pango: Aporetic Sans Mono 10
