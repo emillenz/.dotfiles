@@ -62,10 +62,6 @@
 
     bind "<ctrl>BackSpace" {"delete-from-cursor" (paragraph-ends, -1)};
     bind "<alt>BackSpace" { "delete-from-cursor" (word-ends, -1) };
-    bind "<ctrl><shift>BackSpace" {
-	"move-cursor" (paragraph-ends, -1, 0)
-	"delete-from-cursor" (paragraph-ends, 1)
-    };
 }
 
 /*

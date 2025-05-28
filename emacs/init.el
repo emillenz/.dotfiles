@@ -60,7 +60,8 @@
           kill-do-not-save-duplicates t
           shift-select-mode nil
           kmacro-execute-before-append nil
-          vc-follow-symlinks t)
+          vc-follow-symlinks t
+	  pulse-flag 'never)
 
   (setopt history-length 1000
           history-delete-duplicates t)
@@ -92,26 +93,26 @@
           use-file-dialog nil
           use-dialog-box nil)
 
-  (progn
-    (setopt tab-always-indent t
-            indent-tabs-mode t
-            tab-width 8
-            standard-indent tab-width)
-
-    (setopt c-default-style "linux")
-    (with-eval-after-load 'js (setopt js-indent-level tab-width)))
-
-  (setopt compilation-scroll-output t
-          next-error-recenter '(4))
-
   (setopt scroll-preserve-screen-position t
           scroll-error-top-bottom t
           auto-window-vscroll nil)
 
+  (setopt compilation-scroll-output t
+          next-error-recenter '(4))
+
+  (progn
+    (setopt tab-always-indent t
+            indent-tabs-mode t
+	    tab-width 8
+	    standard-indent tab-width)
+
+    (setopt c-default-style "linux")
+    (with-eval-after-load 'js (setopt js-indent-level tab-width)))
+
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   (progn
-    (setopt line-spacing 0.2)
+    (setopt line-spacing (/ 1.0 5.0))
     (add-to-list 'default-frame-alist '(font . "Aporetic Sans Mono 10")))
 
   (progn
@@ -167,6 +168,8 @@
               by 'cddr
               collect (list 'keymap-set keymap key cmd))))
 
+  (setopt kill-whole-line t)
+
   (keymap-set! global-map
                "<remap> <downcase-word>" 'downcase-dwim
                "<remap> <upcase-word>" 'upcase-dwim
@@ -212,8 +215,9 @@
                    (interactive)
                    (if (use-region-p)
                        (call-interactively 'kill-ring-save)
-                     (let ((buffer-read-only t))
-                       (save-mark-and-excursion
+                     (let ((buffer-read-only t)
+			   (kill-read-only-ok t))
+                       (save-excursion
                          (call-interactively
                           (key-binding
                            (read-key-sequence "save next kill:")))))))))
@@ -250,12 +254,19 @@
 
   (keymap-set! global-map
                "<remap> <eval-last-sexp>"
-               (defun eval-sexp-dwim ()
-                 (interactive)
+               (defun eval-sexp-dwim (&optional arg)
+                 (interactive "P")
                  (save-mark-and-excursion
                    (unless (use-region-p)
-                     (call-interactively 'mark-sexp))
-                   (eval-region (region-beginning) (region-end) t))))
+                     (mark-sexp (if (or (not arg)
+					(consp arg))
+				    1
+				    arg) t))
+                   (eval-region (region-beginning)
+				(region-end)
+				(if (consp arg)
+				    (current-buffer)
+				  t)))))
 
   (keymap-set! ctl-x-map
                "C-b"
@@ -269,25 +280,25 @@
       (interactive (list (register-read-with-preview "buffer to register:")))
       (set-register reg (cons 'buffer (current-buffer))))
 
-    (keymap-set! global-map
-                 "<remap> <point-to-register>"
-                 (defun point-to-register-dwim ()
-                   (interactive)
-                   (call-interactively
-                    (if current-prefix-arg
-                        'buffer-to-register
-                      'point-to-register))))
+    (defun point-to-register-dwim ()
+      (interactive)
+      (call-interactively
+       (if current-prefix-arg
+           'buffer-to-register
+         'point-to-register)))
 
     (keymap-set! global-map
-                 "C-j" 'jump-to-register))
+                 "<remap> <point-to-register>" 'point-to-register-dwim
+		 "M-r" 'point-to-register-dwim
+		 "M-j" 'jump-to-register))
 
   (keymap-set! global-map
-               "<remap> <kmacro-end-and-call-macro>"
-               (defun kmacro-end-and-call-macro-dwim ()
+	       "<remap> <kmacro-end-and-call-macro>"
+	       (defun kmacro-end-and-call-macro-dwim ()
                  (interactive)
                  (call-interactively
                   (if (use-region-p)
-                      'apply-macro-to-region-lines
+		      'apply-macro-to-region-lines
                     'kmacro-end-and-call-macro)))))
 
 (use-package ffap
@@ -372,10 +383,10 @@
 
   (setopt icomplete-delay-completions-threshold 0
           icomplete-compute-delay 0
-          icomplete-prospects-height 10
+          icomplete-prospects-height 12
           icomplete-tidy-shadowed-file-names t
           completions-detailed t
-          max-mini-window-height 10)
+          max-mini-window-height 12)
 
   (setopt completion-ignore-case t
           read-buffer-completion-ignore-case t
@@ -428,7 +439,22 @@
 (use-package org
   :config
   (setopt org-tags-column 0
-          org-special-ctrl-k t))
+          org-special-ctrl-k t
+	  org-ctrl-k-protect-subtree t)
+
+  (advice-add 'org-kill-line
+	      :around
+	      (defun advice--org-kill-line (fn &rest args)
+		(interactive)
+		(message "%s" (car args))
+		(dotimes (i (or args 1))
+		  (apply fn args)))))
+
+(use-package org-indent
+  :after org
+  :config
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (setopt org-indent-indentation-per-level 8))
 
 (use-package project
   :config
@@ -439,38 +465,18 @@
   :init
   (puni-global-mode)
 
-  :config
-  (setopt puni-blink-for-sexp-manipulating nil)
-
   (seq-do (lambda (cmd)
             (advice-add-push-mark-once cmd))
           '(puni-end-of-sexp
             puni-beginning-of-sexp))
 
-  (progn
-    (defun puni-kill-whole-line (&optional arg)
-      (interactive "p")
-      (let ((soft-delete-args '(strict-sexp beyond kill)))
-        (cond ((zerop arg)
-               (apply 'puni-soft-delete
-                      (save-excursion (forward-visible-line 0) (point))
-                      (save-excursion (end-of-visible-line) (point))
-                      soft-delete-args))
-              ((< arg 0)
-               (apply 'puni-soft-delete
-                      (save-excursion (end-of-visible-line) (point))
-                      (save-excursion (forward-visible-line (1+ arg))
-                                      (unless (bobp) (backward-char))
-                                      (point))
-                      soft-delete-args))
-              (t
-               (apply 'puni-soft-delete
-                      (save-excursion (forward-visible-line 0) (point))
-                      (save-excursion (forward-visible-line arg) (point))
-                      soft-delete-args)))))
-
-    (keymap-set! puni-mode-map
-                 "<remap> <kill-whole-line>" 'puni-kill-whole-line))
+  (advice-add 'puni-kill-line
+	      :around
+	      (defun advice--save-point (fn &rest args)
+		(if (bolp)
+		    (save-excursion
+		      (apply fn args))
+		  (apply fn args))))
 
   (progn
     (defun puni-backward-kill-line-to-indent (&optional arg)
@@ -527,4 +533,5 @@
   :ensure t
   :init (pdf-tools-install)
   :config
-  (setopt pdf-view-display-size 'fit-height))
+  (setopt large-file-warning-threshold (expt 10 8)
+	  pdf-view-display-size 'fit-height))
