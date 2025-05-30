@@ -46,7 +46,8 @@
           global-auto-revert-non-file-buffers t
           auto-save-include-big-deletions t
           kill-buffer-delete-auto-save-files t
-          auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)
+          auto-save-list-file-prefix (expand-file-name "autosave/"
+						       user-emacs-directory)
           custom-file (expand-file-name "custom.el" user-emacs-directory)
           use-short-answers t
           save-interprogram-paste-before-kill t
@@ -60,8 +61,7 @@
           kill-do-not-save-duplicates t
           shift-select-mode nil
           kmacro-execute-before-append nil
-          vc-follow-symlinks t
-	  pulse-flag 'never)
+          vc-follow-symlinks t)
 
   (setopt history-length 1000
           history-delete-duplicates t)
@@ -190,6 +190,9 @@
   (keymap-set! ctl-x-map
                "f" 'recentf-open)
 
+  (keymap-set! ctl-x-map
+	       "M-t" 'transpose-regions)
+
   (keymap-set! ctl-x-x-map
                "f" 'global-font-lock-mode)
 
@@ -209,6 +212,7 @@
 
   (progn
     (setopt kill-read-only-ok t)
+
     (keymap-set! global-map
                  "M-w"
                  (defun kill-ring-save-region-or-next-kill ()
@@ -220,7 +224,13 @@
                        (save-excursion
                          (call-interactively
                           (key-binding
-                           (read-key-sequence "save next kill:")))))))))
+                           (read-key-sequence "save next kill:"))))))))
+
+    (advice-add 'kill-region
+		:before
+		(defun advice--pulse-read-only (beg end &optional region)
+		  (when buffer-read-only
+		    (pulse-momentary-highlight-region beg end)))))
 
   (keymap-set! global-map
                "<remap> <open-line>"
@@ -261,7 +271,7 @@
                      (mark-sexp (if (or (not arg)
 					(consp arg))
 				    1
-				    arg) t))
+				  arg) t))
                    (eval-region (region-beginning)
 				(region-end)
 				(if (consp arg)
@@ -289,7 +299,7 @@
 
     (keymap-set! global-map
                  "<remap> <point-to-register>" 'point-to-register-dwim
-		 "M-r" 'point-to-register-dwim
+		 "M-#" 'point-to-register-dwim
 		 "M-j" 'jump-to-register))
 
   (keymap-set! global-map
@@ -436,25 +446,18 @@
   (keymap-set! dired-mode-map
                "b" 'dired-up-directory))
 
-(use-package org
-  :config
-  (setopt org-tags-column 0
-          org-special-ctrl-k t
-	  org-ctrl-k-protect-subtree t)
+(progn
+  (use-package org
+    :config
+    (setopt org-tags-column 0
+            org-special-ctrl-k t
+	    org-ctrl-k-protect-subtree t))
 
-  (advice-add 'org-kill-line
-	      :around
-	      (defun advice--org-kill-line (fn &rest args)
-		(interactive)
-		(message "%s" (car args))
-		(dotimes (i (or args 1))
-		  (apply fn args)))))
-
-(use-package org-indent
-  :after org
-  :config
-  (add-hook 'org-mode-hook 'org-indent-mode)
-  (setopt org-indent-indentation-per-level 8))
+  (use-package org-indent
+    :after org
+    :config
+    (add-hook 'org-mode-hook 'org-indent-mode)
+    (setopt org-indent-indentation-per-level 8)))
 
 (use-package project
   :config
@@ -464,6 +467,8 @@
   :ensure t
   :init
   (puni-global-mode)
+
+  (setopt puni-blink-for-sexp-manipulating nil)
 
   (seq-do (lambda (cmd)
             (advice-add-push-mark-once cmd))
@@ -503,10 +508,9 @@
                  "C-{" 'puni-barf-backward
                  "C-}" 'puni-barf-forward)
 
-    (add-hook 'org-mode-hook
-              (defun hook--org-kill-line ()
-                (keymap-set org-mode-map
-                            "<remap> <puni-kill-line>" 'org-kill-line)))
+    (with-eval-after-load 'org
+      (keymap-set! org-mode-map
+                   "<remap> <puni-kill-line>" 'org-kill-line))
 
     (keymap-set! lisp-mode-shared-map
                  "C-c v" 'puni-convolute)))
