@@ -40,6 +40,7 @@ $SHCMD_ALWAYS pgrep xss-lock \
 $SHCMD_ALWAYS xsetroot -solid "$BG"
 $SHCMD_ALWAYS xset dpms 0 0 0
 $SHCMD_ALWAYS xset s off
+$SHCMD_ALWAYS xset r off
 
 title_align left
 font pango: Aporetic Sans Mono 10
@@ -50,7 +51,6 @@ workspace_auto_back_and_forth no
 
 set $GAPSIZE 600
 smart_gaps inverse_outer
-workspace 1 gaps horizontal $GAPSIZE
 default_border none
 default_floating_border pixel 1
 
@@ -71,16 +71,16 @@ bindsym XF86AudioRaiseVolume	$SHCMD pamixer --unmute --increase 5
 bindsym XF86AudioMute		$SHCMD pamixer --toggle-mute
 bindsym XF86AudioMicMute	$SHCMD pamixer --default-source --toggle-mute
 
-for_window [all]					move container to workspace 0
-for_window [class="Emacs"]				move container to workspace 1
-for_window [class="firefox"]				move container to workspace 2
-for_window [class="net.thunderbird.Thunderbird"]	move container to workspace 3
+for_window [all]		move container to workspace 1
+for_window [class="firefox"]	move container to workspace 2
+for_window [class="Emacs"]	move container to workspace 3
+workspace 3 gaps horizontal $GAPSIZE
 for_window [all] focus
 
 bindsym $MOD+Tab focus next
+bindsym $MOD+shift+Tab focus prev
 focus_wrapping yes
 
-bindsym $MOD+grave workspace 0
 bindsym $MOD+1 workspace 1
 bindsym $MOD+2 workspace 2
 bindsym $MOD+3 workspace 3
@@ -92,9 +92,7 @@ set $ESC mode "default"
 bindsym Super_L mode "prefix"
 mode "prefix" {
 	bindsym Super_L $ESC
-	bindsym Ctrl+g $ESC
 
-	bindsym grave $ESC; move container to workspace 0; workspace 0
 	bindsym 1 $ESC; move container to workspace 1; workspace 1
 	bindsym 2 $ESC; move container to workspace 2; workspace 2
 	bindsym 3 $ESC; move container to workspace 3; workspace 3
@@ -113,8 +111,10 @@ mode "prefix" {
 		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
 		--exec 'dunstify screenshot "$f"'
 	bindsym v $ESC; $SHCMD nmcli connection up protonvpn \
-		|| (nmcli connection down protonvpn && dunstify 'vpn down')
+		|| (nmcli connection down protonvpn && dunstify 'vpn off')
 	bindsym d $ESC; $SHCMD autorandr --change
+	bindsym b $ESC; $SHCMD bluetoothctl power on && dunstify 'bt on'
+	bindsym shift+b $ESC; $SHCMD bluetoothctl power off && dunstify 'bt off'
 
 	bindsym equal $SHCMD pamixer --unmute --increase 5
 	bindsym minus $SHCMD pamixer --unmute --decrease 5
