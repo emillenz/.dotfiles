@@ -85,7 +85,7 @@
           vc-make-backup-files nil
           backup-by-copying t
           backup-by-copying-when-linked t
-          backup-directory-alist (list (cons "." (concat user-emacs-directory "backups"))))
+          backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
 
   (setopt initial-scratch-message nil
           inhibit-startup-echo-area-message user-login-name
@@ -135,7 +135,7 @@
   (put 'narrow-to-region 'disabled nil)
 
   (seq-do (lambda (fn)
-            (advice-add fn :before (defun advice--deactivate-mark (&rest _) (deactivate-mark))))
+            (advice-add fn :before (defun --deactivate-mark (&rest _) (deactivate-mark))))
           '(apply-macro-to-region-lines
             eval-region
             align
@@ -145,7 +145,7 @@
     (defun advice-add-push-mark-once (fn)
       (advice-add fn
                   :before
-                  (defun advice--push-mark-once (&rest _)
+                  (defun --push-mark-once (&rest _)
                     (unless (or (use-region-p)
                                 (eq last-command this-command)
                                 (when (mark) (= (mark) (point))))
@@ -158,7 +158,7 @@
 
   (seq-do (lambda (cmd)
             (advice-add cmd :around
-                        (defun advice--undo-amalgamate (fn &rest args)
+                        (defun --undo-amalgamate (fn &rest args)
                           (with-undo-amalgamate
                             (apply fn args)))))
           '(kmacro-end-and-call-macro-dwim
@@ -186,18 +186,17 @@
 		 "M-SPC" 'mark-word)
 
     (keymap-set! ctl-x-map
-		 "f" 'recentf-open)
-
-    (keymap-set! ctl-x-map
+		 "f" 'recentf-open
 		 "M-t" 'transpose-regions)
 
     (keymap-set! ctl-x-x-map
 		 "f" 'global-font-lock-mode)
 
     (keymap-set! help-map
-		 "." (defun describe-symbol-at-point ()
-                       (interactive)
-                       (describe-symbol (symbol-at-point))))
+		 "."
+		 (defun describe-symbol-at-point ()
+                   (interactive)
+                   (describe-symbol (symbol-at-point))))
 
     (keymap-set! indent-rigidly-map
 		 "C-i" 'indent-rigidly-right-to-tab-stop
@@ -205,112 +204,126 @@
 		 "SPC" 'indent-rigidly-right
 		 "DEL" 'indent-rigidly-left)
 
-    (keymap-set! next-error-repeat-map
-		 "M-<" 'first-error)
+    (progn
+      (put 'fist-error 'repeat-map 'next-error-repeat-map)
+      (keymap-set! next-error-repeat-map "M-<" 'first-error))
 
     (progn
       (setopt kill-read-only-ok t)
 
       (keymap-set! global-map
-                   "M-w" (defun kill-ring-save-region-or-next-kill ()
-			   (interactive)
-			   (if (use-region-p)
-			       (call-interactively 'kill-ring-save)
-			     (let ((buffer-read-only t)
-				   (kill-read-only-ok t))
-			       (save-excursion
-				 (call-interactively
-				  (key-binding
-				   (read-key-sequence "save next kill:"))))))))
+                   "<remap> <kill-ring-save>"
+		   (defun kill-ring-save-region-or-next-kill ()
+		     (interactive)
+		     (if (use-region-p)
+			 (call-interactively 'kill-ring-save)
+		       (let ((buffer-read-only t)
+			     (kill-read-only-ok t))
+			 (save-excursion
+			   (call-interactively
+			    (key-binding
+			     (read-key-sequence "save next kill: "))))))))
 
       (advice-add 'kill-region
-		  :before (defun advice--pulse-read-only (beg end &optional region)
-			    (when buffer-read-only
-			      (pulse-momentary-highlight-region beg end)))))
+		  :before
+		  (defun --pulse-read-only (beg end &optional region)
+		    (when buffer-read-only
+		      (pulse-momentary-highlight-region beg end)))))
 
     (advice-add 'yank
 		:after
-		(defun advice--yank-indent (&rest _)
+		(defun --yank-indent (&rest _)
                   (unless (minibufferp)
 		    (indent-region (point) (mark)))))
 
     (keymap-set! global-map
-		 "<remap> <open-line>" (defun open-line-indent ()
-					 (interactive)
-					 (if (eq (point) (save-excursion
-							   (back-to-indentation)
-							   (point)))
-					     (call-interactively 'split-line)
-					   (save-excursion
-					     (call-interactively 'default-indent-new-line)))))
+		 "<remap> <open-line>"
+		 (defun open-line-indent ()
+		   (interactive)
+		   (if (eq (point) (save-excursion
+				     (back-to-indentation)
+				     (point)))
+		       (call-interactively 'split-line)
+		     (save-excursion
+		       (call-interactively 'default-indent-new-line)))))
 
     (keymap-set! global-map
-		 "<remap> <comment-dwim>" (defun comment-sexp-dwim ()
-					    (interactive)
-					    (save-mark-and-excursion
-					      (unless (use-region-p)
-						(call-interactively 'mark-sexp))
-					      (call-interactively 'comment-dwim))))
+		 "<remap> <comment-dwim>"
+		 (defun comment-sexp-dwim ()
+		   (interactive)
+		   (save-mark-and-excursion
+		     (unless (use-region-p)
+		       (call-interactively 'mark-sexp))
+		     (call-interactively 'comment-dwim))))
 
     (keymap-set! global-map
-		 "<remap> <eval-last-sexp>" (defun eval-sexp-dwim (&optional arg)
-					      (interactive "P")
-					      (save-mark-and-excursion
-						(unless (use-region-p)
-						  (mark-sexp (if (or (not arg)
-								     (consp arg))
-								 1
-							       arg) t))
-						(eval-region (region-beginning)
-							     (region-end)
-							     (if (consp arg)
-								 (current-buffer)
-							       t)))))
+		 "<remap> <eval-last-sexp>"
+		 (defun eval-sexp-dwim (&optional arg)
+		   (interactive "P")
+		   (save-mark-and-excursion
+		     (unless (use-region-p)
+		       (mark-sexp (if (or (not arg)
+					  (consp arg))
+				      1
+				    arg) t))
+		     (eval-region (region-beginning)
+				  (region-end)
+				  (if (consp arg)
+				      (current-buffer)
+				    t)))))
 
     (keymap-set! ctl-x-map
-		 "C-b" (defun switch-to-other-buffer ()
-			 (interactive)
-			 (let ((buf (caar (window-prev-buffers))))
-			   (switch-to-buffer (unless (eq buf (current-buffer)) buf)))))
+		 "C-b"
+		 (defun switch-to-other-buffer ()
+		   (interactive)
+		   (let ((buf (caar (window-prev-buffers))))
+		     (switch-to-buffer (unless (eq buf (current-buffer)) buf)))))
 
     (keymap-set! global-map
-		 "<remap> <kmacro-end-and-call-macro>" (defun kmacro-end-and-call-macro-dwim ()
-							 (interactive)
-							 (call-interactively
-							  (if (use-region-p)
-							      'apply-macro-to-region-lines
-							    'kmacro-end-and-call-macro)))))
+		 "<remap> <kmacro-end-and-call-macro>"
+		 (defun kmacro-end-and-call-macro-dwim ()
+		   (interactive)
+		   (call-interactively
+		    (if (use-region-p)
+			'apply-macro-to-region-lines
+		      'kmacro-end-and-call-macro))))))
 
-  (progn
-    (with-eval-after-load 'ediff
-      (setopt ediff-window-setup-function 'ediff-setup-windows-plain))
+(use-package window
+  :config
+  (setopt display-buffer-alist
+	  (list (list (rx "*"
+			  (or "Completions"
+			      "Register Preview")
+			  "*")
+		      'display-buffer-at-bottom)
+		'(".*" display-buffer-same-window)))
 
-    (with-eval-after-load 'man
-      (setopt Man-notify-method 'pushy))
+  (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
 
-    (with-eval-after-load 'org
-      (setopt org-src-window-setup 'current-window
-	      org-agenda-window-setup 'current-window))
+  (with-eval-after-load 'ediff
+    (setopt ediff-window-setup-function 'ediff-setup-windows-plain))
 
-    (setopt display-buffer-alist
-	    `((,(rx "*"
-		    (or (seq "Org " (or "Help" "todo"))
-			"Completions"
-			"Register Preview")
-		    "*")
-	       display-buffer-at-bottom)
-	      (".*" display-buffer-same-window)))
+  (with-eval-after-load 'man
+    (setopt Man-notify-method 'pushy))
 
-    (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)))
+  (with-eval-after-load 'org
+    (setopt org-src-window-setup 'current-window
+	    org-agenda-window-setup 'current-window)
+
+    (add-to-list 'display-buffer-alist
+		 (list (rx "*"
+			   (or (seq "Org " (or "Help" "todo"))
+			       "Agenda Commands")
+			   "*")
+		       'display-buffer-at-bottom))))
 
 (use-package modus-themes
-  :config
+  :init
   (setopt modus-themes-italic-constructs t
 	  modus-themes-bold-constructs t
 	  modus-themes-common-palette-overrides '((fg-region unspecified)
 						  (fg-heading-1 fg-heading-0)
 						  (bg-prose-block-contents bg-dim)))
-
   (load-theme 'modus-operandi))
 
 (use-package register
@@ -319,8 +332,8 @@
 
   (progn
     (defun buffer-to-register (reg)
-      (interactive (list (register-read-with-preview "buffer to register:")))
-      (set-register reg (cons 'buffer (current-buffer))))
+      (interactive (list (register-read-with-preview "buffer to register: ")))
+      (set-register reg `(buffer . ,(current-buffer))))
 
     (defun point-to-register-dwim ()
       (interactive)
@@ -344,6 +357,10 @@
 
 (progn
   (global-font-lock-mode -1)
+
+  (with-eval-after-load 'diff-mode
+    (add-hook 'diff-mode-hook 'font-lock-mode))
+
   (with-eval-after-load 'magit
     (add-hook 'magit-mode-hook 'font-lock-mode)))
 
@@ -355,7 +372,7 @@
 (use-package isearch
   :config
   (add-hook 'isearch-update-post-hook
-            (defun hook--isearch-beginning-of-match ()
+            (defun --isearch-beginning-of-match ()
 	      (when (and isearch-other-end
                          isearch-forward
                          (string-prefix-p "isearch" (symbol-name last-command)))
@@ -416,10 +433,11 @@
           read-file-name-completion-ignore-case t)
 
   (keymap-set! icomplete-minibuffer-map
-	       "C-c M-w" (defun icomplete--save-contents ()
-			   (interactive)
-			   (kill-new (minibuffer-contents-no-properties))
-			   (abort-recursive-edit)))
+	       "C-c M-w"
+	       (defun icomplete--save-candidate ()
+		 (interactive)
+		 (kill-new (car completion-all-sorted-completions))
+		 (abort-recursive-edit)))
 
   (keymap-set! icomplete-minibuffer-map
 	       "C-i" 'icomplete-force-complete
@@ -449,7 +467,8 @@
   (add-hook 'dired-mode-hook 'dired-hide-details-mode)
   (add-hook 'dired-mode-hook 'dired-omit-mode)
 
-  (setopt dired-free-space nil
+  (setopt dired-kill-when-opening-new-dired-buffer t
+	  dired-free-space nil
           dired-omit-files "^\\..*$"
           dired-clean-confirm-killing-deleted-buffers nil
           dired-dwim-target t
@@ -467,27 +486,27 @@
 
   (progn
     (defvar dired-archive-dir "~/Archive")
-    (defun dired-archive ()
-      (interactive)
-      (seq-do (lambda (file)
-		(let* ((dest (file-name-concat
-			      dired-archive-dir
-			      (concat
-			       (file-name-sans-extension (file-relative-name file "~/"))
-			       ".archived_"
-			       (format-time-string "%F_T%H-%M-%S")
-			       (when (file-name-extension file)
-				 (concat "." (file-name-extension file))))))
-		       (dir (file-name-directory dest)))
-
-		  (unless (file-exists-p dir)
-		    (make-directory dir t))
-		  (rename-file file dest 1)))
-	      (dired-get-marked-files nil nil))
-      (revert-buffer))
 
     (keymap-set! dired-mode-map
-		 "C-c a" 'dired-archive)))
+		 "C-c a"
+		 (defun dired-archive ()
+		   (interactive)
+		   (seq-do (lambda (file)
+			     (let* ((dest (file-name-concat
+					   dired-archive-dir
+					   (concat
+					    (file-name-sans-extension (file-relative-name file "~/"))
+					    ".archived_"
+					    (format-time-string "%F_T%H-%M-%S")
+					    (when (file-name-extension file)
+					      (concat "." (file-name-extension file))))))
+				    (dir (file-name-directory dest)))
+
+			       (unless (file-exists-p dir)
+				 (make-directory dir t))
+			       (rename-file file dest 1)))
+			   (dired-get-marked-files nil nil))
+		   (revert-buffer)))))
 
 (progn
   (use-package org
@@ -512,28 +531,30 @@
 
     (progn
       (setopt org-todo-keywords '((sequence
-				   "[ ](t)"
+				   "[ ]([)"
 				   "[@](e)"
 				   "[?](?)"
-				   "[+](+)"
-				   "[-](-@)"
-				   "[>](>@)"
-				   "[=](=@)"
-				   "[&](&@)"
+				   "[+](+!)"
+				   "[-](-!)"
+				   "[>](>!)"
+				   "[=](=!)"
+				   "[&](&!)"
 				   "|"
 				   "[X](x!)"
 				   "[\\](\\!)")))
 
       (setopt org-log-note-headings
-	      '((done . ":done: %t")
-		(state . ":state: %t (%-3S . %-3s)")
-		(note . ":note: %t")
-		(reschedule . ":reschedule: %t")
-		(delschedule . ":delschedule: %t")
-		(redeadline . ":redeadline: %t")
-		(deldeadline . ":deldeadline: %t")
-		(refile . ":refile: %t")
-		(clock-out . ":clock-out: %t")))))
+	      '((done . "done :: %t")
+		(state . "state :: %t %-3s")
+		(note . "note :: %t")
+		(reschedule . "reschedule :: %t")
+		(delschedule . "delschedule :: %t")
+		(redeadline . "redeadline :: %t")
+		(deldeadline . "deldeadline :: %t")
+		(refile . "refile :: %t")
+		(clock-out . "clock-out :: %t"))))
+
+    (modify-syntax-entry ?: "_" org-mode-syntax-table))
 
   (use-package org-indent
     :after org
@@ -550,6 +571,8 @@
   :ensure t
   :init
   (puni-global-mode)
+  (with-eval-after-load 'pdf-view
+    (add-hook 'pdf-view-mode-hook (defun --puni-mode-disabled () (puni-mode -1))))
 
   (setopt puni-blink-for-sexp-manipulating t)
 
@@ -560,26 +583,24 @@
 
   (advice-add 'puni-kill-line
 	      :around
-	      (defun advice--save-point (fn &rest args)
+	      (defun --save-point (fn &rest args)
 		(if (bolp)
 		    (save-excursion
 		      (apply fn args))
 		  (apply fn args))))
 
-  (progn
-    (defun puni-backward-kill-line-to-indent (&optional arg)
-      (interactive "P")
-      (let ((pos-indent (save-excursion (back-to-indentation) (point))))
-        (if (or arg (<= (point) pos-indent))
-	    (puni-backward-kill-line arg)
-          (puni-soft-delete (point)
-			    pos-indent
-			    'strict-sexp
-			    'beyond
-			    'kill))))
-
-    (keymap-set! puni-mode-map
-                 "C-<backspace>" 'puni-backward-kill-line-to-indent))
+  (keymap-set! puni-mode-map
+               "C-<backspace>"
+	       (defun puni-backward-kill-line-to-indent (&optional arg)
+		 (interactive "P")
+		 (let ((pos-indent (save-excursion (back-to-indentation) (point))))
+		   (if (or arg (<= (point) pos-indent))
+		       (puni-backward-kill-line arg)
+		     (puni-soft-delete (point)
+				       pos-indent
+				       'strict-sexp
+				       'beyond
+				       'kill)))))
 
   (progn
     (keymap-set! puni-mode-map
@@ -605,8 +626,10 @@
   :ensure t
   :init (pdf-tools-install)
   :config
-  (setopt large-file-warning-threshold (expt 10 8)
-	  pdf-view-display-size 'fit-height))
+  (setopt pdf-view-continuous nil
+	  large-file-warning-threshold (expt 10 8)
+	  pdf-view-display-size 'fit-height
+	  pdf-view-resize-factor 1.1))
 
 (use-package whisper
   :ensure t
