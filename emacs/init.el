@@ -161,7 +161,7 @@
                         (defun --undo-amalgamate (fn &rest args)
                           (with-undo-amalgamate
                             (apply fn args)))))
-          '(kmacro-end-and-call-macro-dwim
+          '(kmacro-call-dwim
             query-replace-regexp))
 
   (progn
@@ -170,7 +170,7 @@
        (cl-loop for (key cmd)
 		on pairs
 		by 'cddr
-		collect (list 'keymap-set keymap key cmd))))
+		collect `(keymap-set ,keymap ,key ,cmd))))
 
     (setopt kill-whole-line t
 	    set-mark-command-repeat-pop t)
@@ -185,9 +185,17 @@
 		 "C-z" 'repeat
 		 "M-SPC" 'mark-word)
 
+    (keymap-set! global-map
+		 "<remap> <transpose-lines>"
+		 (defun transpose-dwim ()
+		   (interactive)
+		   (call-interactively
+		    (if (use-region-p)
+			'transpose-regions
+		      'transpose-lines))))
+
     (keymap-set! ctl-x-map
-		 "f" 'recentf-open
-		 "M-t" 'transpose-regions)
+		 "f" 'recentf-open)
 
     (keymap-set! ctl-x-x-map
 		 "f" 'global-font-lock-mode)
@@ -213,7 +221,7 @@
 
       (keymap-set! global-map
                    "<remap> <kill-ring-save>"
-		   (defun kill-ring-save-region-or-next-kill ()
+		   (defun kill-ring-save-dwim ()
 		     (interactive)
 		     (if (use-region-p)
 			 (call-interactively 'kill-ring-save)
@@ -281,7 +289,7 @@
 
     (keymap-set! global-map
 		 "<remap> <kmacro-end-and-call-macro>"
-		 (defun kmacro-end-and-call-macro-dwim ()
+		 (defun kmacro-call-dwim ()
 		   (interactive)
 		   (call-interactively
 		    (if (use-region-p)
@@ -291,12 +299,12 @@
 (use-package window
   :config
   (setopt display-buffer-alist
-	  (list (list (rx "*"
-			  (or "Completions"
-			      "Register Preview")
-			  "*")
-		      'display-buffer-at-bottom)
-		'(".*" display-buffer-same-window)))
+	  `((,(rx "*"
+		  (or "Completions"
+		      "Register Preview")
+		  "*")
+	     display-buffer-at-bottom)
+	    (".*" display-buffer-same-window)))
 
   (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
 
@@ -311,11 +319,11 @@
 	    org-agenda-window-setup 'current-window)
 
     (add-to-list 'display-buffer-alist
-		 (list (rx "*"
+		 `(,(rx "*"
 			   (or (seq "Org " (or "Help" "todo"))
 			       "Agenda Commands")
 			   "*")
-		       'display-buffer-at-bottom))))
+		       display-buffer-at-bottom))))
 
 (use-package modus-themes
   :init
@@ -531,12 +539,12 @@
 
     (progn
       (setopt org-todo-keywords '((sequence
-				   "[ ]([)"
-				   "[@](e)"
-				   "[?](?)"
+				   "[ ]([!)"
+				   "[#](#!)"
+				   "[?](?!)"
 				   "[+](+!)"
 				   "[-](-!)"
-				   "[>](>!)"
+				   "[@](2!)"
 				   "[=](=!)"
 				   "[&](&!)"
 				   "|"
@@ -545,16 +553,22 @@
 
       (setopt org-log-note-headings
 	      '((done . "done :: %t")
-		(state . "state :: %t %-3s")
+		(state . "state :: %t %s")
 		(note . "note :: %t")
-		(reschedule . "reschedule :: %t")
+		(reschedule . "reschedule :: %t %s")
 		(delschedule . "delschedule :: %t")
-		(redeadline . "redeadline :: %t")
+		(redeadline . "redeadline :: %t %s")
 		(deldeadline . "deldeadline :: %t")
 		(refile . "refile :: %t")
-		(clock-out . "clock-out :: %t"))))
+		(clock-out . ""))))
 
     (modify-syntax-entry ?: "_" org-mode-syntax-table))
+
+  (use-package org-src
+    :after org
+    :config
+    (keymap-set! org-src-mode-map
+		 "C-c C-c" 'org-edit-src-exit))
 
   (use-package org-indent
     :after org
