@@ -134,13 +134,6 @@
 
   (put 'narrow-to-region 'disabled nil)
 
-  (seq-do (lambda (fn)
-            (advice-add fn :before (defun --deactivate-mark (&rest _) (deactivate-mark))))
-          '(apply-macro-to-region-lines
-            eval-region
-            align
-            align-entire))
-
   (progn
     (defun advice-add-push-mark-once (fn)
       (advice-add fn
@@ -198,7 +191,7 @@
 		 "f" 'recentf-open)
 
     (keymap-set! ctl-x-x-map
-		 "f" 'global-font-lock-mode)
+		 "f" 'font-lock-mode)
 
     (keymap-set! help-map
 		 "."
@@ -268,17 +261,13 @@
 		 "<remap> <eval-last-sexp>"
 		 (defun eval-sexp-dwim (&optional arg)
 		   (interactive "P")
-		   (save-mark-and-excursion
-		     (unless (use-region-p)
-		       (mark-sexp (if (or (not arg)
-					  (consp arg))
-				      1
-				    arg) t))
-		     (eval-region (region-beginning)
-				  (region-end)
-				  (if (consp arg)
-				      (current-buffer)
-				    t)))))
+		   (if (use-region-p)
+		       (progn
+			 (eval-region (region-beginning) (region-end) t)
+			 (deactivate-mark))
+		     (save-excursion
+		       (forward-sexp)
+		       (eval-last-sexp arg)))))
 
     (keymap-set! ctl-x-map
 		 "C-b"
@@ -291,10 +280,11 @@
 		 "<remap> <kmacro-end-and-call-macro>"
 		 (defun kmacro-call-dwim ()
 		   (interactive)
-		   (call-interactively
-		    (if (use-region-p)
-			'apply-macro-to-region-lines
-		      'kmacro-end-and-call-macro))))))
+		   (if (use-region-p)
+		       (progn
+			 (call-interactively 'apply-macro-to-region-lines)
+			 (deactivate-mark))
+		     (call-interactively 'kmacro-end-and-call-macro))))))
 
 (use-package window
   :config
@@ -316,14 +306,14 @@
 
   (with-eval-after-load 'org
     (setopt org-src-window-setup 'current-window
-	    org-agenda-window-setup 'current-window)
+	    org-agenda-window-setup 'current-window
+	    org-use-fast-todo-selection 'expert)
 
     (add-to-list 'display-buffer-alist
 		 `(,(rx "*"
-			   (or (seq "Org " (or "Help" "todo"))
-			       "Agenda Commands")
-			   "*")
-		       display-buffer-at-bottom))))
+			(or (seq "Org " (or "Help" "todo")))
+			"*")
+		   display-buffer-at-bottom))))
 
 (use-package modus-themes
   :init
@@ -332,6 +322,8 @@
 	  modus-themes-common-palette-overrides '((fg-region unspecified)
 						  (fg-heading-1 fg-heading-0)
 						  (bg-prose-block-contents bg-dim)))
+  (with-eval-after-load 'comint
+    (set-face-bold 'comint-highlight-prompt t))
   (load-theme 'modus-operandi))
 
 (use-package register
@@ -431,10 +423,10 @@
 
   (setopt icomplete-delay-completions-threshold 0
           icomplete-compute-delay 0
-          icomplete-prospects-height 12
           icomplete-tidy-shadowed-file-names t
           completions-detailed t
-          max-mini-window-height 12)
+	  icomplete-prospects-height 12
+	  max-mini-window-height 12)
 
   (setopt completion-ignore-case t
           read-buffer-completion-ignore-case t
@@ -516,65 +508,74 @@
 			   (dired-get-marked-files nil nil))
 		   (revert-buffer)))))
 
-(progn
-  (use-package org
-    :config
-    (setopt org-special-ctrl-k t)
-
-    (setopt org-tags-column 0
-            org-use-property-inheritance t
-	    org-reverse-note-order t
-	    org-refile-use-outline-path 'full-file-path
-	    org-fontify-quote-and-verse-blocks t
-	    org-hide-emphasis-markers t
-	    org-pretty-entities t)
-
-    (setopt org-log-done 'time
-	    org-log-redeadline 'time
-	    org-log-reschedule 'time
-	    org-log-into-drawer "LOG")
-
-    (setopt org-priority-highest 1
-	    org-priority-lowest 3)
-
-    (progn
-      (setopt org-todo-keywords '((sequence
-				   "[ ]([!)"
-				   "[#](#!)"
-				   "[?](?!)"
-				   "[+](+!)"
-				   "[-](-!)"
-				   "[@](2!)"
-				   "[=](=!)"
-				   "[&](&!)"
-				   "|"
-				   "[X](x!)"
-				   "[\\](\\!)")))
-
-      (setopt org-log-note-headings
-	      '((done . "done :: %t")
-		(state . "state :: %t %s")
-		(note . "note :: %t")
-		(reschedule . "reschedule :: %t %s")
-		(delschedule . "delschedule :: %t")
-		(redeadline . "redeadline :: %t %s")
-		(deldeadline . "deldeadline :: %t")
-		(refile . "refile :: %t")
-		(clock-out . ""))))
-
-    (modify-syntax-entry ?: "_" org-mode-syntax-table))
-
-  (use-package org-src
-    :after org
-    :config
-    (keymap-set! org-src-mode-map
-		 "C-c C-c" 'org-edit-src-exit))
-
-  (use-package org-indent
-    :after org
-    :config
+(use-package org
+  :config
+  (progn
     (add-hook 'org-mode-hook 'org-indent-mode)
-    (setopt org-indent-indentation-per-level standard-indent)))
+    (setopt org-indent-indentation-per-level standard-indent))
+
+  (setopt org-tags-column 0
+          org-use-property-inheritance t
+	  org-reverse-note-order t
+	  org-refile-use-outline-path 'full-file-path
+	  org-fontify-quote-and-verse-blocks t
+	  org-hide-emphasis-markers t
+	  org-pretty-entities t)
+
+  (setopt org-log-done 'time
+	  org-log-redeadline 'time
+	  org-log-reschedule 'time
+	  org-log-into-drawer "LOG")
+
+  (setopt org-priority-highest 1
+	  org-priority-lowest 3)
+
+  (setopt org-outline-path-complete-in-steps nil
+	  org-goto-interface 'outline-path-completion)
+
+  (progn
+    (setopt org-todo-keywords '((sequence
+				 "[ ](t!)"
+				 "[#](e!)"
+				 "[?](m!)"
+				 "[+](a!)"
+				 "[-](i!)"
+				 "[@](d!)"
+				 "[=](h!)"
+				 "[&](r!)"
+				 "|"
+				 "[X](x!)"
+				 "[\\](c!)")))
+
+    (setopt org-log-note-headings
+	    '((done		.	"done :: %t")
+	      (state		.	"state :: %t %s")
+	      (note		.	"note :: %t")
+	      (reschedule	.	"reschedule :: %t %s")
+	      (delschedule	.	"delschedule :: %t")
+	      (redeadline	.	"redeadline :: %t %s")
+	      (deldeadline	.	"deldeadline :: %t")
+	      (refile		.	"refile :: %t")
+	      (clock-out	.	""))))
+
+  (modify-syntax-entry ?: "_" org-mode-syntax-table)
+
+  (setopt org-special-ctrl-k t)
+
+  (defvar-keymap org-heading-repeat-map
+    :repeat t
+    "C-n" 'org-next-visible-heading
+    "C-p" 'org-previous-visible-heading
+    "C-b" 'org-backward-heading-same-level
+    "C-f" 'org-forward-heading-same-level
+    "C-u" 'outline-up-heading
+    "C->" 'org-demote-subtree
+    "C-<" 'org-promote-subtree
+    "C-v" 'org-move-subtree-down
+    "C-^" 'org-move-subtree-up)
+
+  (keymap-set! org-src-mode-map
+	       "C-c C-c" 'org-edit-src-exit))
 
 (use-package project
   :config
@@ -604,7 +605,7 @@
 		  (apply fn args))))
 
   (keymap-set! puni-mode-map
-               "C-<backspace>"
+	       "C-<backspace>"
 	       (defun puni-backward-kill-line-to-indent (&optional arg)
 		 (interactive "P")
 		 (let ((pos-indent (save-excursion (back-to-indentation) (point))))
