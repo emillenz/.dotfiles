@@ -176,16 +176,59 @@
 		 "<remap> <kill-buffer>" 'kill-current-buffer
 		 "C-M-/" 'hippie-expand
 		 "C-z" 'repeat
-		 "M-SPC" 'mark-word)
+		 "M-SPC" 'mark-word
 
-    (keymap-set! global-map
 		 "<remap> <transpose-lines>"
 		 (defun transpose-dwim ()
 		   (interactive)
 		   (call-interactively
 		    (if (use-region-p)
 			'transpose-regions
-		      'transpose-lines))))
+		      'transpose-lines)))
+
+		 "<remap> <open-line>"
+		 (defun open-line-indent ()
+		   (interactive)
+		   (if (eq (point) (save-excursion
+				     (back-to-indentation)
+				     (point)))
+		       (call-interactively 'split-line)
+		     (save-excursion
+		       (call-interactively 'default-indent-new-line))))
+
+		 "<remap> <comment-dwim>"
+		 (defun comment-sexp-dwim ()
+		   (interactive)
+		   (save-mark-and-excursion
+		     (unless (use-region-p)
+		       (call-interactively 'mark-sexp))
+		     (call-interactively 'comment-dwim)))
+
+		 "<remap> <eval-last-sexp>"
+		 (defun eval-sexp-dwim (&optional arg)
+		   (interactive "P")
+		   (if (use-region-p)
+		       (progn
+			 (eval-region (region-beginning) (region-end) t)
+			 (deactivate-mark))
+		     (save-excursion
+		       (forward-sexp)
+		       (eval-last-sexp arg))))
+
+		 "C-b"
+		 (defun switch-to-other-buffer ()
+		   (interactive)
+		   (let ((buf (caar (window-prev-buffers))))
+		     (switch-to-buffer (unless (eq buf (current-buffer)) buf))))
+
+		 "<remap> <kmacro-end-and-call-macro>"
+		 (defun kmacro-call-dwim ()
+		   (interactive)
+		   (if (use-region-p)
+		       (progn
+			 (call-interactively 'apply-macro-to-region-lines)
+			 (deactivate-mark))
+		     (call-interactively 'kmacro-end-and-call-macro))))
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open)
@@ -235,56 +278,7 @@
 		:after
 		(defun --yank-indent (&rest _)
                   (unless (minibufferp)
-		    (indent-region (point) (mark)))))
-
-    (keymap-set! global-map
-		 "<remap> <open-line>"
-		 (defun open-line-indent ()
-		   (interactive)
-		   (if (eq (point) (save-excursion
-				     (back-to-indentation)
-				     (point)))
-		       (call-interactively 'split-line)
-		     (save-excursion
-		       (call-interactively 'default-indent-new-line)))))
-
-    (keymap-set! global-map
-		 "<remap> <comment-dwim>"
-		 (defun comment-sexp-dwim ()
-		   (interactive)
-		   (save-mark-and-excursion
-		     (unless (use-region-p)
-		       (call-interactively 'mark-sexp))
-		     (call-interactively 'comment-dwim))))
-
-    (keymap-set! global-map
-		 "<remap> <eval-last-sexp>"
-		 (defun eval-sexp-dwim (&optional arg)
-		   (interactive "P")
-		   (if (use-region-p)
-		       (progn
-			 (eval-region (region-beginning) (region-end) t)
-			 (deactivate-mark))
-		     (save-excursion
-		       (forward-sexp)
-		       (eval-last-sexp arg)))))
-
-    (keymap-set! ctl-x-map
-		 "C-b"
-		 (defun switch-to-other-buffer ()
-		   (interactive)
-		   (let ((buf (caar (window-prev-buffers))))
-		     (switch-to-buffer (unless (eq buf (current-buffer)) buf)))))
-
-    (keymap-set! global-map
-		 "<remap> <kmacro-end-and-call-macro>"
-		 (defun kmacro-call-dwim ()
-		   (interactive)
-		   (if (use-region-p)
-		       (progn
-			 (call-interactively 'apply-macro-to-region-lines)
-			 (deactivate-mark))
-		     (call-interactively 'kmacro-end-and-call-macro))))))
+		    (indent-region (point) (mark)))))))
 
 (use-package window
   :config
@@ -297,6 +291,7 @@
 	    (".*" display-buffer-same-window)))
 
   (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
+  (advice-add 'pop-to-buffer :override 'switch-to-buffer)
 
   (with-eval-after-load 'ediff
     (setopt ediff-window-setup-function 'ediff-setup-windows-plain))
@@ -390,8 +385,7 @@
   (progn
     (keymap-unset isearch-mode-map "C-w" t)
     (keymap-unset isearch-mode-map "C-M-d" t)
-    (keymap-set! isearch-mode-map
-                 "<remap> <isearch-delete-char>" 'isearch-del-char)))
+    (keymap-set! isearch-mode-map "<remap> <isearch-delete-char>" 'isearch-del-char)))
 
 (use-package repeat
   :config
@@ -433,15 +427,14 @@
           read-file-name-completion-ignore-case t)
 
   (keymap-set! icomplete-minibuffer-map
+	       "C-i" 'icomplete-force-complete
+	       "C-M-m" 'icomplete-fido-exit
+
 	       "C-c M-w"
 	       (defun icomplete--save-candidate ()
 		 (interactive)
 		 (kill-new (car completion-all-sorted-completions))
-		 (abort-recursive-edit)))
-
-  (keymap-set! icomplete-minibuffer-map
-	       "C-i" 'icomplete-force-complete
-	       "C-M-m" 'icomplete-fido-exit))
+		 (abort-recursive-edit))))
 
 (use-package recentf
   :config
@@ -520,7 +513,10 @@
 	  org-refile-use-outline-path 'full-file-path
 	  org-fontify-quote-and-verse-blocks t
 	  org-hide-emphasis-markers t
-	  org-pretty-entities t)
+	  org-pretty-entities t
+	  org-startup-folded 'nofold
+	  org-list-demote-modify-bullet '(("-" . "-")
+					  ("1." . "1.")))
 
   (setopt org-log-done 'time
 	  org-log-redeadline 'time
@@ -536,16 +532,15 @@
   (progn
     (setopt org-todo-keywords '((sequence
 				 "[ ](t!)"
-				 "[#](e!)"
-				 "[?](m!)"
-				 "[+](a!)"
-				 "[-](i!)"
-				 "[@](d!)"
-				 "[=](h!)"
-				 "[&](r!)"
+				 "[?](?!)"
+				 "[+](+!)"
+				 "[-](-!)"
+				 "[@](2!)"
+				 "[=](=!)"
+				 "[&](&!)"
 				 "|"
 				 "[X](x!)"
-				 "[\\](c!)")))
+				 "[\\](\\!)")))
 
     (setopt org-log-note-headings
 	    '((done		.	"done :: %t")
@@ -560,22 +555,27 @@
 
   (modify-syntax-entry ?: "_" org-mode-syntax-table)
 
-  (setopt org-special-ctrl-k t)
+  (keymap-set! org-mode-map
+	       "M-}" 'org-forward-paragraph
+	       "M-{" 'org-backward-paragraph
+	       "M-n" 'org-forward-element
+	       "M-p" 'org-backward-element
+	       "C-^" 'org-up-element
+
+	       "M-m" (defun org-back-to-indentation ()
+		       (interactive)
+		       (let ((org-special-ctrl-a/e t))
+			 (call-interactively 'org-beginning-of-line))))
+
+  (keymap-set! org-src-mode-map
+	       "C-c C-c" 'org-edit-src-exit)
 
   (defvar-keymap org-heading-repeat-map
     :repeat t
     "C-n" 'org-next-visible-heading
     "C-p" 'org-previous-visible-heading
     "C-b" 'org-backward-heading-same-level
-    "C-f" 'org-forward-heading-same-level
-    "C-u" 'outline-up-heading
-    "C->" 'org-demote-subtree
-    "C-<" 'org-promote-subtree
-    "C-v" 'org-move-subtree-down
-    "C-^" 'org-move-subtree-up)
-
-  (keymap-set! org-src-mode-map
-	       "C-c C-c" 'org-edit-src-exit))
+    "C-f" 'org-forward-heading-same-level))
 
 (use-package project
   :config
@@ -604,19 +604,6 @@
 		      (apply fn args))
 		  (apply fn args))))
 
-  (keymap-set! puni-mode-map
-	       "C-<backspace>"
-	       (defun puni-backward-kill-line-to-indent (&optional arg)
-		 (interactive "P")
-		 (let ((pos-indent (save-excursion (back-to-indentation) (point))))
-		   (if (or arg (<= (point) pos-indent))
-		       (puni-backward-kill-line arg)
-		     (puni-soft-delete (point)
-				       pos-indent
-				       'strict-sexp
-				       'beyond
-				       'kill)))))
-
   (progn
     (keymap-set! puni-mode-map
                  "C-M-r" 'puni-raise
@@ -625,14 +612,22 @@
                  "C-(" 'puni-slurp-backward
                  "C-)" 'puni-slurp-forward
                  "C-{" 'puni-barf-backward
-                 "C-}" 'puni-barf-forward)
+                 "C-}" 'puni-barf-forward
 
-    (with-eval-after-load 'org
-      (keymap-set! org-mode-map
-                   "<remap> <puni-kill-line>" 'org-kill-line))
+		 "C-<backspace>"
+		 (defun puni-backward-kill-line-to-indent (&optional arg)
+		   (interactive "P")
+		   (let ((pos-indent (save-excursion (back-to-indentation) (point))))
+		     (if (or arg (<= (point) pos-indent))
+			 (puni-backward-kill-line arg)
+		       (puni-soft-delete (point)
+					 pos-indent
+					 'strict-sexp
+					 'beyond
+					 'kill))))))
 
-    (keymap-set! lisp-mode-shared-map
-                 "C-c v" 'puni-convolute)))
+  (keymap-set! lisp-mode-shared-map
+               "C-c v" 'puni-convolute))
 
 (use-package magit
   :ensure t)
