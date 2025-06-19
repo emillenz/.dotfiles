@@ -9,7 +9,7 @@
 
 (use-package use-package
   :config
-  (setopt use-package-always-demand t
+  (setopt use-package-always-defer t
           use-package-enable-imenu-support t))
 
 (use-package package
@@ -119,8 +119,8 @@
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
   (progn
-    (setopt line-spacing (/ 1.0 5))
-    (setopt shr-use-fonts nil)
+    (setopt line-spacing (/ 1.0 5)
+	    shr-use-fonts nil)
     (add-to-list 'default-frame-alist '(font . "Aporetic Sans Mono 10")))
 
   (progn
@@ -165,8 +165,7 @@
 		by 'cddr
 		collect `(keymap-set ,keymap ,key ,cmd))))
 
-    (setopt kill-whole-line t
-	    set-mark-command-repeat-pop t)
+    (setopt kill-whole-line t)
 
     (keymap-set! global-map
 		 "<remap> <downcase-word>" 'downcase-dwim
@@ -175,8 +174,8 @@
 		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "<remap> <kill-buffer>" 'kill-current-buffer
 		 "C-M-/" 'hippie-expand
-		 "C-z" 'repeat
 		 "M-SPC" 'mark-word
+		 "C-x C-z" 'shell
 
 		 "<remap> <transpose-lines>"
 		 (defun transpose-dwim ()
@@ -390,17 +389,22 @@
 (use-package repeat
   :config
   (repeat-mode)
-  (setopt repeat-keep-prefix t))
+  (setopt repeat-keep-prefix t
+	  set-mark-command-repeat-pop t)
+
+  (defvar-keymap kill-current-buffer-repeat-map
+    :repeat t
+    "k" 'kill-current-buffer))
 
 (use-package replace
   :config
   (progn
-    (defvar suppressed-map
+    (defvar self-insert-ignored-map
       (let ((map (make-keymap)))
         (set-char-table-range (nth 1 map) t 'ignore)
         map))
 
-    (define-keymap :keymap query-replace-map :parent suppressed-map))
+    (define-keymap :keymap query-replace-map :parent self-insert-ignored-map))
 
   (keymap-set! global-map
 	       "<remap> <query-replace>" 'query-replace-regexp
@@ -555,6 +559,8 @@
 
   (modify-syntax-entry ?: "_" org-mode-syntax-table)
 
+  (setopt org-special-ctrl-k t)
+
   (keymap-set! org-mode-map
 	       "M-}" 'org-forward-paragraph
 	       "M-{" 'org-backward-paragraph
@@ -584,6 +590,7 @@
 
 (use-package puni
   :ensure t
+  :demand t
   :init
   (puni-global-mode)
   (with-eval-after-load 'pdf-view
@@ -627,10 +634,25 @@
 					 'kill))))))
 
   (keymap-set! lisp-mode-shared-map
-               "C-c v" 'puni-convolute))
+               "C-c v" 'puni-convolute)
+
+  (with-eval-after-load 'org
+    (keymap-set! org-mode-map
+		 "<remap> <puni-kill-line>"
+		 (defun puni-org-kill-line ()
+		   (interactive)
+		   (call-interactively (if (org-at-heading-p)
+					   'org-kill-line
+					 'puni-kill-line))))))
 
 (use-package magit
-  :ensure t)
+  :ensure t
+  :demand t)
+
+(use-package whisper
+  :ensure t
+  :demand t
+  :vc (:url "https://github.com/natrys/whisper.el"))
 
 (use-package pdf-tools
   :ensure t
@@ -641,6 +663,8 @@
 	  pdf-view-display-size 'fit-height
 	  pdf-view-resize-factor 1.1))
 
-(use-package whisper
+(use-package nov
   :ensure t
-  :vc (:url "https://github.com/natrys/whisper.el"))
+  :config
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+  (setopt nov-variable-pitch nil))
