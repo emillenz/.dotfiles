@@ -88,33 +88,34 @@ bindsym $MOD+4 workspace 4
 bindsym $MOD+5 workspace 5
 bindsym $MOD+6 workspace 6
 
-set $ESC mode "default"
+set $EXIT mode "default"
 bindsym Super_L mode "prefix"
 mode "prefix" {
-	bindsym Super_L $ESC
+	bindsym Super_L $EXIT
+	bindsym Ctrl+g $EXIT
 
-	bindsym 1 $ESC; move container to workspace 1; workspace 1
-	bindsym 2 $ESC; move container to workspace 2; workspace 2
-	bindsym 3 $ESC; move container to workspace 3; workspace 3
-	bindsym 4 $ESC; move container to workspace 4; workspace 4
-	bindsym 5 $ESC; move container to workspace 5; workspace 5
-	bindsym 6 $ESC; move container to workspace 6; workspace 6
+	bindsym 1 $EXIT; move container to workspace 1; workspace 1
+	bindsym 2 $EXIT; move container to workspace 2; workspace 2
+	bindsym 3 $EXIT; move container to workspace 3; workspace 3
+	bindsym 4 $EXIT; move container to workspace 4; workspace 4
+	bindsym 5 $EXIT; move container to workspace 5; workspace 5
+	bindsym 6 $EXIT; move container to workspace 6; workspace 6
 
-	bindsym r $ESC; restart
-	bindsym k $ESC; kill
-	bindsym o $ESC; move workspace to output next
-	bindsym g $ESC; gaps horizontal current toggle $GAPSIZE
-	bindsym z $ESC; $SHCMD systemctl suspend
-	bindsym x $ESC; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
-	bindsym s $ESC; $SHCMD scrot \
+	bindsym r $EXIT; restart
+	bindsym k $EXIT; kill
+	bindsym o $EXIT; move workspace to output next
+	bindsym g $EXIT; gaps horizontal current toggle $GAPSIZE
+	bindsym z $EXIT; $SHCMD systemctl suspend
+	bindsym x $EXIT; $SHCMD i3-dmenu-desktop --dmenu "dmenu -p 'app' $DMENU_ARGS"
+	bindsym s $EXIT; $SHCMD scrot \
 		--select \
 		--file "$HOME/Pictures/screenshots/%Y-%m-%d_T%H-%M-%S.png" \
 		--exec 'dunstify screenshot "$f"'
-	bindsym v $ESC; $SHCMD nmcli connection up protonvpn \
+	bindsym v $EXIT; $SHCMD nmcli connection up protonvpn \
 		|| (nmcli connection down protonvpn && dunstify 'vpn off')
-	bindsym d $ESC; $SHCMD autorandr --change
-	bindsym b $ESC; $SHCMD bluetoothctl power on && dunstify 'bt on'
-	bindsym shift+b $ESC; $SHCMD bluetoothctl power off && dunstify 'bt off'
+	bindsym d $EXIT; $SHCMD autorandr --change
+	bindsym b $EXIT; $SHCMD bluetoothctl power on && dunstify 'bt on'
+	bindsym shift+b $EXIT; $SHCMD bluetoothctl power off && dunstify 'bt off'
 
 	bindsym equal $SHCMD pamixer --unmute --increase 5
 	bindsym minus $SHCMD pamixer --unmute --decrease 5

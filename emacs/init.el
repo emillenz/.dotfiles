@@ -9,7 +9,7 @@
 
 (use-package use-package
   :config
-  (setopt use-package-always-defer t
+  (setopt use-package-always-demand t
           use-package-enable-imenu-support t))
 
 (use-package package
@@ -67,7 +67,8 @@
 	  shift-select-mode nil
 	  kmacro-execute-before-append nil
 	  vc-follow-symlinks t
-	  pulse-flag 'default)
+	  pulse-flag 'default
+	  mark-ring-max 64)
 
   (setopt history-length 1000
           history-delete-duplicates t)
@@ -117,11 +118,6 @@
     (with-eval-after-load 'sh-script (setopt sh-basic-offset standard-indent)))
 
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
-
-  (progn
-    (setopt line-spacing (/ 1.0 5)
-	    shr-use-fonts nil)
-    (add-to-list 'default-frame-alist '(font . "Aporetic Sans Mono 10")))
 
   (progn
     (setopt minibuffer-prompt-properties
@@ -175,7 +171,6 @@
 		 "<remap> <kill-buffer>" 'kill-current-buffer
 		 "C-M-/" 'hippie-expand
 		 "M-SPC" 'mark-word
-		 "C-x C-z" 'shell
 
 		 "<remap> <transpose-lines>"
 		 (defun transpose-dwim ()
@@ -214,12 +209,6 @@
 		       (forward-sexp)
 		       (eval-last-sexp arg))))
 
-		 "C-b"
-		 (defun switch-to-other-buffer ()
-		   (interactive)
-		   (let ((buf (caar (window-prev-buffers))))
-		     (switch-to-buffer (unless (eq buf (current-buffer)) buf))))
-
 		 "<remap> <kmacro-end-and-call-macro>"
 		 (defun kmacro-call-dwim ()
 		   (interactive)
@@ -230,7 +219,14 @@
 		     (call-interactively 'kmacro-end-and-call-macro))))
 
     (keymap-set! ctl-x-map
-		 "f" 'recentf-open)
+		 "f" 'recentf-open
+		 "C-z" 'shell
+
+		 "C-b"
+		 (defun switch-to-other-buffer ()
+		   (interactive)
+		   (let ((buf (caar (window-prev-buffers))))
+		     (switch-to-buffer (unless (eq buf (current-buffer)) buf)))))
 
     (keymap-set! ctl-x-x-map
 		 "f" 'font-lock-mode)
@@ -246,10 +242,6 @@
 		 "C-M-i" 'indent-rigidly-left-to-tab-stop
 		 "SPC" 'indent-rigidly-right
 		 "DEL" 'indent-rigidly-left)
-
-    (progn
-      (put 'fist-error 'repeat-map 'next-error-repeat-map)
-      (keymap-set! next-error-repeat-map "M-<" 'first-error))
 
     (progn
       (setopt kill-read-only-ok t)
@@ -281,16 +273,17 @@
 
 (use-package window
   :config
-  (setopt display-buffer-alist
+  (setopt switch-to-buffer-obey-display-actions t
+	  display-buffer-alist
 	  `((,(rx "*"
 		  (or "Completions"
-		      "Register Preview")
+		      "Register Preview"
+		      (seq "Org " (or "Help" "todo" "Select")))
 		  "*")
 	     display-buffer-at-bottom)
-	    (".*" display-buffer-same-window)))
+	    ("." display-buffer-same-window)))
 
   (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
-  (advice-add 'pop-to-buffer :override 'switch-to-buffer)
 
   (with-eval-after-load 'ediff
     (setopt ediff-window-setup-function 'ediff-setup-windows-plain))
@@ -301,13 +294,11 @@
   (with-eval-after-load 'org
     (setopt org-src-window-setup 'current-window
 	    org-agenda-window-setup 'current-window
-	    org-use-fast-todo-selection 'expert)
+	    org-use-fast-todo-selection 'expert)))
 
-    (add-to-list 'display-buffer-alist
-		 `(,(rx "*"
-			(or (seq "Org " (or "Help" "todo")))
-			"*")
-		   display-buffer-at-bottom))))
+(progn
+  (setopt line-spacing (/ 1.0 5))
+  (add-to-list 'default-frame-alist '(font . "Aporetic Sans Mono 10")))
 
 (use-package modus-themes
   :init
@@ -339,7 +330,16 @@
     (keymap-set! global-map
                  "<remap> <point-to-register>" 'point-to-register-dwim
 		 "M-#" 'point-to-register-dwim
-		 "M-j" 'jump-to-register)))
+		 "M-j" 'jump-to-register
+
+		 "<remap> <copy-to-register>"
+		 (defun copy-to-register-dwim (&optional arg)
+		   (interactive "P")
+		   (if (use-region-p)
+		       (call-interactively 'copy-to-register)
+		     (let ((text (read-from-kill-ring "text: "))
+			   (reg (register-read-with-preview "Copy to register: ")))
+		       (set-register reg text)))))))
 
 (use-package ffap
   :config
@@ -392,17 +392,38 @@
   (setopt repeat-keep-prefix t
 	  set-mark-command-repeat-pop t)
 
+  (defun repeat-map-set (repeat-map cmd key)
+    (put cmd 'repeat-map repeat-map)
+    (keymap-set! (eval repeat-map) key cmd))
+
   (defvar-keymap kill-current-buffer-repeat-map
     :repeat t
-    "k" 'kill-current-buffer))
+    "k" 'kill-current-buffer)
+
+  (defvar-keymap transpose-dwim-repeat-map
+    :repeat t
+    "C-t" 'transpose-dwim)
+
+  (defvar-keymap delete-blank-lines-repeat-map
+    :repeat t
+    "C-o" 'delete-blank-lines)
+
+  (with-eval-after-load 'org
+    (defvar-keymap org-heading-repeat-map
+      :repeat t
+      "C-n" 'org-next-visible-heading
+      "C-p" 'org-previous-visible-heading
+      "C-u" 'outline-up-heading
+      "C-b" 'org-backward-heading-same-level
+      "C-f" 'org-forward-heading-same-level)))
 
 (use-package replace
   :config
   (progn
     (defvar self-insert-ignored-map
       (let ((map (make-keymap)))
-        (set-char-table-range (nth 1 map) t 'ignore)
-        map))
+	(set-char-table-range (nth 1 map) t 'ignore)
+	map))
 
     (define-keymap :keymap query-replace-map :parent self-insert-ignored-map))
 
@@ -411,7 +432,8 @@
 	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
 
   (keymap-set! query-replace-map
-	       "p" 'backup))
+	       "p" 'backup
+	       "RET" 'automatic))
 
 (use-package icomplete
   :config
@@ -434,11 +456,16 @@
 	       "C-i" 'icomplete-force-complete
 	       "C-M-m" 'icomplete-fido-exit
 
-	       "C-c M-w"
-	       (defun icomplete--save-candidate ()
-		 (interactive)
-		 (kill-new (car completion-all-sorted-completions))
-		 (abort-recursive-edit))))
+	       "C-c y"
+	       (defun icomplete--yank (&optional arg)
+		 (interactive "P")
+		 (run-at-time 0.01
+			      nil
+			      'insert
+			      (if arg
+				  (minibuffer-contents)
+				(car completion-all-sorted-completions)))
+		 (abort-minibuffers))))
 
 (use-package recentf
   :config
@@ -566,7 +593,6 @@
 	       "M-{" 'org-backward-paragraph
 	       "M-n" 'org-forward-element
 	       "M-p" 'org-backward-element
-	       "C-^" 'org-up-element
 
 	       "M-m" (defun org-back-to-indentation ()
 		       (interactive)
@@ -576,12 +602,16 @@
   (keymap-set! org-src-mode-map
 	       "C-c C-c" 'org-edit-src-exit)
 
-  (defvar-keymap org-heading-repeat-map
-    :repeat t
-    "C-n" 'org-next-visible-heading
-    "C-p" 'org-previous-visible-heading
-    "C-b" 'org-backward-heading-same-level
-    "C-f" 'org-forward-heading-same-level))
+  (with-eval-after-load 'puni
+    (add-hook 'org-mode-hook
+	      (defun --puni-kill-line-dwim ()
+		(keymap-set! org-mode-map
+			     "<remap> <puni-kill-line>"
+			     (defun puni-org-kill-line ()
+			       (interactive)
+			       (call-interactively (if (and puni-mode (not (org-at-heading-p)))
+						       'puni-kill-line
+						     'org-kill-line))))))))
 
 (use-package project
   :config
@@ -590,7 +620,6 @@
 
 (use-package puni
   :ensure t
-  :demand t
   :init
   (puni-global-mode)
   (with-eval-after-load 'pdf-view
@@ -634,28 +663,18 @@
 					 'kill))))))
 
   (keymap-set! lisp-mode-shared-map
-               "C-c v" 'puni-convolute)
-
-  (with-eval-after-load 'org
-    (keymap-set! org-mode-map
-		 "<remap> <puni-kill-line>"
-		 (defun puni-org-kill-line ()
-		   (interactive)
-		   (call-interactively (if (org-at-heading-p)
-					   'org-kill-line
-					 'puni-kill-line))))))
+               "C-c v" 'puni-convolute))
 
 (use-package magit
-  :ensure t
-  :demand t)
+  :ensure t)
 
 (use-package whisper
   :ensure t
-  :demand t
   :vc (:url "https://github.com/natrys/whisper.el"))
 
 (use-package pdf-tools
   :ensure t
+  :defer t
   :init (pdf-tools-install)
   :config
   (setopt pdf-view-continuous nil
@@ -663,8 +682,140 @@
 	  pdf-view-display-size 'fit-height
 	  pdf-view-resize-factor 1.1))
 
-(use-package nov
-  :ensure t
-  :config
+(progn
   (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-  (setopt nov-variable-pitch nil))
+  (use-package nov
+    :ensure t
+    :defer t
+    :config
+    (setopt nov-variable-pitch nil)))
+
+(use-package doct
+  :ensure t
+  :after org
+  :config
+  (setopt
+   org-capture-templates
+   (let* ((todo (lambda (&optional project-dir schedule-p)
+		  (append `("todo"
+			    :keys "t"
+			    :template ("* [ ] %^{title}"
+				       ,(if schedule-p
+					    "SCHEDULED: %^T"
+					  "%U"))
+			    :prepend t)
+			  (and project-dir
+			       (list :file (file-name-concat project-dir "agenda.org"))))))
+
+	  (event (lambda (&optional project-dir)
+		   (append `("event"
+			     :keys "e"
+			     :headline "events"
+			     :template
+			     ("* %^{title} :event:"
+			      "%^T"
+			      "- location :: %^{location}"
+			      "- material :: %^{material}"))
+			   (and project-dir
+				(list :file (file-name-concat project-dir "agenda.org"))))))
+
+	  (note-header '("* %^{title} %^g"
+			 "%U"))
+
+	  (note (lambda (&optional project-dir)
+		  (append `("note"
+			    :keys "n"
+			    :template (,@note-header
+				       "%?")
+			    :prepend t)
+			  (and project-dir
+			       (list :file (file-name-concat project-dir "notes.org"))))))
+
+	  (map-templates (lambda (templates project-dir)
+			   (seq-map (lambda (t)
+				      (funcall t project-dir))
+				    templates))))
+
+     (doct
+      `(("uni" :keys "u"
+	 :children
+	 ,(seq-map (lambda (name)
+		     (let ((project-dir (file-name-concat "~/Documents/uni/S4"
+							  name)))
+		       `(,name
+			 :keys ,(downcase (substring name 0 1))
+			 :children
+			 ,(funcall map-templates (list todo event note) project-dir))))
+		   '("FMFP" "PS" "DMDB" "CN")))
+
+	("personal" :keys "p"
+	 :children
+	 ,(funcall map-templates (list todo event note) "~/Documents/personal"))
+
+	("wiki" :keys "w"
+	 :children
+	 ,(funcall map-templates (list todo note) "~/Documents/wiki"))
+
+	,(let ((project-dir "~/Documents/personal/journal/"))
+	   `("journal" :keys "j"
+	     :datetree t
+	     :unnarrrowed t
+	     :file ,(file-name-concat project-dir "journal.org")
+	     :children
+	     (,(funcall todo nil t)
+	      ,(funcall note))))
+
+	,(let* ((project-dir "~/Documents/literature/")
+		(notes-dir (file-name-concat project-dir "notes/")))
+	   `("literature" :keys "l"
+	     :children
+	     (,(funcall todo project-dir)
+
+	      ("init source" :keys "i"
+	       :file (lambda ()
+		       (file-name-concat
+			,notes-dir
+			(replace-regexp-in-string
+			 " "
+			 "-"
+			 (let ((title (read-from-minibuffer "title: ")))
+			   (kill-new title)
+			   title))))
+
+	       :type plain
+	       :template
+
+	       ("#+title: %^{title}"
+		"#+author: %n"
+		"#+email: %(message-user-mail-address)"
+		"#+date: %<%F>"
+		"#+filetags: :literature:%^G"
+		""
+		"* [ ] %\\1: %\\2"
+		"%U"
+		":PROPERTIES:"
+		":title: %\\1"
+		":subtitle: %\\2"
+		":author: %^{author}"
+		":year: %^{year}"
+		":type: %^{type|book|textbook|paper|article|audiobook|podcast}"
+		":pages: %^{pages}"
+		":END:"))
+
+	      (:group
+	       "notes"
+	       :file (lambda () (read-file-name "file: " ,notes-dir))
+	       :headline "notes"
+
+	       :children
+	       (("quote" :keys "q"
+		 :template
+		 (,@note-header
+		  ":PROPERTIES:"
+		  ":page: %^{page}"
+		  ":END:"
+		  "#+begin_quote"
+		  "%?"
+		  "#+end_quote"))
+
+		,(funcall note)))))))))))
