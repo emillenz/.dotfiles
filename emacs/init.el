@@ -392,7 +392,7 @@
   (setopt repeat-keep-prefix t
 	  set-mark-command-repeat-pop t)
 
-;; TODO first-error
+  ;; TODO first-error
   ;; (defun repeat-map-set (repeat-map cmd key)
   ;;   (put cmd 'repeat-map repeat-map)
   ;;   (keymap-set! (eval repeat-map) key cmd))
@@ -688,37 +688,27 @@
   :ensure t
   :after org
   :config
+
+  (defun doct-agenda-file (&rest path)
+    (apply 'file-name-concat (append path `("agenda.org"))))
+
   (setopt
    org-capture-templates
-   (let* ((todo-tp `("todo" :keys "t"
-		     :headline "inbox"
-		     :template ("* [ ] %^{title}"
-				"%U")))
+   (let* ((todo `("todo" :keys "t"
+		  :template ("* [ ] %^{title}"
+			     "%U")))
 
-	  (event-tp `("event" :keys "e"
-		      :headline "events"
-		      :template ("* %^{title} :event:"
-				 "%^T"
-				 "- location :: %^{location}"
-				 "- material :: %^{material}")))
+	  (event `("event" :keys "e"
+		   :headline "events"
+		   :template ("* %^{title}"
+			      "%^T"
+			      "- location :: %^{location}"
+			      "- material :: %^{material}")))
 
-	  (note-tp `("note" :keys "n"
-		     :template ("* %^{title} %^G"
-				"%U"
-				"%?")))
-
-	  (project-default-tp (lambda (tp)
-				(let* ((directory (plist-get tp :directory))
-				       (agenda-file (file-name-concat directory "agenda.org"))
-				       (notes-file (file-name-concat directory "notes.org")))
-				  (append tp
-					  `(:children
-					    ((,@todo-tp
-					      :file ,agenda-file)
-					     (,@note-tp
-					      :file ,notes-file)
-					     (,@event-tp
-					      :file ,agenda-file))))))))
+	  (note `("note" :keys "n"
+		  :template ("* %^{title} %^G"
+			     "%U"
+			     "%?"))))
 
      (doct
       `((:group
@@ -727,61 +717,60 @@
 	 :empty-lines-before 1
 
 	 :children
-	 (,@(seq-map project-default-tp
-		     `(("personal" :keys "p"
-			:directory "~/Documents/personal")
-		       ("wiki" :keys "w"
-			:directory "~/Documents/wiki")))
+	 (("personal" :keys "p"
+	   :file ,(doct-agenda-file "~/Documents/personal")
+	   :children ,todo)
 
-	  ,(let ((root-dir "~/Documents/uni/S4"))
-	     `("uni" :keys "u"
-	       :children
-	       ,(seq-map project-default-tp
-			 `(("uni" :keys "u"
-			    :directory ,root-dir)
-			   ,@(seq-map (lambda (name)
-				       `(,name :keys ,(downcase (substring name 0 1))
-					       :directory ,(file-name-concat root-dir name)))
-				     '("FMFP" "PS" "DMDB" "CN"))))))
+	  ("wiki" :keys "w"
+	   :file ,(doct-agenda-file "~/Documents/wiki")
+	   :children ,todo)
 
-	  ,(let ((project-dir "~/Documents/personal/journal/"))
-	     `("journal" :keys "j"
-	       :datetree t
-	       :unnarrrowed t
-	       :prepend nil
-	       :file ,(file-name-concat project-dir "journal.org")
-	       :children
-	       (,todo-tp
-		,note-tp)))
+	  ("uni" :keys "u"
+	   :children
+	   ,(let ((uni-dir "~/Documents/uni/S4"))
+	      (seq-map (lambda (name)
+			 `(,name :keys ,(downcase (substring name 0 1))
+				 :file ,(doct-agenda-file uni-dir name)
+				 :children
+				 (,note
+				  ,todo)))
+		       '("FMFP" "PS" "DMDB" "CN"))))
 
-	  ,(let* ((project-dir "~/Documents/literature/")
-		  (notes-dir (file-name-concat project-dir "notes/"))
-		  (readlist (file-name-concat project-dir "readlist.org")))
-	     `("literature" :keys "l"
-	       :children
-	       ((,@todo-tp
-		 :file ,readlist)
+	  ("journal" :keys "j"
+	   :datetree t
+	   :unnarrrowed t
+	   :prepend nil
+	   :file "~/Documents/personal/journal/journal.org"
+	   :children
+	   (,todo
+	    ,note))
+
+	  ("literature" :keys "l"
+	   :children
+	   ,(let* ((literature-dir "~/Documents/literature/")
+		   (notes-dir (file-name-concat literature-dir "notes/")))
+	      `((,@todo
+		 :file ,(doct-agenda-file literature-dir))
 
 		("init source" :keys "i"
-		 :file
-		 (lambda ()
-		   (file-name-concat
-		    ,notes-dir
-		    (replace-regexp-in-string
-		     " "
-		     "-"
-		     (let ((title (read-from-minibuffer "title: ")))
-		       (kill-new title)
-		       title))))
+		 :file (lambda ()
+			 (file-name-concat
+			  ,notes-dir
+			  (replace-regexp-in-string
+			   " "
+			   "-"
+			   (let ((title (read-from-minibuffer "title: ")))
+			     (kill-new title)
+			     title))))
 		 :type plain
 		 :template
-		 ("#+title: %^{title}"
+		 ("#+title: %^{title}: %^{subtitle}"
 		  "#+author: %n"
 		  "#+email: %(message-user-mail-address)"
 		  "#+date: %<%F>"
 		  "#+filetags: :literature:%^G"
 		  ""
-		  "* [ ] %\\1: %\\2"
+		  "* [ ] %\\1"
 		  "%U"
 		  ":PROPERTIES:"
 		  ":title: %\\1"
@@ -795,10 +784,10 @@
 		(:group
 		 "notes"
 		 :file (lambda () (read-file-name "file: " ,notes-dir))
-		 :headline "notes"
 		 :prepend nil
 		 :children
 		 (("quote" :keys "q"
+		   :headline "quotes"
 		   :template
 		   ("* %^{title} %^G"
 		    "%U"
@@ -809,4 +798,4 @@
 		    "%?"
 		    "#+end_quote"))
 
-		  ,note-tp))))))))))))
+		  ,note))))))))))))
