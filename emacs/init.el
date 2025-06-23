@@ -53,8 +53,7 @@
 	  global-auto-revert-non-file-buffers t
 	  auto-save-include-big-deletions t
 	  kill-buffer-delete-auto-save-files t
-	  auto-save-list-file-prefix (expand-file-name "autosave/" user-emacs-directory)
-	  custom-file (expand-file-name "custom.el" user-emacs-directory)
+	  custom-file (file-name-concat user-emacs-directory "custom.el")
 	  use-short-answers t
 	  save-interprogram-paste-before-kill t
 	  require-final-newline t
@@ -150,6 +149,7 @@
                         (defun --undo-amalgamate (fn &rest args)
                           (with-undo-amalgamate
                             (apply fn args)))))
+
           '(kmacro-call-dwim
             query-replace-regexp))
 
@@ -172,13 +172,13 @@
 		 "C-M-/" 'hippie-expand
 		 "M-SPC" 'mark-word
 
-		 "<remap> <transpose-lines>"
-		 (defun transpose-dwim ()
+		 "<remap> <transpose-chars>"
+		 (defun transpose-chars-dwim ()
 		   (interactive)
 		   (call-interactively
 		    (if (use-region-p)
 			'transpose-regions
-		      'transpose-lines)))
+		      'transpose-chars)))
 
 		 "<remap> <open-line>"
 		 (defun open-line-indent ()
@@ -281,7 +281,8 @@
 		      (seq "Org " (or "Help" "todo" "Select")))
 		  "*")
 	     display-buffer-at-bottom)
-	    ("." display-buffer-same-window)))
+	    ("." (display-buffer-same-window
+		  display-buffer-use-some-window))))
 
   (advice-add 'switch-to-buffer-other-window :override 'switch-to-buffer)
 
@@ -392,15 +393,29 @@
   (setopt repeat-keep-prefix t
 	  set-mark-command-repeat-pop t)
 
-  ;; TODO first-error
-  ;; (defun repeat-map-set (repeat-map cmd key)
-  ;;   (put cmd 'repeat-map repeat-map)
-  ;;   (keymap-set! (eval repeat-map) key cmd))
+  (progn
+    (put 'first-error 'repeat-map 'next-error-repeat-map)
+    (keymap-set! next-error-repeat-map "M-<" 'first-error)
+    (keymap-set! goto-map "M-<" 'first-error))
 
-  (defvar-keymap kill-current-buffer-repeat-map :repeat t "k" 'kill-current-buffer)
-  (defvar-keymap comment-line-repeat-map :repeat t "C-;" 'comment-line)
-  (defvar-keymap transpose-dwim-repeat-map :repeat t "C-t" 'transpose-dwim)
-  (defvar-keymap delete-blank-lines-repeat-map :repeat t "C-o" 'delete-blank-lines)
+  (progn
+    (defmacro keymap-set-repeatable! (&rest pairs)
+      (macroexp-progn
+       (cl-loop for (key cmd)
+		on pairs
+		by 'cddr
+		collect `(defvar-keymap ,(intern (format "--%s-repeat-map" (eval cmd)))
+			   :repeat t
+			   ,key
+			   ,cmd))))
+
+    (keymap-set-repeatable! "C-M-t" 'transpose-sexps
+			    "M-t" 'transpose-words
+			    "C-t" 'transpose-lines
+			    "C-t" 'transpose-chars-dwim
+			    "C-;" 'comment-line
+			    "C-o" 'delete-blank-lines
+			    "k" 'kill-current-buffer))
 
   (with-eval-after-load 'org
     (defvar-keymap org-heading-repeat-map
@@ -451,14 +466,15 @@
 	       "C-M-m" 'icomplete-fido-exit
 
 	       "C-c y"
-	       (defun icomplete--yank (&optional arg)
+	       (defun icomplete-yank (&optional arg)
 		 (interactive "P")
+		 (kill-new (if arg
+			       (minibuffer-contents)
+			     (car completion-all-sorted-completions)))
 		 (run-at-time 0.01
 			      nil
-			      'insert
-			      (if arg
-				  (minibuffer-contents)
-				(car completion-all-sorted-completions)))
+			      'call-interactively
+			      'yank)
 		 (abort-minibuffers))))
 
 (use-package recentf
@@ -523,6 +539,7 @@
 			       (unless (file-exists-p dir)
 				 (make-directory dir t))
 			       (rename-file file dest 1)))
+
 			   (dired-get-marked-files nil nil))
 		   (revert-buffer)))))
 
@@ -612,6 +629,11 @@
   (setopt project-switch-commands 'project-find-file
 	  project-mode-line t))
 
+(use-package tramp
+  :defer t
+  :config
+  (setopt tramp-auto-save-directory (file-name-concat user-emacs-directory "tramp-autosave/")))
+
 (use-package puni
   :ensure t
   :init
@@ -621,8 +643,7 @@
 
   (setopt puni-blink-for-sexp-manipulating t)
 
-  (seq-do (lambda (cmd)
-	    (advice-add-push-mark-once cmd))
+  (seq-do 'advice-add-push-mark-once
           '(puni-end-of-sexp
 	    puni-beginning-of-sexp))
 
@@ -684,9 +705,15 @@
     :config
     (setopt nov-variable-pitch nil)))
 
-(use-package doct
+(use-package org-reverse-datetree
   :ensure t
   :after org
+  :config
+  (setopt org-reverse-datetree-level-formats '("[%Y-%m-%d %A]")))
+
+(use-package doct
+  :ensure t
+  :after (org org-reverse-datetree)
   :config
   (defun doct-todo (&optional directory headline)
     (append `("todo" :keys "t")
@@ -713,8 +740,7 @@
 			 "%?"))))
 
   (defun doct-templates (templates &rest args)
-    (seq-map (lambda (fn)
-	       (apply fn args))
+    (seq-map (lambda (fn) (apply fn args))
 	     templates))
 
   (setopt
@@ -724,7 +750,6 @@
        "all"
        :prepend t
        :empty-lines-before 1
-
        :children
        (("personal" :keys "p"
 	 :children ,(doct-templates '(doct-todo doct-event doct-note)
@@ -752,10 +777,11 @@
 				     :children ,(doct-templates '(doct-todo doct-note)
 								directory
 								t))))
+
 			 '("FMFP" "PS" "DMDB" "CN")))))
 
 	("journal" :keys "j"
-	 :datetree t
+         :function org-reverse-datetree-goto-date-in-file
 	 :jump-to-captured t
 	 :prepend nil
 	 :file "~/Documents/personal/journal/journal.org"
