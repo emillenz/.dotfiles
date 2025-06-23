@@ -133,7 +133,7 @@
     (defun advice-add-push-mark-once (fn)
       (advice-add fn
                   :before
-                  (defun --push-mark-once (&rest _)
+                  (lambda (&rest _)
                     (unless (or (use-region-p)
                                 (eq last-command this-command)
                                 (when (mark) (= (mark) (point))))
@@ -146,7 +146,7 @@
 
   (seq-do (lambda (cmd)
             (advice-add cmd :around
-                        (defun --undo-amalgamate (fn &rest args)
+                        (lambda (fn &rest args)
                           (with-undo-amalgamate
                             (apply fn args)))))
 
@@ -171,14 +171,6 @@
 		 "<remap> <kill-buffer>" 'kill-current-buffer
 		 "C-M-/" 'hippie-expand
 		 "M-SPC" 'mark-word
-
-		 "<remap> <transpose-chars>"
-		 (defun transpose-chars-dwim ()
-		   (interactive)
-		   (call-interactively
-		    (if (use-region-p)
-			'transpose-regions
-		      'transpose-chars)))
 
 		 "<remap> <open-line>"
 		 (defun open-line-indent ()
@@ -261,13 +253,13 @@
 
       (advice-add 'kill-region
 		  :before
-		  (defun --pulse-read-only (beg end &optional region)
+		  (lambda (beg end &optional region)
 		    (when buffer-read-only
 		      (pulse-momentary-highlight-region beg end)))))
 
     (advice-add 'yank
 		:after
-		(defun --yank-indent (&rest _)
+		(lambda (&rest _)
                   (unless (minibufferp)
 		    (indent-region (mark) (point)))))))
 
@@ -367,7 +359,7 @@
 (use-package isearch
   :config
   (add-hook 'isearch-update-post-hook
-            (defun --isearch-beginning-of-match ()
+            (lambda ()
 	      (when (and isearch-other-end
                          isearch-forward
                          (string-prefix-p "isearch" (symbol-name last-command)))
@@ -390,8 +382,7 @@
 (use-package repeat
   :config
   (repeat-mode)
-  (setopt repeat-keep-prefix t
-	  set-mark-command-repeat-pop t)
+  (setopt set-mark-command-repeat-pop t)
 
   (progn
     (put 'first-error 'repeat-map 'next-error-repeat-map)
@@ -399,20 +390,23 @@
     (keymap-set! goto-map "M-<" 'first-error))
 
   (progn
+    (setopt repeat-keep-prefix t)
+
     (defmacro keymap-set-repeatable! (&rest pairs)
       (macroexp-progn
        (cl-loop for (key cmd)
 		on pairs
 		by 'cddr
-		collect `(defvar-keymap ,(intern (format "--%s-repeat-map" (eval cmd)))
+		collect `(defvar-keymap ,(intern (format "%s-repeat-map" (eval cmd)))
 			   :repeat t
 			   ,key
 			   ,cmd))))
 
-    (keymap-set-repeatable! "C-M-t" 'transpose-sexps
-			    "M-t" 'transpose-words
+    (keymap-set-repeatable! "M-t" 'transpose-words
+			    "C-t" 'transpose-chars
+			    "C-M-t" 'transpose-sexps
 			    "C-t" 'transpose-lines
-			    "C-t" 'transpose-chars-dwim
+			    "M-^" 'delete-indentation
 			    "C-;" 'comment-line
 			    "C-o" 'delete-blank-lines
 			    "k" 'kill-current-buffer))
@@ -605,17 +599,18 @@
 	       "M-n" 'org-forward-element
 	       "M-p" 'org-backward-element
 
-	       "M-m" (defun org-back-to-indentation ()
-		       (interactive)
-		       (let ((org-special-ctrl-a/e t))
-			 (call-interactively 'org-beginning-of-line))))
+	       "M-m"
+	       (defun org-back-to-indentation ()
+		 (interactive)
+		 (let ((org-special-ctrl-a/e t))
+		   (call-interactively 'org-beginning-of-line))))
 
   (keymap-set! org-src-mode-map
 	       "C-c C-c" 'org-edit-src-exit)
 
   (with-eval-after-load 'puni
     (add-hook 'org-mode-hook
-	      (defun --puni-kill-line-dwim ()
+	      (lambda ()
 		(keymap-set! org-mode-map
 			     "<remap> <puni-kill-line>"
 			     (defun puni-org-kill-line ()
@@ -639,7 +634,7 @@
   :init
   (puni-global-mode)
   (with-eval-after-load 'pdf-view
-    (add-hook 'pdf-view-mode-hook (defun --puni-mode-disabled () (puni-mode -1))))
+    (add-hook 'pdf-view-mode-hook (lambda () (puni-mode -1))))
 
   (setopt puni-blink-for-sexp-manipulating t)
 
@@ -649,7 +644,7 @@
 
   (advice-add 'puni-kill-line
 	      :around
-	      (defun --save-point (fn &rest args)
+	      (lambda (fn &rest args)
 		(if (bolp)
 		    (save-excursion
 		      (apply fn args))
