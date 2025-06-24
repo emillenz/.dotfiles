@@ -185,9 +185,10 @@
 		 (defun comment-sexp-dwim ()
 		   (interactive)
 		   (save-mark-and-excursion
-		     (unless (use-region-p)
-		       (call-interactively 'mark-sexp))
-		     (call-interactively 'comment-dwim)))
+		     (if (use-region-p)
+			 (call-interactively 'comment-dwim)
+		       (let ((bounds (bounds-of-thing-at-point 'sexp)))
+			(comment-region (car bounds) (cdr bounds))))))
 
 		 "<remap> <eval-last-sexp>"
 		 (defun eval-sexp-dwim (&optional arg)
@@ -451,7 +452,8 @@
 	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
 
   (keymap-set! query-replace-map
-	       "p" 'backup))
+	       "p" 'backup
+	       "a" 'automatic))
 
 (use-package icomplete
   :config
@@ -604,6 +606,9 @@
   (modify-syntax-entry ?: "_" org-mode-syntax-table)
 
   (setopt org-special-ctrl-k t)
+
+  (keymap-set! ctl-x-map
+	       "t" 'org-capture)
 
   (keymap-set! org-mode-map
 	       "M-}" 'org-forward-paragraph
