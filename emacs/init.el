@@ -746,6 +746,7 @@
     (append `("event" :keys "e")
 	    (when directory `(:file ,(file-name-concat directory "agenda.org")))
 	    (when headline `(:headline "events"))
+	    `(:unnarrowed t)
 	    `(:template ("* %^{title}"
 			 "%^t"
 			 "- location :: %^{location}"
@@ -755,7 +756,7 @@
     (append `("note" :keys "n")
 	    (when directory `(:file ,(file-name-concat directory "notes.org")))
 	    (when headline `(:headline "notes"))
-	    `(:template ("* %^{title} %^G"
+	    `(:template ("* %^{title} %^g"
 			 "%U"
 			 "%?"))))
 
@@ -802,7 +803,7 @@
 
 	("journal" :keys "j"
          :function org-reverse-datetree-goto-date-in-file
-	 :jump-to-captured t
+	 :unnarrowed t
 	 :prepend nil
 	 :file "~/Documents/personal/journal/journal.org"
 	 :children ,(doct-templates '(doct-todo doct-note)))
@@ -830,7 +831,7 @@
 		"#+author: %n"
 		"#+email: %(message-user-mail-address)"
 		"#+date: %<%F>"
-		"#+filetags: :literature:%^G"
+		"#+filetags: :literature:%^g"
 		""
 		"* [ ] %\\1"
 		"%U"
@@ -851,7 +852,7 @@
 	       :children
 	       (("quote" :keys "q"
 		 :template
-		 ("* %^{title} :quote:%^G"
+		 ("* %^{title} :quote:%^g"
 		  "%U"
 		  ":PROPERTIES:"
 		  ":page: %^{page}"
