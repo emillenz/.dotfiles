@@ -140,17 +140,16 @@
                       (push-mark)))))
 
     (seq-do 'advice-add-push-mark-once
-            '(mark-paragraph
-              backward-up-list
-              down-list)))
+	    '(mark-paragraph
+	      backward-up-list
+	      down-list)))
 
   (seq-do (lambda (cmd)
-            (advice-add cmd :around
+	    (advice-add cmd :around
                         (lambda (fn &rest args)
                           (with-undo-amalgamate
                             (apply fn args)))))
-
-          '(kmacro-call-dwim
+	  '(kmacro-call-dwim
             query-replace-regexp))
 
   (progn
@@ -435,8 +434,7 @@
 	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
 
   (keymap-set! query-replace-map
-	       "p" 'backup
-	       "RET" 'automatic))
+	       "p" 'backup))
 
 (use-package icomplete
   :config
@@ -513,7 +511,7 @@
 	       "b" 'dired-up-directory)
 
   (progn
-    (defvar dired-archive-dir "~/Archive")
+    (defvar dired-archive-dir "~/Archive/")
 
     (keymap-set! dired-mode-map
 		 "C-c a"
@@ -529,11 +527,9 @@
 					    (when (file-name-extension file)
 					      (concat "." (file-name-extension file))))))
 				    (dir (file-name-directory dest)))
-
 			       (unless (file-exists-p dir)
 				 (make-directory dir t))
 			       (rename-file file dest 1)))
-
 			   (dired-get-marked-files nil nil))
 		   (revert-buffer)))))
 
@@ -639,7 +635,7 @@
   (setopt puni-blink-for-sexp-manipulating t)
 
   (seq-do 'advice-add-push-mark-once
-          '(puni-end-of-sexp
+	  '(puni-end-of-sexp
 	    puni-beginning-of-sexp))
 
   (advice-add 'puni-kill-line
@@ -673,7 +669,8 @@
 					 'kill))))))
 
   (keymap-set! lisp-mode-shared-map
-               "C-c v" 'puni-convolute))
+               "C-c v" 'puni-convolute
+	       "C-c s" 'puni-split))
 
 (use-package magit
   :ensure t)
@@ -710,34 +707,30 @@
   :ensure t
   :after (org org-reverse-datetree)
   :config
-  (defun doct-todo (&optional directory headline)
+  (defun doct-todo (&optional no-headline-p)
     (append `("todo" :keys "t")
-	    (when directory `(:file ,(file-name-concat directory "agenda.org")))
-	    (when headline `(:headline "tasks"))
+	    (unless no-headline-p `(:headline "tasks"))
 	    `(:template ("* [ ] %^{title}"
-			 "%^t"))))
+			 "SCHEDULED: %^t"))))
 
-  (defun doct-event (&optional directory headline)
+  (defun doct-event (&optional no-headline-p)
     (append `("event" :keys "e")
-	    (when directory `(:file ,(file-name-concat directory "agenda.org")))
-	    (when headline `(:headline "events"))
+	    (unless no-headline-p `(:headline "events"))
 	    `(:unnarrowed t)
 	    `(:template ("* %^{title}"
 			 "%^t"
 			 "- location :: %^{location}"
 			 "- material :: %^{material}"))))
 
-  (defun doct-note (&optional directory headline)
+  (defun doct-note (&optional no-headline-p)
     (append `("note" :keys "n")
-	    (when directory `(:file ,(file-name-concat directory "notes.org")))
-	    (when headline `(:headline "notes"))
+	    (unless no-headline-p `(:headline "notes"))
 	    `(:template ("* %^{title} %^g"
 			 "%U"
 			 "%?"))))
 
-  (defun doct-templates (templates &rest args)
-    (seq-map (lambda (fn) (apply fn args))
-	     templates))
+  (defun doct-agenda-file (directory)
+    (file-name-concat directory "agenda.org"))
 
   (setopt
    org-capture-templates
@@ -748,32 +741,31 @@
        :empty-lines-before 1
        :children
        (("personal" :keys "p"
-	 :children ,(doct-templates '(doct-todo doct-event doct-note)
-				    "~/Documents/personal/"
-				    t))
+	 :file ,(doct-agenda-file "~/Documents/personal/")
+	 :children ,(list (doct-todo)
+			  (doct-note)
+			  (doct-event)))
 
 	("wiki" :keys "w"
-	 :children ,(doct-templates '(doct-todo doct-note)
-				    "~/Documents/wiki"
-				    t))
+	 :file ,(doct-agenda-file "~/Documents/wiki/")
+	 :children ,(list (doct-todo)
+			  (doct-note)))
 
 	("uni" :keys "u"
+	 :file ,(doct-agenda-file "~/Documents/uni/cs/s4/")
 	 :children
 	 ,(let ((directory "~/Documents/uni/S4/"))
 	    `(("uni" :keys "u"
-	       :children ,(doct-templates '(doct-todo
-					    doct-note
-					    doct-event)
-					  directory
-					  t))
+	       :file ,(doct-agenda-file directory)
+	       :children ,(list (doct-todo)
+				(doct-note)
+				(doct-event)))
 
 	      ,@(seq-map (lambda (name)
-			   (let ((directory (file-name-concat directory name)))
-			     `(,name :keys ,(downcase (substring name 0 1))
-				     :children ,(doct-templates '(doct-todo doct-note)
-								directory
-								t))))
-
+			   `(,name :keys ,(downcase (substring name 0 1))
+				   :file ,(doct-agenda-file (file-name-concat directory name))
+				   :children ,(list (doct-todo)
+						    (doct-note))))
 			 '("FMFP" "PS" "DMDB" "CN")))))
 
 	("journal" :keys "j"
@@ -781,14 +773,16 @@
 	 :unnarrowed t
 	 :prepend nil
 	 :file "~/Documents/personal/journal/journal.org"
-	 :children ,(doct-templates '(doct-todo doct-note)))
+	 :children ,(list (doct-todo t)
+			  (doct-note t)))
 
 	("literature" :keys "l"
 	 :children
 	 ,(let* ((literature-dir "~/Documents/literature/")
 		 (notes-dir (file-name-concat literature-dir "notes/")))
 
-	    `(,(doct-todo literature-dir t)
+	    `((,@(doct-todo t)
+	       :file ,(file-name-concat literature-dir "readlist.org"))
 
 	      ("init source" :keys "i"
 	       :file (lambda ()
@@ -822,10 +816,10 @@
 	      (:group
 	       "notes"
 	       :file (lambda () (read-file-name "file: " ,notes-dir))
-	       :headline "notes"
 	       :prepend nil
 	       :children
 	       (("quote" :keys "q"
+		 :headline "quotes"
 		 :template
 		 ("* %^{title} :quote:%^g"
 		  "%U"
