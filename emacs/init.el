@@ -154,31 +154,6 @@
             query-replace-regexp))
 
   (progn
-    (advice-add 'mark-word
-		:around
-		(lambda (fn &rest args)
-		  (let ((begin (seq-first (bounds-of-thing-at-point 'word))))
-		    (unless (use-region-p)
-		      (goto-char
-		       (or begin (progn
-				   (forward-word)
-				   (backward-word)
-				   (point))))))
-		  (apply fn args)))
-
-    (advice-add 'mark-sexp
-		:around
-		(lambda (fn &rest args)
-		  (let ((begin (seq-first (bounds-of-thing-at-point 'sexp))))
-		    (unless (use-region-p)
-		      (goto-char
-		       (or begin (progn
-				   (forward-sexp)
-				   (backward-sexp)
-				   (point))))))
-		  (apply fn args))))
-
-  (progn
     (defmacro keymap-set! (keymap &rest pairs)
       (macroexp-progn
        (cl-loop for (key cmd)
