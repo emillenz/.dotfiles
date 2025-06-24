@@ -163,12 +163,12 @@
     (setopt kill-whole-line t)
 
     (keymap-set! global-map
+		 "<remap> <keyboard-quit>" 'keyboard-escape-quit
 		 "<remap> <downcase-word>" 'downcase-dwim
 		 "<remap> <upcase-word>" 'upcase-dwim
 		 "<remap> <capitalize-word>" 'capitalize-dwim
 		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "<remap> <kill-buffer>" 'kill-current-buffer
-		 "C-M-/" 'hippie-expand
 		 "M-SPC" 'mark-word
 
 		 "<remap> <open-line>"
@@ -248,7 +248,7 @@
 			 (save-excursion
 			   (call-interactively
 			    (key-binding
-			     (read-key-sequence "save next kill: "))))))))
+			     (read-key-sequence "Save next kill: "))))))))
 
       (advice-add 'kill-region
 		  :before
@@ -261,6 +261,17 @@
 		(lambda (&rest _)
                   (unless (minibufferp)
 		    (indent-region (mark) (point)))))))
+
+(use-package hippie-exp
+  :config
+  (keymap-set! global-map "C-M-/" 'hippie-expand)
+
+  (advice-add 'try-expand-list
+	      :around
+	      (lambda (fn &rest args)
+		(apply fn args)
+		(when electric-pair-mode
+		  (backward-delete-char 1)))))
 
 (use-package window
   :config
@@ -307,31 +318,37 @@
   :config
   (setopt register-use-preview 'never)
 
+  (defun buffer-to-register (reg buffer)
+    (interactive (list (register-read-with-preview "Buffer to register: ") (current-buffer)))
+    (set-register reg `(buffer . ,buffer)))
+
   (progn
-    (defun buffer-to-register (reg)
-      (interactive (list (register-read-with-preview "buffer to register: ")))
-      (set-register reg `(buffer . ,(current-buffer))))
+    (buffer-to-register ?O "*Occur*")
+    (buffer-to-register ?T "*scratch*")
+    (buffer-to-register ?C "*compilation*")
+    (set-register ?I `(file . ,user-init-file)))
 
-    (defun point-to-register-dwim ()
-      (interactive)
-      (call-interactively
-       (if current-prefix-arg
-           'buffer-to-register
-         'point-to-register)))
+  (defun point-to-register-dwim ()
+    (interactive)
+    (call-interactively
+     (if current-prefix-arg
+         'buffer-to-register
+       'point-to-register)))
 
-    (keymap-set! global-map
-                 "<remap> <point-to-register>" 'point-to-register-dwim
-		 "M-r" 'point-to-register-dwim
-		 "M-j" 'jump-to-register
+  (keymap-set! global-map
+               "<remap> <point-to-register>" 'point-to-register-dwim
+	       "M-r" 'point-to-register-dwim
+	       "M-j" 'jump-to-register)
 
-		 "<remap> <copy-to-register>"
-		 (defun copy-to-register-dwim (&optional arg)
-		   (interactive "P")
-		   (if (use-region-p)
-		       (call-interactively 'copy-to-register)
-		     (let ((text (read-from-kill-ring "text: "))
-			   (reg (register-read-with-preview "Copy to register: ")))
-		       (set-register reg text)))))))
+  (keymap-set! global-map
+	       "<remap> <copy-to-register>"
+	       (defun copy-to-register-dwim (&optional arg)
+		 (interactive "P")
+		 (if (use-region-p)
+		     (call-interactively 'copy-to-register)
+		   (let ((text (read-from-kill-ring "Text: "))
+			 (reg (register-read-with-preview "Copy to register: ")))
+		     (set-register reg text))))))
 
 (use-package ffap
   :config
@@ -522,7 +539,7 @@
 					   dired-archive-dir
 					   (concat
 					    (file-name-sans-extension (file-relative-name file "~/"))
-					    ".archived_"
+					    "_archived_"
 					    (format-time-string "%F_T%H-%M-%S")
 					    (when (file-name-extension file)
 					      (concat "." (file-name-extension file))))))
@@ -604,15 +621,14 @@
 	       "C-c C-c" 'org-edit-src-exit)
 
   (with-eval-after-load 'puni
-    (add-hook 'org-mode-hook
-	      (lambda ()
-		(keymap-set! org-mode-map
-			     "<remap> <puni-kill-line>"
-			     (defun puni-org-kill-line ()
-			       (interactive)
-			       (call-interactively (if (and puni-mode (not (org-at-heading-p)))
-						       'puni-kill-line
-						     'org-kill-line))))))))
+    (keymap-set! org-mode-map
+		 "<remap> <puni-kill-line>"
+		 (defun puni-org-kill-line-dwim ()
+		   (interactive)
+		   (call-interactively
+		    (if (and puni-mode (puni-beginning-pos-of-sexp-around-point))
+			'puni-kill-line
+		      'org-kill-line))))))
 
 (use-package project
   :config
@@ -712,14 +728,14 @@
    org-capture-templates
 
    (doct
-    (let* ((todo (lambda (&rest properties)
+    (let ((todo (lambda (&rest properties)
 		   (append `("todo" :keys "t")
 			   properties
 			   `(:headline
-			     "todo"
+			     "agenda"
 			     :template
 			     ("* [ ] %^{title}"
-			      "SCHEDULED: %^T")))))
+			      "SCHEDULED: %^t")))))
 
 	   (event (lambda (&rest properties)
 		    (append `("event" :keys "e")
@@ -729,7 +745,7 @@
 			      :unnarrowed t
 			      :template
 			      ("* %^{title}"
-			       "%^T"
+			       "%^t"
 			       "- location :: %^{location}"
 			       "- material :: %^{material}")))))
 
@@ -740,11 +756,10 @@
 			     "notes"
 			     :template
 			     ("* %^{title} %^g"
-			      "%U"
+			      "%u"
 			      "%?")))))
 
-	   (agenda-file (lambda (directory)
-			  (file-name-concat directory "agenda.org"))))
+	   (agenda-file-name "agenda.org"))
 
       `((:group
 	 "all"
@@ -752,25 +767,25 @@
 	 :empty-lines-before 1
 	 :children
 	 (("personal" :keys "p"
-	   :file ,(funcall agenda-file "~/Documents/personal/")
+	   :file ,(file-name-concat "~/Documents/personal/" agenda-file-name)
 	   :children ,(seq-map 'funcall (list todo note event)))
 
 	  ("wiki" :keys "w"
-	   :file ,(funcall agenda-file "~/Documents/wiki/")
+	   :file ,(file-name-concat "~/Documents/wiki/" agenda-file-name)
 	   :children ,(seq-map 'funcall (list todo note)))
 
 	  ("uni" :keys "u"
-	   :file ,(funcall agenda-file "~/Documents/uni/cs/s4/")
+	   :file ,(file-name-concat "~/Documents/uni/cs/s4/" agenda-file-name)
 	   :children
 	   ,(let ((directory "~/Documents/uni/S4/"))
 	      `(("uni" :keys "u"
-		 :file ,(funcall agenda-file directory)
+		 :file ,(file-name-concat directory agenda-file-name)
 		 :children
 		 (,@(seq-map 'funcall (list todo event))
 
 		  ,@(seq-map (lambda (name)
 			       `(,name :keys ,(downcase (substring name 0 1))
-				       :file ,(funcall agenda-file (file-name-concat directory name))
+				       :file ,(file-name-concat directory name agenda-file-name)
 				       :children ,(seq-map 'funcall (list todo note))))
 			     '("FMFP" "PS" "DMDB" "CN")))))))
 
@@ -787,31 +802,33 @@
 	     `("literature" :keys "l"
 	       :file ,file
 	       :children
-	       (("add source" :keys "a"
+	       (,(funcall todo)
+
+		("add source" :keys "a"
 		 :template
-		 ("* [ ] %^{title} %^{subtitle}"
-		  "%U"
+		 ("* [ ] %^{title} %^{: subtitle}"
 		  ":PROPERTIES:"
 		  ":title: %\\1"
 		  ":subtitle: %\\2"
 		  ":author: %^{author}"
 		  ":year: %^{year}"
-		  ":type: %^{type|book|textbook|paper|article|audiobook|podcast}"
+		  ":type: %^{type|book|textbook|scholary-article|article}"
 		  ":pages: %^{pages}"
-		  ":END:"))
+		  ":END:"
+		  "%u"))
 
 		(:group
 		 "notes"
 		 :function (lambda ()
 			     (let ((org-refile-use-outline-path nil)
 				   (org-refile-targets '((,file . (:level . 1)))))
-			       (org-refile t nil nil "source: ")))
+			       (org-refile t nil nil "Source: ")))
 		 :prepend nil
 		 :children
 		 (("quote" :keys "q"
 		   :template
-		   ("* %^{title} [p: %^{page}] :quote:%^g"
-		    "%U"
+		   ("* %^{title} [page:%^{page}] :quote:%^g"
+		    "%u"
 		    "#+begin_quote"
 		    "%?"
 		    "#+end_quote"))
