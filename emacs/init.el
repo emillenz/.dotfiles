@@ -321,7 +321,7 @@
 
     (keymap-set! global-map
                  "<remap> <point-to-register>" 'point-to-register-dwim
-		 "M-#" 'point-to-register-dwim
+		 "M-r" 'point-to-register-dwim
 		 "M-j" 'jump-to-register
 
 		 "<remap> <copy-to-register>"
@@ -541,7 +541,6 @@
 
   (setopt org-tags-column 0
           org-use-property-inheritance t
-	  org-reverse-note-order t
 	  org-refile-use-outline-path 'full-file-path
 	  org-fontify-quote-and-verse-blocks t
 	  org-hide-emphasis-markers t
@@ -701,133 +700,120 @@
   :ensure t
   :after org
   :config
-  (setopt org-reverse-datetree-level-formats '("[%Y-%m-%d %A]")))
+  (setopt org-reverse-note-order t
+	  org-reverse-datetree-level-formats '("[%Y-%m-%d %A]")))
 
 (use-package doct
   :ensure t
   :after (org org-reverse-datetree)
   :config
-  (defun doct-todo (&optional no-headline-p)
-    (append `("todo" :keys "t")
-	    (unless no-headline-p `(:headline "tasks"))
-	    `(:template ("* [ ] %^{title}"
-			 "SCHEDULED: %^t"))))
-
-  (defun doct-event (&optional no-headline-p)
-    (append `("event" :keys "e")
-	    (unless no-headline-p `(:headline "events"))
-	    `(:unnarrowed t)
-	    `(:template ("* %^{title}"
-			 "%^t"
-			 "- location :: %^{location}"
-			 "- material :: %^{material}"))))
-
-  (defun doct-note (&optional no-headline-p)
-    (append `("note" :keys "n")
-	    (unless no-headline-p `(:headline "notes"))
-	    `(:template ("* %^{title} %^g"
-			 "%U"
-			 "%?"))))
-
-  (defun doct-agenda-file (directory)
-    (file-name-concat directory "agenda.org"))
 
   (setopt
    org-capture-templates
+
    (doct
-    `((:group
-       "all"
-       :prepend t
-       :empty-lines-before 1
-       :children
-       (("personal" :keys "p"
-	 :file ,(doct-agenda-file "~/Documents/personal/")
-	 :children ,(list (doct-todo)
-			  (doct-note)
-			  (doct-event)))
+    (let* ((todo (lambda (&rest properties)
+		   (append `("todo" :keys "t")
+			   properties
+			   `(:headline
+			     "todo"
+			     :template
+			     ("* [ ] %^{title}"
+			      "SCHEDULED: %^T")))))
 
-	("wiki" :keys "w"
-	 :file ,(doct-agenda-file "~/Documents/wiki/")
-	 :children ,(list (doct-todo)
-			  (doct-note)))
+	   (event (lambda (&rest properties)
+		    (append `("event" :keys "e")
+			    properties
+			    `(:headline
+			      "events"
+			      :unnarrowed t
+			      :template
+			      ("* %^{title}"
+			       "%^T"
+			       "- location :: %^{location}"
+			       "- material :: %^{material}")))))
 
-	("uni" :keys "u"
-	 :file ,(doct-agenda-file "~/Documents/uni/cs/s4/")
+	   (note (lambda (&rest properties)
+		   (append `("note" :keys "n")
+			   properties
+			   `(:headline
+			     "notes"
+			     :template
+			     ("* %^{title} %^g"
+			      "%U"
+			      "%?")))))
+
+	   (agenda-file (lambda (directory)
+			  (file-name-concat directory "agenda.org"))))
+
+      `((:group
+	 "all"
+	 :prepend t
+	 :empty-lines-before 1
 	 :children
-	 ,(let ((directory "~/Documents/uni/S4/"))
-	    `(("uni" :keys "u"
-	       :file ,(doct-agenda-file directory)
-	       :children ,(list (doct-todo)
-				(doct-note)
-				(doct-event)))
+	 (("personal" :keys "p"
+	   :file ,(funcall agenda-file "~/Documents/personal/")
+	   :children ,(seq-map 'funcall (list todo note event)))
 
-	      ,@(seq-map (lambda (name)
-			   `(,name :keys ,(downcase (substring name 0 1))
-				   :file ,(doct-agenda-file (file-name-concat directory name))
-				   :children ,(list (doct-todo)
-						    (doct-note))))
-			 '("FMFP" "PS" "DMDB" "CN")))))
+	  ("wiki" :keys "w"
+	   :file ,(funcall agenda-file "~/Documents/wiki/")
+	   :children ,(seq-map 'funcall (list todo note)))
 
-	("journal" :keys "j"
-         :function org-reverse-datetree-goto-date-in-file
-	 :unnarrowed t
-	 :prepend nil
-	 :file "~/Documents/personal/journal/journal.org"
-	 :children ,(list (doct-todo t)
-			  (doct-note t)))
+	  ("uni" :keys "u"
+	   :file ,(funcall agenda-file "~/Documents/uni/cs/s4/")
+	   :children
+	   ,(let ((directory "~/Documents/uni/S4/"))
+	      `(("uni" :keys "u"
+		 :file ,(funcall agenda-file directory)
+		 :children
+		 (,@(seq-map 'funcall (list todo event))
 
-	("literature" :keys "l"
-	 :children
-	 ,(let* ((literature-dir "~/Documents/literature/")
-		 (notes-dir (file-name-concat literature-dir "notes/")))
+		  ,@(seq-map (lambda (name)
+			       `(,name :keys ,(downcase (substring name 0 1))
+				       :file ,(funcall agenda-file (file-name-concat directory name))
+				       :children ,(seq-map 'funcall (list todo note))))
+			     '("FMFP" "PS" "DMDB" "CN")))))))
 
-	    `((,@(doct-todo t)
-	       :file ,(file-name-concat literature-dir "readlist.org"))
+	  ("journal" :keys "j"
+           :function org-reverse-datetree-goto-date-in-file
+	   :prepend nil
+	   :unnarrowed t
+	   :file "~/Documents/personal/journal/journal.org"
+	   :children ,(seq-map (lambda (it)
+				 (funcall it :headline nil))
+			       (list todo note)))
 
-	      ("init source" :keys "i"
-	       :file (lambda ()
-		       (file-name-concat
-			,notes-dir
-			(replace-regexp-in-string
-			 " "
-			 "-"
-			 (let ((title (read-from-minibuffer "title: ")))
-			   (kill-new title)
-			   title))))
-	       :type plain
-	       :template
-	       ("#+title: %^{title}: %^{subtitle}"
-		"#+author: %n"
-		"#+email: %(message-user-mail-address)"
-		"#+date: %<%F>"
-		"#+filetags: :literature:%^g"
-		""
-		"* [ ] %\\1"
-		"%U"
-		":PROPERTIES:"
-		":title: %\\1"
-		":subtitle: %\\2"
-		":author: %^{author}"
-		":year: %^{year}"
-		":type: %^{type|book|textbook|paper|article|audiobook|podcast}"
-		":pages: %^{pages}"
-		":END:"))
-
-	      (:group
-	       "notes"
-	       :file (lambda () (read-file-name "file: " ,notes-dir))
-	       :prepend nil
+	  ,(let* ((file "~/Documents/literature/literature.org"))
+	     `("literature" :keys "l"
+	       :file ,file
 	       :children
-	       (("quote" :keys "q"
-		 :headline "quotes"
+	       (("add source" :keys "a"
 		 :template
-		 ("* %^{title} :quote:%^g"
+		 ("* [ ] %^{title} %^{subtitle}"
 		  "%U"
 		  ":PROPERTIES:"
-		  ":page: %^{page}"
-		  ":END:"
-		  "#+begin_quote"
-		  "%?"
-		  "#+end_quote"))
+		  ":title: %\\1"
+		  ":subtitle: %\\2"
+		  ":author: %^{author}"
+		  ":year: %^{year}"
+		  ":type: %^{type|book|textbook|paper|article|audiobook|podcast}"
+		  ":pages: %^{pages}"
+		  ":END:"))
 
-		,(doct-note))))))))))))
+		(:group
+		 "notes"
+		 :function (lambda ()
+			     (let ((org-refile-use-outline-path nil)
+				   (org-refile-targets '((,file . (:level . 1)))))
+			       (org-refile t nil nil "source: ")))
+		 :prepend nil
+		 :children
+		 (("quote" :keys "q"
+		   :template
+		   ("* %^{title} [p: %^{page}] :quote:%^g"
+		    "%U"
+		    "#+begin_quote"
+		    "%?"
+		    "#+end_quote"))
+
+		  ,(funcall note :headline nil)))))))))))))
