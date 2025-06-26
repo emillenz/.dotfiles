@@ -431,7 +431,6 @@
 		 "C-t" 'transpose-chars
 		 "C-M-t" 'transpose-sexps
 		 "C-t" 'transpose-lines
-		 "M-SPC" 'mark-end-of-sentence
 		 "M-k" 'kill-sentence
 		 "M-^" 'delete-indentation
 		 "C-;" 'comment-line
@@ -617,8 +616,7 @@
     (setopt org-special-ctrl-k t)
 
     (keymap-set! ctl-x-map
-		 "t" 'org-capture
-		 "M-SPC" 'mark-end-of-sentence)
+		 "t" 'org-capture)
 
     (keymap-set! org-mode-map
 		 "<remap> <org-transpose-element>" 'transpose-sexps
@@ -803,19 +801,24 @@
 	       "<remap> <kill-whole-line>"
 	       (defun puni-kill-whole-line (&optional arg)
 		 (interactive "p")
-		 (apply 'puni-soft-delete
-			(append (cond ((zerop arg)
-				       (list (save-excursion (forward-visible-line 0) (point))
-					     (save-excursion (end-of-visible-line) (point))))
-				      ((< arg 0)
-				       (list (save-excursion (end-of-visible-line) (point))
-					     (save-excursion (forward-visible-line (1+ arg))
-							     (unless (bobp) (backward-char))
-							     (point))))
-				      (t
-				       (list (save-excursion (forward-visible-line 0) (point))
-					     (save-excursion (forward-visible-line arg) (point)))))
-				'(strict-sexp beyond kill)))
+		 (pcase-let*
+		     ((`(,beg ,end)
+		       (cond ((zerop arg)
+			      (list (save-excursion (forward-visible-line 0) (point))
+				    (save-excursion (end-of-visible-line) (point))))
+
+			     ((< arg 0)
+			      (list (save-excursion (end-of-visible-line) (point))
+				    (save-excursion (forward-visible-line (1+ arg))
+						    (unless (bobp) (backward-char))
+						    (point))))
+
+			     (t
+			      (list (save-excursion (forward-visible-line 0) (point))
+				    (save-excursion (forward-visible-line arg) (point)))))))
+
+		   (puni-soft-delete beg end 'strict-sexp 'beyond 'kill))
+
 		 (cond ((zerop arg)
 			(indent-according-to-mode))
 		       ((string-match-p "\\`[[:blank:])]*$" (thing-at-point 'line))
