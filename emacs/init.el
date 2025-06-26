@@ -9,7 +9,7 @@
 
 (use-package use-package
   :config
-  (setopt use-package-always-demand t
+  (setopt use-always-demand t
           use-package-enable-imenu-support t))
 
 (use-package package
@@ -24,7 +24,6 @@
   (global-visual-line-mode)
   (column-number-mode)
   (global-subword-mode)
-  (delete-selection-mode)
   (electric-indent-mode)
   (electric-pair-mode)
   (save-place-mode)
@@ -43,8 +42,7 @@
   (setopt user-full-name "emil lenz"
 	  user-mail-address "emillenz@protonmail.com")
 
-  (setopt mouse-autoselect-window t
-	  uniquify-buffer-name-style 'forward
+  (setopt uniquify-buffer-name-style 'forward
 	  delete-by-moving-to-trash t
 	  remote-file-name-inhibit-delete-by-moving-to-trash t
 	  ring-bell-function 'ignore
@@ -141,8 +139,12 @@
 
     (seq-do 'advice-add-push-mark-once
 	    '(mark-paragraph
-	      backward-up-list
-	      down-list)))
+	      backward-up-list)))
+
+  (advice-add 'yank
+	      :after
+	      (lambda (&rest _)
+		(call-interactively 'indent-region)))
 
   (seq-do (lambda (cmd)
 	    (advice-add cmd :around
@@ -169,10 +171,14 @@
 		 "<remap> <capitalize-word>" 'capitalize-dwim
 		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "<remap> <kill-buffer>" 'kill-current-buffer
+
 		 "M-SPC" 'mark-word
 
+		 "C-M-{" 'beginning-of-defun
+		 "C-M-}" 'end-of-defun
+
 		 "<remap> <open-line>"
-		 (defun open-line-indent ()
+		 (defun open-line-dwim ()
 		   (interactive)
 		   (if (eq (point) (save-excursion
 				     (back-to-indentation)
@@ -181,21 +187,32 @@
 		     (save-excursion
 		       (call-interactively 'default-indent-new-line))))
 
+		 "<remap> <yank>"
+		 (defun yank-dwim (&optional arg)
+		   (interactive "P")
+		   (let ((text (when (use-region-p)
+				 (delete-and-extract-region (region-beginning)
+							    (region-end)))))
+		     (yank arg)
+		     (when text (kill-new text))))
+
 		 "<remap> <comment-dwim>"
-		 (defun comment-sexp-dwim ()
-		   (interactive)
-		   (save-mark-and-excursion
-		     (if (use-region-p)
-			 (call-interactively 'comment-dwim)
-		       (let ((bounds (bounds-of-thing-at-point 'sexp)))
-			(comment-region (car bounds) (cdr bounds))))))
+		 (defun comment-sexp-dwim (&optional beg end arg)
+		   (interactive "r\nP")
+		   (unless (use-region-p)
+		     (let ((bounds (save-excursion (forward-sexp)
+						   (backward-sexp)
+						   (bounds-of-thing-at-point 'sexp))))
+		       (setq beg (car bounds)
+			     end (cdr bounds))))
+		   (comment-or-uncomment-region beg end arg))
 
 		 "<remap> <eval-last-sexp>"
-		 (defun eval-sexp-dwim (&optional arg)
-		   (interactive "P")
+		 (defun eval-sexp-dwim (&optional beg end arg)
+		   (interactive "r\nP")
 		   (if (use-region-p)
 		       (progn
-			 (eval-region (region-beginning) (region-end) t)
+			 (eval-region beg end t)
 			 (deactivate-mark))
 		     (save-excursion
 		       (forward-sexp)
@@ -211,6 +228,7 @@
 		     (call-interactively 'kmacro-end-and-call-macro))))
 
     (keymap-set! ctl-x-map
+		 "M-h" 'mark-end-of-sentence
 		 "f" 'recentf-open
 		 "C-z" 'shell
 
@@ -255,24 +273,17 @@
 		  :before
 		  (lambda (beg end &optional region)
 		    (when buffer-read-only
-		      (pulse-momentary-highlight-region beg end)))))
-
-    (advice-add 'yank
-		:after
-		(lambda (&rest _)
-                  (unless (minibufferp)
-		    (indent-region (mark) (point)))))))
+		      (pulse-momentary-highlight-region beg end)))))))
 
 (use-package hippie-exp
   :config
   (keymap-set! global-map "C-M-/" 'hippie-expand)
 
   (advice-add 'try-expand-list
-	      :around
-	      (lambda (fn &rest args)
-		(apply fn args)
-		(when electric-pair-mode
-		  (backward-delete-char 1)))))
+	     :after
+	     (lambda (&rest _)
+	       (when electric-pair-mode
+		 (backward-delete-char 1)))))
 
 (use-package window
   :config
@@ -281,6 +292,8 @@
 	  `((,(rx "*"
 		  (or "Completions"
 		      "Register Preview"
+		      "Agenda Commands"
+		      "transient"
 		      (seq "Org " (or "Help" "todo" "Select")))
 		  "*")
 	     display-buffer-at-bottom)
@@ -327,6 +340,7 @@
     (buffer-to-register ?O "*Occur*")
     (buffer-to-register ?T "*scratch*")
     (buffer-to-register ?C "*compilation*")
+    (buffer-to-register ?H "*Help*")
     (set-register ?I `(file . ,user-init-file)))
 
   (defun point-to-register-dwim ()
@@ -416,13 +430,14 @@
 		by 'cddr
 		collect `(defvar-keymap ,(intern (format "%s-repeat-map" (eval cmd)))
 			   :repeat t
-			   ,key
-			   ,cmd))))
+			   ,cmd ,key))))
 
     (keymap-set-repeatable! "M-t" 'transpose-words
 			    "C-t" 'transpose-chars
 			    "C-M-t" 'transpose-sexps
 			    "C-t" 'transpose-lines
+			    "M-h" 'mark-end-of-sentence
+			    "M-k" 'kill-sentence
 			    "M-^" 'delete-indentation
 			    "C-;" 'comment-line
 			    "C-o" 'delete-blank-lines
@@ -433,9 +448,11 @@
       :repeat t
       "C-n" 'org-next-visible-heading
       "C-p" 'org-previous-visible-heading
-      "C-u" 'outline-up-heading
       "C-b" 'org-backward-heading-same-level
-      "C-f" 'org-forward-heading-same-level)))
+      "C-f" 'org-forward-heading-same-level
+      "C-u" 'outline-up-heading
+      "C-^" 'org-up-element
+      "C-_" 'org-down-element)))
 
 (use-package replace
   :config
@@ -452,8 +469,7 @@
 	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
 
   (keymap-set! query-replace-map
-	       "p" 'backup
-	       "a" 'automatic))
+	       "p" 'backup))
 
 (use-package icomplete
   :config
@@ -559,8 +575,9 @@
     (setopt org-indent-indentation-per-level standard-indent))
 
   (setopt org-tags-column 0
+	  org-auto-align-tags nil
+	  org-reverse-note-order t
           org-use-property-inheritance t
-	  org-refile-use-outline-path 'full-file-path
 	  org-fontify-quote-and-verse-blocks t
 	  org-hide-emphasis-markers t
 	  org-pretty-entities t
@@ -568,39 +585,37 @@
 	  org-list-demote-modify-bullet '(("-" . "-")
 					  ("1." . "1.")))
 
-  (setopt org-log-done 'time
-	  org-log-redeadline 'time
-	  org-log-reschedule 'time
-	  org-log-into-drawer "LOG")
-
   (setopt org-priority-highest 1
 	  org-priority-lowest 3)
 
   (setopt org-outline-path-complete-in-steps nil
-	  org-goto-interface 'outline-path-completion)
+	  org-goto-interface 'outline-path-completion
+	  org-refile-use-outline-path t
+	  org-refile-targets `((nil . (:maxlevel . 8))))
 
   (progn
-    (setopt org-todo-keywords '((sequence
-				 "[ ](t!)"
-				 "[?](?!)"
-				 "[+](+!)"
-				 "[-](-!)"
-				 "[@](2!)"
-				 "[=](=!)"
-				 "[&](&!)"
+    (setopt org-todo-keywords `((sequence
+				 "[ ](t)"
+				 "[?](?)"
+				 "[+](+)"
+				 "[-](-)"
+				 "[@](2)"
+				 "[=](=)"
+				 "[&](&)"
 				 "|"
 				 "[X](x!)"
 				 "[\\](\\!)")))
 
-    (setopt org-log-note-headings
-	    '((done		.	"done :: %t")
-	      (state		.	"state :: %t %s")
-	      (note		.	"note :: %t")
-	      (reschedule	.	"reschedule :: %t %s")
-	      (delschedule	.	"delschedule :: %t")
-	      (redeadline	.	"redeadline :: %t %s")
-	      (deldeadline	.	"deldeadline :: %t")
-	      (refile		.	"refile :: %t")
+    (setopt org-log-into-drawer "LOG"
+	    org-log-note-headings
+	    '((done		.	"%t :: %s")
+	      (state		.	"%t :: %s")
+	      (note		.	"%t")
+	      (reschedule	.	"%t :: reschedule %s")
+	      (delschedule	.	"%t :: delschedule")
+	      (redeadline	.	"%t :: redeadline %s")
+	      (deldeadline	.	"%t :: deldeadline")
+	      (refile		.	"%t :: refile")
 	      (clock-out	.	""))))
 
   (modify-syntax-entry ?: "_" org-mode-syntax-table)
@@ -611,6 +626,8 @@
 	       "t" 'org-capture)
 
   (keymap-set! org-mode-map
+	       "<remap> <org-transpose-element>" 'transpose-sexps
+
 	       "M-}" 'org-forward-paragraph
 	       "M-{" 'org-backward-paragraph
 	       "M-n" 'org-forward-element
@@ -654,16 +671,10 @@
 
   (setopt puni-blink-for-sexp-manipulating t)
 
-  (seq-do 'advice-add-push-mark-once
-	  '(puni-end-of-sexp
-	    puni-beginning-of-sexp))
-
   (advice-add 'puni-kill-line
 	      :around
 	      (lambda (fn &rest args)
-		(if (bolp)
-		    (save-excursion
-		      (apply fn args))
+		(save-excursion
 		  (apply fn args))))
 
   (progn
@@ -679,14 +690,10 @@
 		 "C-<backspace>"
 		 (defun puni-backward-kill-line-to-indent (&optional arg)
 		   (interactive "P")
-		   (let ((pos-indent (save-excursion (back-to-indentation) (point))))
-		     (if (or arg (<= (point) pos-indent))
+		   (let ((indent (save-excursion (back-to-indentation) (point))))
+		     (if (or arg (<= (point) indent))
 			 (puni-backward-kill-line arg)
-		       (puni-soft-delete (point)
-					 pos-indent
-					 'strict-sexp
-					 'beyond
-					 'kill))))))
+		       (puni-soft-delete (point) indent 'strict-sexp 'beyond 'kill))))))
 
   (keymap-set! lisp-mode-shared-map
                "C-c v" 'puni-convolute
@@ -697,7 +704,12 @@
 
 (use-package whisper
   :ensure t
-  :vc (:url "https://github.com/natrys/whisper.el"))
+  :vc (:url "https://github.com/natrys/whisper.el")
+  :config
+  (add-hook 'whisper-after-transcription-hook
+	    (lambda ()
+	      (downcase-region (point-min) (point-max))
+	      (repunctuate-sentences t (point-min) (point-max)))))
 
 (use-package pdf-tools
   :ensure t
@@ -719,38 +731,37 @@
 
 (use-package org-reverse-datetree
   :ensure t
-  :after org
-  :config
-  (setopt org-reverse-note-order t
-	  org-reverse-datetree-level-formats '("[%Y-%m-%d %A]")))
+  :after org)
 
 (use-package doct
   :ensure t
   :after (org org-reverse-datetree)
   :config
-
   (setopt
    org-capture-templates
-
    (doct
-    (let ((todo (lambda (&rest properties)
+    (let* ((todo (lambda (&rest properties)
 		   (append `("todo" :keys "t")
 			   properties
 			   `(:headline
 			     "agenda"
 			     :template
 			     ("* [ ] %^{title}"
-			      "SCHEDULED: %^t")))))
+			      ":PROPERTIES:"
+			      ":date: %u"
+			      ":END:")))))
 
 	   (event (lambda (&rest properties)
 		    (append `("event" :keys "e")
 			    properties
 			    `(:headline
 			      "events"
-			      :unnarrowed t
 			      :template
 			      ("* %^{title}"
-			       "%^t"
+			       "SCHEDULED: %^t"
+			       ":PROPERTIES:"
+			       ":date: %u"
+			       ":END:"
 			       "- location :: %^{location}"
 			       "- material :: %^{material}")))))
 
@@ -761,7 +772,9 @@
 			     "notes"
 			     :template
 			     ("* %^{title} %^g"
-			      "%u"
+			      ":PROPERTIES:"
+			      ":date: %u"
+			      ":END:"
 			      "%?")))))
 
 	   (agenda-file-name "agenda.org"))
@@ -779,29 +792,23 @@
 	   :file ,(file-name-concat "~/Documents/wiki/" agenda-file-name)
 	   :children ,(seq-map 'funcall (list todo note)))
 
-	  ("uni" :keys "u"
-	   :file ,(file-name-concat "~/Documents/uni/cs/s4/" agenda-file-name)
-	   :children
-	   ,(let ((directory "~/Documents/uni/S4/"))
-	      `(("uni" :keys "u"
-		 :file ,(file-name-concat directory agenda-file-name)
-		 :children
-		 (,@(seq-map 'funcall (list todo event))
+	  ,(let ((directory "~/Documents/uni/cs/s4/"))
+	     `("uni" :keys "u"
+	       :file ,(file-name-concat directory agenda-file-name)
+	       :children
+	       (,@(seq-map 'funcall (list todo event))
 
-		  ,@(seq-map (lambda (name)
-			       `(,name :keys ,(downcase (substring name 0 1))
-				       :file ,(file-name-concat directory name agenda-file-name)
-				       :children ,(seq-map 'funcall (list todo note))))
-			     '("FMFP" "PS" "DMDB" "CN")))))))
+		,@(seq-map (lambda (name)
+			     `(,name :keys ,(downcase (substring name 0 1))
+				     :file ,(file-name-concat directory name agenda-file-name)
+				     :children ,(seq-map 'funcall (list todo note))))
+			   '("FMFP" "PS" "DMDB" "CN")))))
 
 	  ("journal" :keys "j"
-           :function org-reverse-datetree-goto-date-in-file
-	   :prepend nil
-	   :unnarrowed t
+	   :function (lambda () (org-reverse-datetree-2 nil '("[%Y-%m-%d %A]")))
 	   :file "~/Documents/personal/journal/journal.org"
-	   :children ,(seq-map (lambda (it)
-				 (funcall it :headline nil))
-			       (list todo note)))
+	   :children (,(funcall todo :headline nil :unnarrowed t)
+		      ,(funcall note :headline nil :prepend nil)))
 
 	  ,(let* ((file "~/Documents/literature/literature.org"))
 	     `("literature" :keys "l"
@@ -810,30 +817,34 @@
 	       (,(funcall todo)
 
 		("add source" :keys "a"
+		 :headline "sources"
 		 :template
-		 ("* [ ] %^{title} %^{: subtitle}"
+		 ("* [ ] %^{title} %^g"
 		  ":PROPERTIES:"
+		  ":date: %u"
 		  ":title: %\\1"
-		  ":subtitle: %\\2"
+		  ":subtitle: %^{subtitle}"
 		  ":author: %^{author}"
 		  ":year: %^{year}"
-		  ":type: %^{type|book|textbook|scholary-article|article}"
+		  ":type: %^{type|novel|textbook|scholary_article|article|guide}"
 		  ":pages: %^{pages}"
-		  ":END:"
-		  "%u"))
+		  ":END:"))
 
 		(:group
 		 "notes"
 		 :function (lambda ()
 			     (let ((org-refile-use-outline-path nil)
-				   (org-refile-targets '((,file . (:level . 1)))))
+				   (org-refile-targets '(((,file) . (:todo . "[-]")))))
 			       (org-refile t nil nil "Source: ")))
 		 :prepend nil
 		 :children
-		 (("quote" :keys "q"
+		 (("quote" :keys "o"
 		   :template
-		   ("* %^{title} [page:%^{page}] :quote:%^g"
-		    "%u"
+		   ("* %^{title} :quote:%^g"
+		    ":PROPERTIES:"
+		    ":date: %u"
+		    ":page: %^{page}"
+		    ":END:"
 		    "#+begin_quote"
 		    "%?"
 		    "#+end_quote"))
