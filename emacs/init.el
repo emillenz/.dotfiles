@@ -48,7 +48,6 @@
 	  remote-file-name-inhibit-delete-by-moving-to-trash t
 	  ring-bell-function 'ignore
 	  enable-recursive-minibuffers t
-	  revert-without-query '(".*\\.pdf")
 	  global-auto-revert-non-file-buffers t
 	  auto-save-include-big-deletions t
 	  kill-buffer-delete-auto-save-files t
@@ -112,8 +111,10 @@
 	    tab-width standard-indent)
 
     (setopt c-default-style "linux")
-    (with-eval-after-load 'js (setopt js-indent-level standard-indent))
-    (with-eval-after-load 'sh-script (setopt sh-basic-offset standard-indent)))
+    (with-eval-after-load 'js
+      (setopt js-indent-level standard-indent))
+    (with-eval-after-load 'sh-script
+      (setopt sh-basic-offset standard-indent)))
 
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
@@ -157,8 +158,6 @@
 		by 'cddr
 		collect `(keymap-set ,keymap ,key ,cmd))))
 
-    (setopt kill-whole-line t)
-
     (keymap-set! global-map
 		 "<remap> <keyboard-quit>" 'keyboard-escape-quit
 		 "<remap> <downcase-word>" 'downcase-dwim
@@ -171,6 +170,27 @@
 
 		 "C-M-{" 'beginning-of-defun
 		 "C-M-}" 'end-of-defun
+
+		 "C-S-h"
+		 (defun mark-whole-line (&optional arg allow-extend)
+		   (interactive "P\np")
+		   (unless (bolp)
+		     (beginning-of-line))
+		   (cond ((and allow-extend
+			       (or (and (eq last-command this-command) (mark t))
+				   (region-active-p)))
+			  (setq arg (if arg (prefix-numeric-value arg)
+				      (if (< (mark) (point)) -1 1)))
+			  (set-mark (save-excursion
+				      (goto-char (mark))
+				      (forward-line arg)
+				      (point))))
+			 (t
+			  (push-mark (save-excursion
+				       (forward-line (prefix-numeric-value arg))
+				       (point))
+				     nil
+				     t))))
 
 		 "<remap> <open-line>"
 		 (defun open-line-dwim ()
@@ -195,9 +215,11 @@
 		 (defun comment-sexp-dwim (&optional beg end arg)
 		   (interactive "r\nP")
 		   (unless (use-region-p)
-		     (let ((bounds (save-excursion (forward-sexp)
-						   (backward-sexp)
-						   (bounds-of-thing-at-point 'sexp))))
+		     (let ((bounds (save-excursion
+				     (forward-sexp)
+				     (backward-sexp)
+				     (bounds-of-thing-at-point
+				      'sexp))))
 		       (setq beg (car bounds)
 			     end (cdr bounds))))
 		   (comment-or-uncomment-region beg end arg))
@@ -223,7 +245,6 @@
 		     (call-interactively 'kmacro-end-and-call-macro))))
 
     (keymap-set! ctl-x-map
-		 "M-h" 'mark-end-of-sentence
 		 "f" 'recentf-open
 		 "C-z" 'shell
 
@@ -410,7 +431,7 @@
 		 "C-t" 'transpose-chars
 		 "C-M-t" 'transpose-sexps
 		 "C-t" 'transpose-lines
-		 "M-h" 'mark-end-of-sentence
+		 "M-SPC" 'mark-end-of-sentence
 		 "M-k" 'kill-sentence
 		 "M-^" 'delete-indentation
 		 "C-;" 'comment-line
@@ -566,17 +587,18 @@
 	    org-refile-targets `((nil . (:maxlevel . 8))))
 
     (progn
-      (setopt org-todo-keywords `((sequence
-				   "[ ](t)"
-				   "[?](?)"
-				   "[+](+)"
-				   "[-](-)"
-				   "[@](2)"
-				   "[=](=)"
-				   "[&](&)"
-				   "|"
-				   "[X](x!)"
-				   "[\\](\\!)")))
+      (setopt org-todo-keywords
+	      `((sequence
+		 "[ ](t)"
+		 "[?](?)"
+		 "[+](+)"
+		 "[-](-)"
+		 "[@](2)"
+		 "[=](=)"
+		 "[&](&)"
+		 "|"
+		 "[X](x!)"
+		 "[\\](\\!)")))
 
       (setopt org-log-into-drawer "LOG"
 	      org-log-note-headings
@@ -595,7 +617,8 @@
     (setopt org-special-ctrl-k t)
 
     (keymap-set! ctl-x-map
-		 "t" 'org-capture)
+		 "t" 'org-capture
+		 "M-SPC" 'mark-end-of-sentence)
 
     (keymap-set! org-mode-map
 		 "<remap> <org-transpose-element>" 'transpose-sexps
@@ -750,8 +773,6 @@
   :ensure t
   :init
   (puni-global-mode)
-  (with-eval-after-load 'pdf-view
-    (add-hook 'pdf-view-mode-hook (lambda () (puni-mode -1))))
 
   (setopt puni-blink-for-sexp-manipulating t)
 
@@ -761,23 +782,44 @@
 		(save-excursion
 		  (apply fn args))))
 
-  (progn
-    (keymap-set! puni-mode-map
-                 "C-M-r" 'puni-raise
-                 "C-M-s" 'puni-splice
+  (keymap-set! puni-mode-map
+               "C-M-r" 'puni-raise
+               "C-M-s" 'puni-splice
 
-                 "C-(" 'puni-slurp-backward
-                 "C-)" 'puni-slurp-forward
-                 "C-{" 'puni-barf-backward
-                 "C-}" 'puni-barf-forward
+               "C-(" 'puni-slurp-backward
+               "C-)" 'puni-slurp-forward
+               "C-{" 'puni-barf-backward
+               "C-}" 'puni-barf-forward
 
-		 "C-<backspace>"
-		 (defun puni-backward-kill-line-to-indent (&optional arg)
-		   (interactive "P")
-		   (let ((indent (save-excursion (back-to-indentation) (point))))
-		     (if (or arg (<= (point) indent))
-			 (puni-backward-kill-line arg)
-		       (puni-soft-delete (point) indent 'strict-sexp 'beyond 'kill))))))
+	       "C-<backspace>"
+	       (defun puni-backward-kill-line-to-indent (&optional arg)
+		 (interactive "P")
+		 (let ((indent (save-excursion (back-to-indentation) (point))))
+		   (if (or arg (<= (point) indent))
+		       (let ((kill-whole-line t))
+			 (puni-backward-kill-line arg))
+		     (puni-soft-delete (point) indent 'strict-sexp 'beyond 'kill))))
+
+	       "<remap> <kill-whole-line>"
+	       (defun puni-kill-whole-line (&optional arg)
+		 (interactive "p")
+		 (apply 'puni-soft-delete
+			(append (cond ((zerop arg)
+				       (list (save-excursion (forward-visible-line 0) (point))
+					     (save-excursion (end-of-visible-line) (point))))
+				      ((< arg 0)
+				       (list (save-excursion (end-of-visible-line) (point))
+					     (save-excursion (forward-visible-line (1+ arg))
+							     (unless (bobp) (backward-char))
+							     (point))))
+				      (t
+				       (list (save-excursion (forward-visible-line 0) (point))
+					     (save-excursion (forward-visible-line arg) (point)))))
+				'(strict-sexp beyond kill)))
+		 (cond ((zerop arg)
+			(indent-according-to-mode))
+		       ((string-match-p "\\`[[:blank:])]*$" (thing-at-point 'line))
+			(delete-indentation)))))
 
   (keymap-set! lisp-mode-shared-map
                "C-c v" 'puni-convolute
@@ -807,16 +849,6 @@
 	    (lambda ()
 	      (downcase-region (point-min) (point-max))
 	      (repunctuate-sentences t (point-min) (point-max)))))
-
-(use-package pdf-tools
-  :ensure t
-  :defer t
-  :init (pdf-tools-install)
-  :config
-  (setopt pdf-view-continuous nil
-	  large-file-warning-threshold (expt 10 8)
-	  pdf-view-display-size 'fit-height
-	  pdf-view-resize-factor 1.1))
 
 (progn
   (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
