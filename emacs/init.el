@@ -158,6 +158,8 @@
 		by 'cddr
 		collect `(keymap-set ,keymap ,key ,cmd))))
 
+    (setopt kill-whole-line t)
+
     (keymap-set! global-map
 		 "<remap> <keyboard-quit>" 'keyboard-escape-quit
 		 "<remap> <downcase-word>" 'downcase-dwim
@@ -170,27 +172,6 @@
 
 		 "C-M-{" 'beginning-of-defun
 		 "C-M-}" 'end-of-defun
-
-		 "C-S-h"
-		 (defun mark-whole-line (&optional arg allow-extend)
-		   (interactive "P\np")
-		   (unless (bolp)
-		     (beginning-of-line))
-		   (cond ((and allow-extend
-			       (or (and (eq last-command this-command) (mark t))
-				   (region-active-p)))
-			  (setq arg (if arg (prefix-numeric-value arg)
-				      (if (< (mark) (point)) -1 1)))
-			  (set-mark (save-excursion
-				      (goto-char (mark))
-				      (forward-line arg)
-				      (point))))
-			 (t
-			  (push-mark (save-excursion
-				       (forward-line (prefix-numeric-value arg))
-				       (point))
-				     nil
-				     t))))
 
 		 "<remap> <open-line>"
 		 (defun open-line-dwim (&optional arg)
@@ -243,6 +224,45 @@
 			 (call-interactively 'apply-macro-to-region-lines)
 			 (deactivate-mark))
 		     (call-interactively 'kmacro-end-and-call-macro))))
+
+    (progn
+      (defun mark-whole-line (&optional arg allow-extend)
+	(interactive "P\np")
+	(unless (bolp)
+	  (forward-line 0))
+	(cond ((and allow-extend
+		    (or (and (eq last-command this-command) (mark t))
+			(region-active-p)))
+	       (setq arg (if arg (prefix-numeric-value arg)
+			   (if (< (mark) (point)) -1 1)))
+	       (set-mark (save-excursion
+			   (goto-char (mark))
+			   (forward-line arg)
+			   (point))))
+	      (t
+	       (push-mark (save-excursion
+			    (forward-line (prefix-numeric-value arg))
+			    (point))
+			  nil
+			  t))))
+
+      (keymap-set! global-map
+		   "<remap> <set-mark-command>"
+		   (defun set-mark-dwim (&optional arg)
+		     (interactive "P")
+		     (call-interactively
+		      (if (or (consp arg)
+			      (not (bolp)))
+			  'set-mark-command
+			'mark-whole-line))))
+
+      (progn
+	(setopt set-mark-command-repeat-pop nil
+		repeat-keep-prefix t)
+
+	(defvar-keymap pop-mark-repeat-map
+	  :repeat t
+	  "C-SPC" 'set-mark-dwim)))
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open
@@ -332,11 +352,11 @@
     (set-register reg `(buffer . ,buffer)))
 
   (progn
-    (buffer-to-register ?O "*Occur*")
-    (buffer-to-register ?T "*scratch*")
-    (buffer-to-register ?C "*compilation*")
-    (buffer-to-register ?H "*Help*")
-    (set-register ?I `(file . ,user-init-file)))
+    (buffer-to-register ?o "*Occur*")
+    (buffer-to-register ?t "*scratch*")
+    (buffer-to-register ?c "*compilation*")
+    (buffer-to-register ?h "*Help*")
+    (set-register ?i `(file . ,user-init-file)))
 
   (defun point-to-register-dwim ()
     (interactive)
@@ -407,27 +427,14 @@
 (use-package repeat
   :config
   (repeat-mode)
-  (setopt set-mark-command-repeat-pop t
-	  repeat-keep-prefix t)
-
   (keymap-set! global-map
 	       "C-z" 'repeat)
 
   (progn
-    (defmacro set-repeat! (&rest pairs)
-      (macroexp-progn
-       (cl-loop for (key cmd)
-		on pairs
-		by 'cddr
-		collect `(defvar-keymap ,(intern (format "%s-repeat-map" (eval cmd)))
-			   :repeat t
-			   ,key ,cmd))))
-
-    ;; (set-repeat! "C-t" 'transpose-lines
-    ;; 		 "C-;" 'comment-line
-    ;; 		 "C-o" 'delete-blank-lines
-    ;; 		 "k" 'kill-current-buffer)
-    )
+    (defvar-keymap transpose-lines-repeat-map :repeat t "C-t" 'transpose-lines)
+    (defvar-keymap delete-blank-lines-repeat-map :repeat t "C-o" 'delete-blank-lines)
+    (defvar-keymap kill-current-buffer-repeat-map :repeat t "k" 'kill-current-buffer)
+    (defvar-keymap comment-line-repeat-map :repeat t "C-;" 'comment-line))
 
   (progn
     (put 'first-error 'repeat-map 'next-error-repeat-map)
@@ -773,64 +780,36 @@
 
   (setopt puni-blink-for-sexp-manipulating t)
 
-  (keymap-set! puni-mode-map
-               "C-M-r" 'puni-raise
-               "C-M-s" 'puni-splice
+  (advice-add 'puni-kill-line
+	      :around
+	      (lambda (fn &rest args)
+		(save-excursion
+		  (apply fn args))))
 
-               "C-(" 'puni-slurp-backward
-               "C-)" 'puni-slurp-forward
-               "C-{" 'puni-barf-backward
-               "C-}" 'puni-barf-forward
+  (progn
+    (keymap-unset puni-mode-map "C-c DEL" t)
 
-	       "C-<backspace>"
-	       (defun puni-backward-kill-line-to-indent (&optional arg)
-		 (interactive "P")
-		 (let ((indent (save-excursion (back-to-indentation) (point))))
-		   (if (or arg (<= (point) indent))
-		       (let ((kill-whole-line t))
-			 (puni-backward-kill-line arg))
-		     (puni-soft-delete (point) indent 'strict-sexp 'beyond 'kill))))
+    (keymap-set! puni-mode-map
+		 "C-M-r" 'puni-raise
+		 "C-M-s" 'puni-splice
 
-	       "<remap> <kill-whole-line>"
-	       (defun puni-kill-whole-line (&optional arg)
-		 (interactive "p")
-		 (pcase-let*
-		     ((region
-		       (cond ((zerop arg)
-			      (cons (save-excursion (forward-visible-line 0) (point))
-				    (save-excursion (end-of-visible-line) (point))))
+		 "C-(" 'puni-slurp-backward
+		 "C-)" 'puni-slurp-forward
+		 "C-{" 'puni-barf-backward
+		 "C-}" 'puni-barf-forward
 
-			     ((< arg 0)
-			      (cons (save-excursion (end-of-visible-line) (point))
-				    (save-excursion (forward-visible-line (1+ arg))
-						    (unless (bobp) (backward-char))
-						    (point))))
+		 "C-<backspace>"
+		 (defun puni-backward-kill-line-to-indent (&optional arg)
+		   (interactive "P")
+		   (let ((indent (save-excursion (back-to-indentation) (point))))
+		     (if (or arg (<= (point) indent))
+			 (puni-backward-kill-line arg)
+		       (puni-soft-delete (point) indent 'strict-sexp 'beyond 'kill)))))
 
-			     (t
-			      (cons (save-excursion (forward-visible-line 0) (point))
-				    (save-excursion (forward-visible-line arg) (point))))))
-
-		      (region-safe
-		       (puni-soft-delete (car region)
-					 (cdr region)
-					 'strict-sexp
-					 'beyond
-					 'kill
-					 nil
-					 'return-region)))
-
-		   (kill-region (car region-safe) (cdr region-safe))
-
-		   (cond ((zerop arg)
-			  (indent-according-to-mode))
-			 ((not (equal region region-safe))
-			  (delete-char -1)
-			  (forward-line 1))))))
-
-  (keymap-set! lisp-mode-shared-map
-               "C-c v" 'puni-convolute
-	       "C-c s" 'puni-split
-	       "C-c DEL" 'puni-splice-killing-backward))
+    (keymap-set! lisp-mode-shared-map
+		 "C-c v" 'puni-convolute
+		 "C-c s" 'puni-split
+		 "C-c DEL" 'puni-splice-killing-backward)))
 
 (use-package magit
   :ensure t)
