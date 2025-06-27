@@ -193,17 +193,12 @@
 		     (when text (kill-new text))))
 
 		 "<remap> <comment-dwim>"
-		 (defun comment-sexp-dwim (&optional beg end arg)
-		   (interactive "r\nP")
-		   (unless (use-region-p)
-		     (let ((bounds (save-excursion
-				     (forward-sexp)
-				     (backward-sexp)
-				     (bounds-of-thing-at-point
-				      'sexp))))
-		       (setq beg (car bounds)
-			     end (cdr bounds))))
-		   (comment-or-uncomment-region beg end arg))
+		 (defun comment-line-dwim (&optional arg)
+		   (interactive "p")
+		   (call-interactively
+		    (if (use-region-p)
+			'comment-or-uncomment-region
+		      'comment-line)))
 
 		 "<remap> <eval-last-sexp>"
 		 (defun eval-last-sexp-dwim (&optional arg)
@@ -433,8 +428,7 @@
   (progn
     (defvar-keymap transpose-lines-repeat-map :repeat t "C-t" 'transpose-lines)
     (defvar-keymap delete-blank-lines-repeat-map :repeat t "C-o" 'delete-blank-lines)
-    (defvar-keymap kill-current-buffer-repeat-map :repeat t "k" 'kill-current-buffer)
-    (defvar-keymap comment-line-repeat-map :repeat t "C-;" 'comment-line))
+    (defvar-keymap kill-current-buffer-repeat-map :repeat t "k" 'kill-current-buffer))
 
   (progn
     (put 'first-error 'repeat-map 'next-error-repeat-map)
