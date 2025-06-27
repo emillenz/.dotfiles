@@ -644,10 +644,12 @@
 					     'puni-kill-line
 					   'org-kill-line))))))
 
-  (use-package org-reverse-datetree :ensure t
+  (use-package org-reverse-datetree
+    :ensure t
     :after org)
 
-  (use-package doct :ensure t
+  (use-package doct
+    :ensure t
     :after (org org-reverse-datetree)
     :config
     (setopt
@@ -764,17 +766,12 @@
 
 		    ,(funcall note :headline nil))))))))))))))
 
-(use-package puni :ensure t
+(use-package puni
+  :ensure t
   :init
   (puni-global-mode)
 
   (setopt puni-blink-for-sexp-manipulating t)
-
-  (advice-add 'puni-kill-line
-	      :around
-	      (lambda (fn &rest args)
-		(save-excursion
-		  (apply fn args))))
 
   (keymap-set! puni-mode-map
                "C-M-r" 'puni-raise
@@ -835,7 +832,8 @@
 	       "C-c s" 'puni-split
 	       "C-c DEL" 'puni-splice-killing-backward))
 
-(use-package magit :ensure t)
+(use-package magit
+  :ensure t)
 
 (use-package project
   :defer t
@@ -849,7 +847,8 @@
   (setopt tramp-auto-save-directory (file-name-concat user-emacs-directory
 						      "tramp-autosave/")))
 
-(use-package whisper :ensure t
+(use-package whisper
+  :ensure t
   :defer t
   :vc (:url "https://github.com/natrys/whisper.el")
   :config
@@ -861,6 +860,7 @@
 (progn
   (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
   (use-package nov :ensure t
+    :ensure t
     :defer t
     :config
     (setopt nov-variable-pitch nil)))
