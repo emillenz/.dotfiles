@@ -193,14 +193,14 @@
 				     t))))
 
 		 "<remap> <open-line>"
-		 (defun open-line-dwim ()
-		   (interactive)
+		 (defun open-line-dwim (&optional arg)
+		   (interactive "p")
 		   (if (eq (point) (save-excursion
 				     (back-to-indentation)
 				     (point)))
-		       (call-interactively 'split-line)
+		       (split-line arg)
 		     (save-excursion
-		       (call-interactively 'default-indent-new-line))))
+		       (newline arg t))))
 
 		 "<remap> <yank>"
 		 (defun yank-dwim (&optional arg)
@@ -236,7 +236,7 @@
 		     (call-interactively 'eval-last-sexp)))
 
 		 "<remap> <kmacro-end-and-call-macro>"
-		 (defun kmacro-call-dwim ()
+		 (defun kmacro-call-dwim (&optional arg)
 		   (interactive)
 		   (if (use-region-p)
 		       (progn
@@ -340,10 +340,9 @@
 
   (defun point-to-register-dwim ()
     (interactive)
-    (call-interactively
-     (if current-prefix-arg
-         'buffer-to-register
-       'point-to-register)))
+    (call-interactively (if current-prefix-arg
+			    'buffer-to-register
+			  'point-to-register)))
 
   (keymap-set! global-map
                "<remap> <point-to-register>" 'point-to-register-dwim
@@ -392,7 +391,7 @@
                 (goto-char isearch-other-end))))
 
   (setopt isearch-lax-whitespace t
-          search-whitespace-regexp ".*?")
+	  search-whitespace-regexp ".*?")
 
   (setopt lazy-highlight-initial-delay 0
           isearch-lazy-count t
@@ -408,16 +407,13 @@
 (use-package repeat
   :config
   (repeat-mode)
-  (setopt set-mark-command-repeat-pop t)
+  (setopt set-mark-command-repeat-pop t
+	  repeat-keep-prefix t)
+
+  (keymap-set! global-map
+	       "C-z" 'repeat)
 
   (progn
-    (put 'first-error 'repeat-map 'next-error-repeat-map)
-    (keymap-set! next-error-repeat-map "M-<" 'first-error)
-    (keymap-set! goto-map "M-<" 'first-error))
-
-  (progn
-    (setopt repeat-keep-prefix t)
-
     (defmacro set-repeat! (&rest pairs)
       (macroexp-progn
        (cl-loop for (key cmd)
@@ -427,15 +423,16 @@
 			   :repeat t
 			   ,key ,cmd))))
 
-    (set-repeat! "M-t" 'transpose-words
-		 "C-t" 'transpose-chars
-		 "C-M-t" 'transpose-sexps
-		 "C-t" 'transpose-lines
-		 "M-k" 'kill-sentence
-		 "M-^" 'delete-indentation
-		 "C-;" 'comment-line
-		 "C-o" 'delete-blank-lines
-		 "k" 'kill-current-buffer))
+    ;; (set-repeat! "C-t" 'transpose-lines
+    ;; 		 "C-;" 'comment-line
+    ;; 		 "C-o" 'delete-blank-lines
+    ;; 		 "k" 'kill-current-buffer)
+    )
+
+  (progn
+    (put 'first-error 'repeat-map 'next-error-repeat-map)
+    (keymap-set! next-error-repeat-map "M-<" 'first-error)
+    (keymap-set! goto-map "M-<" 'first-error))
 
   (with-eval-after-load 'org
     (defvar-keymap org-heading-repeat-map
@@ -450,6 +447,7 @@
 
 (use-package replace
   :config
+  ;; (setopt replace-regexp-lax-whitespace t)
   (progn
     (defvar self-insert-ignored-map
       (let ((map (make-keymap)))
@@ -467,15 +465,15 @@
 
 (use-package icomplete
   :config
-  (fido-vertical-mode)
+  (fido-vertical-mode 1)
 
   (setopt completion-auto-help nil)
 
   (setopt icomplete-delay-completions-threshold 0
           icomplete-compute-delay 0
           icomplete-tidy-shadowed-file-names t
-          completions-detailed t
 	  icomplete-prospects-height 12
+	  completions-detailed t
 	  max-mini-window-height 12)
 
   (setopt completion-ignore-case t
@@ -494,7 +492,8 @@
 		   (kill-new (substring-no-properties
 			      (if arg
 				  (minibuffer-contents)
-				(car completion-all-sorted-completions))))))))
+				(car completion-all-sorted-completions))))
+		   (abort-minibuffers)))))
 
 (use-package bookmark
   :config
@@ -629,7 +628,8 @@
 		 "M-m"
 		 (defun org-back-to-indentation ()
 		   (interactive)
-		   (let ((org-special-ctrl-a/e t))
+		   (let ((org-special-ctrl-a/e t)
+			 (visual-line-mode nil))
 		     (call-interactively 'org-beginning-of-line))))
 
     (keymap-set! org-src-mode-map
@@ -638,19 +638,16 @@
     (with-eval-after-load 'puni
       (keymap-set! org-mode-map
 		   "<remap> <puni-kill-line>"
-		   (defun puni-org-kill-line-dwim ()
+		   (defun puni-org-kill-line-dwim (&optional arg)
 		     (interactive)
-		     (call-interactively
-		      (if (puni-beginning-pos-of-sexp-around-point)
-			  'puni-kill-line
-			'org-kill-line))))))
+		     (call-interactively (if (puni-beginning-pos-of-sexp-around-point)
+					     'puni-kill-line
+					   'org-kill-line))))))
 
-  (use-package org-reverse-datetree
-    :ensure t
+  (use-package org-reverse-datetree :ensure t
     :after org)
 
-  (use-package doct
-    :ensure t
+  (use-package doct :ensure t
     :after (org org-reverse-datetree)
     :config
     (setopt
@@ -767,8 +764,7 @@
 
 		    ,(funcall note :headline nil))))))))))))))
 
-(use-package puni
-  :ensure t
+(use-package puni :ensure t
   :init
   (puni-global-mode)
 
@@ -802,34 +798,44 @@
 	       (defun puni-kill-whole-line (&optional arg)
 		 (interactive "p")
 		 (pcase-let*
-		     ((`(,beg ,end)
+		     ((region
 		       (cond ((zerop arg)
-			      (list (save-excursion (forward-visible-line 0) (point))
+			      (cons (save-excursion (forward-visible-line 0) (point))
 				    (save-excursion (end-of-visible-line) (point))))
 
 			     ((< arg 0)
-			      (list (save-excursion (end-of-visible-line) (point))
+			      (cons (save-excursion (end-of-visible-line) (point))
 				    (save-excursion (forward-visible-line (1+ arg))
 						    (unless (bobp) (backward-char))
 						    (point))))
 
 			     (t
-			      (list (save-excursion (forward-visible-line 0) (point))
-				    (save-excursion (forward-visible-line arg) (point)))))))
+			      (cons (save-excursion (forward-visible-line 0) (point))
+				    (save-excursion (forward-visible-line arg) (point))))))
 
-		   (puni-soft-delete beg end 'strict-sexp 'beyond 'kill))
+		      (region-safe
+		       (puni-soft-delete (car region)
+					 (cdr region)
+					 'strict-sexp
+					 'beyond
+					 'kill
+					 nil
+					 'return-region)))
 
-		 (cond ((zerop arg)
-			(indent-according-to-mode))
-		       ((string-match-p "\\`[[:blank:])]*$" (thing-at-point 'line))
-			(delete-indentation)))))
+		   (kill-region (car region-safe) (cdr region-safe))
+
+		   (cond ((zerop arg)
+			  (indent-according-to-mode))
+			 ((not (equal region region-safe))
+			  (delete-char -1)
+			  (forward-line 1))))))
 
   (keymap-set! lisp-mode-shared-map
                "C-c v" 'puni-convolute
-	       "C-c s" 'puni-split))
+	       "C-c s" 'puni-split
+	       "C-c DEL" 'puni-splice-killing-backward))
 
-(use-package magit
-  :ensure t)
+(use-package magit :ensure t)
 
 (use-package project
   :defer t
@@ -843,8 +849,7 @@
   (setopt tramp-auto-save-directory (file-name-concat user-emacs-directory
 						      "tramp-autosave/")))
 
-(use-package whisper
-  :ensure t
+(use-package whisper :ensure t
   :defer t
   :vc (:url "https://github.com/natrys/whisper.el")
   :config
@@ -855,8 +860,18 @@
 
 (progn
   (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-  (use-package nov
-    :ensure t
+  (use-package nov :ensure t
     :defer t
     :config
     (setopt nov-variable-pitch nil)))
+
+(use-package lisp-mode
+  :defer t
+  :config
+  (advice-add 'lisp-indent-region
+	      :before
+	      (lambda (beg end)
+		(save-excursion
+		  (goto-char beg)
+		  (while (re-search-forward "\n[\n \t]*)" end t)
+		    (replace-match ")"))))))
