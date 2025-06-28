@@ -234,7 +234,7 @@
 			'delete-blank-lines
 		      'cycle-spacing)))
 
-		 "C-="
+		 "C-j"
 		 (defun mark-line (&optional arg)
 		   (interactive "p")
 		   (unless (region-active-p)
@@ -422,6 +422,7 @@
     (keymap-unset isearch-mode-map "C-M-d" t)
     (keymap-unset isearch-mode-map "C-M-s" t)
     (keymap-unset isearch-mode-map "C-M-r" t)
+    (keymap-unset isearch-mode-map "C-w" t)
     (keymap-set! isearch-mode-map
 		 "<remap> <isearch-delete-char>" 'isearch-del-char)))
 
@@ -653,8 +654,7 @@
 			       ("* [ ] %?"
 				":PROPERTIES:"
 				":date: %u"
-				":END:"
-				"")))))
+				":END:")))))
 
 	     (event (lambda (&rest properties)
 		      (append `("event" :keys "e")
@@ -680,14 +680,14 @@
 				":PROPERTIES:"
 				":date: %u"
 				":END:"
-				"")))))
+				"%?")))))
 
 	     (agenda-file-name "agenda.org"))
 
 	`((:group
 	   "all"
 	   :prepend t
-	   :empty-line-before 1
+	   :empty-lines 1
 
 	   :children
 	   (("personal" :keys "p"
