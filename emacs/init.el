@@ -129,13 +129,17 @@
 
   (put 'narrow-to-region 'disabled nil)
 
-  (advice-add 'mark-paragraph
-              :before
-              (lambda (&rest _)
-                (unless (or (use-region-p)
-                            (eq last-command this-command)
-                            (when (mark) (= (mark) (point))))
-                  (push-mark))))
+  (progn
+    (defun advice-add-push-mark-once (fn)
+      (advice-add fn
+		  :before
+		  (lambda (&rest _)
+		    (unless (or (use-region-p)
+				(equal last-command this-command)
+				(and (mark) (= (mark) (point))))
+		      (push-mark)))))
+
+    (advice-add-push-mark-once 'mark-paragraph))
 
   (advice-add 'yank
 	      :after
@@ -165,10 +169,8 @@
 		 "<remap> <downcase-word>" 'downcase-dwim
 		 "<remap> <upcase-word>" 'upcase-dwim
 		 "<remap> <capitalize-word>" 'capitalize-dwim
-		 "<remap> <delete-horizontal-space>" 'cycle-spacing
 		 "<remap> <kill-buffer>" 'kill-current-buffer
 
-		 "M-o" 'delete-blank-lines
 		 "M-SPC" 'mark-word
 
 		 "C-M-{" 'beginning-of-defun
@@ -177,9 +179,9 @@
 		 "<remap> <open-line>"
 		 (defun open-line-dwim (&optional arg)
 		   (interactive "p")
-		   (if (eq (point) (save-excursion
-				     (back-to-indentation)
-				     (point)))
+		   (if (equal (point) (save-excursion
+					(back-to-indentation)
+					(point)))
 		       (split-line arg)
 		     (save-excursion
 		       (newline arg t))))
@@ -221,68 +223,45 @@
 			 (deactivate-mark))
 		     (call-interactively 'kmacro-end-and-call-macro)))
 
-		 ;; "<remap> <set-mark-command>" 'set-mark-or-mark-line
-		 "C-SPC"
-		 (defun set-mark-or-mark-line (&optional arg)
-		   (interactive "P")
-		   (if (and (region-active-p)
-			    (not (consp arg)))
-		       (progn
-			 (setq arg (prefix-numeric-value arg))
-			 (when (and (< (mark) (point))
-				    (not (and (bolp)
-					      (save-excursion
-						(goto-char (mark))
-						(bolp)))))
-			   (exchange-point-and-mark))
-			 (when (< (mark) (point))
-			   (* -1 arg))
-			 (forward-line 0)
-			 (set-mark
-			  (save-excursion
-			    (goto-char (mark))
-			    (forward-line arg)
-			    (point))))
-		     (call-interactively 'set-mark-command))))
+		 "<remap> <delete-horizontal-space>"
+		 (defun delete-space-dwim (&optional arg)
+		   (interactive "p")
+		   (call-interactively
+		    (if (and (string-match-p "\\`[[:blank:]]*$" (thing-at-point 'line))
+			     (> arg 0))
+			'delete-blank-lines
+		      'cycle-spacing))))
 
-    ;; (progn
-    ;;   (defun mark-whole-line (&optional arg allow-extend)
-    ;; 	(interactive "P\np")
-    ;; 	(unless (bolp)
-    ;; 	  (forward-line 0))
-    ;; 	(cond ((and allow-extend
-    ;; 		    (or (and (eq last-command this-command) (mark t))
-    ;; 			(region-active-p)))
-    ;; 	       (setq arg (if arg (prefix-numeric-value arg)
-    ;; 			   (if (< (mark) (point)) -1 1)))
-    ;; 	       (set-mark (save-excursion
-    ;; 			   (goto-char (mark))
-    ;; 			   (forward-line arg)
-    ;; 			   (point))))
-    ;; 	      (t
-    ;; 	       (push-mark (save-excursion
-    ;; 			    (forward-line (prefix-numeric-value arg))
-    ;; 			    (point))
-    ;; 			  nil
-    ;; 			  t))))
+    (progn
+      (defun mark-line (&optional arg)
+	(if (and (bolp)
+		 (save-excursion (goto-char (mark)) (bolp)))
+	    (set-mark
+	     (save-excursion
+	       (goto-char (mark))
+	       (forward-line (prefix-numeric-value arg))
+	       (point)))
+	  (let ((p (<= (point) (mark))))
+	    (forward-line (if p 0 1))
+	    (set-mark
+	     (save-excursion
+	       (goto-char (mark))
+	       (forward-line (if p 1 0))
+	       (point))))))
 
-    ;;   (keymap-set! global-map
-    ;; 		   "<remap> <set-mark-command>"
-    ;; 		   (defun set-mark-dwim (&optional arg)
-    ;; 		     (interactive "P")
-    ;; 		     (call-interactively
-    ;; 		      (if (or (consp arg)
-    ;; 			      (not (bolp)))
-    ;; 			  'set-mark-command
-    ;; 			'mark-whole-line))))
+      (keymap-set! global-map
+		   "<remap> <set-mark-command>"
+		   (defun mark-command-dwim (&optional arg)
+		     (interactive "P")
+		     (if (or (consp arg)
+			     (and set-mark-command-repeat-pop
+				  (equal last-command 'pop-to-mark-command)))
+			 (progn (pop-to-mark-command)
+				(setq this-command 'pop-to-mark-command))
 
-    ;;   (progn
-    ;; 	(setopt set-mark-command-repeat-pop t
-    ;; 		repeat-keep-prefix t)
-
-    ;; 	(defvar-keymap pop-mark-repeat-map
-    ;; 	  :repeat t
-    ;; 	  "C-SPC" 'set-mark-dwim)))
+		       (if (region-active-p)
+			   (mark-line arg)
+			 (push-mark-command nil))))))
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open
@@ -316,8 +295,8 @@
   (advice-add 'try-expand-list
 	      :after
 	      (lambda (&rest _)
-		(when electric-pair-mode
-		  (backward-delete-char 1)))))
+		(when (and electric-pair-mode (looking-at ")"))
+		  (delete-char -1)))))
 
 (use-package window
   :config
@@ -449,12 +428,10 @@
 (use-package repeat
   :config
   (repeat-mode)
-  (keymap-set! global-map
-	       "C-z" 'repeat)
+  (keymap-set! global-map "C-z" 'repeat)
 
   (progn
     (defvar-keymap transpose-lines-repeat-map :repeat t "C-t" 'transpose-lines)
-    (defvar-keymap delete-blank-lines-repeat-map :repeat t "C-o" 'delete-blank-lines)
     (defvar-keymap kill-current-buffer-repeat-map :repeat t "k" 'kill-current-buffer))
 
   (progn
@@ -873,5 +850,5 @@
 	      (lambda (beg end)
 		(save-excursion
 		  (goto-char beg)
-		  (while (re-search-forward "\n[\n \t]*)" end t)
+		  (while (re-search-forward "\n[[:blank:]]*)" end t)
 		    (replace-match ")"))))))
