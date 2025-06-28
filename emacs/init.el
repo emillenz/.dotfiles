@@ -143,18 +143,26 @@
 
     (advice-add-push-mark-once 'mark-paragraph))
 
-  (advice-add 'yank
-	      :after
-	      (lambda (&rest _)
-		(call-interactively 'indent-region)))
+  (seq-do (lambda (fn)
+	    (advice-add fn
+			:around
+			(lambda (fn &rest args)
+			  (let ((text (when (use-region-p)
+					(delete-and-extract-region (region-beginning)
+								   (region-end)))))
+			    (apply fn args)
+			    (when text (kill-new text)))))
+	    (advice-add fn :after
+			(lambda (&rest _)
+			  (call-interactively 'indent-region))))
+	  '(yank
+	    yank-from-kill-ring))
 
-  (seq-do (lambda (cmd)
-	    (advice-add cmd :around
-                        (lambda (fn &rest args)
-                          (with-undo-amalgamate
-                            (apply fn args)))))
-	  '(kmacro-call-dwim
-            query-replace-regexp))
+  (advice-add 'query-replace-regexp
+	      :around
+              (lambda (fn &rest args)
+                (with-undo-amalgamate
+                  (apply fn args))))
 
   (progn
     (defmacro keymap-set! (keymap &rest pairs)
@@ -188,15 +196,6 @@
 		       (split-line arg)
 		     (save-excursion (newline arg))))
 
-		 "<remap> <yank>"
-		 (defun yank-dwim (&optional arg)
-		   (interactive "P")
-		   (let ((text (when (use-region-p)
-				 (delete-and-extract-region (region-beginning)
-							    (region-end)))))
-		     (yank arg)
-		     (when text (kill-new text))))
-
 		 "<remap> <comment-dwim>"
 		 (defun comment-line-dwim (&optional arg)
 		   (interactive "p")
@@ -219,11 +218,12 @@
 		 "<remap> <kmacro-end-and-call-macro>"
 		 (defun kmacro-call-dwim (&optional arg)
 		   (interactive)
-		   (if (use-region-p)
-		       (progn
-			 (call-interactively 'apply-macro-to-region-lines)
-			 (deactivate-mark))
-		     (call-interactively 'kmacro-end-and-call-macro)))
+		   (with-undo-amalgamate
+		     (if (use-region-p)
+			 (progn
+			   (call-interactively 'apply-macro-to-region-lines)
+			   (deactivate-mark))
+		       (call-interactively 'kmacro-end-and-call-macro))))
 
 		 "<remap> <delete-horizontal-space>"
 		 (defun delete-space-dwim (&optional arg)
@@ -433,7 +433,8 @@
 	(set-char-table-range (nth 1 map) t 'ignore)
 	map))
 
-    (define-keymap :keymap query-replace-map :parent self-insert-ignored-map))
+    (define-keymap :keymap query-replace-map
+      :parent self-insert-ignored-map))
 
   (keymap-set! global-map
 	       "<remap> <query-replace>" 'query-replace-regexp
@@ -451,9 +452,8 @@
   (setopt icomplete-delay-completions-threshold 0
           icomplete-compute-delay 0
           icomplete-tidy-shadowed-file-names t
-	  icomplete-prospects-height 12
 	  completions-detailed t
-	  max-mini-window-height 12)
+	  max-mini-window-height 0.2)
 
   (setopt completion-ignore-case t
           read-buffer-completion-ignore-case t
