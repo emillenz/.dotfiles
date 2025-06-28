@@ -652,7 +652,7 @@
 			       :template
 			       ("* [ ] %?"
 				":PROPERTIES:"
-				":created: %u"
+				":date: %u"
 				":END:"
 				"")))))
 
@@ -665,7 +665,7 @@
 				("* %^{title}"
 				   "SCHEDULED: %^t"
 				   ":PROPERTIES:"
-				   ":created: %u"
+				   ":date: %u"
 				   ":location: %^{location}"
 				   ":requisites: %^{requisites}"
 				   ":END:")))))
@@ -678,7 +678,7 @@
 			       :template
 			       ("* %^{title} %^g"
 				":PROPERTIES:"
-				":created: %u"
+				":date: %u"
 				":END:"
 				"")))))
 
@@ -727,7 +727,7 @@
 		   :template
 		   ("* [ ] %^{title} %^g"
 		    ":PROPERTIES:"
-		    ":created: %u"
+		    ":date: %u"
 		    ":title: %\\1"
 		    ":subtitle: %^{subtitle}"
 		    ":author: %^{author}"
@@ -748,7 +748,7 @@
 		     :template
 		     ("* %^{title} :quote:%^g"
 		      ":PROPERTIES:"
-		      ":created: %u"
+		      ":date: %u"
 		      ":page: %^{page}"
 		      ":END:"
 		      "#+begin_quote"
