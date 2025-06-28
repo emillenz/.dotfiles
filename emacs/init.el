@@ -30,7 +30,7 @@
   (auto-save-visited-mode)
   (kill-ring-deindent-mode)
   (recentf-mode)
-  (fringe-mode 0)
+  (repeat-mode)
 
   (tool-bar-mode -1)
   (menu-bar-mode -1)
@@ -39,6 +39,7 @@
   (scroll-bar-mode -1)
   (horizontal-scroll-bar-mode -1)
   (tooltip-mode -1)
+  (fringe-mode 0)
 
   (setopt user-full-name "emil lenz"
 	  user-mail-address "emillenz@protonmail.com")
@@ -286,7 +287,22 @@
 		 "C-i" 'indent-rigidly-right-to-tab-stop
 		 "C-M-i" 'indent-rigidly-left-to-tab-stop
 		 "SPC" 'indent-rigidly-right
-		 "DEL" 'indent-rigidly-left)))
+		 "DEL" 'indent-rigidly-left)
+
+    (defvar-keymap transpose-lines-repeat-map
+      :repeat t
+      "C-t" 'transpose-lines)
+
+    (defvar-keymap kill-current-buffer-repeat-map
+      :repeat t
+      "k" 'kill-current-buffer
+      "C-b" 'switch-to-other-buffer
+      "b" 'switch-to-buffer)
+
+    (progn
+      (put 'first-error 'repeat-map 'next-error-repeat-map)
+      (keymap-set! next-error-repeat-map "M-<" 'first-error)
+      (keymap-set! goto-map "M-<" 'first-error))))
 
 (use-package hippie-exp
   :config
@@ -425,34 +441,8 @@
     (keymap-set! isearch-mode-map
 		 "<remap> <isearch-delete-char>" 'isearch-del-char)))
 
-(use-package repeat
-  :config
-  (repeat-mode)
-  (keymap-set! global-map "C-z" 'repeat)
-
-  (progn
-    (defvar-keymap transpose-lines-repeat-map :repeat t "C-t" 'transpose-lines)
-    (defvar-keymap kill-current-buffer-repeat-map :repeat t "k" 'kill-current-buffer))
-
-  (progn
-    (put 'first-error 'repeat-map 'next-error-repeat-map)
-    (keymap-set! next-error-repeat-map "M-<" 'first-error)
-    (keymap-set! goto-map "M-<" 'first-error))
-
-  (with-eval-after-load 'org
-    (defvar-keymap org-heading-repeat-map
-      :repeat t
-      "C-n" 'org-next-visible-heading
-      "C-p" 'org-previous-visible-heading
-      "C-b" 'org-backward-heading-same-level
-      "C-f" 'org-forward-heading-same-level
-      "C-u" 'outline-up-heading
-      "C-^" 'org-up-element
-      "C-_" 'org-down-element)))
-
 (use-package replace
   :config
-  ;; (setopt replace-regexp-lax-whitespace t)
   (progn
     (defvar self-insert-ignored-map
       (let ((map (make-keymap)))
@@ -639,6 +629,16 @@
 
     (keymap-set! org-src-mode-map
 		 "C-c C-c" 'org-edit-src-exit)
+
+    (defvar-keymap org-heading-repeat-map
+      :repeat t
+      "C-n" 'org-next-visible-heading
+      "C-p" 'org-previous-visible-heading
+      "C-b" 'org-backward-heading-same-level
+      "C-f" 'org-forward-heading-same-level
+      "C-u" 'outline-up-heading
+      "C-^" 'org-up-element
+      "C-_" 'org-down-element)
 
     (with-eval-after-load 'puni
       (keymap-set! org-mode-map
