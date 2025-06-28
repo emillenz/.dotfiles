@@ -46,6 +46,7 @@
 
   (setopt uniquify-buffer-name-style 'forward
 	  delete-by-moving-to-trash t
+	  copy-region-blink-delay 0
 	  remote-file-name-inhibit-delete-by-moving-to-trash t
 	  ring-bell-function 'ignore
 	  enable-recursive-minibuffers t
@@ -163,7 +164,8 @@
 		by 'cddr
 		collect `(keymap-set ,keymap ,key ,cmd))))
 
-    (setopt kill-whole-line t)
+    (setopt kill-whole-line t
+	    set-mark-command-repeat-pop t)
 
     (keymap-set! global-map
 		 "<remap> <keyboard-quit>" 'keyboard-escape-quit
@@ -184,8 +186,7 @@
 					(back-to-indentation)
 					(point)))
 		       (split-line arg)
-		     (save-excursion
-		       (newline arg t))))
+		     (save-excursion (newline arg))))
 
 		 "<remap> <yank>"
 		 (defun yank-dwim (&optional arg)
@@ -231,38 +232,21 @@
 		    (if (and (string-match-p "\\`[[:blank:]]*$" (thing-at-point 'line))
 			     (> arg 0))
 			'delete-blank-lines
-		      'cycle-spacing))))
+		      'cycle-spacing)))
 
-    (progn
-      (defun mark-line (&optional arg)
-	(if (and (bolp)
-		 (save-excursion (goto-char (mark)) (bolp)))
-	    (set-mark
-	     (save-excursion
-	       (goto-char (mark))
-	       (forward-line (prefix-numeric-value arg))
-	       (point)))
-	  (let ((p (<= (point) (mark))))
-	    (forward-line (if p 0 1))
-	    (set-mark
-	     (save-excursion
-	       (goto-char (mark))
-	       (forward-line (if p 1 0))
-	       (point))))))
-
-      (keymap-set! global-map
-		   "<remap> <set-mark-command>"
-		   (defun mark-command-dwim (&optional arg)
-		     (interactive "P")
-		     (if (or (consp arg)
-			     (and set-mark-command-repeat-pop
-				  (equal last-command 'pop-to-mark-command)))
-			 (progn (pop-to-mark-command)
-				(setq this-command 'pop-to-mark-command))
-
-		       (if (region-active-p)
-			   (mark-line arg)
-			 (push-mark-command nil))))))
+		 "C-="
+		 (defun mark-line (&optional arg)
+		   (interactive "p")
+		   (unless (region-active-p)
+		     (push-mark nil nil t))
+		   (when (< (mark) (point))
+		     (exchange-point-and-mark))
+		   (unless (bolp) (forward-line 0))
+		   (set-mark
+		    (save-excursion
+		      (goto-char (mark))
+		      (forward-line arg)
+		      (point)))))
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open
@@ -368,7 +352,7 @@
 
   (progn
     (buffer-to-register ?o "*Occur*")
-    (buffer-to-register ?t "*scratch*")
+    (buffer-to-register ?s "*scratch*")
     (buffer-to-register ?c "*compilation*")
     (buffer-to-register ?h "*Help*")
     (set-register ?i `(file . ,user-init-file)))
@@ -778,7 +762,7 @@
   :init
   (puni-global-mode)
 
-  (setopt puni-blink-for-sexp-manipulating t)
+  (setopt puni-blink-for-sexp-manipulating nil)
 
   (advice-add 'puni-kill-line
 	      :around
