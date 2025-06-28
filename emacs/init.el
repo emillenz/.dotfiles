@@ -666,10 +666,11 @@
 			     `(:headline
 			       "agenda"
 			       :template
-			       ("* [ ] %^{title}"
+			       ("* [ ] %?"
 				":PROPERTIES:"
-				":date: %u"
-				":END:")))))
+				":created: %u"
+				":END:"
+				"")))))
 
 	     (event (lambda (&rest properties)
 		      (append `("event" :keys "e")
@@ -678,12 +679,12 @@
 				"events"
 				:template
 				("* %^{title}"
-				 "SCHEDULED: %^t"
-				 ":PROPERTIES:"
-				 ":date: %u"
-				 ":END:"
-				 "- location :: %^{location}"
-				 "- material :: %^{material}")))))
+				   "SCHEDULED: %^t"
+				   ":PROPERTIES:"
+				   ":created: %u"
+				   ":location: %^{location}"
+				   ":requisites: %^{requisites}"
+				   ":END:")))))
 
 	     (note (lambda (&rest properties)
 		     (append `("note" :keys "n")
@@ -693,16 +694,17 @@
 			       :template
 			       ("* %^{title} %^g"
 				":PROPERTIES:"
-				":date: %u"
+				":created: %u"
 				":END:"
-				"%?")))))
+				"")))))
 
 	     (agenda-file-name "agenda.org"))
 
 	`((:group
 	   "all"
 	   :prepend t
-	   :empty-lines-before 1
+	   :empty-line-before 1
+
 	   :children
 	   (("personal" :keys "p"
 	     :file ,(file-name-concat "~/Documents/personal/" agenda-file-name)
@@ -727,7 +729,7 @@
 	    ("journal" :keys "j"
 	     :function (lambda () (org-reverse-datetree-2 nil '("[%Y-%m-%d %A]")))
 	     :file "~/Documents/personal/journal/journal.org"
-	     :children (,(funcall todo :headline nil :unnarrowed t)
+	     :children (,(funcall todo :headline nil)
 			,(funcall note :headline nil :prepend nil)))
 
 	    ,(let* ((file "~/Documents/literature/literature.org"))
@@ -741,7 +743,7 @@
 		   :template
 		   ("* [ ] %^{title} %^g"
 		    ":PROPERTIES:"
-		    ":date: %u"
+		    ":created: %u"
 		    ":title: %\\1"
 		    ":subtitle: %^{subtitle}"
 		    ":author: %^{author}"
@@ -762,7 +764,7 @@
 		     :template
 		     ("* %^{title} :quote:%^g"
 		      ":PROPERTIES:"
-		      ":date: %u"
+		      ":created: %u"
 		      ":page: %^{page}"
 		      ":END:"
 		      "#+begin_quote"
@@ -807,7 +809,8 @@
     (keymap-set! lisp-mode-shared-map
 		 "C-c v" 'puni-convolute
 		 "C-c s" 'puni-split
-		 "C-c DEL" 'puni-splice-killing-backward)))
+		 "C-c DEL" 'puni-splice-killing-backward
+		 "C-c k" 'puni-splice-killing-forward)))
 
 (use-package magit
   :ensure t)
