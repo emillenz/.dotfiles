@@ -792,21 +792,7 @@
 
     (keymap-set! lisp-mode-shared-map
 		 "C-c v" 'puni-convolute
-		 "C-c s" 'puni-split
-		 "C-c DEL" (defun puni-kill-to-beginning-of-sexp ()
-			     (interactive)
-			     (puni-soft-delete-by-move
-			      #'puni-beginning-of-list-around-point
-			      nil
-			      nil
-			      'kill))
-		 "C-c k" (defun puni-kill-to-end-of-sexp ()
-			   (interactive)
-			   (puni-soft-delete-by-move
-			    #'puni-end-of-list-around-point
-			    nil
-			    nil
-			    'kill)))))
+		 "C-c s" 'puni-split)))
 
 (use-package magit
   :ensure t)
