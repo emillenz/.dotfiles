@@ -770,6 +770,12 @@
 	      (lambda (fn &rest args)
 		(save-excursion
 		  (apply fn args))))
+	     
+  (advice-add 'delete-pair
+	      :around
+	      (lambda (fn &rest args)
+		(let ((deactivate-mark nil))
+		  (apply fn args))))
 
   (progn
     (keymap-unset puni-mode-map "C-c DEL" t)
