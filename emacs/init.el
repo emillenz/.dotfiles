@@ -762,7 +762,8 @@
   :init
   (puni-global-mode)
 
-  (setopt puni-blink-for-sexp-manipulating nil)
+  (setopt puni-blink-for-sexp-manipulating nil
+	  delete-pair-blink-delay 0)
 
   (advice-add 'puni-kill-line
 	      :around
@@ -775,7 +776,7 @@
 
     (keymap-set! puni-mode-map
 		 "C-M-r" 'puni-raise
-		 "C-M-s" 'puni-splice
+		 "C-M-s" 'delete-pair
 
 		 "C-(" 'puni-slurp-backward
 		 "C-)" 'puni-slurp-forward
@@ -837,3 +838,25 @@
 		  (goto-char beg)
 		  (while (re-search-forward "\n[[:blank:]]*)" end t)
 		    (replace-match ")"))))))
+
+
+(progn
+  (use-package auctex
+    :defer t
+    :ensure t)
+
+  (use-package tex-parens
+    :defer t
+    :ensure t
+    :config
+    (add-hook 'TeX-mode-hook 'tex-parens-mode)
+
+    (setopt LaTeX-item-indent 0)
+
+    (with-eval-after-load 'puni
+      (keymap-set! tex-parens-mode-map
+		   "<remap> <puni-forward-sexp>" 'tex-parens-forward-sexp
+		   "<remap> <puni-backward-sexp>" 'tex-parens-backward-sexp
+		   "<remap> <puni-raise>" 'tex-parens-raise-sexp
+		   "<remap> <puni-end-of-sexp>" 'tex-parens-end-of-list
+		   "<remap> <puni-beginning-of-sexp>" 'tex-parens-beginning-of-list))))
