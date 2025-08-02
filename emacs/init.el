@@ -860,7 +860,9 @@
     (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
 	  TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view)))
 
-    (keymap-unset LaTeX-mode-map "C-j"))
+    (add-hook 'LaTeX-mode-hook
+	      (defun hook--keymap-unset ()
+		(keymap-local-unset "C-j"))))
 
   (use-package tex-parens
     :defer t
