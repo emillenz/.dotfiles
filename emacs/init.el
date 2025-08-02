@@ -134,7 +134,7 @@
     (defun advice-add-push-mark-once (fn)
       (advice-add fn
 		  :before
-		  (lambda (&rest _)
+		  (defun advice--push-mark-once (&rest _)
 		    (unless (or (use-region-p)
 				(equal last-command this-command)
 				(and (mark) (= (mark) (point))))
@@ -145,23 +145,28 @@
   (seq-do (lambda (fn)
 	    (advice-add fn
 			:around
-			(lambda (fn &rest args)
+			(defun advice--yank-over-region (fn &rest args)
 			  (let ((text (when (use-region-p)
 					(delete-and-extract-region (region-beginning)
 								   (region-end)))))
 			    (apply fn args)
 			    (when text (kill-new text)))))
+
 	    (advice-add fn :after
-			(lambda (&rest _)
+			(defun advice--indent-yanked-region (&rest _)
 			  (call-interactively 'indent-region))))
 	  '(yank
 	    yank-from-kill-ring))
 
   (advice-add 'query-replace-regexp
 	      :around
-              (lambda (fn &rest args)
+              (defun advice--with-undo-amalgamate (fn &rest args)
                 (with-undo-amalgamate
                   (apply fn args))))
+
+  (defun advice--keep-region-active (fn &rest args)
+    (let ((deactivate-mark nil))
+      (apply fn args)))
 
   (progn
     (defmacro keymap-set! (keymap &rest pairs)
@@ -292,7 +297,7 @@
 
   (advice-add 'try-expand-list
 	      :after
-	      (lambda (&rest _)
+	      (defun advice--electric-pair-fix (&rest _)
 		(when (and electric-pair-mode (looking-at ")"))
 		  (delete-char -1)))))
 
@@ -624,14 +629,13 @@
       "C-^" 'org-up-element
       "C-_" 'org-down-element)
 
-    (with-eval-after-load 'puni
-      (keymap-set! org-mode-map
-		   "<remap> <puni-kill-line>"
-		   (defun puni-org-kill-line-dwim (&optional arg)
-		     (interactive)
-		     (call-interactively (if (puni-beginning-pos-of-sexp-around-point)
-					     'puni-kill-line
-					   'org-kill-line))))))
+    (keymap-set! org-mode-map
+		 "<remap> <puni-kill-line>"
+		 (defun puni-org-kill-line-dwim (&optional arg)
+		   (interactive)
+		   (call-interactively (if (puni-beginning-pos-of-sexp-around-point)
+					   'puni-kill-line
+					 'org-kill-line)))))
 
   (use-package org-reverse-datetree
     :ensure t
@@ -767,22 +771,18 @@
 
   (advice-add 'puni-kill-line
 	      :around
-	      (lambda (fn &rest args)
+	      (defun advice--keep-point (fn &rest args)
 		(save-excursion
 		  (apply fn args))))
 
-  (advice-add 'delete-pair
-	      :around
-	      (lambda (fn &rest args)
-		(let ((deactivate-mark nil))
-		  (apply fn args))))
+  (advice-add 'delete-pair :around 'advice--keep-region-active)
 
   (progn
     (keymap-unset puni-mode-map "C-c DEL" t)
 
     (keymap-set! puni-mode-map
-		 "C-M-r" 'puni-raise
 		 "C-M-s" 'delete-pair
+		 "C-M-r" 'puni-raise
 
 		 "C-(" 'puni-slurp-backward
 		 "C-)" 'puni-slurp-forward
@@ -803,6 +803,20 @@
 
 (use-package magit
   :ensure t)
+
+(use-package lisp-mode
+  :defer t
+  :config
+  (advice-add 'lisp-indent-region
+	      :before
+	      (defun advice--join-trailing-parens (beg end)
+		(save-excursion
+		  (goto-char beg)
+		  (while (re-search-forward "\n[[:blank:]]*)" end t)
+		    (unless (save-excursion
+			      (forward-line -1)
+			      (ignore-errors (comment-search-forward (pos-eol))))
+		      (replace-match ")")))))))
 
 (use-package project
   :defer t
@@ -835,40 +849,42 @@
     :config
     (setopt nov-variable-pitch nil)))
 
-(use-package lisp-mode
-  :defer t
-  :config
-  (advice-add 'lisp-indent-region
-	      :before
-	      (lambda (beg end)
-		(save-excursion
-		  (goto-char beg)
-		  (while (re-search-forward "\n[[:blank:]]*)" end t)
-		    (replace-match ")"))))))
-
 (progn
   (use-package auctex
     :defer t
     :ensure t
     :config
-    (setopt TeX-output-dir "build"))
+    (setopt TeX-output-dir "build"
+	    LaTeX-item-indent 0)
+
+    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+	  TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view)))
+
+    (keymap-unset LaTeX-mode-map "C-j"))
 
   (use-package tex-parens
     :defer t
+    :after (puni auctex)
     :ensure t
 
     :init
     (add-hook 'TeX-mode-hook 'tex-parens-mode)
 
     :config
-    (setopt LaTeX-item-indent 0)
+    (advice-add 'tex-parens-delete-pair :around 'advice--keep-region-active)
 
-    (keymap-unset LaTeX-mode-map "C-j")
+    (keymap-set! tex-parens-mode-map
+		 "<remap> <puni-forward-sexp>" 'tex-parens-forward-sexp
+		 "<remap> <puni-backward-sexp>" 'tex-parens-backward-sexp
+		 "<remap> <puni-raise>" 'tex-parens-raise-sexp
+		 "<remap> <puni-end-of-sexp>" 'tex-parens-end-of-list
+		 "<remap> <puni-beginning-of-sexp>" 'tex-parens-beginning-of-list))
 
-    (with-eval-after-load 'puni
-      (keymap-set! tex-parens-mode-map
-		   "<remap> <puni-forward-sexp>" 'tex-parens-forward-sexp
-		   "<remap> <puni-backward-sexp>" 'tex-parens-backward-sexp
-		   "<remap> <puni-raise>" 'tex-parens-raise-sexp
-		   "<remap> <puni-end-of-sexp>" 'tex-parens-end-of-list
-		   "<remap> <puni-beginning-of-sexp>" 'tex-parens-beginning-of-list))))
+  (use-package pdf-tools
+    :ensure t
+    :defer t
+    :init (pdf-tools-install)
+    :config
+    (setopt pdf-view-continuous nil
+	    pdf-view-display-size 'fit-height
+	    pdf-view-resize-factor 1.1)))
