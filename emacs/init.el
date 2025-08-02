@@ -10,7 +10,7 @@
 (use-package use-package
   :config
   (setopt use-always-demand t
-          use-package-enable-imenu-support t))
+	  use-package-enable-imenu-support t))
 
 (use-package package
   :config
@@ -793,7 +793,7 @@
 		 (defun puni-backward-kill-line-to-indent (&optional arg)
 		   (interactive "P")
 		   (let ((indent (save-excursion (back-to-indentation) (point))))
-		     (if (or arg (<= point indent))
+		     (if (or arg (<= (point) indent))
 			 (puni-backward-kill-line arg)
 		       (puni-soft-delete (point) indent 'strict-sexp 'beyond 'kill)))))
 
@@ -849,15 +849,21 @@
 (progn
   (use-package auctex
     :defer t
-    :ensure t)
+    :ensure t
+    :config
+    (setopt TeX-output-dir "build"))
 
   (use-package tex-parens
     :defer t
     :ensure t
-    :config
+
+    :init
     (add-hook 'TeX-mode-hook 'tex-parens-mode)
 
+    :config
     (setopt LaTeX-item-indent 0)
+
+    (keymap-unset LaTeX-mode-map "C-j")
 
     (with-eval-after-load 'puni
       (keymap-set! tex-parens-mode-map
