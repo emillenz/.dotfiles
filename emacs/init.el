@@ -46,7 +46,6 @@
 
   (setopt uniquify-buffer-name-style 'forward
 	  delete-by-moving-to-trash t
-	  copy-region-blink-delay 0
 	  remote-file-name-inhibit-delete-by-moving-to-trash t
 	  ring-bell-function 'ignore
 	  enable-recursive-minibuffers t
@@ -61,13 +60,13 @@
 	  desktop-dirname user-emacs-directory
 	  find-file-visit-truename t
 	  comment-empty-lines nil
-	  show-paren-when-point-inside-paren t
 	  kill-do-not-save-duplicates t
 	  shift-select-mode nil
 	  kmacro-execute-before-append nil
 	  vc-follow-symlinks t
 	  pulse-flag 'default
-	  mark-ring-max 64)
+	  mark-ring-max 64
+	  grep-use-headings t)
 
   (setopt history-length 1000
           history-delete-duplicates t)
@@ -273,20 +272,19 @@
 		 "SPC" 'indent-rigidly-right
 		 "DEL" 'indent-rigidly-left)
 
-    (defvar-keymap transpose-lines-repeat-map
-      :repeat t
-      "C-t" 'transpose-lines)
-
-    (defvar-keymap kill-current-buffer-repeat-map
-      :repeat t
-      "k" 'kill-current-buffer
-      "C-b" 'switch-to-other-buffer
-      "b" 'switch-to-buffer)
-
     (progn
-      (put 'first-error 'repeat-map 'next-error-repeat-map)
-      (keymap-set! next-error-repeat-map "M-<" 'first-error)
-      (keymap-set! goto-map "M-<" 'first-error))))
+      (defvar-keymap transpose-lines-repeat-map
+	:repeat t
+	"C-t" 'transpose-lines)
+
+      (defvar-keymap kill-current-buffer-repeat-map
+	:repeat t
+	"k" 'kill-current-buffer)
+
+      (progn
+	(put 'first-error 'repeat-map 'next-error-repeat-map)
+	(keymap-set! next-error-repeat-map "M-<" 'first-error)
+	(keymap-set! goto-map "M-<" 'first-error)))))
 
 (use-package hippie-exp
   :config
@@ -508,7 +506,8 @@
           dired-create-destination-dirs 'ask
           dired-vc-rename-file t
           dired-auto-revert-buffer 'dired-directory-changed-p
-          dired-create-destination-dirs-on-trailing-dirsep t)
+          dired-create-destination-dirs-on-trailing-dirsep t
+	  dired-movement-style 'bounded)
 
   (keymap-set! dired-mode-map
 	       "b" 'dired-up-directory)
@@ -762,15 +761,16 @@
   :init
   (puni-global-mode)
 
-  (setopt puni-blink-for-sexp-manipulating nil
-	  delete-pair-blink-delay 0)
+  (setopt copy-region-blink-delay 0
+	  delete-pair-blink-delay 0
+	  puni-blink-for-sexp-manipulating nil)
 
   (advice-add 'puni-kill-line
 	      :around
 	      (lambda (fn &rest args)
 		(save-excursion
 		  (apply fn args))))
-	     
+
   (advice-add 'delete-pair
 	      :around
 	      (lambda (fn &rest args)
@@ -793,7 +793,7 @@
 		 (defun puni-backward-kill-line-to-indent (&optional arg)
 		   (interactive "P")
 		   (let ((indent (save-excursion (back-to-indentation) (point))))
-		     (if (or arg (<= (point) indent))
+		     (if (or arg (<= point indent))
 			 (puni-backward-kill-line arg)
 		       (puni-soft-delete (point) indent 'strict-sexp 'beyond 'kill)))))
 
@@ -808,6 +808,7 @@
   :defer t
   :config
   (setopt project-switch-commands 'project-find-file
+	  project-switch-use-entire-map t
 	  project-mode-line t))
 
 (use-package tramp
@@ -844,7 +845,6 @@
 		  (goto-char beg)
 		  (while (re-search-forward "\n[[:blank:]]*)" end t)
 		    (replace-match ")"))))))
-
 
 (progn
   (use-package auctex
