@@ -203,9 +203,6 @@
 
 		 "M-SPC" 'mark-word
 
-		 "C-M-{" 'beginning-of-defun
-		 "C-M-}" 'end-of-defun
-
 		 "<remap> <open-line>"
 		 (defun open-line-dwim (&optional arg)
 		   (interactive "p")
@@ -794,6 +791,9 @@
     (keymap-set! puni-mode-map
 		 "C-M-s" 'delete-pair
 		 "C-M-r" 'puni-raise
+
+		 "C-M-{" 'beginning-of-defun
+		 "C-M-}" 'end-of-defun
 
 		 "C-(" 'puni-slurp-backward
 		 "C-)" 'puni-slurp-forward
