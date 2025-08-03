@@ -20,26 +20,38 @@
 
 (use-package emacs
   :config
-  (global-auto-revert-mode)
-  (global-visual-line-mode)
-  (column-number-mode)
-  (global-subword-mode)
-  (electric-indent-mode)
-  (electric-pair-mode)
-  (save-place-mode)
-  (auto-save-visited-mode)
-  (kill-ring-deindent-mode)
-  (recentf-mode)
-  (repeat-mode)
 
-  (tool-bar-mode -1)
-  (menu-bar-mode -1)
-  (blink-cursor-mode -1)
-  (scroll-bar-mode -1)
-  (scroll-bar-mode -1)
-  (horizontal-scroll-bar-mode -1)
-  (tooltip-mode -1)
-  (fringe-mode 0)
+  (progn
+    (setopt line-spacing (/ 1.0 5))
+    (apply 'set-face-attribute
+	   'default
+	   nil
+	   :height 100
+	   (when (find-font (font-spec :family "Aporetic Sans Mono"))
+	     '(:family "Aporetic Sans Mono")))
+
+    (progn
+      (tool-bar-mode -1)
+      (menu-bar-mode -1)
+      (blink-cursor-mode -1)
+      (scroll-bar-mode -1)
+      (scroll-bar-mode -1)
+      (horizontal-scroll-bar-mode -1)
+      (tooltip-mode -1)
+      (fringe-mode 0)))
+
+  (progn
+    (global-auto-revert-mode)
+    (global-visual-line-mode)
+    (column-number-mode)
+    (global-subword-mode)
+    (electric-indent-mode)
+    (electric-pair-mode)
+    (save-place-mode)
+    (auto-save-visited-mode)
+    (recentf-mode)
+    (repeat-mode)
+    (kill-ring-deindent-mode))
 
   (setopt user-full-name "emil lenz"
 	  user-mail-address "emillenz@protonmail.com")
@@ -164,9 +176,12 @@
                 (with-undo-amalgamate
                   (apply fn args))))
 
-  (defun advice--keep-region-active (fn &rest args)
-    (let ((deactivate-mark nil))
-      (apply fn args)))
+  (defun advice-add-keep-region-active (fn)
+    (advice-add fn
+		:around
+		(defun advice--keep-region-active (fn- &rest args)
+		  (let ((deactivate-mark nil))
+		    (apply fn- args)))))
 
   (progn
     (defmacro keymap-set! (keymap &rest pairs)
@@ -328,10 +343,6 @@
     (setopt org-src-window-setup 'current-window
 	    org-agenda-window-setup 'current-window
 	    org-use-fast-todo-selection 'expert)))
-
-(progn
-  (setopt line-spacing (/ 1.0 5))
-  (add-to-list 'default-frame-alist '(font . "Aporetic Sans Mono 10")))
 
 (use-package modus-themes
   :init
@@ -554,7 +565,7 @@
 	    org-fontify-quote-and-verse-blocks t
 	    org-hide-emphasis-markers t
 	    org-pretty-entities t
-	    org-startup-folded 'nofold
+	    org-startup-folded nil
 	    org-list-demote-modify-bullet
 	    '(("-" . "-")
 	      ("1." . "1.")))
@@ -666,12 +677,12 @@
 				"events"
 				:template
 				("* %^{title}"
-				   "SCHEDULED: %^t"
-				   ":PROPERTIES:"
-				   ":date: %u"
-				   ":location: %^{location}"
-				   ":requisites: %^{requisites}"
-				   ":END:")))))
+				 "SCHEDULED: %^t"
+				 ":PROPERTIES:"
+				 ":date: %u"
+				 ":location: %^{location}"
+				 ":requisites: %^{requisites}"
+				 ":END:")))))
 
 	     (note (lambda (&rest properties)
 		     (append `("note" :keys "n")
@@ -775,7 +786,7 @@
 		(save-excursion
 		  (apply fn args))))
 
-  (advice-add 'delete-pair :around 'advice--keep-region-active)
+  (advice-add-keep-region-active 'delete-pair)
 
   (progn
     (keymap-unset puni-mode-map "C-c DEL" t)
@@ -873,7 +884,7 @@
     (add-hook 'TeX-mode-hook 'tex-parens-mode)
 
     :config
-    (advice-add 'tex-parens-delete-pair :around 'advice--keep-region-active)
+    (advice-add-keep-region-active 'tex-parens-delete-pair)
 
     (keymap-set! tex-parens-mode-map
 		 "<remap> <puni-forward-sexp>" 'tex-parens-forward-sexp
