@@ -23,12 +23,8 @@
 
   (progn
     (setopt line-spacing (/ 1.0 5))
-    (apply 'set-face-attribute
-	   'default
-	   nil
-	   :height 100
-	   (when (find-font (font-spec :family "Aporetic Sans Mono"))
-	     '(:family "Aporetic Sans Mono")))
+    (set-face-attribute 'default nil :height 100)
+    (add-to-list 'default-frame-alist '(font . "Aporetic Sans Mono-10"))
 
     (progn
       (tool-bar-mode -1)
@@ -255,25 +251,20 @@
 			    (delete-blank-lines))
 			   (t (call-interactively 'cycle-spacing))))))
 
-    (progn
-     (keymap-set! global-map
-		  "C-j"
-		  (defun mark-line (&optional arg)
-		    (interactive "p")
-		    (unless (region-active-p)
-		      (push-mark nil nil t))
-		    (when (< (mark) (point))
-		      (exchange-point-and-mark))
-		    (unless (bolp) (forward-line 0))
-		    (set-mark
-		     (save-excursion
-		       (goto-char (mark))
-		       (forward-line arg)
-		       (point)))))
-
-     (add-hook 'after-change-major-mode-hook
-	       (defun hook--mark-line-binding ()
-		 (keymap-local-unset "C-j"))))
+    (keymap-set! override-global-map
+		 "C-j"
+		 (defun mark-line (&optional arg)
+		   (interactive "p")
+		   (unless (region-active-p)
+		     (push-mark nil nil t))
+		   (when (< (mark) (point))
+		     (exchange-point-and-mark))
+		   (unless (bolp) (forward-line 0))
+		   (set-mark
+		    (save-excursion
+		      (goto-char (mark))
+		      (forward-line arg)
+		      (point)))))
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open
@@ -366,17 +357,18 @@
   :config
   (setopt register-use-preview 'never)
 
-  (defun buffer-to-register (reg buffer)
+  (defun buffer-to-register (char buffer)
     (interactive (list (register-read-with-preview "Buffer to register: ")
 		       (current-buffer)))
-    (set-register reg `(buffer . ,buffer)))
+    (set-register char `(buffer . ,buffer)))
 
   (progn
-    (buffer-to-register ?o "*Occur*")
-    (buffer-to-register ?s "*scratch*")
-    (buffer-to-register ?c "*compilation*")
-    (buffer-to-register ?h "*Help*")
-    (set-register ?i `(file . ,user-init-file)))
+    (seq-do (lambda (args) (apply 'buffer-to-register args))
+	     '((?O "*Occur*")
+	       (?S "*scratch*")
+	       (?C "*compilation*")
+	       (?H "*Help*")))
+    (set-register ?I `(file . ,user-init-file)))
 
   (defun point-to-register-dwim ()
     (interactive)
@@ -572,7 +564,7 @@
 	    org-fontify-quote-and-verse-blocks t
 	    org-hide-emphasis-markers t
 	    org-pretty-entities t
-	    org-startup-folded nil
+	    org-startup-folded 'nofold
 	    org-list-demote-modify-bullet
 	    '(("-" . "-")
 	      ("1." . "1.")))
@@ -622,17 +614,25 @@
     (keymap-set! org-mode-map
 		 "<remap> <org-transpose-element>" 'transpose-sexps
 
-		 "M-}" 'org-forward-paragraph
-		 "M-{" 'org-backward-paragraph
+		 "<remap> <forward-paragraph>" 'org-forward-paragraph
+		 "<remap> <backward-paragraph>" 'org-backward-paragraph
+
 		 "M-n" 'org-forward-element
 		 "M-p" 'org-backward-element
 
-		 "M-m"
+		 "<remap> <back-to-indentation>"
 		 (defun org-back-to-indentation ()
 		   (interactive)
 		   (let ((org-special-ctrl-a/e t)
 			 (visual-line-mode nil))
-		     (call-interactively 'org-beginning-of-line))))
+		     (call-interactively 'org-beginning-of-line)))
+
+		 "<remap> <puni-kill-line>"
+		 (defun puni-org-kill-line-dwim (&optional arg)
+		   (interactive)
+		   (call-interactively (if (puni-beginning-pos-of-sexp-around-point)
+					   'puni-kill-line
+					 'org-kill-line))))
 
     (keymap-set! org-src-mode-map
 		 "C-c C-c" 'org-edit-src-exit)
@@ -645,15 +645,7 @@
       "C-f" 'org-forward-heading-same-level
       "C-u" 'outline-up-heading
       "C-^" 'org-up-element
-      "C-_" 'org-down-element)
-
-    (keymap-set! org-mode-map
-		 "<remap> <puni-kill-line>"
-		 (defun puni-org-kill-line-dwim (&optional arg)
-		   (interactive)
-		   (call-interactively (if (puni-beginning-pos-of-sexp-around-point)
-					   'puni-kill-line
-					 'org-kill-line)))))
+      "C-_" 'org-down-element))
 
   (use-package org-reverse-datetree
     :ensure t
