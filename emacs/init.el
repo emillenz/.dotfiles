@@ -253,21 +253,27 @@
 						 (thing-at-point 'line))
 				 (> arg 0))
 			    (delete-blank-lines))
-			   (t (call-interactively 'cycle-spacing)))))
+			   (t (call-interactively 'cycle-spacing))))))
 
-		 "C-j"
-		 (defun mark-line (&optional arg)
-		   (interactive "p")
-		   (unless (region-active-p)
-		     (push-mark nil nil t))
-		   (when (< (mark) (point))
-		     (exchange-point-and-mark))
-		   (unless (bolp) (forward-line 0))
-		   (set-mark
-		    (save-excursion
-		      (goto-char (mark))
-		      (forward-line arg)
-		      (point)))))
+    (progn
+     (keymap-set! global-map
+		  "C-j"
+		  (defun mark-line (&optional arg)
+		    (interactive "p")
+		    (unless (region-active-p)
+		      (push-mark nil nil t))
+		    (when (< (mark) (point))
+		      (exchange-point-and-mark))
+		    (unless (bolp) (forward-line 0))
+		    (set-mark
+		     (save-excursion
+		       (goto-char (mark))
+		       (forward-line arg)
+		       (point)))))
+
+     (add-hook 'after-change-major-mode-hook
+	       (defun hook--mark-line-binding ()
+		 (keymap-local-unset "C-j"))))
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open
@@ -874,11 +880,7 @@
 	    LaTeX-item-indent 0)
 
     (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-	  TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view)))
-
-    (add-hook 'LaTeX-mode-hook
-	      (defun hook--keymap-unset ()
-		(keymap-local-unset "C-j"))))
+	  TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))))
 
   (use-package tex-parens
     :defer t
