@@ -209,8 +209,8 @@
 		   (if (equal (point) (save-excursion
 					(back-to-indentation)
 					(point)))
-		       (split-line arg)
-		     (save-excursion (newline arg))))
+		       (call-interactively 'split-line)
+		     (save-excursion (call-interactively 'newline))))
 
 		 "<remap> <comment-dwim>"
 		 (defun comment-line-dwim (&optional arg)
@@ -224,31 +224,36 @@
 		 (defun eval-last-sexp-dwim (&optional arg)
 		   (interactive "P")
 		   (if (use-region-p)
-		       (progn
+		       (let ((deactivate-mark t))
 			 (eval-region (region-beginning)
 				      (region-end)
-				      standard-output)
-			 (deactivate-mark))
+				      standard-output))
 		     (call-interactively 'eval-last-sexp)))
 
 		 "<remap> <kmacro-end-and-call-macro>"
 		 (defun kmacro-call-dwim (&optional arg)
 		   (interactive)
 		   (with-undo-amalgamate
-		     (if (use-region-p)
-			 (progn
-			   (call-interactively 'apply-macro-to-region-lines)
-			   (deactivate-mark))
-		       (call-interactively 'kmacro-end-and-call-macro))))
+		     (let ((deactivate-mark t))
+		       (call-interactively
+			(if (use-region-p)
+			    'apply-macro-to-region-lines
+			  'kmacro-end-and-call-macro)))))
 
 		 "<remap> <delete-horizontal-space>"
 		 (defun delete-space-dwim (&optional arg)
 		   (interactive "p")
-		   (call-interactively
-		    (if (and (string-match-p "\\`[[:blank:]]*$" (thing-at-point 'line))
-			     (> arg 0))
-			'delete-blank-lines
-		      'cycle-spacing)))
+		   (let ((blank-line-regexp "^[[:blank:]]*$"))
+		     (cond ((use-region-p)
+			    (save-mark-and-excursion
+			      (delete-matching-lines blank-line-regexp
+						     (region-beginning)
+						     (- (region-end) 1))))
+			   ((and (string-match-p blank-line-regexp
+						 (thing-at-point 'line))
+				 (> arg 0))
+			    (delete-blank-lines))
+			   (t (call-interactively 'cycle-spacing)))))
 
 		 "C-j"
 		 (defun mark-line (&optional arg)
@@ -775,7 +780,8 @@
 
   (setopt copy-region-blink-delay 0
 	  delete-pair-blink-delay 0
-	  puni-blink-for-sexp-manipulating nil)
+	  puni-blink-for-sexp-manipulating nil
+	  puni-confirm-when-delete-unbalanced-active-region nil)
 
   (advice-add 'puni-kill-line
 	      :around
@@ -805,7 +811,7 @@
 		   (interactive "P")
 		   (let ((indent (save-excursion (back-to-indentation) (point))))
 		     (if (or arg (<= (point) indent))
-			 (puni-backward-kill-line arg)
+			 (call-interactively 'puni-backward-kill-line)
 		       (puni-soft-delete (point) indent 'strict-sexp 'beyond 'kill)))))
 
     (keymap-set! lisp-mode-shared-map
