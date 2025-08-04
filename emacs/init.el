@@ -271,7 +271,6 @@
 
     (keymap-set! ctl-x-map
 		 "f" 'recentf-open
-		 "C-z" 'shell
 
 		 "C-b"
 		 (defun switch-to-other-buffer ()
