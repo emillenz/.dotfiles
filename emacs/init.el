@@ -564,7 +564,7 @@
 	    org-fontify-quote-and-verse-blocks t
 	    org-hide-emphasis-markers t
 	    org-pretty-entities t
-	    org-startup-folded 'nofold
+	    org-startup-folded nil
 	    org-list-demote-modify-bullet
 	    '(("-" . "-")
 	      ("1." . "1.")))
@@ -581,7 +581,7 @@
     (progn
       (setopt org-todo-keywords
 	      `((sequence
-		 "[ ](t)"
+		 "[_](_)"
 		 "[?](?)"
 		 "[+](+)"
 		 "[-](-)"
