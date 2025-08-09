@@ -591,7 +591,7 @@
 		 "[X](x!)"
 		 "[\\](\\!)")))
 
-      (setopt org-log-into-drawer "LOG"
+      (setopt org-log-into-drawer t
 	      org-log-note-headings
 	      '((done		.	"%t :: %s")
 		(state		.	"%t :: %s")
