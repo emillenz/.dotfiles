@@ -47,7 +47,8 @@
     (auto-save-visited-mode)
     (recentf-mode)
     (repeat-mode)
-    (kill-ring-deindent-mode))
+    ;; (kill-ring-deindent-mode)
+    )
 
   (setopt user-full-name "emil lenz"
 	  user-mail-address "emillenz@protonmail.com")
@@ -844,15 +845,15 @@
   (setopt tramp-auto-save-directory (file-name-concat user-emacs-directory
 						      "tramp-autosave/")))
 
-(use-package whisper
-  :ensure t
-  :defer t
-  :vc (:url "https://github.com/natrys/whisper.el")
-  :config
-  (add-hook 'whisper-after-transcription-hook
-	    (lambda ()
-	      (downcase-region (point-min) (point-max))
-	      (repunctuate-sentences t (point-min) (point-max)))))
+;; (use-package whisper
+;;   :ensure t
+;;   :defer t
+;;   :vc (:url "https://github.com/natrys/whisper.el")
+;;   :config
+;;   (add-hook 'whisper-after-transcription-hook
+;; 	    (lambda ()
+;; 	      (downcase-region (point-min) (point-max))
+;; 	      (repunctuate-sentences t (point-min) (point-max)))))
 
 (progn
   (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
@@ -891,11 +892,12 @@
 		 "<remap> <puni-end-of-sexp>" 'tex-parens-end-of-list
 		 "<remap> <puni-beginning-of-sexp>" 'tex-parens-beginning-of-list))
 
-  (use-package pdf-tools
-    :ensure t
-    :defer t
-    :init (pdf-tools-install)
-    :config
-    (setopt pdf-view-continuous nil
-	    pdf-view-display-size 'fit-height
-	    pdf-view-resize-factor 1.1)))
+  ;; (use-package pdf-tools
+  ;;   :ensure t
+  ;;   :defer t
+  ;;   :init (pdf-tools-install)
+  ;;   :config
+  ;;   (setopt pdf-view-continuous nil
+  ;; 	    pdf-view-display-size 'fit-height
+  ;; 	    pdf-view-resize-factor 1.1))
+  )
