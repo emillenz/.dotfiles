@@ -162,7 +162,7 @@
 
 	    (advice-add fn
 			:after
-			(defun advice--indent-yanked-region (&rest _)
+			(defun advice--indent-inserted-region (&rest _)
 			  (call-interactively 'indent-region))))
 	  '(yank
 	    yank-from-kill-ring
@@ -580,7 +580,7 @@
     (progn
       (setopt org-todo-keywords
 	      `((sequence
-		 "[_](_)"
+		 "[ ](_)"
 		 "[?](?)"
 		 "[+](+)"
 		 "[-](-)"
@@ -591,7 +591,7 @@
 		 "[X](x!)"
 		 "[\\](\\!)")))
 
-      (setopt org-log-into-drawer "LOG"
+      (setopt org-log-into-drawer t
 	      org-log-note-headings
 	      '((done		.	"%t :: %s")
 		(state		.	"%t :: %s")
