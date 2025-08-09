@@ -160,17 +160,21 @@
 			    (apply fn args)
 			    (when text (kill-new text)))))
 
-	    (advice-add fn :after
+	    (advice-add fn
+			:after
 			(defun advice--indent-yanked-region (&rest _)
 			  (call-interactively 'indent-region))))
 	  '(yank
 	    yank-from-kill-ring))
 
-  (advice-add 'query-replace-regexp
-	      :around
-              (defun advice--with-undo-amalgamate (fn &rest args)
-                (with-undo-amalgamate
-                  (apply fn args))))
+  (seq-do (lambda (f)
+	    (advice-add f
+			:around
+			(defun advice--with-undo-amalgamate (fn &rest args)
+			  (with-undo-amalgamate
+			    (apply fn args)))))
+	  '(query-replace-regexp
+	    query-replace))
 
   (defun advice-add-keep-region-active (fn)
     (advice-add fn
@@ -449,10 +453,6 @@
 
     (define-keymap :keymap query-replace-map
       :parent self-insert-ignored-map))
-
-  (keymap-set! global-map
-	       "<remap> <query-replace>" 'query-replace-regexp
-	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
 
   (keymap-set! query-replace-map
 	       "p" 'backup))
@@ -774,6 +774,7 @@
   :ensure t
   :init
   (puni-global-mode)
+  (add-hook 'calc-mode-hook 'puni-disable-puni-mode)
 
   (setopt copy-region-blink-delay 0
 	  delete-pair-blink-delay 0
