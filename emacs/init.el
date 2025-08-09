@@ -160,18 +160,22 @@
 			    (apply fn args)
 			    (when text (kill-new text)))))
 
-	    (advice-add fn :after
+	    (advice-add fn
+			:after
 			(defun advice--indent-yanked-region (&rest _)
 			  (call-interactively 'indent-region))))
 	  '(yank
 	    yank-from-kill-ring
 	    insert-register))
 
-  (advice-add 'query-replace-regexp
-	      :around
-              (defun advice--with-undo-amalgamate (fn &rest args)
-                (with-undo-amalgamate
-                  (apply fn args))))
+  (seq-do (lambda (f)
+	    (advice-add f
+			:around
+			(defun advice--with-undo-amalgamate (fn &rest args)
+			  (with-undo-amalgamate
+			    (apply fn args)))))
+	  '(query-replace-regexp
+	    query-replace))
 
   (defun advice-add-keep-region-active (fn)
     (advice-add fn
@@ -242,12 +246,10 @@
 		   (interactive "p")
 		   (let ((blank-line-regexp "^[[:blank:]]*$"))
 		     (cond ((use-region-p)
-			    (save-mark-and-excursion
-			      (delete-matching-lines blank-line-regexp
-						     (region-beginning)
-						     (- (region-end) 1))))
-			   ((and (string-match-p blank-line-regexp
-						 (thing-at-point 'line))
+			    (delete-matching-lines blank-line-regexp
+						   (region-beginning)
+						   (- (region-end) 1)))
+			   ((and (string-blank-p (thing-at-point 'line))
 				 (> arg 0))
 			    (delete-blank-lines))
 			   (t (call-interactively 'cycle-spacing))))))
@@ -451,10 +453,6 @@
     (define-keymap :keymap query-replace-map
       :parent self-insert-ignored-map))
 
-  (keymap-set! global-map
-	       "<remap> <query-replace>" 'query-replace-regexp
-	       "<remap> <isearch-query-replace>" 'isearch-query-replace-regexp)
-
   (keymap-set! query-replace-map
 	       "p" 'backup))
 
@@ -565,7 +563,7 @@
 	    org-fontify-quote-and-verse-blocks t
 	    org-hide-emphasis-markers t
 	    org-pretty-entities t
-	    org-startup-folded 'nofold
+	    org-startup-folded nil
 	    org-list-demote-modify-bullet
 	    '(("-" . "-")
 	      ("1." . "1.")))
@@ -582,7 +580,7 @@
     (progn
       (setopt org-todo-keywords
 	      `((sequence
-		 "[ ](t)"
+		 "[_](_)"
 		 "[?](?)"
 		 "[+](+)"
 		 "[-](-)"
@@ -776,6 +774,7 @@
   :ensure t
   :init
   (puni-global-mode)
+  (add-hook 'calc-mode-hook 'puni-disable-puni-mode)
 
   (setopt copy-region-blink-delay 0
 	  delete-pair-blink-delay 0
