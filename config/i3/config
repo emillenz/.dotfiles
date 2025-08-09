@@ -28,7 +28,6 @@ set $SHCMD_ALWAYS exec_always --no-startup-id
 $SHCMD_ALWAYS emacsclient --reuse-frame \
 	|| (emacs --daemon && emacsclient --create-frame)
 $SHCMD_ALWAYS pgrep firefox || firefox
-$SHCMD_ALWAYS pgrep thunderbird || thunderbird
 $SHCMD_ALWAYS pgrep -x keepassxc || keepassxc
 
 $SHCMD_ALWAYS pgrep unclutter || unclutter

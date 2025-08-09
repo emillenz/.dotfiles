@@ -153,7 +153,7 @@
   (seq-do (lambda (fn)
 	    (advice-add fn
 			:around
-			(defun advice--yank-over-region (fn &rest args)
+			(defun advice--insert-over-region (fn &rest args)
 			  (let ((text (when (use-region-p)
 					(delete-and-extract-region (region-beginning)
 								   (region-end)))))
@@ -164,7 +164,8 @@
 			(defun advice--indent-yanked-region (&rest _)
 			  (call-interactively 'indent-region))))
 	  '(yank
-	    yank-from-kill-ring))
+	    yank-from-kill-ring
+	    insert-register))
 
   (advice-add 'query-replace-regexp
 	      :around
@@ -658,9 +659,10 @@
     (setopt
      org-capture-templates
      (doct
-      (let* ((todo (lambda (&rest properties)
+      (let* ((todo (lambda (&optional dir &rest properties)
 		     (append `("todo" :keys "t")
 			     properties
+			     (when dir (list :file (file-name-concat dir "agenda.org")))
 			     `(:headline
 			       "agenda"
 			       :template
@@ -669,9 +671,10 @@
 				":date: %u"
 				":END:")))))
 
-	     (event (lambda (&rest properties)
+	     (event (lambda (&optional dir &rest properties)
 		      (append `("event" :keys "e")
 			      properties
+			      (when dir (list :file (file-name-concat dir "agenda.org")))
 			      `(:headline
 				"events"
 				:template
@@ -683,9 +686,10 @@
 				 ":requisites: %^{requisites}"
 				 ":END:")))))
 
-	     (note (lambda (&rest properties)
+	     (note (lambda (&optional dir &rest properties)
 		     (append `("note" :keys "n")
 			     properties
+			     (when dir (list :file (file-name-concat dir "notes.org")))
 			     `(:headline
 			       "notes"
 			       :template
@@ -693,9 +697,7 @@
 				":PROPERTIES:"
 				":date: %u"
 				":END:"
-				"%?")))))
-
-	     (agenda-file-name "agenda.org"))
+				"%?"))))))
 
 	`((:group
 	   "all"
@@ -703,37 +705,37 @@
 	   :empty-lines 1
 
 	   :children
-	   (("personal" :keys "p"
-	     :file ,(file-name-concat "~/Documents/personal/" agenda-file-name)
-	     :children ,(seq-map 'funcall (list todo note event)))
+	   (,@(let ((dir "~/Documents/personal/org"))
+		`(("agenda" :keys "a"
+		   :children ,(seq-map (lambda (f)
+					 (funcall f dir))
+				       (list todo event note)))
 
-	    ("wiki" :keys "w"
-	     :file ,(file-name-concat "~/Documents/wiki/" agenda-file-name)
-	     :children ,(seq-map 'funcall (list todo note)))
+		  ("journal" :keys "j"
+		   :function (lambda () (org-reverse-datetree-2 nil '("[%Y-%m-%d %A]")))
+		   :file ,(file-name-concat dir "journal.org")
+		   :children (,(funcall todo nil :headline nil)
+			      ,(funcall note nil :headline nil :prepend nil)))))
 
-	    ,(let ((directory "~/Documents/uni/cs/s4/"))
+	    ,(let ((dir "~/Documents/uni/cs/s4/"))
 	       `("uni" :keys "u"
-		 :file ,(file-name-concat directory agenda-file-name)
 		 :children
-		 (,@(seq-map 'funcall (list todo event))
+		 (,@(seq-map (lambda (f)
+			       (funcall f dir))
+			     (list todo event))
 
 		  ,@(seq-map (lambda (name)
 			       `(,name :keys ,(downcase (substring name 0 1))
-				       :file ,(file-name-concat directory name agenda-file-name)
-				       :children ,(seq-map 'funcall (list todo note))))
+				       :children ,(seq-map (lambda (f)
+							     (funcall f (file-name-concat dir name)))
+							   (list todo note))))
 			     '("FMFP" "PS" "DMDB" "CN")))))
-
-	    ("journal" :keys "j"
-	     :function (lambda () (org-reverse-datetree-2 nil '("[%Y-%m-%d %A]")))
-	     :file "~/Documents/personal/journal/journal.org"
-	     :children (,(funcall todo :headline nil)
-			,(funcall note :headline nil :prepend nil)))
 
 	    ,(let* ((file "~/Documents/literature/literature.org"))
 	       `("literature" :keys "l"
 		 :file ,file
 		 :children
-		 (,(funcall todo)
+		 (,(funcall todo nil)
 
 		  ("add source" :keys "a"
 		   :headline "sources"
@@ -768,7 +770,7 @@
 		      "%?"
 		      "#+end_quote"))
 
-		    ,(funcall note :headline nil))))))))))))))
+		    ,(funcall note nil :headline nil))))))))))))))
 
 (use-package puni
   :ensure t
