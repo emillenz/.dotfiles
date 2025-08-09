@@ -245,12 +245,10 @@
 		   (interactive "p")
 		   (let ((blank-line-regexp "^[[:blank:]]*$"))
 		     (cond ((use-region-p)
-			    (save-mark-and-excursion
-			      (delete-matching-lines blank-line-regexp
-						     (region-beginning)
-						     (- (region-end) 1))))
-			   ((and (string-match-p blank-line-regexp
-						 (thing-at-point 'line))
+			    (delete-matching-lines blank-line-regexp
+						   (region-beginning)
+						   (- (region-end) 1)))
+			   ((and (string-blank-p (thing-at-point 'line))
 				 (> arg 0))
 			    (delete-blank-lines))
 			   (t (call-interactively 'cycle-spacing))))))
